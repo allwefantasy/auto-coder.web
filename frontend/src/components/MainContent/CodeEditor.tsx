@@ -5,13 +5,19 @@ const CodeEditor: React.FC = () => {
     <div className="flex flex-col h-full">
       {/* Code Editor Header */}
       <div className="bg-gray-800 p-2 border-b border-gray-700">
-        <div className="flex items-center space-x-4">
-          <button className="px-3 py-1.5 bg-indigo-600 text-white rounded-md font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900">
-            Code
-          </button>
-          <button className="px-3 py-1.5 bg-gray-800 text-gray-300 rounded-md font-medium transition-all duration-200 hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900">
-            Preview
-          </button>
+        <div className="flex items-center">
+          <div className="inline-flex rounded-md shadow-sm" role="group">
+            <button 
+              className="px-2.5 py-1 text-xs font-medium bg-gray-800 text-white border border-gray-600 rounded-l-md hover:bg-gray-700 hover:border-gray-500 focus:z-10 focus:ring-1 focus:ring-blue-400 focus:bg-gray-700"
+            >
+              Code
+            </button>
+            <button 
+              className="px-2.5 py-1 text-xs font-medium bg-gray-800 text-gray-300 border border-l-0 border-gray-600 rounded-r-md hover:bg-gray-700 hover:text-white hover:border-gray-500 focus:z-10 focus:ring-1 focus:ring-blue-400 focus:bg-gray-700"
+            >
+              Preview
+            </button>
+          </div>
         </div>
       </div>
 
