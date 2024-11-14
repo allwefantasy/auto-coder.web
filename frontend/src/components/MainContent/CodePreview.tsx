@@ -36,7 +36,7 @@ const CodeEditor: React.FC = () => {
             <pre className="p-4">
               <code className="text-gray-300 font-mono">
                 // Your code will appear here
-
+                Preview
               </code>
             </pre>
           </div>
