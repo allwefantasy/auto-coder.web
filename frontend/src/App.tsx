@@ -1,26 +1,31 @@
 import React from 'react';
-import logo from './logo.svg';
+import ChatPanel from './components/Sidebar/ChatPanel';
+import CodeEditor from './components/MainContent/CodeEditor';
+import Terminal from './components/Terminal/Terminal';
 import './App.css';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="h-screen flex bg-gray-900">
+      {/* Left Sidebar - Chat */}
+      <div className="w-96 border-r border-gray-700">
+        <ChatPanel />
+      </div>
+
+      {/* Right Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Upper Section - Code Editor */}
+        <div className="flex-1">
+          <CodeEditor />
+        </div>
+
+        {/* Lower Section - Terminal */}
+        <div className="h-1/4 border-t border-gray-700">
+          <Terminal />
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default App;
