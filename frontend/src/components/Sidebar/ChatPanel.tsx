@@ -51,8 +51,11 @@ const ChatPanel: React.FC = () => {
           <h3 className="text-white text-sm font-medium">File Groups</h3>
           <button
             onClick={() => setShowNewGroupInput(true)}
-            className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700"
+            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-200 shadow-lg shadow-indigo-500/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
           >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+            </svg>
             Add Group
           </button>
         </div>
