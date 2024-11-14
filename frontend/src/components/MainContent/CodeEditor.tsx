@@ -1,6 +1,52 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+interface FileItem {
+  type: 'file' | 'directory';
+  name: string;
+  path: string;
+  children?: FileItem[];
+}
 
 const CodeEditor: React.FC = () => {
+  const [fileTree, setFileTree] = useState<FileItem | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFileTree = async () => {
+      setLoading(true);
+      try {
+        const projectPath = localStorage.getItem('projectPath');
+        if (!projectPath) return;
+        
+        const response = await axios.get(`/api/project/structure?path=${encodeURIComponent(projectPath)}`);
+        setFileTree(response.data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load file structure');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFileTree();
+  }, []);
+
+  const renderFileTree = (item: FileItem, depth: number = 0) => {
+    const icon = item.type === 'directory' ? '📁' : '📄';
+    
+    return (
+      <div key={item.path} style={{ paddingLeft: `${depth * 16}px` }}>
+        <div className="text-gray-400 hover:text-white cursor-pointer py-1">
+          <span className="text-sm">{icon} {item.name}</span>
+        </div>
+        {item.type === 'directory' && item.children?.map(child => 
+          renderFileTree(child, depth + 1)
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Code Editor Header */}
@@ -27,13 +73,13 @@ const CodeEditor: React.FC = () => {
           {/* File Tree */}
           <div className="w-48 bg-gray-900 border-r border-gray-700 overflow-y-auto">
             <div className="p-2">
-              <div className="text-gray-400 hover:text-white cursor-pointer">
-                <span className="text-sm">📁 src</span>
-                <div className="pl-4">
-                  <div className="text-sm">📄 index.tsx</div>
-                  <div className="text-sm">📄 App.tsx</div>
-                </div>
-              </div>
+              {loading && (
+                <div className="text-gray-400 text-sm">Loading...</div>
+              )}
+              {error && (
+                <div className="text-red-400 text-sm">{error}</div>
+              )}
+              {fileTree && renderFileTree(fileTree)}
             </div>
           </div>
 
