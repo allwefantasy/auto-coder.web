@@ -35,8 +35,18 @@ const ChatPanel: React.FC = () => {
         <h2 className="text-white text-lg font-semibold">auto-coder.chat</h2>
       </div>
 
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
+        <div className="space-y-4">
+          <div className="bg-gray-800 rounded-lg p-3">
+            <p className="text-gray-300">示例消息</p>
+          </div>
+          {/* 更多消息可以在这里添加 */}
+        </div>
+      </div>
+
       {/* File Groups Section */}
-      <div className="bg-gray-800 p-4 border-b border-gray-700">
+      <div className="bg-gray-800 p-4 border-t border-gray-700">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-white text-sm font-medium">File Groups</h3>
           <button
@@ -89,16 +99,6 @@ const ChatPanel: React.FC = () => {
               </button>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
-        <div className="space-y-4">
-          <div className="bg-gray-800 rounded-lg p-3">
-            <p className="text-gray-300">示例消息</p>
-          </div>
-          {/* 更多消息可以在这里添加 */}
         </div>
       </div>
 
