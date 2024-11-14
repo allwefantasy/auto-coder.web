@@ -1,0 +1,62 @@
+# auto-coder.web
+
+This project is built with:
+- Frontend: React + TypeScript + TailwindCSS
+- Backend: Python
+
+## Development Setup
+
+### Frontend Development
+
+The frontend is set up with the following tech stack:
+- React
+- TypeScript
+- TailwindCSS
+- React Router DOM (v6)
+
+To set up the frontend development environment:
+
+```bash
+make ts
+```
+
+This will:
+1. Create a new React+TypeScript project
+2. Install necessary dependencies
+3. Configure TailwindCSS
+4. Set up initial project structure
+
+### Backend Development
+
+The backend is a Python package that serves the frontend as static files.
+
+### Building and Publishing
+
+To build and publish the project:
+
+```bash
+make release
+```
+
+This will:
+1. Build the frontend
+2. Package static files
+3. Build Python package
+4. Publish to PyPI (if in release mode)
+
+## Project Structure
+
+```
+├── frontend/          # React + TypeScript frontend
+├── src/              # Python backend source
+│   └── auto-coder.web/
+│       ├── web/      # Compiled frontend files
+│       └── version.py
+├── setup.py          # Python package configuration
+├── Makefile         # Build automation
+└── deploy.sh        # Deployment script
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.

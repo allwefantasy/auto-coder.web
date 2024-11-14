@@ -1,0 +1,10 @@
+web/
+logs/
+__pycache__/
+dist/
+build/
+pasted/
+
+.auto-coder/
+actions/
+output.txt

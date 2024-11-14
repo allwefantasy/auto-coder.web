@@ -1,0 +1,10 @@
+README.md
+setup.py
+src/auto_coder.web.egg-info/PKG-INFO
+src/auto_coder.web.egg-info/SOURCES.txt
+src/auto_coder.web.egg-info/dependency_links.txt
+src/auto_coder.web.egg-info/entry_points.txt
+src/auto_coder.web.egg-info/top_level.txt
+src/auto_coder_web/__init__.py
+src/auto_coder_web/proxy.py
+src/auto_coder_web/version.py
