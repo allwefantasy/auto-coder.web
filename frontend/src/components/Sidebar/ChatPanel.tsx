@@ -90,7 +90,7 @@ const ChatPanel: React.FC = () => {
           {fileGroups.map(group => (
             <div 
               key={group.id}
-              className="relative bg-gray-700 p-3 rounded-lg w-[calc(33.33%-0.5rem)]"
+              className="relative bg-gray-700 p-3 rounded-lg w-[calc(50%-0.5rem)]"
             >
               <button
                 onClick={() => deleteGroup(group.id)}
