@@ -56,43 +56,6 @@ class ProxyServer:
         async def get_backend_url():
             return {"backend_url": self.backend_url}
             
-        @self.app.get("/api/project/structure")
-        async def get_project_structure(path: str):
-            def scan_dir(dir_path):
-                try:
-                    items = []
-                    for entry in os.scandir(dir_path):
-                        if entry.name.startswith('.'):
-                            continue
-                        if entry.is_file():
-                            items.append({
-                                "type": "file",
-                                "name": entry.name,
-                                "path": os.path.relpath(entry.path, path)
-                            })
-                        elif entry.is_dir():
-                            items.append({
-                                "type": "directory",
-                                "name": entry.name,
-                                "path": os.path.relpath(entry.path, path),
-                                "children": scan_dir(entry.path)
-                            })
-                    return sorted(items, key=lambda x: (x["type"] == "file", x["name"]))
-                except Exception as e:
-                    print(f"Error scanning directory {dir_path}: {str(e)}")
-                    return []
-            
-            if not os.path.exists(path):
-                raise HTTPException(status_code=404, detail="Path not found")
-                
-            structure = {
-                "type": "directory",
-                "name": os.path.basename(path),
-                "path": ".",
-                "children": scan_dir(path)
-            }
-            return structure
-            
         @self.app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
         async def proxy(request: Request, path: str):
             url = f"{self.backend_url}/{path}"
