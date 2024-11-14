@@ -1,11 +1,95 @@
-import React from 'react';
+import React, { useState } from 'react';
+
+interface FileGroup {
+  id: string;
+  name: string;
+  files: string[];
+}
 
 const ChatPanel: React.FC = () => {
+  const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
+  const [showNewGroupInput, setShowNewGroupInput] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+
+  const addNewGroup = () => {
+    if (newGroupName.trim()) {
+      const newGroup: FileGroup = {
+        id: Date.now().toString(),
+        name: newGroupName,
+        files: []
+      };
+      setFileGroups([...fileGroups, newGroup]);
+      setNewGroupName('');
+      setShowNewGroupInput(false);
+    }
+  };
+
+  const deleteGroup = (groupId: string) => {
+    setFileGroups(fileGroups.filter(group => group.id !== groupId));
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Chat Header */}
       <div className="bg-gray-800 p-4 border-b border-gray-700">
         <h2 className="text-white text-lg font-semibold">auto-coder.chat</h2>
+      </div>
+
+      {/* File Groups Section */}
+      <div className="bg-gray-800 p-4 border-b border-gray-700">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-white text-sm font-medium">File Groups</h3>
+          <button
+            onClick={() => setShowNewGroupInput(true)}
+            className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700"
+          >
+            Add Group
+          </button>
+        </div>
+
+        {showNewGroupInput && (
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              placeholder="Group name"
+              className="flex-1 bg-gray-700 text-white px-2 py-1 rounded-md text-sm"
+            />
+            <button
+              onClick={addNewGroup}
+              className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => {
+                setShowNewGroupInput(false);
+                setNewGroupName('');
+              }}
+              className="bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          {fileGroups.map(group => (
+            <div 
+              key={group.id}
+              className="flex justify-between items-center bg-gray-700 p-2 rounded"
+            >
+              <span className="text-sm text-white">{group.name}</span>
+              <button
+                onClick={() => deleteGroup(group.id)}
+                className="text-red-400 hover:text-red-300 text-xs"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Chat Messages */}
