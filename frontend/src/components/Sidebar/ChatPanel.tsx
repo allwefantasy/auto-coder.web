@@ -86,19 +86,21 @@ const ChatPanel: React.FC = () => {
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="flex flex-wrap gap-2">
           {fileGroups.map(group => (
             <div 
               key={group.id}
-              className="flex justify-between items-center bg-gray-700 p-2 rounded"
+              className="relative bg-gray-700 p-3 rounded-lg w-[calc(50%-0.5rem)]"
             >
-              <span className="text-sm text-white">{group.name}</span>
               <button
                 onClick={() => deleteGroup(group.id)}
-                className="text-red-400 hover:text-red-300 text-xs"
+                className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-red-400 transition-colors"
               >
-                Delete
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
+              <span className="text-sm text-white block mt-1">{group.name}</span>
             </div>
           ))}
         </div>
