@@ -1,76 +1,78 @@
 from fastapi import HTTPException
 from typing import List, Dict, Optional
 import os
-import json
-from .json_file_storage import storage
+from .auto_coder_runner import AutoCoderRunner
 
 class FileGroupManager:
-    _groups: Dict[str, Dict] = {}
-    _initialized = False
-    
+    _runner = None
+
     @classmethod
-    async def _ensure_initialized(cls):
-        if not cls._initialized:
-            cls._groups = await storage.load_file_groups()
-            cls._initialized = True
-    
+    def _ensure_initialized(cls):
+        if cls._runner is None:
+            cls._runner = AutoCoderRunner()
+
     @classmethod
     async def create_group(cls, name: str, description: str) -> Dict:
-        await cls._ensure_initialized()
-        
-        if name in cls._groups:
+        cls._ensure_initialized()
+        group = cls._runner.add_group(name)
+        if group is None:
             raise HTTPException(status_code=400, detail="Group already exists")
-        
-        group = {
+        return {
             "name": name,
             "description": description,
-            "files": []
+            "files": []  
         }
-        cls._groups[name] = group
-        await storage.save_file_groups(cls._groups)
-        return group
     
     @classmethod
     async def delete_group(cls, name: str) -> None:
-        await cls._ensure_initialized()
-        
-        if name not in cls._groups:
+        cls._ensure_initialized()
+        result = cls._runner.remove_group(name) if hasattr(cls._runner, "remove_group") else None
+        if result is None:
             raise HTTPException(status_code=404, detail="Group not found")
-        del cls._groups[name]
-        await storage.save_file_groups(cls._groups)
     
     @classmethod
     async def add_files_to_group(cls, group_name: str, files: List[str]) -> Dict:
-        await cls._ensure_initialized()
-        
-        if group_name not in cls._groups:
+        cls._ensure_initialized()
+        result = cls._runner.add_files_to_group(group_name, files)
+        if result is None:
             raise HTTPException(status_code=404, detail="Group not found")
-        
-        group = cls._groups[group_name]
-        existing_files = set(group["files"])
-        new_files = [f for f in files if f not in existing_files]
-        group["files"].extend(new_files)
-        await storage.save_file_groups(cls._groups)
-        return group
+        return {
+            "name": group_name,
+            "files": result.get("files", [])
+        }
     
     @classmethod
     async def remove_files_from_group(cls, group_name: str, files: List[str]) -> Dict:
-        await cls._ensure_initialized()
-        
-        if group_name not in cls._groups:
+        cls._ensure_initialized()
+        result = cls._runner.remove_files_from_group(group_name, files)
+        if result is None:
             raise HTTPException(status_code=404, detail="Group not found")
-        
-        group = cls._groups[group_name]
-        group["files"] = [f for f in group["files"] if f not in files]
-        await storage.save_file_groups(cls._groups)
-        return group
+        return {
+            "name": group_name,
+            "files": result.get("files", [])
+        }
     
     @classmethod
     async def get_groups(cls) -> List[Dict]:
-        await cls._ensure_initialized()
-        return list(cls._groups.values())
+        cls._ensure_initialized()
+        groups = cls._runner.get_groups()
+        if not groups:
+            return []
+        return [
+            {
+                "name": group_name,
+                "files": cls._runner.get_files_in_group(group_name).get("files", [])
+            }
+            for group_name in groups.get("groups", [])
+        ]
     
     @classmethod
     async def get_group(cls, name: str) -> Optional[Dict]:
-        await cls._ensure_initialized()
-        return cls._groups.get(name)
+        cls._ensure_initialized()
+        files = cls._runner.get_files_in_group(name)
+        if files is None:
+            return None
+        return {
+            "name": name,
+            "files": files.get("files", [])
+        }
