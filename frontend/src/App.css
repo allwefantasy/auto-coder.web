@@ -29,3 +29,35 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* AutoComplete custom styles */
+.custom-autocomplete .ant-select-selector {
+  background-color: #374151 !important;
+  border-color: #4B5563 !important;
+  color: white !important;
+}
+
+.custom-autocomplete .ant-select-selection-placeholder {
+  color: #9CA3AF !important;
+}
+
+.custom-autocomplete .ant-select-selection-search-input {
+  color: white !important;
+}
+
+.custom-autocomplete .ant-select-dropdown {
+  background-color: #374151 !important;
+  border: 1px solid #4B5563 !important;
+}
+
+.custom-autocomplete .ant-select-item {
+  color: white !important;
+}
+
+.custom-autocomplete .ant-select-item-option-active {
+  background-color: #4B5563 !important;
+}
+
+.custom-autocomplete .ant-select-item-option-selected {
+  background-color: #6B7280 !important;
+}
