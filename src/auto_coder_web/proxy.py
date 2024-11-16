@@ -59,7 +59,7 @@ class ProxyServer:
                 raise HTTPException(status_code=400, detail="Project path is required")
                 
             from .project_manager import ProjectManager
-            success = ProjectManager.set_project_path(project_path)
+            success = await ProjectManager.set_project_path(project_path)
             if not success:
                 raise HTTPException(status_code=400, detail="Invalid project path")
                 
@@ -72,13 +72,13 @@ class ProxyServer:
             description = data.get("description", "")
             
             from .file_group import FileGroupManager
-            group = FileGroupManager.create_group(name, description)
+            group = await FileGroupManager.create_group(name, description)
             return group
             
         @self.app.delete("/api/file-groups/{name}")
         async def delete_file_group(name: str):
             from .file_group import FileGroupManager
-            FileGroupManager.delete_group(name)
+            await FileGroupManager.delete_group(name)
             return {"status": "success"}
             
         @self.app.post("/api/file-groups/{name}/files")
@@ -87,7 +87,7 @@ class ProxyServer:
             files = data.get("files", [])
             
             from .file_group import FileGroupManager
-            group = FileGroupManager.add_files_to_group(name, files)
+            group = await FileGroupManager.add_files_to_group(name, files)
             return group
             
         @self.app.delete("/api/file-groups/{name}/files")
@@ -96,13 +96,13 @@ class ProxyServer:
             files = data.get("files", [])
             
             from .file_group import FileGroupManager
-            group = FileGroupManager.remove_files_from_group(name, files)
+            group = await FileGroupManager.remove_files_from_group(name, files)
             return group
             
         @self.app.get("/api/file-groups")
         async def get_file_groups():
             from .file_group import FileGroupManager
-            groups = FileGroupManager.get_groups()
+            groups = await FileGroupManager.get_groups()
             return {"groups": groups}
             
         @self.app.get("/api/files")
@@ -110,7 +110,7 @@ class ProxyServer:
             from .project_manager import ProjectManager
             from .file_manager import get_directory_tree
             
-            project_path = ProjectManager.get_project_path()
+            project_path = await ProjectManager.get_project_path()
             if not project_path:
                 raise HTTPException(status_code=400, detail="Project path not set")
                 
