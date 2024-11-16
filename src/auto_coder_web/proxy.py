@@ -11,7 +11,6 @@ import argparse
 import aiofiles
 import pkg_resources
 from .file_group import FileGroupManager
-from .project_manager import ProjectManager
 from .file_manager import get_directory_tree
 from .auto_coder_runner import AutoCoderRunner
 
@@ -194,7 +193,7 @@ def check_environment():
     return True
 
 class ProxyServer:
-    def __init__(self, quick: bool = False):
+    def __init__(self, project_path:str,quick: bool = False):
         self.app = FastAPI()        
         
         if not quick:
@@ -206,7 +205,10 @@ class ProxyServer:
         self.setup_static_files()
         
         self.setup_routes()
-        self.client = httpx.AsyncClient()            
+        self.client = httpx.AsyncClient() 
+        self.project_path = project_path 
+        self.auto_coder_runner = AutoCoderRunner(project_path)  
+        self.file_group_manager = FileGroupManager(self.auto_coder_runner)                     
         
     def setup_middleware(self):
         self.app.add_middleware(
@@ -238,24 +240,8 @@ class ProxyServer:
             return HTMLResponse(content="<h1>Welcome to Proxy Server</h1>")
             
         @self.app.get("/api/project-path")
-        async def get_project_path():
-            project_path = await ProjectManager.get_project_path()
-            return {"project_path": project_path}
-
-        @self.app.post("/api/project")
-        async def set_project(request: Request):
-            data = await request.json()
-            project_path = data.get("path")            
-            if not project_path:
-                raise HTTPException(status_code=400, detail="Project path is required")
-                            
-            success = await ProjectManager.set_project_path(project_path)
-            if not success:
-                raise HTTPException(status_code=400, detail="Invalid project path")
-
-            self.projects[project_path] = AutoCoderRunner(project_path)    
-                
-            return {"status": "success"}
+        async def get_project_path():            
+            return {"project_path": self.project_path}        
 
         def get_project_runner(project_path: str) -> AutoCoderRunner:
             return self.projects[project_path]    
@@ -265,56 +251,41 @@ class ProxyServer:
             data = await request.json()
             name = data.get("name")
             description = data.get("description", "")                                
-            group = await FileGroupManager().create_group(name, description)
+            group = await self.file_group_manager.create_group(name, description)
             return group
             
         @self.app.delete("/api/file-groups/{name}")
         async def delete_file_group(name: str):
-            await FileGroupManager().delete_group(name)
+            await self.file_group_manager.delete_group(name)
             return {"status": "success"}
             
         @self.app.post("/api/file-groups/{name}/files")
         async def add_files_to_group(name: str, request: Request):
             data = await request.json()
             files = data.get("files", [])                        
-            file_group_manager = FileGroupManager()
-            group = await file_group_manager.add_files_to_group(name, files)
+            group = await self.file_group_manager.add_files_to_group(name, files)
             return group
             
         @self.app.delete("/api/file-groups/{name}/files")
         async def remove_files_from_group(name: str, request: Request):
             data = await request.json()
-            files = data.get("files", [])                        
-            file_group_manager = FileGroupManager()
-            group = await file_group_manager.remove_files_from_group(name, files)
+            files = data.get("files", [])                                    
+            group = await self.file_group_manager.remove_files_from_group(name, files)
             return group
             
         @self.app.get("/api/file-groups")
         async def get_file_groups():            
-            file_group_manager = FileGroupManager()
-            groups = await file_group_manager.get_groups()
+            groups = await self.file_group_manager.get_groups()
             return {"groups": groups}
             
         @self.app.get("/api/files")
-        async def get_files():
-            
-            
-            project_path = await ProjectManager.get_project_path()
-            if not project_path:
-                raise HTTPException(status_code=400, detail="Project path not set")
-                
-            tree = get_directory_tree(project_path)
+        async def get_files():                                                
+            tree = get_directory_tree(self.project_path)
             return {"tree": tree}
 
         @self.app.get("/api/file/{path:path}")
-        async def get_file_content(path: str):
-            from .project_manager import ProjectManager
-            from .file_manager import read_file_content
-            
-            project_path = ProjectManager.get_project_path()
-            if not project_path:
-                raise HTTPException(status_code=400, detail="Project path not set")
-                
+        async def get_file_content(path: str):            
+            from .file_manager import read_file_content                                                
             content = read_file_content(project_path, path)
             if content is None:
                 raise HTTPException(status_code=404, detail="File not found or cannot be read")
@@ -344,7 +315,7 @@ def main():
     )
     args = parser.parse_args()
 
-    proxy_server = ProxyServer(quick=args.quick)
+    proxy_server = ProxyServer(quick=args.quick,project_path=os.getcwd())
     uvicorn.run(proxy_server.app, host=args.host, port=args.port)
 
 if __name__ == "__main__":

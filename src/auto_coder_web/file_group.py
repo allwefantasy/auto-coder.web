@@ -4,8 +4,8 @@ import os
 from .auto_coder_runner import AutoCoderRunner
 
 class FileGroupManager:
-    def __init__(self):
-        self.runner = AutoCoderRunner()
+    def __init__(self,auto_coder_runner: AutoCoderRunner):
+        self.runner = auto_coder_runner        
         
     async def create_group(self, name: str, description: str) -> Dict:
         group = self.runner.add_group(name)
