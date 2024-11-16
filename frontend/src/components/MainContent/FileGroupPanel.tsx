@@ -202,13 +202,10 @@ const FileGroupPanel: React.FC = () => {
                       >
                         <span
                           className="cursor-pointer flex-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation();
-                            handleFileSelect(file);
-                          }}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          handleFileSelect(file);
+                        }}
                         >
                           {file}
                         </span>
@@ -245,6 +242,11 @@ const FileGroupPanel: React.FC = () => {
                 treeData={treeData}
                 checkedKeys={checkedKeys}
                 onCheck={(checked) => setCheckedKeys(checked as React.Key[])}
+                onDoubleClick={(event: any, node: any) => {
+                  if (node.isLeaf) {
+                    handleFileSelect(node.key as string);
+                  }
+                }}
                 onDoubleClick={(node:any) => {
                   if (node.isLeaf) {
                     handleFileSelect(node.key as string);
