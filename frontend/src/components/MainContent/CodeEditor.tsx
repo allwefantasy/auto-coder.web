@@ -78,12 +78,12 @@ const CodeEditor: React.FC = () => {
               treeData={treeData}
               className="bg-gray-900 text-gray-300"
             />
-          </div>
-
-          <div className="flex-1 bg-gray-900">
+          </div>          
+          <div className="flex-1 bg-gray-900">            
             <Editor
               height="100%"
-              defaultLanguage={getLanguageByFileName(selectedFile || '')}
+              defaultLanguage="plaintext"
+              language={getLanguageByFileName(selectedFile || '')}
               theme="vs-dark"
               value={code}
               onChange={(value) => setCode(value || '')}

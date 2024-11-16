@@ -2,7 +2,7 @@
 export function getLanguageByFileName(fileName: string): string {
   if (!fileName) return 'plaintext';
 
-  const ext = fileName.split('.').pop()?.toLowerCase();
+  const ext = fileName.split('.').pop()?.toLowerCase();  
   
   const languageMap: { [key: string]: string } = {
     // Web languages
@@ -67,8 +67,12 @@ export function getLanguageByFileName(fileName: string): string {
   if (!ext) return 'plaintext';
   
   // Check if it's a Dockerfile
-  if (fileName.toLowerCase() === 'dockerfile') {
+  if (fileName.toLowerCase().endsWith('dockerfile')) {
     return 'dockerfile';
+  }
+  // Check if it's a Makefile
+  if (fileName.toLowerCase().endsWith('makefile')) {
+    return 'makefile';
   }
 
   return languageMap[ext] || 'plaintext';

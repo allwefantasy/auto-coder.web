@@ -257,7 +257,8 @@ const FileGroupPanel: React.FC = () => {
           <div className="flex-1 bg-gray-900">
             <Editor
               height="100%"
-              defaultLanguage={getLanguageByFileName(selectedFile || '')}
+              defaultLanguage="plaintext"
+              language={getLanguageByFileName(selectedFile || '')}
               theme="vs-dark"
               value={fileContent}
               options={{

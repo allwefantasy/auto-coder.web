@@ -275,7 +275,7 @@ class ProxyServer:
             
         @self.app.get("/api/file-groups")
         async def get_file_groups():            
-            groups = await self.file_group_manager.get_groups()
+            groups = await self.file_group_manager.get_groups()            
             return {"groups": groups}
             
         @self.app.get("/api/files")
@@ -285,7 +285,7 @@ class ProxyServer:
 
         @self.app.get("/api/file/{path:path}")
         async def get_file_content(path: str):            
-            from .file_manager import read_file_content                                                
+            from .file_manager import read_file_content                                                            
             content = read_file_content(self.project_path, path)
             if content is None:
                 raise HTTPException(status_code=404, detail="File not found or cannot be read")

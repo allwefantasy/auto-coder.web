@@ -39,7 +39,7 @@ class AutoCoderRunner:
             "conf": {},
             "exclude_dirs": [],
         }
-        self.load_memory()
+        self.load_memory()        
 
     @contextmanager
     def redirect_stdout(self):
@@ -68,17 +68,31 @@ class AutoCoderRunner:
 
     def add_files_to_group(self, group_name: str, files: List[str]) -> Dict[str, Any]:        
         existing_files = self.memory["current_files"]["groups"][group_name]        
-        self.memory["current_files"]["groups"][group_name].extend(files)
+        for file in files:    
+            if file:        
+                self.memory["current_files"]["groups"][group_name].append(os.path.join(self.project_path, file))
         self.save_memory()
         return {
-            "message": f"Added files to group: {group_name}: {[os.path.relpath(f, project_root) for f in files_to_add]}"
+            "message": f"Added files to group: {group_name}"
         }
+
+    def remove_files_from_group(self, group_name: str, files: List[str]) -> Dict[str, Any]:
+        existing_files = self.memory["current_files"]["groups"][group_name]
+        for file in files:
+            if file in existing_files:
+                existing_files.remove(os.path.join(self.project_path, file))
+        self.save_memory()
+        return {
+            "message": f"Removed files from group: {group_name}"
+        }    
 
     def get_groups(self) -> Dict[str, List[str]]:
         return {"groups": list(self.memory["current_files"]["groups"].keys())}
 
     def get_files_in_group(self, group_name: str) -> Dict[str, List[str]]:
-        return {"files": self.memory["current_files"]["groups"][group_name]}        
+        files = self.memory["current_files"]["groups"][group_name]
+        files = [os.path.relpath(f, self.project_path) for f in files]
+        return {"files": files}        
 
     def find_files_in_project(self, patterns: List[str]) -> List[str]:
         project_root = os.getcwd()
