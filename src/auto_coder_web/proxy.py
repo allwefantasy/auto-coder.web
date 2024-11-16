@@ -72,9 +72,8 @@ def check_environment():
     return False
 
 class ProxyServer:
-    def __init__(self, backend_url: str, quick: bool = False):
-        self.app = FastAPI()
-        self.backend_url = backend_url.rstrip('/')
+    def __init__(self, quick: bool = False):
+        self.app = FastAPI()        
         
         if not quick:
             # Check the environment if not in quick mode
@@ -218,7 +217,7 @@ def main():
     )
     args = parser.parse_args()
 
-    proxy_server = ProxyServer(backend_url=args.backend_url, quick=args.quick)
+    proxy_server = ProxyServer(quick=args.quick)
     uvicorn.run(proxy_server.app, host=args.host, port=args.port)
 
 if __name__ == "__main__":
