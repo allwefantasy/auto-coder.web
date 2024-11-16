@@ -12,15 +12,27 @@ const ChatPanel: React.FC = () => {
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [inputValue, setInputValue] = useState('');
 
-  // 模拟一些建议选项
-  const suggestions = [
-    'Backend Files',
-    'Frontend Components',
-    'Config Files',
-    'Test Files',
-    'Documentation'
-  ].filter(item => item.toLowerCase().includes(inputValue.toLowerCase()))
-    .map(value => ({ value }));
+  const [suggestions, setSuggestions] = useState<{ value: string }[]>([]);
+
+  // 获取文件组名字作为建议选项
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const response = await fetch('/api/file-groups');
+        if (!response.ok) throw new Error('Failed to fetch file groups');
+        const data = await response.json();
+        const groupNames = data.groups.map((group: FileGroup) => ({
+          value: group.name
+        }));
+        setSuggestions(groupNames.filter(item => 
+          item.value.toLowerCase().includes(inputValue.toLowerCase())
+        ));
+      } catch (error) {
+        console.error('Failed to load suggestions');
+      }
+    };
+    fetchSuggestions();
+  }, [inputValue]);
 
   const addNewGroup = (value: string) => {
     if (value.trim()) {
