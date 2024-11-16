@@ -11,8 +11,16 @@ const App: React.FC = () => {
   return (
     <div className="h-screen flex bg-gray-900">
       {/* Left Sidebar - Chat */}
-      <div className="w-96 border-r border-gray-700">
-        <ChatPanel />
+      <div className="w-96 border-r border-gray-700 flex flex-col">
+        {/* Project Name Header */}
+        <div className="bg-gray-800 p-2 border-b border-gray-700">
+          <h2 className="text-gray-300 text-sm font-medium truncate">
+            Project: {window.location.pathname.split('/').filter(Boolean).pop() || 'auto-coder.web'}
+          </h2>
+        </div>
+        <div className="flex-1">
+          <ChatPanel />
+        </div>
       </div>
 
       {/* Right Content Area */}
