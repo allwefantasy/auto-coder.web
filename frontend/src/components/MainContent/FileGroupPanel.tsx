@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Tree, Input, Button, Modal, message } from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import type { DataNode } from 'antd/es/tree';
+import type { DataNode, EventDataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
 
 interface FileGroup {
@@ -245,8 +245,7 @@ const FileGroupPanel: React.FC = () => {
                 treeData={treeData}
                 checkedKeys={checkedKeys}
                 onCheck={(checked) => setCheckedKeys(checked as React.Key[])}
-                onDoubleClick={(e) => {
-                  const node = e.node;
+                onDoubleClick={(node:any) => {
                   if (node.isLeaf) {
                     handleFileSelect(node.key as string);
                   }
