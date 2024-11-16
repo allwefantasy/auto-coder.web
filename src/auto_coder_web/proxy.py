@@ -10,6 +10,10 @@ import os
 import argparse
 import aiofiles
 import pkg_resources
+from .file_group import FileGroupManager
+from .project_manager import ProjectManager
+from .file_manager import get_directory_tree
+from .auto_coder_runner import AutoCoderRunner
 
 class ProxyServer:
     def __init__(self, backend_url: str):
@@ -20,7 +24,7 @@ class ProxyServer:
         self.setup_static_files()
         
         self.setup_routes()
-        self.client = httpx.AsyncClient()
+        self.client = httpx.AsyncClient()            
         
     def setup_middleware(self):
         self.app.add_middleware(
@@ -54,41 +58,38 @@ class ProxyServer:
         @self.app.post("/api/project")
         async def set_project(request: Request):
             data = await request.json()
-            project_path = data.get("path")
+            project_path = data.get("path")            
             if not project_path:
                 raise HTTPException(status_code=400, detail="Project path is required")
-                
-            from .project_manager import ProjectManager
+                            
             success = await ProjectManager.set_project_path(project_path)
             if not success:
                 raise HTTPException(status_code=400, detail="Invalid project path")
+
+            self.projects[project_path] = AutoCoderRunner(project_path)    
                 
             return {"status": "success"}
+
+        def get_project_runner(project_path: str) -> AutoCoderRunner:
+            return self.projects[project_path]    
 
         @self.app.post("/api/file-groups")
         async def create_file_group(request: Request):
             data = await request.json()
             name = data.get("name")
-            description = data.get("description", "")
-            
-            from .file_group import FileGroupManager
-            file_group_manager = FileGroupManager()
-            group = await file_group_manager.create_group(name, description)
+            description = data.get("description", "")                                
+            group = await FileGroupManager().create_group(name, description)
             return group
             
         @self.app.delete("/api/file-groups/{name}")
         async def delete_file_group(name: str):
-            from .file_group import FileGroupManager
-            file_group_manager = FileGroupManager()
-            await file_group_manager.delete_group(name)
+            await FileGroupManager().delete_group(name)
             return {"status": "success"}
             
         @self.app.post("/api/file-groups/{name}/files")
         async def add_files_to_group(name: str, request: Request):
             data = await request.json()
-            files = data.get("files", [])
-            
-            from .file_group import FileGroupManager
+            files = data.get("files", [])                        
             file_group_manager = FileGroupManager()
             group = await file_group_manager.add_files_to_group(name, files)
             return group
@@ -96,24 +97,20 @@ class ProxyServer:
         @self.app.delete("/api/file-groups/{name}/files")
         async def remove_files_from_group(name: str, request: Request):
             data = await request.json()
-            files = data.get("files", [])
-            
-            from .file_group import FileGroupManager
+            files = data.get("files", [])                        
             file_group_manager = FileGroupManager()
             group = await file_group_manager.remove_files_from_group(name, files)
             return group
             
         @self.app.get("/api/file-groups")
-        async def get_file_groups():
-            from .file_group import FileGroupManager
+        async def get_file_groups():            
             file_group_manager = FileGroupManager()
             groups = await file_group_manager.get_groups()
             return {"groups": groups}
             
         @self.app.get("/api/files")
         async def get_files():
-            from .project_manager import ProjectManager
-            from .file_manager import get_directory_tree
+            
             
             project_path = await ProjectManager.get_project_path()
             if not project_path:
