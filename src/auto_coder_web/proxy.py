@@ -236,6 +236,11 @@ class ProxyServer:
                     content = await f.read()
                 return HTMLResponse(content=content)            
             return HTMLResponse(content="<h1>Welcome to Proxy Server</h1>")
+            
+        @self.app.get("/api/project-path")
+        async def get_project_path():
+            project_path = await ProjectManager.get_project_path()
+            return {"project_path": project_path}
 
         @self.app.post("/api/project")
         async def set_project(request: Request):

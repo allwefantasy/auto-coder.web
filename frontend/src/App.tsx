@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatPanel from './components/Sidebar/ChatPanel';
 import CodeEditor from './components/MainContent/CodeEditor';
 import FileGroupPanel from './components/MainContent/FileGroupPanel';
@@ -7,11 +7,28 @@ import './App.css';
 
 const App: React.FC = () => {
   const [activePanel, setActivePanel] = useState<'code' | 'filegroup'>('code');
+  const [projectName, setProjectName] = useState<string>('');
+
+  useEffect(() => {
+    fetch('/api/project-path')
+      .then(response => response.json())
+      .then(data => {
+        const path = data.project_path;
+        const name = path ? path.split('/').pop() : '';
+        setProjectName(name);
+      })
+      .catch(error => console.error('Error fetching project path:', error));
+  }, []);
 
   return (
     <div className="h-screen flex bg-gray-900">
       {/* Left Sidebar - Chat */}
-      <div className="w-96 border-r border-gray-700">
+      <div className="w-96 border-r border-gray-700 flex flex-col">
+        <div className="bg-gray-800 p-2 border-b border-gray-700">
+          <h2 className="text-gray-300 text-sm font-semibold truncate">
+            Project: {projectName || 'Not Set'}
+          </h2>
+        </div>
         <ChatPanel />
       </div>
 
