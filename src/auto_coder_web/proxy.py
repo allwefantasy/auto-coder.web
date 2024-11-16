@@ -286,7 +286,7 @@ class ProxyServer:
         @self.app.get("/api/file/{path:path}")
         async def get_file_content(path: str):            
             from .file_manager import read_file_content                                                
-            content = read_file_content(project_path, path)
+            content = read_file_content(self.project_path, path)
             if content is None:
                 raise HTTPException(status_code=404, detail="File not found or cannot be read")
                 

@@ -33,12 +33,7 @@ const ChatPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Chat Header */}
-      <div className="bg-gray-800 p-4 border-b border-gray-700">
-        <h2 className="text-white text-lg font-semibold">auto-coder.chat</h2>
-      </div>
-
+    <div className="flex flex-col h-full">      
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
         <div className="space-y-4">
