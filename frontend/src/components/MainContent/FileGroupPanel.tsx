@@ -204,6 +204,9 @@ const FileGroupPanel: React.FC = () => {
                           className="cursor-pointer flex-1"
                           onClick={(e) => {
                             e.stopPropagation();
+                          }}
+                          onDoubleClick={(e) => {
+                            e.stopPropagation();
                             handleFileSelect(file);
                           }}
                         >
@@ -242,6 +245,12 @@ const FileGroupPanel: React.FC = () => {
                 treeData={treeData}
                 checkedKeys={checkedKeys}
                 onCheck={(checked) => setCheckedKeys(checked as React.Key[])}
+                onDoubleClick={(e) => {
+                  const node = e.node;
+                  if (node.isLeaf) {
+                    handleFileSelect(node.key as string);
+                  }
+                }}
                 className="bg-gray-900 text-gray-300"
               />
             </div>
