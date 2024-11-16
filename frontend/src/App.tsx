@@ -26,7 +26,7 @@ const App: React.FC = () => {
       <div className="w-96 border-r border-gray-700 flex flex-col">
         <div className="bg-gray-800 p-2 border-b border-gray-700">
           <h2 className="text-gray-300 text-sm font-semibold truncate">
-            Project: {projectName || 'Not Set'}
+            auto-coder.chat | {projectName || 'Not Set'}
           </h2>
         </div>
         <ChatPanel />
