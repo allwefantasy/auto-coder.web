@@ -50,6 +50,29 @@ class ProxyServer:
                     content = await f.read()
                 return HTMLResponse(content=content)            
             return HTMLResponse(content="<h1>Welcome to Proxy Server</h1>")
+
+        @self.app.get("/api/files")
+        async def get_files():
+            # This is a mock implementation - you should implement proper file listing logic
+            return {
+                "files": [
+                    {
+                        "path": "src/index.tsx",
+                        "type": "file"
+                    },
+                    {
+                        "path": "src/App.tsx",
+                        "type": "file"
+                    }
+                ]
+            }
+
+        @self.app.get("/api/file/{path:path}")
+        async def get_file_content(path: str):
+            # This is a mock implementation - you should implement proper file reading logic
+            return {
+                "content": f"// Content of {path}"
+            }
             
                 
         @self.app.get("/proxy/backend_url")
