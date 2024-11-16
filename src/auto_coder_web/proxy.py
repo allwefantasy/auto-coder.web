@@ -22,6 +22,10 @@ from rich.live import Live
 from rich.text import Text
 from prompt_toolkit.shortcuts import radiolist_dialog
 from prompt_toolkit.formatted_text import HTML
+import subprocess
+from prompt_toolkit import prompt
+from prompt_toolkit.validation import Validator
+from prompt_toolkit.validation import ValidationError
 
 def check_environment():
     """Check and initialize the required environment"""
