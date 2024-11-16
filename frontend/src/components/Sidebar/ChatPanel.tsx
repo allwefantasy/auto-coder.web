@@ -11,21 +11,26 @@ interface FileGroup {
 const ChatPanel: React.FC = () => {
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const fetchFileGroups = async () => {
+    try {
+      const response = await fetch('/api/file-groups');
+      if (!response.ok) throw new Error('Failed to fetch file groups');
+      const data = await response.json();
+      setFileGroups(data.groups);
+    } catch (error) {
+      console.error('Failed to load file groups');
+    }
+  };
 
-  // 获取文件组
+  // Initial fetch
   useEffect(() => {
-    const fetchFileGroups = async () => {
-      try {
-        const response = await fetch('/api/file-groups');
-        if (!response.ok) throw new Error('Failed to fetch file groups');
-        const data = await response.json();
-        setFileGroups(data.groups);
-      } catch (error) {
-        console.error('Failed to load file groups');
-      }
-    };
     fetchFileGroups();
   }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Fetch file groups on every input change
+    fetchFileGroups();
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -82,6 +87,7 @@ const ChatPanel: React.FC = () => {
             type="text"
             className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Type your message..."
+            onChange={handleInputChange}
           />
           <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900">
             Send
