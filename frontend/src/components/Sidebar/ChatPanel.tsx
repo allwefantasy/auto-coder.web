@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AutoComplete, Card } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 
@@ -22,20 +22,64 @@ const ChatPanel: React.FC = () => {
   ].filter(item => item.toLowerCase().includes(inputValue.toLowerCase()))
     .map(value => ({ value }));
 
-  const addNewGroup = (value: string) => {
-    if (value.trim()) {
-      const newGroup: FileGroup = {
-        id: Date.now().toString(),
-        name: value,
-        files: []
-      };
-      setFileGroups([...fileGroups, newGroup]);
-      setInputValue('');
+  useEffect(() => {
+    fetchFileGroups();
+  }, []);
+
+  const fetchFileGroups = async () => {
+    try {
+      const response = await fetch('/api/filegroups');
+      if (!response.ok) {
+        throw new Error('Failed to fetch file groups');
+      }
+      const data = await response.json();
+      setFileGroups(data.groups);
+    } catch (error) {
+      console.error('Error fetching file groups:', error);
     }
   };
 
-  const deleteGroup = (groupId: string) => {
-    setFileGroups(fileGroups.filter(group => group.id !== groupId));
+  const addNewGroup = async (value: string) => {
+    if (value.trim()) {
+      try {
+        const response = await fetch('/api/filegroups', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: value.trim() }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create file group');
+        }
+
+        // Refresh the file groups list
+        await fetchFileGroups();
+        setInputValue('');
+      } catch (error) {
+        console.error('Error creating file group:', error);
+        alert('Failed to create file group. Please try again.');
+      }
+    }
+  };
+
+  const deleteGroup = async (groupId: string) => {
+    try {
+      const response = await fetch(`/api/filegroups/${groupId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete file group');
+      }
+
+      // Refresh the file groups list
+      await fetchFileGroups();
+    } catch (error) {
+      console.error('Error deleting file group:', error);
+      alert('Failed to delete file group. Please try again.');
+    }
   };
 
   const handleSearch = (value: string) => {
