@@ -60,6 +60,25 @@ class AutoCoderRunner:
             with open(memory_path, "r") as f:
                 self.memory = json.load(f)
 
+    def add_group(self, group_name: str) -> Dict[str, str]:
+        self.memory["current_files"]["groups"][group_name] = []
+        self.save_memory()
+        return {"message": f"Added group: {group_name}"}
+
+    def add_files_to_group(self, group_name: str, files: List[str]) -> Dict[str, Any]:        
+        existing_files = self.memory["current_files"]["groups"][group_name]        
+        self.memory["current_files"]["groups"][group_name].extend(files)
+        self.save_memory()
+        return {
+            "message": f"Added files to group: {group_name}: {[os.path.relpath(f, project_root) for f in files_to_add]}"
+        }
+
+    def get_groups(self) -> Dict[str, List[str]]:
+        return {"groups": list(self.memory["current_files"]["groups"].keys())}
+
+    def get_files_in_group(self, group_name: str) -> Dict[str, List[str]]:
+        return {"files": self.memory["current_files"]["groups"][group_name]}        
+
     def find_files_in_project(self, patterns: List[str]) -> List[str]:
         project_root = os.getcwd()
         matched_files = []
