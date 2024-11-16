@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AutoComplete, Card } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 
@@ -24,7 +24,7 @@ const ChatPanel: React.FC = () => {
         const groupNames = data.groups.map((group: FileGroup) => ({
           value: group.name
         }));
-        setSuggestions(groupNames.filter(item => 
+        setSuggestions(groupNames.filter((item: { value: string; }) => 
           item.value.toLowerCase().includes(inputValue.toLowerCase())
         ));
       } catch (error) {
