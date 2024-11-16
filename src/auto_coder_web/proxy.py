@@ -19,6 +19,48 @@ def check_environment():
     """Check and initialize the required environment"""
     print("\n\033[1;34mInitializing the environment...\033[0m")
 
+    def check_project():
+        """Check if the current directory is initialized as an auto-coder project"""
+        def print_status(message, status):
+            if status == "success":
+                print(f"\033[32m✓ {message}\033[0m")
+            elif status == "warning":
+                print(f"\033[33m! {message}\033[0m")
+            elif status == "error":
+                print(f"\033[31m✗ {message}\033[0m")
+            else:
+                print(f"  {message}")
+
+        first_time = False
+        if not os.path.exists("actions") or not os.path.exists(".auto-coder"):
+            first_time = True
+            print_status("Project not initialized", "warning")
+            init_choice = input("  Do you want to initialize the project? (y/n): ").strip().lower()
+            if init_choice == "y":
+                try:
+                    if not os.path.exists("actions"):
+                        os.makedirs("actions", exist_ok=True)
+                        print_status("Created actions directory", "success")
+                    
+                    if not os.path.exists(".auto-coder"):
+                        os.makedirs(".auto-coder", exist_ok=True)
+                        print_status("Created .auto-coder directory", "success")
+
+                    subprocess.run(["auto-coder", "init", "--source_dir", "."], check=True)
+                    print_status("Project initialized successfully", "success")
+                except subprocess.CalledProcessError:
+                    print_status("Failed to initialize project", "error")
+                    print_status("Please try to initialize manually: auto-coder init --source_dir .", "warning")
+                    return False
+            else:
+                print_status("Exiting due to no initialization", "warning")
+                return False
+
+        print_status("Project initialization check complete", "success")
+        return True
+
+    if not check_project():
+        return False
     def print_status(message, status):
         if status == "success":
             print(f"\033[32m✓ {message}\033[0m")
