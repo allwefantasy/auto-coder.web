@@ -13,6 +13,16 @@ interface ConfigState {
   skip_build_index: boolean;
 }
 
+interface CodingEvent {
+  event_type: string;
+  data: string;
+}
+
+interface EventResponse {
+  request_id: string;
+  event: CodingEvent;
+}
+
 const ChatPanel: React.FC = () => {
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [showConfig, setShowConfig] = useState(false);
@@ -37,9 +47,93 @@ const ChatPanel: React.FC = () => {
     fetchFileGroups();
   }, []);
 
+  const [inputText, setInputText] = useState<string>('');
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Fetch file groups on every input change
+    setInputText(e.target.value);
     fetchFileGroups();
+  };
+
+  const pollEvents = async (requestId: string) => {
+    while (true) {
+      try {
+        const response = await fetch('/api/event/get', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ request_id: requestId })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch events');
+        }
+
+        const eventData: EventResponse = await response.json();
+        console.log('Received event:', eventData);
+
+        // Handle specific event types
+        if (eventData.event.event_type === 'code_start' || eventData.event.event_type === 'code_end') {
+          await fetch('/api/event/response', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              request_id: requestId,
+              event: eventData.event,
+              response: "proceed"
+            })
+          });
+        }
+
+        // Stop polling if we receive a code_end event
+        if (eventData.event.event_type === 'code_end') {
+          break;
+        }
+
+      } catch (error) {
+        console.error('Error polling events:', error);
+        break;
+      }
+
+      // Add a small delay between polls
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputText.trim()) {
+      message.warning('Please enter a message');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/coding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: inputText })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      const data = await response.json();
+      if (data.request_id) {
+        // Start polling for events
+        pollEvents(data.request_id);
+      }
+
+      // Clear input after sending
+      setInputText('');
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      message.error('Failed to send message');
+    }
   };
 
   return (
@@ -164,7 +258,10 @@ const ChatPanel: React.FC = () => {
             placeholder="Type your message..."
             onChange={handleInputChange}
           />
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900">
+          <button 
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+            onClick={handleSendMessage}
+          >
             Send
           </button>
         </div>
