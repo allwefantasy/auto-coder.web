@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AutoComplete, Card, Select, Switch, message } from 'antd';
+import { AutoComplete, Card, Select, Switch, message, Tooltip } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 
 interface FileGroup {
@@ -15,6 +15,7 @@ interface ConfigState {
 
 const ChatPanel: React.FC = () => {
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
+  const [showConfig, setShowConfig] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [config, setConfig] = useState<ConfigState>({
     human_as_model: false,
@@ -54,55 +55,77 @@ const ChatPanel: React.FC = () => {
       </div>
 
       {/* File Groups Section */}
-      <div className="bg-gray-800 p-4 border-t border-gray-700">
+      <div className="bg-gray-800 p-2 border-t border-gray-700">
         {/* Configuration Section */}
-        <div className="mb-4 p-3 rounded bg-gray-900">
-          <div className="flex justify-between items-center mb-3">
-            <div className="text-white text-sm">Settings</div>
-          </div>
-          <div className="space-y-2">
+        <Card 
+          size="small"
+          className="mb-2"
+          style={{ backgroundColor: '#1f2937', borderColor: '#374151' }}
+          bodyStyle={{ padding: '8px' }}
+          title={
             <div className="flex justify-between items-center">
-              <span className="text-gray-300 text-sm">Human As Model</span>
+              <span className="text-gray-300 text-sm">Settings</span>
               <Switch
                 size="small"
-                checked={config.human_as_model}
-                onChange={async (checked) => {
-                  const response = await fetch('/api/conf', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ human_as_model: checked })
-                  });
-                  if (response.ok) {
-                    setConfig(prev => ({ ...prev, human_as_model: checked }));
-                    message.success('Configuration updated');
-                  } else {
-                    message.error('Failed to update configuration');
-                  }
-                }}
+                checked={showConfig}
+                onChange={setShowConfig}
+                className="ml-2"
               />
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-300 text-sm">Skip Build Index</span>
-              <Switch
-                size="small"
-                checked={config.skip_build_index}
-                onChange={async (checked) => {
-                  const response = await fetch('/api/conf', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ skip_build_index: checked })
-                  });
-                  if (response.ok) {
-                    setConfig(prev => ({ ...prev, skip_build_index: checked }));
-                    message.success('Configuration updated');
-                  } else {
-                    message.error('Failed to update configuration');
-                  }
-                }}
-              />
+          }
+        >
+          {showConfig && (
+            <div className="space-y-1">
+              {/* Human As Model */}
+              <Tooltip title="Enable to let human act as the model">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300 text-xs">Human As Model</span>
+                  <Switch
+                    size="small"
+                    checked={config.human_as_model}
+                    onChange={async (checked) => {
+                      const response = await fetch('/api/conf', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ human_as_model: checked })
+                      });
+                      if (response.ok) {
+                        setConfig(prev => ({ ...prev, human_as_model: checked }));
+                        message.success('Updated');
+                      } else {
+                        message.error('Failed to update');
+                      }
+                    }}
+                  />
+                </div>
+              </Tooltip>
+
+              {/* Skip Build Index */}
+              <Tooltip title="Skip building index for better performance">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300 text-xs">Skip Build Index</span>
+                  <Switch
+                    size="small"
+                    checked={config.skip_build_index}
+                    onChange={async (checked) => {
+                      const response = await fetch('/api/conf', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ skip_build_index: checked })
+                      });
+                      if (response.ok) {
+                        setConfig(prev => ({ ...prev, skip_build_index: checked }));
+                        message.success('Updated');
+                      } else {
+                        message.error('Failed to update');
+                      }
+                    }}
+                  />
+                </div>
+              </Tooltip>
             </div>
-          </div>
-        </div>
+          )}
+        </Card>
 
         <div className="mb-4">          
           <Select
