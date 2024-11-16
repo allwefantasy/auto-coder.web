@@ -50,8 +50,7 @@ const ChatPanel: React.FC = () => {
   const [inputText, setInputText] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputText(e.target.value);
-    fetchFileGroups();
+    setInputText(e.target.value);    ;
   };
 
   const pollEvents = async (requestId: string) => {
@@ -70,9 +69,15 @@ const ChatPanel: React.FC = () => {
         }
 
         const eventData: CodingEvent = await response.json();
+        
+        if(!eventData) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1s before polling again
+          continue;
+        }
+          
         console.log('Received event:', eventData);
 
-        const response_event = async () => {
+        const response_event = async (response: string) => {
           await fetch('/api/event/response', {
             method: 'POST',
             headers: {
@@ -81,29 +86,35 @@ const ChatPanel: React.FC = () => {
             body: JSON.stringify({
               request_id: requestId,
               event: eventData,
-              response: "proceed"
+              response: response
             })
           });
         };
 
         // Handle specific event types
         if (eventData.event_type === 'code_start') {
-          await response_event();
+          await response_event("proceed");
         }
 
         if (eventData.event_type === 'code_end') {
-          await response_event();
+          await response_event("proceed");
           break;
         }
 
         if (eventData.event_type === 'code_merge_result') {
-          await response_event();
+          await response_event("proceed");
           const blocks = JSON.parse(eventData.data);
           console.log('Received code blocks:', blocks);
           break;
         }
-                
-
+        
+        if (eventData.event_type === 'code_human_as_model') {
+          const result = JSON.parse(eventData.data)                    
+          const v = JSON.stringify({
+              "value": ""
+          })
+          await response_event(v);
+      }
       } catch (error) {
         console.error('Error polling events:', error);
         break;
@@ -140,7 +151,7 @@ const ChatPanel: React.FC = () => {
       }
 
       // Clear input after sending
-      setInputText('');
+      // setInputText('');
 
     } catch (error) {
       console.error('Error sending message:', error);

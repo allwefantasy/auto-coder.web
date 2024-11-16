@@ -27,7 +27,7 @@ from autocoder.utils.queue_communicate import (
     CommunicateEventType,
 )
 from autocoder.utils.log_capture import LogCapture
-
+from threading import Thread
 class AutoCoderRunner:
     def __init__(self,project_path:str):
         self.project_path = project_path
@@ -215,6 +215,8 @@ class AutoCoderRunner:
     def response_event(self, request_id: str, event: CommunicateEvent, response: str):
         if not request_id:
             raise ValueError("request_id is required") 
+        
+        event = CommunicateEvent(**event)
         queue_communicate.response_event(request_id, event, response=response)
         return {"message": "success"}
 
@@ -281,6 +283,7 @@ class AutoCoderRunner:
                 event_type=CommunicateEventType.CODE_START.value, data=query
             ),
         )
+        Thread(target=process).start()
         return {"request_id": request_id}
 
     async def chat(self, query: str) -> Dict[str, str]:

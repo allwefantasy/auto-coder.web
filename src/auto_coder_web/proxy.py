@@ -326,7 +326,7 @@ class ProxyServer:
 
         @self.app.get("/api/result/{request_id}")
         async def get_result(request_id: str):
-            result = request_queue.get_request(request_id)
+            result = self.auto_coder_runner.get_result(request_id)
             if result is None:
                 raise HTTPException(status_code=404, detail="Result not found or not ready yet")
 
@@ -339,7 +339,7 @@ class ProxyServer:
             if not request_id:
                 raise HTTPException(status_code=400, detail="request_id is required")
 
-            v = queue_communicate.get_event(request_id)
+            v = self.auto_coder_runner.get_event(request_id)
             return v  
 
         @self.app.post("/api/event/response")
@@ -348,9 +348,7 @@ class ProxyServer:
             if not request_id:
                 raise HTTPException(status_code=400, detail="request_id is required")
 
-            event = CommunicateEvent(**request.event)
-            response = request.response
-            queue_communicate.response_event(request_id, event, response=response)
+            self.auto_coder_runner.response_event(request_id, request.event, request.response)
             return {"message": "success"}                
                         
 
