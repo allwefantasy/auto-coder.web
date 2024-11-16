@@ -72,13 +72,14 @@ def check_environment():
     return False
 
 class ProxyServer:
-    def __init__(self, backend_url: str):
-        # First check the environment
-        if not check_environment():
-            print("\033[31mEnvironment check failed. Some features may not work properly.\033[0m")
-            
+    def __init__(self, backend_url: str, quick: bool = False):
         self.app = FastAPI()
         self.backend_url = backend_url.rstrip('/')
+        
+        if not quick:
+            # Check the environment if not in quick mode
+            if not check_environment():
+                print("\033[31mEnvironment check failed. Some features may not work properly.\033[0m")
         self.setup_middleware()
         
         self.setup_static_files()
@@ -210,9 +211,14 @@ def main():
         default="0.0.0.0",
         help="Host to run the proxy server on (default: 0.0.0.0)",
     )
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Skip environment check",
+    )
     args = parser.parse_args()
 
-    proxy_server = ProxyServer(backend_url=args.backend_url)
+    proxy_server = ProxyServer(backend_url=args.backend_url, quick=args.quick)
     uvicorn.run(proxy_server.app, host=args.host, port=args.port)
 
 if __name__ == "__main__":
