@@ -10,49 +10,22 @@ interface FileGroup {
 
 const ChatPanel: React.FC = () => {
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
 
-  const [suggestions, setSuggestions] = useState<{ value: string }[]>([]);
-
-  // 获取文件组名字作为建议选项
+  // 获取文件组
   useEffect(() => {
-    const fetchSuggestions = async () => {
+    const fetchFileGroups = async () => {
       try {
         const response = await fetch('/api/file-groups');
         if (!response.ok) throw new Error('Failed to fetch file groups');
         const data = await response.json();
-        const groupNames = data.groups.map((group: FileGroup) => ({
-          value: group.name
-        }));
-        setSuggestions(groupNames.filter((item: { value: string; }) => 
-          item.value.toLowerCase().includes(inputValue.toLowerCase())
-        ));
+        setFileGroups(data.groups);
       } catch (error) {
-        console.error('Failed to load suggestions');
+        console.error('Failed to load file groups');
       }
     };
-    fetchSuggestions();
-  }, [inputValue]);
-
-  const addNewGroup = (value: string) => {
-    if (value.trim()) {
-      const newGroup: FileGroup = {
-        id: Date.now().toString(),
-        name: value,
-        files: []
-      };
-      setFileGroups([...fileGroups, newGroup]);
-      setInputValue('');
-    }
-  };
-
-  const deleteGroup = (groupId: string) => {
-    setFileGroups(fileGroups.filter(group => group.id !== groupId));
-  };
-
-  const handleSearch = (value: string) => {
-    setInputValue(value);
-  };
+    fetchFileGroups();
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -75,38 +48,30 @@ const ChatPanel: React.FC = () => {
       <div className="bg-gray-800 p-4 border-t border-gray-700">
         <div className="mb-4">
           <h3 className="text-white text-sm font-medium mb-2">File Groups</h3>
-          <AutoComplete
-            value={inputValue}
-            options={suggestions}
+          <Select
+            mode="multiple"
             style={{ width: '100%' }}
-            onSelect={addNewGroup}
-            onSearch={handleSearch}
-            placeholder="Type group name..."
-            className="custom-autocomplete"
-          />
-        </div>
-
-        <div className="space-y-2">
-          {fileGroups.map(group => (
-            <Card 
-              key={group.id}
-              size="small"
-              className="bg-gray-700 border-gray-600"
-              extra={
-                <DeleteOutlined 
-                  onClick={() => deleteGroup(group.id)}
-                  className="text-gray-400 hover:text-red-400 cursor-pointer"
-                />
-              }
-            >
-              <div className="text-white">{group.name}</div>
-              {group.files.length > 0 && (
-                <div className="text-gray-400 text-xs mt-1">
-                  {group.files.length} files
+            placeholder="Select file groups"
+            value={selectedGroups}
+            onChange={(values) => setSelectedGroups(values)}
+            optionLabelProp="label"
+            className="custom-select"
+          >
+            {fileGroups.map(group => (
+              <Select.Option 
+                key={group.name} 
+                value={group.name}
+                label={group.name}
+              >
+                <div className="flex justify-between items-center">
+                  <span>{group.name}</span>
+                  <span className="text-gray-400 text-xs">
+                    {group.files.length} files
+                  </span>
                 </div>
-              )}
-            </Card>
-          ))}
+              </Select.Option>
+            ))}
+          </Select>
         </div>
       </div>
 
