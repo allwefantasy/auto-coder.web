@@ -206,6 +206,25 @@ class AutoCoderRunner:
         else:
             raise ValueError(f"Configuration not found: {key}")
 
+    
+    def get_event(self, request_id: str) -> Dict:
+        if not request_id:
+            raise ValueError("request_id is required")
+        return queue_communicate.get_event(request_id)
+
+    def response_event(self, request_id: str, event: CommunicateEvent, response: str):
+        if not request_id:
+            raise ValueError("request_id is required") 
+        queue_communicate.response_event(request_id, event, response=response)
+        return {"message": "success"}
+
+    async def get_result(self, request_id: str) -> Dict[str, Any]:
+        result = request_queue.get_request(request_id)
+        if result is None:
+            raise ValueError("Result not found or not ready yet")
+
+        return {"result": result.value, "status": result.status.value}        
+
     async def coding(self, query: str) -> Dict[str, str]:
         self.memory["conversation"].append({"role": "user", "content": query})
         conf = self.memory.get("conf", {})
@@ -436,13 +455,7 @@ query: |
                 return {"error": result.stderr}
         except Exception as e:
             raise Exception(str(e))
-
-    async def get_result(self, request_id: str) -> Dict[str, Any]:
-        result = request_queue.get_request(request_id)
-        if result is None:
-            raise ValueError("Result not found or not ready yet")
-
-        return {"result": result.value, "status": result.status.value}
+    
 
     def find_files_by_query(self, query: str) -> Dict[str, List[str]]:
         matched_files = self.find_files_in_project([query])
@@ -453,13 +466,4 @@ query: |
         logs = v.get_captured_logs() if v else []
         return {"logs": logs}
     
-    def get_event(self, request_id: str) -> Dict:
-        if not request_id:
-            raise ValueError("request_id is required")
-        return queue_communicate.get_event(request_id)
-
-    def response_event(self, request_id: str, event: CommunicateEvent, response: str):
-        if not request_id:
-            raise ValueError("request_id is required") 
-        queue_communicate.response_event(request_id, event, response=response)
-        return {"message": "success"}
+        

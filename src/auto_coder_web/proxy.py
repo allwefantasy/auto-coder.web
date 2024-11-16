@@ -25,6 +25,16 @@ import subprocess
 from prompt_toolkit import prompt
 from prompt_toolkit.validation import Validator
 from prompt_toolkit.validation import ValidationError
+from pydantic import BaseModel
+
+class EventGetRequest(BaseModel):
+    request_id: str
+
+
+class EventResponseRequest(BaseModel):
+    request_id: str
+    event: Dict[str, str]
+    response: str
 
 def check_environment():
     """Check and initialize the required environment"""
@@ -305,6 +315,43 @@ class ProxyServer:
                 return {"status": "success"}
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e))
+
+        @self.app.post("/api/coding")
+        async def coding(request: Request):
+            data = await request.json()
+            query = data.get("query", "")
+            if not query:
+                raise HTTPException(status_code=400, detail="Query is required")
+            return await self.auto_coder_runner.coding(query) 
+
+        @app.get("/api/result/{request_id}")
+        async def get_result(request_id: str):
+            result = request_queue.get_request(request_id)
+            if result is None:
+                raise HTTPException(status_code=404, detail="Result not found or not ready yet")
+
+            v = {"result": result.value, "status": result.status.value}
+            return v 
+        
+        @app.post("/api/event/get")
+        async def get_event(request: EventGetRequest):
+            request_id = request.request_id
+            if not request_id:
+                raise HTTPException(status_code=400, detail="request_id is required")
+
+            v = queue_communicate.get_event(request_id)
+            return v  
+
+        @app.post("/api/event/response")
+        async def response_event(request: EventResponseRequest):
+            request_id = request.request_id
+            if not request_id:
+                raise HTTPException(status_code=400, detail="request_id is required")
+
+            event = CommunicateEvent(**request.event)
+            response = request.response
+            queue_communicate.response_event(request_id, event, response=response)
+            return {"message": "success"}                
                         
 
 def main():
