@@ -72,13 +72,15 @@ class ProxyServer:
             description = data.get("description", "")
             
             from .file_group import FileGroupManager
-            group = await FileGroupManager.create_group(name, description)
+            file_group_manager = FileGroupManager()
+            group = await file_group_manager.create_group(name, description)
             return group
             
         @self.app.delete("/api/file-groups/{name}")
         async def delete_file_group(name: str):
             from .file_group import FileGroupManager
-            await FileGroupManager.delete_group(name)
+            file_group_manager = FileGroupManager()
+            await file_group_manager.delete_group(name)
             return {"status": "success"}
             
         @self.app.post("/api/file-groups/{name}/files")
@@ -87,7 +89,8 @@ class ProxyServer:
             files = data.get("files", [])
             
             from .file_group import FileGroupManager
-            group = await FileGroupManager.add_files_to_group(name, files)
+            file_group_manager = FileGroupManager()
+            group = await file_group_manager.add_files_to_group(name, files)
             return group
             
         @self.app.delete("/api/file-groups/{name}/files")
@@ -96,13 +99,15 @@ class ProxyServer:
             files = data.get("files", [])
             
             from .file_group import FileGroupManager
-            group = await FileGroupManager.remove_files_from_group(name, files)
+            file_group_manager = FileGroupManager()
+            group = await file_group_manager.remove_files_from_group(name, files)
             return group
             
         @self.app.get("/api/file-groups")
         async def get_file_groups():
             from .file_group import FileGroupManager
-            groups = await FileGroupManager.get_groups()
+            file_group_manager = FileGroupManager()
+            groups = await file_group_manager.get_groups()
             return {"groups": groups}
             
         @self.app.get("/api/files")
