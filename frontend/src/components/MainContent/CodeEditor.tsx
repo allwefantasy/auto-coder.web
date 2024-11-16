@@ -3,6 +3,7 @@ import { Tree } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
+import { getLanguageByFileName } from '../../utils/fileUtils';
 
 const CodeEditor: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -82,7 +83,7 @@ const CodeEditor: React.FC = () => {
           <div className="flex-1 bg-gray-900">
             <Editor
               height="100%"
-              defaultLanguage="typescript"
+              defaultLanguage={getLanguageByFileName(selectedFile || '')}
               theme="vs-dark"
               value={code}
               onChange={(value) => setCode(value || '')}

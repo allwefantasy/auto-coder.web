@@ -3,6 +3,7 @@ import { Tree, Input, Button, Modal, message } from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import type { DataNode, EventDataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
+import { getLanguageByFileName } from '../../utils/fileUtils';
 
 interface FileGroup {
   name: string;
@@ -256,7 +257,7 @@ const FileGroupPanel: React.FC = () => {
           <div className="flex-1 bg-gray-900">
             <Editor
               height="100%"
-              defaultLanguage="typescript"
+              defaultLanguage={getLanguageByFileName(selectedFile || '')}
               theme="vs-dark"
               value={fileContent}
               options={{
