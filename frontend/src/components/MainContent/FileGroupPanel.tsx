@@ -180,7 +180,21 @@ const FileGroupPanel: React.FC = () => {
                       onClick={() => handleDeleteGroup(group.name)}
                     />
                   </div>
-                  <div className="mt-2 space-y-1">
+                  {group.files.length > 0 && (
+                    <div 
+                      className="mt-2 text-sm text-gray-400 cursor-pointer hover:text-gray-300"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const element = e.currentTarget.nextElementSibling;
+                        if (element) {
+                          element.classList.toggle('hidden');
+                        }
+                      }}
+                    >
+                      {group.files.length} files {'>'}
+                    </div>
+                  )}
+                  <div className="mt-2 space-y-1 hidden">
                     {group.files.map((file) => (
                       <div
                         key={file}
@@ -188,13 +202,19 @@ const FileGroupPanel: React.FC = () => {
                       >
                         <span
                           className="cursor-pointer flex-1"
-                          onClick={() => handleFileSelect(file)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFileSelect(file);
+                          }}
                         >
                           {file}
                         </span>
                         <DeleteOutlined
                           className="text-red-400 cursor-pointer"
-                          onClick={() => handleRemoveFile(group.name, file)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFile(group.name, file);
+                          }}
                         />
                       </div>
                     ))}
