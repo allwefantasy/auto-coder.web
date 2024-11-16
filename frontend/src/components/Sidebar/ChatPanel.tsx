@@ -51,8 +51,7 @@ const ChatPanel: React.FC = () => {
 
       {/* File Groups Section */}
       <div className="bg-gray-800 p-4 border-t border-gray-700">
-        <div className="mb-4">
-          <h3 className="text-white text-sm font-medium mb-2">File Groups</h3>
+        <div className="mb-4">          
           <Select
             mode="multiple"
             style={{ width: '100%' }}

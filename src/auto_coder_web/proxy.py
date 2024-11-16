@@ -132,82 +132,10 @@ class ProxyServer:
                 
             return {"content": content}
             
-                
-        @self.app.get("/proxy/backend_url")
-        async def get_backend_url():
-            return {"backend_url": self.backend_url}
-            
-        @self.app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
-        async def proxy(request: Request, path: str):
-            url = f"{self.backend_url}/{path}"
-            method = request.method
-            excluded_headers = {"host", "content-length"}
-            headers = {
-                key: value
-                for key, value in request.headers.items()
-                if key.lower() not in excluded_headers
-            }
-            params = dict(request.query_params)
-            body = await request.body()
-
-            try:
-                is_sse = headers.get("accept") == "text/event-stream"
-
-                if is_sse:
-                    async def event_stream():
-                        try:
-                            async with self.client.stream(
-                                method,
-                                url,
-                                headers=headers,
-                                params=params,
-                                content=body,
-                                timeout=None,
-                            ) as response:
-                                async for chunk in response.aiter_bytes():
-                                    yield chunk
-                        except Exception as e:
-                            print(f"Error in SSE stream: {str(e)}")
-                            import traceback
-                            traceback.print_exc()
-                            yield "event: error\ndata: Connection error\n\n"
-
-                    return StreamingResponse(
-                        event_stream(),
-                        media_type="text/event-stream",
-                        headers={
-                            "Cache-Control": "no-cache, no-transform",
-                            "Connection": "keep-alive",
-                            "Content-Type": "text/event-stream",
-                            "X-Accel-Buffering": "no",
-                            "Transfer-Encoding": "chunked",
-                        },
-                    )
-                else:
-                    response = await self.client.request(
-                        method, url, headers=headers, params=params, content=body, timeout=3000
-                    )
-                    return Response(
-                        content=response.content,
-                        status_code=response.status_code,
-                        headers=dict(response.headers),
-                    )
-            except httpx.RequestError as exc:
-                import traceback
-                traceback.print_exc()
-                return JSONResponse(
-                    content={"error": f"An error occurred while requesting {exc.request.url!r}."},
-                    status_code=500,
-                )
+                        
 
 def main():
-    parser = argparse.ArgumentParser(description="Proxy Server")
-    parser.add_argument(
-        "--backend_url",
-        type=str,
-        default="http://127.0.0.1:8005",
-        help="Backend service URL (default: http://127.0.0.1:8005)",
-    )
+    parser = argparse.ArgumentParser(description="Proxy Server")    
     parser.add_argument(
         "--port",
         type=int,
