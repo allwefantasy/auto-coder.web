@@ -241,13 +241,8 @@ const FileGroupPanel: React.FC = () => {
                 checkable
                 treeData={treeData}
                 checkedKeys={checkedKeys}
-                onCheck={(checked) => setCheckedKeys(checked as React.Key[])}
+                onCheck={(checked) => setCheckedKeys(checked as React.Key[])}                
                 onDoubleClick={(event: any, node: any) => {
-                  if (node.isLeaf) {
-                    handleFileSelect(node.key as string);
-                  }
-                }}
-                onDoubleClick={(node:any) => {
                   if (node.isLeaf) {
                     handleFileSelect(node.key as string);
                   }
