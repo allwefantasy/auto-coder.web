@@ -4,36 +4,56 @@ import type { DataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 
-const treeData: DataNode[] = [
-  {
-    title: 'src',
-    key: 'src',
-    icon: <FolderOutlined />,
-    children: [
-      {
-        title: 'index.tsx',
-        key: 'src/index.tsx',
-        icon: <FileOutlined />,
-      },
-      {
-        title: 'App.tsx',
-        key: 'src/App.tsx',
-        icon: <FileOutlined />,
-      },
-    ],
-  },
-];
-
 const CodeEditor: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [code, setCode] = useState<string>('// Select a file to edit');
+  const [treeData, setTreeData] = useState<DataNode[]>([]);
 
-  const handleSelect = (selectedKeys: React.Key[], info: any) => {
+  useEffect(() => {
+    const fetchFileTree = async () => {
+      try {
+        const response = await fetch('/api/files');
+        if (!response.ok) {
+          throw new Error('Failed to fetch file tree');
+        }
+        const data = await response.json();
+        
+        // Transform the tree data to include icons
+        const transformNode = (node: any): DataNode => {
+          const isLeaf = node.isLeaf;
+          return {
+            title: node.title,
+            key: node.key,
+            icon: isLeaf ? <FileOutlined /> : <FolderOutlined />,
+            children: node.children ? node.children.map(transformNode) : undefined,
+            isLeaf,
+          };
+        };
+        
+        setTreeData(data.tree.map(transformNode));
+      } catch (error) {
+        console.error('Error fetching file tree:', error);
+      }
+    };
+
+    fetchFileTree();
+  }, []);
+
+  const handleSelect = async (selectedKeys: React.Key[], info: any) => {
     const key = selectedKeys[0] as string;
-    if (key && !key.endsWith('/')) {
+    if (key && info.node.isLeaf) {
       setSelectedFile(key);
-      // Here you would typically load the file content
-      setCode(`// Content of ${key}`);
+      try {
+        const response = await fetch(`/api/file/${key}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch file content');
+        }
+        const data = await response.json();
+        setCode(data.content);
+      } catch (error) {
+        console.error('Error fetching file content:', error);
+        setCode('// Error loading file content');
+      }
     }
   };
 

@@ -51,28 +51,46 @@ class ProxyServer:
                 return HTMLResponse(content=content)            
             return HTMLResponse(content="<h1>Welcome to Proxy Server</h1>")
 
+        @self.app.post("/api/project")
+        async def set_project(request: Request):
+            data = await request.json()
+            project_path = data.get("path")
+            if not project_path:
+                raise HTTPException(status_code=400, detail="Project path is required")
+                
+            from .project_manager import ProjectManager
+            success = ProjectManager.set_project_path(project_path)
+            if not success:
+                raise HTTPException(status_code=400, detail="Invalid project path")
+                
+            return {"status": "success"}
+
         @self.app.get("/api/files")
         async def get_files():
-            # This is a mock implementation - you should implement proper file listing logic
-            return {
-                "files": [
-                    {
-                        "path": "src/index.tsx",
-                        "type": "file"
-                    },
-                    {
-                        "path": "src/App.tsx",
-                        "type": "file"
-                    }
-                ]
-            }
+            from .project_manager import ProjectManager
+            from .file_manager import get_directory_tree
+            
+            project_path = ProjectManager.get_project_path()
+            if not project_path:
+                raise HTTPException(status_code=400, detail="Project path not set")
+                
+            tree = get_directory_tree(project_path)
+            return {"tree": tree}
 
         @self.app.get("/api/file/{path:path}")
         async def get_file_content(path: str):
-            # This is a mock implementation - you should implement proper file reading logic
-            return {
-                "content": f"// Content of {path}"
-            }
+            from .project_manager import ProjectManager
+            from .file_manager import read_file_content
+            
+            project_path = ProjectManager.get_project_path()
+            if not project_path:
+                raise HTTPException(status_code=400, detail="Project path not set")
+                
+            content = read_file_content(project_path, path)
+            if content is None:
+                raise HTTPException(status_code=404, detail="File not found or cannot be read")
+                
+            return {"content": content}
             
                 
         @self.app.get("/proxy/backend_url")

@@ -10,9 +10,26 @@ const App: React.FC = () => {
   const [projectPath, setProjectPath] = useState<string>('');
   const [isPathConfirmed, setIsPathConfirmed] = useState(false);
 
-  const handlePathConfirm = () => {
+  const handlePathConfirm = async () => {
     if (projectPath.trim()) {
-      setIsPathConfirmed(true);
+      try {
+        const response = await fetch('/api/project', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ path: projectPath.trim() }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to set project path');
+        }
+        
+        setIsPathConfirmed(true);
+      } catch (error) {
+        console.error('Error setting project path:', error);
+        alert('Failed to set project path. Please try again.');
+      }
     }
   };
 
