@@ -76,3 +76,46 @@ html, body {
 .custom-select .ant-select-arrow {
   color: #9CA3AF !important;
 }
+
+/* Dark mode table styles */
+.dark-mode-table {
+  background-color: transparent !important;
+}
+
+.dark-mode-table .ant-table {
+  background-color: transparent !important;
+}
+
+.dark-mode-table .ant-table-thead > tr > th {
+  background-color: #374151 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #4B5563 !important;
+}
+
+.dark-mode-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #4B5563 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode-table .ant-table-tbody > tr:hover > td {
+  background-color: #4B5563 !important;
+}
+
+.dark-mode-table .ant-table-row-expand-icon {
+  background-color: #4B5563 !important;
+  border-color: #6B7280 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode-table .nested-table {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.dark-mode-table .nested-table .ant-table-tbody > tr > td {
+  background-color: #1F2937 !important;
+}
+
+.dark-mode-table .nested-table .ant-table-tbody > tr:hover > td {
+  background-color: #374151 !important;
+}

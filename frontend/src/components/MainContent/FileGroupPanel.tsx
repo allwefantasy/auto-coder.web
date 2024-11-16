@@ -155,74 +155,94 @@ const FileGroupPanel: React.FC = () => {
       <div className="flex-1 overflow-hidden">
         <div className="h-full flex">
           {/* File Groups List */}
-          <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto">
-            <div className="p-4 space-y-4">
-              {fileGroups.map((group) => (
-                <div
-                  key={group.name}
-                  className={`p-3 rounded-lg ${
-                    selectedGroup?.name === group.name
-                      ? 'bg-blue-600'
-                      : 'bg-gray-800'
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div
-                      className="cursor-pointer flex-1"
-                      onClick={() => setSelectedGroup(group)}
-                    >
-                      <h3 className="text-white font-medium">{group.name}</h3>
-                      <p className="text-gray-400 text-sm mt-1">{group.description}</p>
+          <div className="w-80 bg-gray-900 border-r border-gray-700 overflow-y-auto p-4">
+            <Table
+              dataSource={fileGroups}
+              rowKey="name"
+              rowClassName={(record) => 
+                record.name === selectedGroup?.name ? 'bg-blue-600' : 'bg-gray-800'
+              }
+              onRow={(record) => ({
+                onClick: () => setSelectedGroup(record),
+                className: 'cursor-pointer hover:bg-gray-700'
+              })}
+              className="dark-mode-table"
+              size="small"
+              pagination={false}
+              expandable={{
+                expandedRowRender: (record) => (
+                  <Table
+                    dataSource={record.files.map(file => ({ path: file }))}
+                    rowKey="path"
+                    columns={[
+                      {
+                        title: 'Path',
+                        dataIndex: 'path',
+                        key: 'path',
+                        render: (path) => (
+                          <span 
+                            className="text-gray-300 cursor-pointer"
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              handleFileSelect(path);
+                            }}
+                          >
+                            {path}
+                          </span>
+                        )
+                      },
+                      {
+                        title: 'Action',
+                        key: 'action',
+                        width: 60,
+                        render: (_, { path }) => (
+                          <DeleteOutlined
+                            className="text-red-400 cursor-pointer hover:text-red-500"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFile(record.name, path);
+                            }}
+                          />
+                        )
+                      }
+                    ]}
+                    pagination={false}
+                    size="small"
+                    className="nested-table dark-mode-table"
+                  />
+                )
+              }}
+              columns={[
+                {
+                  title: 'Group',
+                  dataIndex: 'name',
+                  key: 'name',
+                  render: (name, record) => (
+                    <div>
+                      <div className="text-white font-medium">{name}</div>
+                      <div className="text-gray-400 text-sm">{record.description}</div>
+                      <div className="text-gray-500 text-xs mt-1">{record.files.length} files</div>
                     </div>
+                  )
+                },
+                {
+                  title: 'Action',
+                  key: 'action',
+                  width: 60,
+                  render: (_, record) => (
                     <Button
                       type="text"
                       danger
                       icon={<DeleteOutlined />}
-                      onClick={() => handleDeleteGroup(group.name)}
-                    />
-                  </div>
-                  {group.files.length > 0 && (
-                    <div 
-                      className="mt-2 text-sm text-gray-400 cursor-pointer hover:text-gray-300"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const element = e.currentTarget.nextElementSibling;
-                        if (element) {
-                          element.classList.toggle('hidden');
-                        }
+                        handleDeleteGroup(record.name);
                       }}
-                    >
-                      {group.files.length} files {'>'}
-                    </div>
-                  )}
-                  <div className="mt-2 space-y-1 hidden">
-                    {group.files.map((file) => (
-                      <div
-                        key={file}
-                        className="flex justify-between items-center text-sm text-gray-300 py-1 px-2 rounded hover:bg-gray-700"
-                      >
-                        <span
-                          className="cursor-pointer flex-1"
-                        onDoubleClick={(e) => {
-                          e.stopPropagation();
-                          handleFileSelect(file);
-                        }}
-                        >
-                          {file}
-                        </span>
-                        <DeleteOutlined
-                          className="text-red-400 cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveFile(group.name, file);
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                    />
+                  )
+                }
+              ]}
+            />
           </div>
 
           {/* File Tree */}
