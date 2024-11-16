@@ -292,6 +292,10 @@ class ProxyServer:
                 
             return {"content": content}
             
+        @self.app.get("/api/conf")
+        async def get_conf():
+            return {"conf": self.auto_coder_runner.get_config()}
+            
         @self.app.post("/api/conf")
         async def config(request: Request):            
             data = await request.json()
