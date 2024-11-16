@@ -20,7 +20,7 @@ interface CodingEvent {
 
 interface EventResponse {
   request_id: string;
-  event: CodingEvent;
+  event: CodingEvent;  
 }
 
 const ChatPanel: React.FC = () => {
@@ -69,11 +69,10 @@ const ChatPanel: React.FC = () => {
           throw new Error('Failed to fetch events');
         }
 
-        const eventData: EventResponse = await response.json();
+        const eventData: CodingEvent = await response.json();
         console.log('Received event:', eventData);
 
-        // Handle specific event types
-        if (eventData.event.event_type === 'code_start' || eventData.event.event_type === 'code_end') {
+        const response_event = async () => {
           await fetch('/api/event/response', {
             method: 'POST',
             headers: {
@@ -81,16 +80,29 @@ const ChatPanel: React.FC = () => {
             },
             body: JSON.stringify({
               request_id: requestId,
-              event: eventData.event,
+              event: eventData,
               response: "proceed"
             })
           });
+        };
+
+        // Handle specific event types
+        if (eventData.event_type === 'code_start') {
+          await response_event();
         }
 
-        // Stop polling if we receive a code_end event
-        if (eventData.event.event_type === 'code_end') {
+        if (eventData.event_type === 'code_end') {
+          await response_event();
           break;
         }
+
+        if (eventData.event_type === 'code_merge_result') {
+          await response_event();
+          const blocks = JSON.parse(eventData.data);
+          console.log('Received code blocks:', blocks);
+          break;
+        }
+                
 
       } catch (error) {
         console.error('Error polling events:', error);

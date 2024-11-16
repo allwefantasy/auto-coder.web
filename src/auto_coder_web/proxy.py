@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import httpx
-from typing import Optional
+from typing import Optional,Dict
 import os
 import argparse
 import aiofiles
@@ -324,7 +324,7 @@ class ProxyServer:
                 raise HTTPException(status_code=400, detail="Query is required")
             return await self.auto_coder_runner.coding(query) 
 
-        @app.get("/api/result/{request_id}")
+        @self.app.get("/api/result/{request_id}")
         async def get_result(request_id: str):
             result = request_queue.get_request(request_id)
             if result is None:
@@ -333,7 +333,7 @@ class ProxyServer:
             v = {"result": result.value, "status": result.status.value}
             return v 
         
-        @app.post("/api/event/get")
+        @self.app.post("/api/event/get")
         async def get_event(request: EventGetRequest):
             request_id = request.request_id
             if not request_id:
@@ -342,7 +342,7 @@ class ProxyServer:
             v = queue_communicate.get_event(request_id)
             return v  
 
-        @app.post("/api/event/response")
+        @self.app.post("/api/event/response")
         async def response_event(request: EventResponseRequest):
             request_id = request.request_id
             if not request_id:
