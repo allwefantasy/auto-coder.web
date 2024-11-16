@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tree, Input, Button, Modal, message } from 'antd';
+import { Tree, Input, Button, Modal, message, Table} from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import type { DataNode, EventDataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
@@ -174,6 +174,7 @@ const FileGroupPanel: React.FC = () => {
                   <Table
                     dataSource={record.files.map(file => ({ path: file }))}
                     rowKey="path"
+                    showHeader={false}
                     columns={[
                       {
                         title: 'Path',
