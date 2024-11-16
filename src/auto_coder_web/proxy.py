@@ -15,21 +15,30 @@ from .project_manager import ProjectManager
 from .file_manager import get_directory_tree
 from .auto_coder_runner import AutoCoderRunner
 
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.live import Live
+from rich.text import Text
+from prompt_toolkit.shortcuts import radiolist_dialog
+from prompt_toolkit.formatted_text import HTML
+
 def check_environment():
     """Check and initialize the required environment"""
-    print("\n\033[1;34mInitializing the environment...\033[0m")
+    console = Console()
+    console.print("\n[blue]Initializing the environment...[/blue]")
 
     def check_project():
         """Check if the current directory is initialized as an auto-coder project"""
         def print_status(message, status):
             if status == "success":
-                print(f"\033[32m✓ {message}\033[0m")
+                console.print(f"✓ {message}", style="green")
             elif status == "warning":
-                print(f"\033[33m! {message}\033[0m")
+                console.print(f"! {message}", style="yellow")
             elif status == "error":
-                print(f"\033[31m✗ {message}\033[0m")
+                console.print(f"✗ {message}", style="red")
             else:
-                print(f"  {message}")
+                console.print(f"  {message}")
 
         first_time = False
         if not os.path.exists("actions") or not os.path.exists(".auto-coder"):
@@ -61,15 +70,16 @@ def check_environment():
 
     if not check_project():
         return False
+        
     def print_status(message, status):
         if status == "success":
-            print(f"\033[32m✓ {message}\033[0m")
+            console.print(f"✓ {message}", style="green")
         elif status == "warning":
-            print(f"\033[33m! {message}\033[0m")
+            console.print(f"! {message}", style="yellow")
         elif status == "error":
-            print(f"\033[31m✗ {message}\033[0m")
+            console.print(f"✗ {message}", style="red")
         else:
-            print(f"  {message}")
+            console.print(f"  {message}")
     
     # Check if Ray is running
     print_status("Checking Ray", "")
@@ -94,6 +104,7 @@ def check_environment():
         )
         if result.returncode == 0:
             print_status("deepseek_chat model is available", "success")
+            print_status("Environment check complete", "success")
             return True
     except subprocess.TimeoutExpired:
         print_status("Model check timeout", "error")
@@ -103,15 +114,80 @@ def check_environment():
         print_status(f"Unexpected error: {str(e)}", "error")
     
     print_status("deepseek_chat model is not available", "warning")
-    print_status("Please make sure to initialize the model first:", "warning")
-    print_status("1. For 硅基流动(https://siliconflow.cn):", "")
-    print_status("   easy-byzerllm deploy deepseek-ai/deepseek-v2-chat --token YOUR_TOKEN --alias deepseek_chat", "")
-    print_status("2. For Deepseek官方(https://www.deepseek.com/):", "")
-    print_status('   byzerllm deploy --pretrained_model_type saas/openai --cpus_per_worker 0.001 --gpus_per_worker 0 ' + 
-                 '--worker_concurrency 1000 --num_workers 1 --infer_params ' + 
-                 '"saas.base_url=https://api.deepseek.com/v1 saas.api_key=YOUR_API_KEY saas.model=deepseek-chat" ' + 
-                 '--model deepseek_chat', "")
-    return False
+    
+    # If deepseek_chat is not available, prompt user to choose a provider
+    choice = radiolist_dialog(
+        title="Select Provider",
+        text="Please select a provider for deepseek_chat model:",
+        values=[
+            ("1", "硅基流动(https://siliconflow.cn)"),
+            ("2", "Deepseek官方(https://www.deepseek.com/)"),
+        ],
+    ).run()
+
+    if choice is None:
+        print_status("No provider selected", "error")
+        return False
+
+    api_key = prompt(HTML("<b>Please enter your API key: </b>"))
+
+    if choice == "1":
+        print_status("Deploying model with 硅基流动", "")
+        deploy_cmd = [
+            "easy-byzerllm",
+            "deploy",
+            "deepseek-ai/deepseek-v2-chat",
+            "--token",
+            api_key,
+            "--alias",
+            "deepseek_chat",
+        ]
+    else:
+        print_status("Deploying model with Deepseek官方", "")
+        deploy_cmd = [
+            "byzerllm",
+            "deploy",
+            "--pretrained_model_type",
+            "saas/openai",
+            "--cpus_per_worker",
+            "0.001",
+            "--gpus_per_worker",
+            "0",
+            "--worker_concurrency",
+            "1000",
+            "--num_workers",
+            "1",
+            "--infer_params",
+            f"saas.base_url=https://api.deepseek.com/v1 saas.api_key={api_key} saas.model=deepseek-chat",
+            "--model",
+            "deepseek_chat",
+        ]
+
+    try:
+        subprocess.run(deploy_cmd, check=True)
+        print_status("Model deployed successfully", "success")
+    except subprocess.CalledProcessError:
+        print_status("Failed to deploy model", "error")
+        return False
+
+    # Validate the deployment
+    print_status("Validating model deployment", "")
+    try:
+        validation_result = subprocess.run(
+            ["easy-byzerllm", "chat", "deepseek_chat", "你好"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=True,
+        )
+        print_status("Model validation successful", "success")
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+        print_status("Model validation failed", "error")
+        print_status("You may need to try manually: easy-byzerllm chat deepseek_chat 你好", "warning")
+        return False
+
+    print_status("Environment initialization complete", "success")
+    return True
 
 class ProxyServer:
     def __init__(self, quick: bool = False):
