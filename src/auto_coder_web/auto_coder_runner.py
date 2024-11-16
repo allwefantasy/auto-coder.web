@@ -186,10 +186,30 @@ class AutoCoderRunner:
         return {"files": self.memory["current_files"]["files"]}
 
     def configure(self, key: str, value: str) -> Dict[str, str]:
+        """Configure settings and save to memory
+        
+        Args:
+            key: Configuration key
+            value: Configuration value, will convert "true"/"false" strings to boolean
+            
+        Returns:
+            Dict with status message
+        """
+        # Convert string boolean values
+        if isinstance(value, str) and value.lower() in ["true", "false"]:
+            value = str(value).lower()
+            
         self.memory["conf"][key] = value
         self.save_memory()
         return {"message": f"Set {key} to {value}"}
 
+    def get_config(self) -> Dict[str, str]:
+        """Get current configuration
+        
+        Returns:
+            Dict with current config values
+        """
+        return self.memory.get("conf", {})
     def delete_config(self, key: str) -> Dict[str, str]:
         if key in self.memory["conf"]:
             del self.memory["conf"][key]

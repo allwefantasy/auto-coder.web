@@ -292,6 +292,15 @@ class ProxyServer:
                 
             return {"content": content}
             
+        @self.app.post("/api/conf")
+        async def config(request: Request):            
+            data = await request.json()
+            try:
+                for key, value in data.items():
+                    self.auto_coder_runner.configure(key, str(value))                    
+                return {"status": "success"}
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
                         
 
 def main():

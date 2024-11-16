@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AutoComplete, Card, Select } from 'antd';
+import { AutoComplete, Card, Select, Switch, message } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 
 interface FileGroup {
@@ -8,9 +8,18 @@ interface FileGroup {
   files: string[];
 }
 
+interface ConfigState {
+  human_as_model: boolean;
+  skip_build_index: boolean;
+}
+
 const ChatPanel: React.FC = () => {
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const [config, setConfig] = useState<ConfigState>({
+    human_as_model: false,
+    skip_build_index: true
+  });
   const fetchFileGroups = async () => {
     try {
       const response = await fetch('/api/file-groups');
@@ -46,6 +55,55 @@ const ChatPanel: React.FC = () => {
 
       {/* File Groups Section */}
       <div className="bg-gray-800 p-4 border-t border-gray-700">
+        {/* Configuration Section */}
+        <div className="mb-4 p-3 rounded bg-gray-900">
+          <div className="flex justify-between items-center mb-3">
+            <div className="text-white text-sm">Settings</div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300 text-sm">Human As Model</span>
+              <Switch
+                size="small"
+                checked={config.human_as_model}
+                onChange={async (checked) => {
+                  const response = await fetch('/api/conf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ human_as_model: checked })
+                  });
+                  if (response.ok) {
+                    setConfig(prev => ({ ...prev, human_as_model: checked }));
+                    message.success('Configuration updated');
+                  } else {
+                    message.error('Failed to update configuration');
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300 text-sm">Skip Build Index</span>
+              <Switch
+                size="small"
+                checked={config.skip_build_index}
+                onChange={async (checked) => {
+                  const response = await fetch('/api/conf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ skip_build_index: checked })
+                  });
+                  if (response.ok) {
+                    setConfig(prev => ({ ...prev, skip_build_index: checked }));
+                    message.success('Configuration updated');
+                  } else {
+                    message.error('Failed to update configuration');
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="mb-4">          
           <Select
             mode="multiple"
