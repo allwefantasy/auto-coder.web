@@ -65,6 +65,46 @@ class ProxyServer:
                 
             return {"status": "success"}
 
+        @self.app.post("/api/file-groups")
+        async def create_file_group(request: Request):
+            data = await request.json()
+            name = data.get("name")
+            description = data.get("description", "")
+            
+            from .file_group import FileGroupManager
+            group = FileGroupManager.create_group(name, description)
+            return group
+            
+        @self.app.delete("/api/file-groups/{name}")
+        async def delete_file_group(name: str):
+            from .file_group import FileGroupManager
+            FileGroupManager.delete_group(name)
+            return {"status": "success"}
+            
+        @self.app.post("/api/file-groups/{name}/files")
+        async def add_files_to_group(name: str, request: Request):
+            data = await request.json()
+            files = data.get("files", [])
+            
+            from .file_group import FileGroupManager
+            group = FileGroupManager.add_files_to_group(name, files)
+            return group
+            
+        @self.app.delete("/api/file-groups/{name}/files")
+        async def remove_files_from_group(name: str, request: Request):
+            data = await request.json()
+            files = data.get("files", [])
+            
+            from .file_group import FileGroupManager
+            group = FileGroupManager.remove_files_from_group(name, files)
+            return group
+            
+        @self.app.get("/api/file-groups")
+        async def get_file_groups():
+            from .file_group import FileGroupManager
+            groups = FileGroupManager.get_groups()
+            return {"groups": groups}
+            
         @self.app.get("/api/files")
         async def get_files():
             from .project_manager import ProjectManager
