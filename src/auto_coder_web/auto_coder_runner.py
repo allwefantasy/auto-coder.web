@@ -29,18 +29,8 @@ from autocoder.utils.queue_communicate import (
 from autocoder.utils.log_capture import LogCapture
 
 class AutoCoderRunner:
-    _instance = None
-    _initialized = False
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(AutoCoderRunner, cls).__new__(cls)
-        return cls._instance
-    
     def __init__(self):
-        if not AutoCoderRunner._initialized:
-            self.base_persist_dir = os.path.join(".auto-coder", "plugins", "chat-auto-coder")
-            AutoCoderRunner._initialized = True
+        self.base_persist_dir = os.path.join(".auto-coder", "plugins", "chat-auto-coder")
         self.default_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__"]
         self.memory = {
             "conversation": [],
