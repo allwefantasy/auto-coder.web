@@ -331,6 +331,14 @@ class ProxyServer:
             if not query:
                 raise HTTPException(status_code=400, detail="Query is required")
             return await self.auto_coder_runner.coding(query) 
+        
+        @self.app.post("/api/chat")
+        async def chat(request: Request):
+            data = await request.json()
+            query = data.get("query", "")
+            if not query:
+                raise HTTPException(status_code=400, detail="Query is required")
+            return await self.auto_coder_runner.chat(query)
 
         @self.app.get("/api/result/{request_id}")
         async def get_result(request_id: str):
