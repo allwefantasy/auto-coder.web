@@ -56,6 +56,7 @@ const FileGroupPanel: React.FC = () => {
       if (!response.ok) throw new Error('Failed to fetch file tree');
       const data = await response.json();
       setTreeData(data.tree);
+      setFilteredTreeData(data.tree);
     } catch (error) {
       message.error('Failed to load file tree');
     }
