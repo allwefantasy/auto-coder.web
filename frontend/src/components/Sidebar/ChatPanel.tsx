@@ -168,8 +168,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
           }));
 
           // 发送到 App 组件
-          setPreviewFiles(previewData);
-          // setActivePanel('preview');
+          // setPreviewFiles(previewData);
+          setActivePanel('preview');
         }
 
         if (eventData.event_type === 'code_human_as_model') {
