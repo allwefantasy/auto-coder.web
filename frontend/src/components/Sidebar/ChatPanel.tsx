@@ -286,8 +286,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
           response: v
         })
       });
-      setPendingResponseEvent(null);
-      addUserMessage(inputText);
+      setPendingResponseEvent(null);      
       setInputText("");
       return;
     }
@@ -315,7 +314,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
         if (isWriteMode) {
           // Start polling for events
           await pollEvents(data.request_id);
-          addBotMessage("代码修改完成。");
+          addBotMessage("代码修改完成。请查看右侧修改预览面板。如果不满意，可以移动鼠标到你的需求处进行撤销。");
         } else {
           const messageBotId = addBotMessage("");
           await pollStreamResult(data.request_id, (newText) => {
