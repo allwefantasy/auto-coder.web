@@ -101,7 +101,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
       id: Date.now().toString(),
       role: 'bot',
       content,
-      status: 'sent',
       timestamp: Date.now()
     };
     setMessages(prev => [...prev, newMessage]);
