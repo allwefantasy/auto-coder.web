@@ -108,10 +108,22 @@ const FileGroupPanel: React.FC = () => {
     if (!selectedGroup || checkedKeys.length === 0) return;
     
     try {
+      // Filter to only include complete file paths (no directories)
+      const filesToAdd = checkedKeys.filter((key) => {
+        const node = treeData.find(n => n.key === key) || 
+                    treeData.flatMap(n => n.children || []).find(n => n.key === key);
+        return node?.isLeaf === true;
+      });
+
+      if (filesToAdd.length === 0) {
+        message.info('No files selected (directories are ignored)');
+        return;
+      }
+
       const response = await fetch(`/api/file-groups/${selectedGroup.name}/files`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ files: checkedKeys }),
+        body: JSON.stringify({ files: filesToAdd }),
       });
       if (!response.ok) throw new Error('Failed to add files');
       

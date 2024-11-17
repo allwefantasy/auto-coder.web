@@ -218,7 +218,11 @@ class ProxyServer:
         self.client = httpx.AsyncClient() 
         self.project_path = project_path 
         self.auto_coder_runner = AutoCoderRunner(project_path)  
-        self.file_group_manager = FileGroupManager(self.auto_coder_runner)                     
+            self.file_group_manager = FileGroupManager(self.auto_coder_runner)                     
+
+        @self.app.get("/api/os")
+        async def get_os():
+            return {"os": os.name}
         
     def setup_middleware(self):
         self.app.add_middleware(
