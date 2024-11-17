@@ -372,20 +372,55 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
           {/* Message Input */}
           <div className="p-4 flex flex-col space-y-2">
-            <div className="flex-1">
+            <div className="flex-1 min-h-[120px]">
               <Editor                                
                 theme="vs-dark"
                 value={inputText}
-                onChange={(value) => setInputText(value || '')}                               
+                onChange={(value) => setInputText(value || '')}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  lineNumbers: 'on',
+                  scrollBeyondLastLine: false,
+                  wordWrap: 'on',
+                  lineHeight: 1.5,
+                  padding: { top: 8, bottom: 8 },
+                  suggestLineHeight: 24,
+                  folding: true,
+                  automaticLayout: true,
+                  overviewRulerBorder: false,
+                  scrollbar: {
+                    vertical: 'auto',
+                    horizontal: 'auto'
+                  },
+                }}           
               />
             </div>
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between mt-2 gap-2">
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-gray-400">
+                  Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter to send
+                </div>
+              </div>
               <button
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center px-4 py-2 bg-indigo-600 text-sm text-white rounded-md font-medium 
+                hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
+                focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                shadow-lg shadow-indigo-500/20"
                 onClick={handleSendMessage}
                 disabled={sendLoading}
               >
-                {sendLoading ? 'Sending...' : 'Send'}
+                {sendLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sending...
+                  </>
+                ) : (
+                  'Send'
+                )}
               </button>
             </div>
           </div>
