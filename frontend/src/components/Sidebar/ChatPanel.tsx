@@ -243,17 +243,48 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
           <div className="space-y-4">
             {messages.map((message) => (
               <div
-                key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-300'
-                  }`}
+                <div 
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className="break-words">{message.content}</div>
+                  <div
+                    className={`max-w-[80%] rounded-lg p-3 relative group ${
+                      message.role === 'user'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-800 text-gray-300'
+                    }`}
+                  >
+                    <div className="break-words">{message.content}</div>
+                    {message === messages[messages.length - 1] && message.role === 'user' && (
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 hidden group-hover:block">
+                        <button
+                          className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/revert', {
+                                method: 'POST'
+                              });
+                              
+                              if (!response.ok) {
+                                throw new Error('Failed to revert changes');
+                              }
+                              
+                              const data = await response.json();
+                              message.success('Changes reverted successfully');
+                              
+                              // Refresh preview panel if active
+                              setPreviewFiles([]);
+                              setActivePanel('code');
+                              
+                            } catch (error) {
+                              message.error('Failed to revert changes');
+                              console.error('Error reverting changes:', error);
+                            }
+                          }}
+                        >
+                          Revert Changes
+                        </button>
+                      </div>
+                    )}
                   {message.status === 'sending' && (
                     <div className="flex items-center text-xs text-gray-400 mt-1">
                       <div className="mr-1">sending</div>
