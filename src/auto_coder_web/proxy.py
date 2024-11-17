@@ -345,6 +345,13 @@ class ProxyServer:
                 raise HTTPException(status_code=404, detail="File not found or cannot be read")
                 
             return {"content": content}
+
+        @self.app.get("/api/active-files")
+        async def get_active_files():
+            """获取当前活动文件列表"""            
+            active_files = self.auto_coder_runner.get_config().get("current_files", {})
+            files = active_files.get("files", [])
+            return {"files": files}
             
         @self.app.get("/api/conf")
         async def get_conf():
