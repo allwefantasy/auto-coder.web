@@ -230,106 +230,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
   return (
     <div className="flex flex-col h-full">
-      {/* Configuration and Groups Section */}
-      <div className="bg-gray-800 p-4 border-b border-gray-700">
-        {/* Settings Card */}
-        <Card
-          size="small"
-          className="mb-4"
-          style={{ backgroundColor: '#1f2937', borderColor: '#374151' }}
-          bodyStyle={{ padding: '8px' }}
-          title={
-            <div className="flex justify-between items-center">
-              <span className="text-gray-300 text-sm">Settings</span>
-              <Switch
-                size="small"
-                checked={showConfig}
-                onChange={setShowConfig}
-                className="ml-2"
-              />
-            </div>
-          }
-        >
-          {showConfig && (
-            <div className="space-y-1">
-              {/* Human As Model */}
-              <Tooltip title="Enable to let human act as the model">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300 text-xs">Human As Model</span>
-                  <Switch
-                    size="small"
-                    checked={config.human_as_model}
-                    onChange={async (checked) => {
-                      const response = await fetch('/api/conf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ human_as_model: checked })
-                      });
-                      if (response.ok) {
-                        setConfig(prev => ({ ...prev, human_as_model: checked }));
-                        message.success('Updated');
-                      } else {
-                        message.error('Failed to update');
-                      }
-                    }}
-                  />
-                </div>
-              </Tooltip>
-
-              {/* Skip Build Index */}
-              <Tooltip title="Skip building index for better performance">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300 text-xs">Skip Build Index</span>
-                  <Switch
-                    size="small"
-                    checked={config.skip_build_index}
-                    onChange={async (checked) => {
-                      const response = await fetch('/api/conf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ skip_build_index: checked })
-                      });
-                      if (response.ok) {
-                        setConfig(prev => ({ ...prev, skip_build_index: checked }));
-                        message.success('Updated');
-                      } else {
-                        message.error('Failed to update');
-                      }
-                    }}
-                  />
-                </div>
-              </Tooltip>
-            </div>
-          )}
-        </Card>
-
-        {/* File Groups Select */}
-        <Select
-          mode="multiple"
-          style={{ width: '100%' }}
-          placeholder="Select file groups"
-          value={selectedGroups}
-          onChange={(values) => setSelectedGroups(values)}
-          optionLabelProp="label"
-          className="custom-select"
-        >
-          {fileGroups.map(group => (
-            <Select.Option
-              key={group.name}
-              value={group.name}
-              label={group.name}
-            >
-              <div className="flex justify-between items-center">
-                <span>{group.name}</span>
-                <span className="text-gray-400 text-xs">
-                  {group.files.length} files
-                </span>
-              </div>
-            </Select.Option>
-          ))}
-        </Select>
-      </div>
-
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
         <div className="space-y-4">
@@ -368,6 +268,105 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
             </div>
           ))}
           <div ref={messagesEndRef} />
+        </div>
+        <div className="bg-gray-800 p-2 border-t border-gray-700">
+          {/* Configuration Section */}
+          <Card
+            size="small"
+            className="mb-2"
+            style={{ backgroundColor: '#1f2937', borderColor: '#374151' }}
+            bodyStyle={{ padding: '8px' }}
+            title={
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300 text-sm">Settings</span>
+                <Switch
+                  size="small"
+                  checked={showConfig}
+                  onChange={setShowConfig}
+                  className="ml-2"
+                />
+              </div>
+            }
+          >
+            {showConfig && (
+              <div className="space-y-1">
+                {/* Human As Model */}
+                <Tooltip title="Enable to let human act as the model">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300 text-xs">Human As Model</span>
+                    <Switch
+                      size="small"
+                      checked={config.human_as_model}
+                      onChange={async (checked) => {
+                        const response = await fetch('/api/conf', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ human_as_model: checked })
+                        });
+                        if (response.ok) {
+                          setConfig(prev => ({ ...prev, human_as_model: checked }));
+                          message.success('Updated');
+                        } else {
+                          message.error('Failed to update');
+                        }
+                      }}
+                    />
+                  </div>
+                </Tooltip>
+
+                {/* Skip Build Index */}
+                <Tooltip title="Skip building index for better performance">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300 text-xs">Skip Build Index</span>
+                    <Switch
+                      size="small"
+                      checked={config.skip_build_index}
+                      onChange={async (checked) => {
+                        const response = await fetch('/api/conf', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ skip_build_index: checked })
+                        });
+                        if (response.ok) {
+                          setConfig(prev => ({ ...prev, skip_build_index: checked }));
+                          message.success('Updated');
+                        } else {
+                          message.error('Failed to update');
+                        }
+                      }}
+                    />
+                  </div>
+                </Tooltip>
+              </div>
+            )}
+          </Card>
+
+          <div className="mb-4">
+            <Select
+              mode="multiple"
+              style={{ width: '100%' }}
+              placeholder="Select file groups"
+              value={selectedGroups}
+              onChange={(values) => setSelectedGroups(values)}
+              optionLabelProp="label"
+              className="custom-select"
+            >
+              {fileGroups.map(group => (
+                <Select.Option
+                  key={group.name}
+                  value={group.name}
+                  label={group.name}
+                >
+                  <div className="flex justify-between items-center">
+                    <span>{group.name}</span>
+                    <span className="text-gray-400 text-xs">
+                      {group.files.length} files
+                    </span>
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
         </div>
       </div>
 
