@@ -342,7 +342,7 @@ class ProxyServer:
 
         @self.app.get("/api/result/{request_id}")
         async def get_result(request_id: str):
-            result = self.auto_coder_runner.get_result(request_id)
+            result = await self.auto_coder_runner.get_result(request_id)
             if result is None:
                 raise HTTPException(status_code=404, detail="Result not found or not ready yet")
 

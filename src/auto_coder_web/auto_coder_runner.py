@@ -32,6 +32,7 @@ from autocoder.utils.log_capture import LogCapture
 from threading import Thread
 from byzerllm.utils import format_str_jinja2
 
+
 class AutoCoderRunner:
     def __init__(self, project_path: str):
         self.project_path = project_path
@@ -228,11 +229,8 @@ class AutoCoderRunner:
         return {"message": "success"}
 
     async def get_result(self, request_id: str) -> Dict[str, Any]:
-        result = request_queue.get_request(request_id)
-        if result is None:
-            raise ValueError("Result not found or not ready yet")
-
-        return {"result": result.value, "status": result.status.value}
+        result = request_queue.get_request(request_id)        
+        return result
 
     async def coding(self, query: str) -> Dict[str, str]:
         self.memory["conversation"].append({"role": "user", "content": query})
@@ -289,7 +287,7 @@ class AutoCoderRunner:
         )
         Thread(target=process).start()
         return {"request_id": request_id}
-    
+
     @byzerllm.prompt()
     def code_review(self, query: str) -> str:
         """
@@ -307,20 +305,21 @@ class AutoCoderRunner:
         review 过程中严格遵循上述的检查点，不要遗漏，没有发现异常的点直接跳过，只对发现的异常点，给出具体的修改后的代码。    
         """
 
-    def convert_yaml_config_to_str(self,yaml_config):
+    def convert_yaml_config_to_str(self, yaml_config):
         yaml_content = yaml.safe_dump(
             yaml_config,
             allow_unicode=True,
             default_flow_style=False,
             default_style=None,
         )
-        return yaml_content    
+        return yaml_content
 
     async def chat(self, query: str) -> Dict[str, str]:
         request_id = str(uuid.uuid4())
 
         def process_chat():
             nonlocal query
+            nonlocal request_id
             conf = self.memory.get("conf", {})
 
             yaml_config = {
@@ -340,7 +339,7 @@ class AutoCoderRunner:
 
             if "emb_model" in conf:
                 yaml_config["emb_model"] = conf["emb_model"]
-                        
+
             is_new = query.strip().startswith("/new")
             if is_new:
                 query = query.replace("/new", "", 1).strip()
@@ -367,7 +366,8 @@ class AutoCoderRunner:
 
             yaml_config["query"] = query
 
-            yaml_content = self.convert_yaml_config_to_str(yaml_config=yaml_config)
+            yaml_content = self.convert_yaml_config_to_str(
+                yaml_config=yaml_config)
 
             execute_file = os.path.join("actions", f"{uuid.uuid4()}.yml")
 
@@ -375,7 +375,8 @@ class AutoCoderRunner:
                 f.write(yaml_content)
 
             def execute_ask():
-                cmd = ["agent", "chat", "--file", execute_file]
+                cmd = ["agent", "chat", "--file",
+                       execute_file, "--request_id", request_id]
                 if is_new:
                     cmd.append("--new_session")
                 auto_coder_main(cmd)

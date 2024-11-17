@@ -116,12 +116,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
       try {
         const response = await fetch(`/api/result/${requestId}`);
         if (!response.ok) {
-          status = 'completed';
+          status = 'failed';
           break;
         }
-        
+
         const data: ResponseData = await response.json();
-        status = data.status;            
+        status = data.status;
 
         if ('value' in data.result && Array.isArray(data.result.value)) {
           const newText = data.result.value.join('');
@@ -258,7 +258,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
     const messageId = addUserMessage(inputText);
     setInputText("");
     setSendLoading(true);
-    
+
     try {
       const endpoint = isWriteMode ? '/api/coding' : '/api/chat';
       const response = await fetch(endpoint, {
@@ -277,14 +277,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
       if (data.request_id) {
         // Update original message status
         updateMessageStatus(messageId, 'sent');
-        // Start polling for events
-        await pollEvents(data.request_id);
         if (isWriteMode) {
+          // Start polling for events
+          await pollEvents(data.request_id);
           addBotMessage("代码修改完成。");
         } else {
           const messageBotId = addBotMessage("");
           await pollStreamResult(data.request_id, (newText) => {
-            setMessages(prev => prev.map(msg => 
+            setMessages(prev => prev.map(msg =>
               msg.id === messageBotId ? { ...msg, content: newText } : msg
             ));
           });
