@@ -191,6 +191,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
     }
   };
 
+  const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
+
   const handleSendMessage = async () => {
     if (!inputText.trim()) {
       AntdMessage.warning('Please enter a message');
@@ -198,12 +200,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
     }
 
     const messageId = addUserMessage(inputText);
-
     setInputText("");
-
     setSendLoading(true);
+    
     try {
-      const response = await fetch('/api/coding', {
+      const endpoint = isWriteMode ? '/api/coding' : '/api/chat';
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -221,7 +223,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
         updateMessageStatus(messageId, 'sent');
         // Start polling for events
         await pollEvents(data.request_id);
-        addBotMessage("代码修改完成。")
+        if (isWriteMode) {
+          addBotMessage("代码修改完成。");
+        }
       }
 
     } catch (error) {
@@ -429,6 +433,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
             <div className="flex items-center gap-2">
               <div className="text-xs text-gray-400">
                 Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter to send
+              </div>
+              <div className="flex items-center gap-1">
+                <Switch
+                  size="small"
+                  checked={isWriteMode}
+                  onChange={setIsWriteMode}
+                  checkedChildren="Write"
+                  unCheckedChildren="Chat"
+                  className="bg-gray-600"
+                />
               </div>
             </div>
             <button
