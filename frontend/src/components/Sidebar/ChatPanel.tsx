@@ -260,6 +260,29 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
   };
 
 
+  const handleRevert = async () => {
+    try {
+      const response = await fetch('/api/revert', {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to revert changes');
+      }
+
+      const data = await response.json();
+      AntdMessage.success('Changes reverted successfully');
+
+      // Refresh preview panel if active
+      setPreviewFiles([]);
+      setActivePanel('code');
+
+    } catch (error) {
+      AntdMessage.error('Failed to revert changes');
+      console.error('Error reverting changes:', error);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputText.trim()) {
       AntdMessage.warning('Please enter a message');
@@ -547,14 +570,24 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                 />
               </div>
             </div>
-            <button
-              className="flex items-center px-4 py-2 bg-indigo-600 text-sm text-white rounded-md font-medium 
-                hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
-                focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-                shadow-lg shadow-indigo-500/20"
-              onClick={handleSendMessage}
-              disabled={sendLoading}
-            >
+            <div className="flex items-center gap-2">
+              <button
+                className="flex items-center px-4 py-2 bg-red-600 text-sm text-white rounded-md font-medium 
+                  hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 
+                  focus:ring-offset-gray-900 transition-colors
+                  shadow-lg shadow-red-500/20"
+                onClick={handleRevert}
+              >
+                Revert Changes
+              </button>
+              <button
+                className="flex items-center px-4 py-2 bg-indigo-600 text-sm text-white rounded-md font-medium 
+                  hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
+                  focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                  shadow-lg shadow-indigo-500/20"
+                onClick={handleSendMessage}
+                disabled={sendLoading}
+              >
               {sendLoading ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
