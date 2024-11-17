@@ -540,65 +540,83 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
               value={inputText}
               onChange={(value) => setInputText(value || '')}
               defaultLanguage='markdown'
-              beforeMount={(monaco) => {
-                // 注册文件完成器
-                monaco.languages.registerCompletionItemProvider('markdown', {
-                  triggerCharacters: ['@'],
-                  async provideCompletionItems(model, position) {
-                    const textUntilPosition = model.getValueInRange({
-                      startLineNumber: position.lineNumber,
-                      startColumn: 1,
-                      endLineNumber: position.lineNumber,
-                      endColumn: position.column,
-                    });
+                beforeMount={(monaco: typeof import('monaco-editor')) => {
+                  // 注册文件完成器
+                  monaco.languages.registerCompletionItemProvider('markdown', {
+                    triggerCharacters: ['@'],
+                    async provideCompletionItems(model: import('monaco-editor').editor.ITextModel, position: import('monaco-editor').Position) {
+                      // 获取当前位置之前的文本
+                      const textUntilPosition: string = model.getValueInRange({
+                        startLineNumber: position.lineNumber,
+                        startColumn: 1,
+                        endLineNumber: position.lineNumber,
+                        endColumn: position.column,
+                      });
 
-                    // 获取@后的文本
-                    const match = textUntilPosition.match(/@([^@\s]*)$/);
-                    const doubleMatch = textUntilPosition.match(/@@([^\s]*)$/);
-                    
-                    if (match || doubleMatch) {
-                      const suggestions = [];
-                      const query = doubleMatch ? doubleMatch[1] : match[1];
-                      const isSymbol = !!doubleMatch;
+                      // 获取@后的文本
+                      const match: RegExpMatchArray | null = textUntilPosition.match(/@([^@\s]*)$/);
+                      const doubleMatch: RegExpMatchArray | null = textUntilPosition.match(/@@([^\s]*)$/);
                       
-                      try {
-                        const activeFiles = memory.current_files.files.join(',');
-                        const endpoint = isSymbol ? '/api/completions/symbols' : '/api/completions/files';
-                        const response = await fetch(
-                          `${endpoint}?name=${encodeURIComponent(query)}${!isSymbol ? `&active_files=${encodeURIComponent(activeFiles)}` : ''}`
-                        );
+                      if (match || doubleMatch) {
+                        const suggestions: monaco.languages.CompletionItem[] = [];
+                        const query: string = doubleMatch ? doubleMatch[1] : match![1];
+                        const isSymbol: boolean = !!doubleMatch;
                         
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        
-                        const data = await response.json();
-                        
-                        data.completions.forEach((item: any) => {
-                          suggestions.push({
-                            label: isSymbol ? item.name : item.path,
-                            kind: monaco.languages.CompletionItemKind.Reference,
-                            documentation: item.display,
-                            insertText: isSymbol ? `${item.name}(location: ${item.location})` : item.path,
-                            range: {
-                              startLineNumber: position.lineNumber,
-                              endLineNumber: position.lineNumber,
-                              startColumn: position.column - query.length - (isSymbol ? 2 : 1),
-                              endColumn: position.column
-                            }
+                        try {
+                          // 从后端获取当前活动文件
+                          const activeFilesResponse = await fetch('/api/active-files');
+                          if (!activeFilesResponse.ok) {
+                            throw new Error('Failed to fetch active files');
+                          }
+                          const activeFilesData = await activeFilesResponse.json();
+                          const activeFiles: string = activeFilesData.files.join(',');
+
+                          const endpoint: string = isSymbol ? '/api/completions/symbols' : '/api/completions/files';
+                          const response = await fetch(
+                            `${endpoint}?name=${encodeURIComponent(query)}${!isSymbol ? `&active_files=${encodeURIComponent(activeFiles)}` : ''}`
+                          );
+                          
+                          if (!response.ok) throw new Error('Network response was not ok');
+                          
+                          interface CompletionData {
+                            completions: Array<{
+                              name: string;
+                              path: string;
+                              display: string;
+                              location?: string;
+                            }>;
+                          }
+
+                          const data: CompletionData = await response.json();
+                          
+                          data.completions.forEach((item) => {
+                            const completionItem: monaco.languages.CompletionItem = {
+                              label: isSymbol ? item.name : item.path,
+                              kind: monaco.languages.CompletionItemKind.Reference,
+                              documentation: item.display,
+                              insertText: isSymbol ? `${item.name}(location: ${item.location})` : item.path,
+                              range: {
+                                startLineNumber: position.lineNumber,
+                                endLineNumber: position.lineNumber,
+                                startColumn: position.column - query.length - (isSymbol ? 2 : 1),
+                                endColumn: position.column
+                              }
+                            };
+                            suggestions.push(completionItem);
                           });
-                        });
-                      } catch (error) {
-                        console.error('Error fetching completions:', error);
+                        } catch (error) {
+                          console.error('Error fetching completions:', error instanceof Error ? error.message : 'Unknown error');
+                        }
+                        
+                        return {
+                          suggestions
+                        };
                       }
                       
-                      return {
-                        suggestions
-                      };
+                      return { suggestions: [] };
                     }
-                    
-                    return { suggestions: [] };
-                  }
-                });
-              }}
+                  });
+                }}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
