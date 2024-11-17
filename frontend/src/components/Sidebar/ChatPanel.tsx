@@ -372,9 +372,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
           {/* Message Input */}
           <div className="p-4 flex flex-col space-y-2">
-            <div className="flex-1 min-h-[120px]">
-              <Editor                                
-                theme="vs-dark"
+              <div className="flex-1 min-h-[180px]">
+                <Editor                                
+                  theme="vs-dark"
+                  height="180px"
                 value={inputText}
                 onChange={(value) => setInputText(value || '')}
                 options={{
