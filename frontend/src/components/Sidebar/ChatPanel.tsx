@@ -278,9 +278,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
             ))}
             <div ref={messagesEndRef} />
           </div>
-        </div>
+  return (
+      <div className="flex flex-col h-full">
+        {/* Chat Messages */}        
 
-        {/* Input Area with integrated settings */}
+        {/* Input Area */}
         <div className="bg-gray-800 border-t border-gray-700">
           {/* Configuration and Groups Section */}
           <div className="px-4 pt-2">
@@ -371,27 +373,58 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
           </div>
 
           {/* Message Input */}
-          <div className="p-4 flex flex-col space-y-2">
-            <div className="flex-1">
-              <Editor                                
-                theme="vs-dark"
-                value={inputText}
-                onChange={(value) => setInputText(value || '')}                               
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleSendMessage}
-                disabled={sendLoading}
-              >
-                {sendLoading ? 'Sending...' : 'Send'}
-              </button>
+          <div className="p-4">
+            <div className="relative rounded-lg bg-gray-700 shadow-inner">
+              {/* Editor Container */}
+              <div className="min-h-[100px] max-h-[300px] overflow-y-auto">
+                <Editor                                
+                  theme="vs-dark"
+                  value={inputText}
+                  onChange={(value) => setInputText(value || '')}     
+                  options={{
+                    minimap: { enabled: false },
+                    scrollbar: {
+                      vertical: 'visible',
+                      horizontal: 'visible'
+                    },
+                    lineNumbers: 'off',
+                    glyphMargin: false,
+                    folding: false,
+                    lineDecorationsWidth: 0,
+                    lineNumbersMinChars: 0,
+                    wordWrap: 'on',
+                  }}                          
+                />
+              </div>
+              
+              {/* Send Button */}
+              <div className="absolute bottom-3 right-3">
+                <button
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium 
+                           transition-all duration-200 hover:bg-indigo-700 
+                           shadow-lg shadow-indigo-500/20 
+                           focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 
+                           disabled:opacity-50 disabled:cursor-not-allowed 
+                           flex items-center gap-2"
+                  onClick={handleSendMessage}
+                  disabled={sendLoading}
+                >
+                  {sendLoading ? (
+                    <>
+                      <span className="animate-spin">⟳</span>
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Send</span>
+                      <span className="text-lg">→</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-  );
-};
 
 export default ChatPanel;
