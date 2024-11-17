@@ -103,3 +103,66 @@ const CodeEditor: React.FC = () => {
 };
 
 export default CodeEditor;
+import React from 'react';
+import axios from 'axios';
+import { Button, Modal } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
+
+interface CodeEditorProps {
+  currentFile: string;
+  projectPath: string;
+  onFileDeleted: () => void;
+}
+
+const { confirm } = Modal;
+
+export const CodeEditor: React.FC<CodeEditorProps> = ({ currentFile, projectPath, onFileDeleted }) => {
+  const handleDelete = async () => {
+    confirm({
+      title: 'Are you sure you want to delete this file?',
+      icon: <ExclamationCircleOutlined />,
+      content: `This will permanently delete ${currentFile}`,
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      async onOk() {
+        try {
+          const response = await axios.post('/api/delete-file', {
+            projectPath,
+            filePath: currentFile,
+          });
+          
+          if (response.data.success) {
+            onFileDeleted();
+          } else {
+            Modal.error({
+              title: 'Delete Failed',
+              content: 'Failed to delete the file. Please try again.',
+            });
+          }
+        } catch (error) {
+          Modal.error({
+            title: 'Error',
+            content: 'An error occurred while deleting the file.',
+          });
+        }
+      },
+    });
+  };
+
+  return (
+    <div className="code-editor">
+      <div className="code-editor-header">
+        <span>{currentFile}</span>
+        <Button 
+          danger
+          onClick={handleDelete}
+          disabled={!currentFile}
+        >
+          Delete File
+        </Button>
+      </div>
+      {/* Rest of your code editor implementation */}
+    </div>
+  );
+};
