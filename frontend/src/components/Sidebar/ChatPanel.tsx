@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AutoComplete, Card, Select, Switch, message, Tooltip } from 'antd';
+import Editor from '@monaco-editor/react';
 import { DeleteOutlined } from '@ant-design/icons';
 
 interface FileGroup {
@@ -370,20 +371,35 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
           </div>
 
           {/* Message Input */}
-          <div className="p-4 flex items-center space-x-2">
-            <input
-              type="text"
-              className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Type your message..."
-              onChange={handleInputChange}
-            />
-            <button
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleSendMessage}
-              disabled={sendLoading}
-            >
-              {sendLoading ? 'Sending...' : 'Send'}
-            </button>
+          <div className="p-4 flex flex-col">
+            <div style={{ minHeight: '50px', maxHeight: '200px' }}>
+              <Editor
+                height="100%"
+                defaultLanguage="markdown"
+                theme="vs-dark"
+                value={inputText}
+                onChange={(value) => setInputText(value || '')}
+                options={{
+                  fontSize: 14,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  automaticLayout: true,
+                  lineNumbers: 'off',
+                  lineHeight: 22,
+                  wordWrap: 'on',
+                  wrappingIndent: 'indent'
+                }}
+              />
+            </div>
+            <div className="flex justify-end mt-2">
+              <button
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleSendMessage}
+                disabled={sendLoading}
+              >
+                {sendLoading ? 'Sending...' : 'Send'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
