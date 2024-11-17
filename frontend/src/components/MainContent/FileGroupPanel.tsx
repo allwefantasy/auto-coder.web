@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Tree, Input, Button, Modal, message, Table} from 'antd';
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Tree, Input, Button, Modal, message, Table } from 'antd';
+import { DeleteOutlined, PlusOutlined, SearchOutlined, CheckOutlined } from '@ant-design/icons';
 import type { DataNode, EventDataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
 import { getLanguageByFileName } from '../../utils/fileUtils';
@@ -17,10 +17,25 @@ const FileGroupPanel: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [fileContent, setFileContent] = useState<string>('');
   const [treeData, setTreeData] = useState<DataNode[]>([]);
+  const [filteredTreeData, setFilteredTreeData] = useState<DataNode[]>([]);
   const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
+
+  // Helper function to get all file paths from tree data
+  const getAllFilePaths = (nodes: DataNode[]): string[] => {
+    const paths: string[] = [];
+    const traverse = (node: DataNode) => {
+      if (node.children) {
+        node.children.forEach(traverse);
+      } else {
+        paths.push(node.key as string);
+      }
+    };
+    nodes.forEach(traverse);
+    return paths;
+  };
 
   // Fetch file groups
   const fetchFileGroups = async () => {
@@ -249,28 +264,74 @@ const FileGroupPanel: React.FC = () => {
           {/* File Tree */}
           <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto">
             <div className="p-2">
-              <div className="mb-4">
-                <Button
-                  type="primary"
-                  onClick={handleAddFiles}
-                  disabled={!selectedGroup || checkedKeys.length === 0}
-                  block
-                >
-                  Add Selected Files
-                </Button>
+              <div className="space-y-4">
+                <Input
+                  prefix={<SearchOutlined className="text-gray-400" />}
+                  placeholder="Filter files by path..."
+                  className="custom-input"
+                  onChange={(e) => {
+                    const searchValue = e.target.value.toLowerCase();
+                    const filterTreeData = (nodes: DataNode[]): DataNode[] => {
+                      return nodes.reduce((acc: DataNode[], node) => {
+                        if (node.children) {
+                          const filteredChildren = filterTreeData(node.children);
+                          if (filteredChildren.length > 0) {
+                            acc.push({ ...node, children: filteredChildren });
+                          } else if (node.title?.toString().toLowerCase().includes(searchValue)) {
+                            acc.push(node);
+                          }
+                        } else if (node.title?.toString().toLowerCase().includes(searchValue)) {
+                          acc.push(node);
+                        }
+                        return acc;
+                      }, []);
+                    };
+
+                    if (searchValue) {
+                      const filtered = filterTreeData([...treeData]);
+                      setFilteredTreeData(filtered);
+                    } else {
+                      setFilteredTreeData(treeData);
+                    }
+                  }}
+                />
+
+                {selectedGroup && (
+                  <div className="flex space-x-2">
+                    <Button
+                      type="primary"
+                      onClick={handleAddFiles}
+                      disabled={checkedKeys.length === 0}
+                      icon={<PlusOutlined />}
+                      block
+                    >
+                      Add Selected ({checkedKeys.length})
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        const allPaths = getAllFilePaths(filteredTreeData);
+                        setCheckedKeys(allPaths);
+                      }}
+                      icon={<CheckOutlined />}
+                      title="Select All Filtered Files"
+                    />
+                  </div>
+                )}
               </div>
-              <Tree
-                checkable
-                treeData={treeData}
-                checkedKeys={checkedKeys}
-                onCheck={(checked) => setCheckedKeys(checked as React.Key[])}                
-                onDoubleClick={(event: any, node: any) => {
-                  if (node.isLeaf) {
-                    handleFileSelect(node.key as string);
-                  }
-                }}
-                className="bg-gray-900 text-gray-300"
-              />
+              <div className="mt-4">
+                <Tree
+                  checkable
+                  treeData={filteredTreeData}
+                  checkedKeys={checkedKeys}
+                  onCheck={(checked) => setCheckedKeys(checked as React.Key[])}
+                  onDoubleClick={(event: any, node: any) => {
+                    if (node.isLeaf) {
+                      handleFileSelect(node.key as string);
+                    }
+                  }}
+                  className="bg-gray-900 text-gray-300"
+                />
+              </div>
             </div>
           </div>
 

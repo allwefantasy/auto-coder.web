@@ -77,6 +77,28 @@ html, body {
   color: #9CA3AF !important;
 }
 
+/* Custom input styles for dark mode */
+.custom-input {
+  background-color: #1F2937 !important;
+  border-color: #4B5563 !important;
+  color: #E5E7EB !important;
+}
+
+.custom-input:hover,
+.custom-input:focus {
+  border-color: #6366F1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+.custom-input input {
+  background-color: transparent !important;
+  color: #E5E7EB !important;
+}
+
+.custom-input .anticon {
+  color: #9CA3AF !important;
+}
+
 /* Dark mode table styles */
 .dark-mode-table {
   background-color: transparent !important;
