@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AutoComplete, Card, Select, Switch, message, Tooltip } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 
@@ -70,13 +70,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
   const [inputText, setInputText] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      });
+    }
+  }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages, scrollToBottom]);
 
   const addUserMessage = (content: string) => {
     const newMessage: Message = {
