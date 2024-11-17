@@ -228,166 +228,157 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
     }
   };
 
-  return (
-    <div className="flex flex-col h-full">
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+    return (
+      <div className="flex flex-col h-full">
+        {/* Chat Messages */}
+        <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
+          <div className="space-y-4">
+            {messages.map((message) => (
               <div
-                className={`max-w-[80%] rounded-lg p-3 ${message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-800 text-gray-300'
-                  }`}
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className="break-words">{message.content}</div>
-                {message.status === 'sending' && (
-                  <div className="flex items-center text-xs text-gray-400 mt-1">
-                    <div className="mr-1">sending</div>
-                    <div className="animate-bounce">•</div>
-                    <div className="animate-bounce delay-100">•</div>
-                    <div className="animate-bounce delay-200">•</div>
-                  </div>
-                )}
-                {message.status === 'sent' && (
-                  <div className="text-xs text-green-400 mt-1">
-                    ✓ sent
-                  </div>
-                )}
-                {message.status === 'error' && (
-                  <div className="flex items-center text-xs text-red-400 mt-1">
-                    <span className="mr-1">⚠</span>
-                    failed to send
-                  </div>
-                )}
+                <div
+                  className={`max-w-[80%] rounded-lg p-3 ${
+                    message.role === 'user'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-800 text-gray-300'
+                  }`}
+                >
+                  <div className="break-words">{message.content}</div>
+                  {message.status === 'sending' && (
+                    <div className="flex items-center text-xs text-gray-400 mt-1">
+                      <div className="mr-1">sending</div>
+                      <div className="animate-bounce">•</div>
+                      <div className="animate-bounce delay-100">•</div>
+                      <div className="animate-bounce delay-200">•</div>
+                    </div>
+                  )}
+                  {message.status === 'sent' && (
+                    <div className="text-xs text-green-400 mt-1">
+                      ✓ sent
+                    </div>
+                  )}
+                  {message.status === 'error' && (
+                    <div className="flex items-center text-xs text-red-400 mt-1">
+                      <span className="mr-1">⚠</span>
+                      failed to send
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
-        <div className="bg-gray-800 p-2 border-t border-gray-700">
-          {/* Configuration Section */}
-          <Card
-            size="small"
-            className="mb-2"
-            style={{ backgroundColor: '#1f2937', borderColor: '#374151' }}
-            bodyStyle={{ padding: '8px' }}
-            title={
-              <div className="flex justify-between items-center">
-                <span className="text-gray-300 text-sm">Settings</span>
-                <Switch
-                  size="small"
-                  checked={showConfig}
-                  onChange={setShowConfig}
-                  className="ml-2"
-                />
-              </div>
-            }
-          >
-            {showConfig && (
-              <div className="space-y-1">
-                {/* Human As Model */}
-                <Tooltip title="Enable to let human act as the model">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300 text-xs">Human As Model</span>
-                    <Switch
-                      size="small"
-                      checked={config.human_as_model}
-                      onChange={async (checked) => {
-                        const response = await fetch('/api/conf', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ human_as_model: checked })
-                        });
-                        if (response.ok) {
-                          setConfig(prev => ({ ...prev, human_as_model: checked }));
-                          message.success('Updated');
-                        } else {
-                          message.error('Failed to update');
-                        }
-                      }}
-                    />
-                  </div>
-                </Tooltip>
 
-                {/* Skip Build Index */}
-                <Tooltip title="Skip building index for better performance">
-                  <div className="flex justify-between items-center">
+        {/* Input Area with integrated settings */}
+        <div className="bg-gray-800 border-t border-gray-700">
+          {/* Configuration and Groups Section */}
+          <div className="px-4 pt-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-300 text-sm font-semibold">Settings & Groups</span>
+              <Switch
+                size="small"
+                checked={showConfig}
+                onChange={setShowConfig}
+                className="ml-2"
+              />
+            </div>
+            
+            {showConfig && (
+              <div className="space-y-2 mb-2">
+                <div className="flex items-center justify-between">
+                  <Tooltip title="Enable to let human act as the model">
+                    <span className="text-gray-300 text-xs">Human As Model</span>
+                  </Tooltip>
+                  <Switch
+                    size="small"
+                    checked={config.human_as_model}
+                    onChange={async (checked) => {
+                      const response = await fetch('/api/conf', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ human_as_model: checked })
+                      });
+                      if (response.ok) {
+                        setConfig(prev => ({ ...prev, human_as_model: checked }));
+                        message.success('Updated');
+                      } else {
+                        message.error('Failed to update');
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Tooltip title="Skip building index for better performance">
                     <span className="text-gray-300 text-xs">Skip Build Index</span>
-                    <Switch
-                      size="small"
-                      checked={config.skip_build_index}
-                      onChange={async (checked) => {
-                        const response = await fetch('/api/conf', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ skip_build_index: checked })
-                        });
-                        if (response.ok) {
-                          setConfig(prev => ({ ...prev, skip_build_index: checked }));
-                          message.success('Updated');
-                        } else {
-                          message.error('Failed to update');
-                        }
-                      }}
-                    />
-                  </div>
-                </Tooltip>
+                  </Tooltip>
+                  <Switch
+                    size="small"
+                    checked={config.skip_build_index}
+                    onChange={async (checked) => {
+                      const response = await fetch('/api/conf', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ skip_build_index: checked })
+                      });
+                      if (response.ok) {
+                        setConfig(prev => ({ ...prev, skip_build_index: checked }));
+                        message.success('Updated');
+                      } else {
+                        message.error('Failed to update');
+                      }
+                    }}
+                  />
+                </div>
+
+                <Select
+                  mode="multiple"
+                  style={{ width: '100%' }}
+                  placeholder="Select file groups"
+                  value={selectedGroups}
+                  onChange={(values) => setSelectedGroups(values)}
+                  optionLabelProp="label"
+                  className="custom-select mt-2"
+                >
+                  {fileGroups.map(group => (
+                    <Select.Option
+                      key={group.name}
+                      value={group.name}
+                      label={group.name}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span>{group.name}</span>
+                        <span className="text-gray-400 text-xs">
+                          {group.files.length} files
+                        </span>
+                      </div>
+                    </Select.Option>
+                  ))}
+                </Select>
               </div>
             )}
-          </Card>
+          </div>
 
-          <div className="mb-4">
-            <Select
-              mode="multiple"
-              style={{ width: '100%' }}
-              placeholder="Select file groups"
-              value={selectedGroups}
-              onChange={(values) => setSelectedGroups(values)}
-              optionLabelProp="label"
-              className="custom-select"
+          {/* Message Input */}
+          <div className="p-4 flex items-center space-x-2">
+            <input
+              type="text"
+              className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Type your message..."
+              onChange={handleInputChange}
+            />
+            <button
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+              onClick={handleSendMessage}
             >
-              {fileGroups.map(group => (
-                <Select.Option
-                  key={group.name}
-                  value={group.name}
-                  label={group.name}
-                >
-                  <div className="flex justify-between items-center">
-                    <span>{group.name}</span>
-                    <span className="text-gray-400 text-xs">
-                      {group.files.length} files
-                    </span>
-                  </div>
-                </Select.Option>
-              ))}
-            </Select>
+              Send
+            </button>
           </div>
         </div>
       </div>
-
-      {/* Input Area */}
-      <div className="p-4 bg-gray-800 border-t border-gray-700">
-        <div className="flex items-center space-x-2">
-          <input
-            type="text"
-            className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Type your message..."
-            onChange={handleInputChange}
-          />
-          <button
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-            onClick={handleSendMessage}
-          >
-            Send
-          </button>
-        </div>
-      </div>
-    </div>
   );
 };
 
