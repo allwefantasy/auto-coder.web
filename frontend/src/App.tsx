@@ -3,6 +3,7 @@ import ChatPanel from './components/Sidebar/ChatPanel';
 import CodeEditor from './components/MainContent/CodeEditor';
 import FileGroupPanel from './components/MainContent/FileGroupPanel';
 import Terminal from './components/Terminal/Terminal';
+import PreviewPanel from './components/MainContent/PreviewPanel';
 import './App.css';
 
 const App: React.FC = () => {
