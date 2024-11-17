@@ -320,6 +320,7 @@ class AutoCoderRunner:
         request_id = str(uuid.uuid4())
 
         def process_chat():
+            nonlocal query
             conf = self.memory.get("conf", {})
 
             yaml_config = {
@@ -339,7 +340,7 @@ class AutoCoderRunner:
 
             if "emb_model" in conf:
                 yaml_config["emb_model"] = conf["emb_model"]
-
+                        
             is_new = query.strip().startswith("/new")
             if is_new:
                 query = query.replace("/new", "", 1).strip()
