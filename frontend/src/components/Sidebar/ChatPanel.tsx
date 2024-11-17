@@ -213,6 +213,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
   };
 
   const pollEvents = async (requestId: string) => {
+    let final_status = 'completed';
+    let content = '';
     while (true) {
       try {
         const response = await fetch('/api/event/get', {
@@ -260,6 +262,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
           break;
         }
 
+        if (eventData.event_type === 'code_error') {
+          await response_event("proceed");
+          final_status = 'failed';
+          content = eventData.data;
+          break;
+        }
+
         if (eventData.event_type === 'code_merge_result') {
           await response_event("proceed");
           const blocks = JSON.parse(eventData.data) as CodeBlock[];
@@ -288,6 +297,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
           setSendLoading(false)
         }
       } catch (error) {
+        final_status = 'failed';
+        content = 'Error polling events: ' + error;
         console.error('Error polling events:', error);
         break;
       }
@@ -295,6 +306,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
       // Add a small delay between polls
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
+    return { final_status, content };
   };
 
 
@@ -375,8 +387,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
         updateMessageStatus(messageId, 'sent');
         if (isWriteMode) {
           // Start polling for events
-          await pollEvents(data.request_id);
-          addBotMessage("代码修改完成。请查看右侧修改预览面板。如果不满意，可以移动鼠标到你的需求处进行撤销。");
+          const { final_status, content } = await pollEvents(data.request_id);
+          if (final_status === 'completed') {
+            addBotMessage("代码修改完成。请查看右侧修改预览面板。如果不满意，在发送按钮左侧点击撤销最近修改");
+          } else {
+            addBotMessage("代码修改失败：" + content);
+          }
         } else {
           const messageBotId = addBotMessage("");
           await pollStreamResult(data.request_id, (newText) => {

@@ -72,18 +72,18 @@ class AutoCoderRunner:
 
         if group_name in self.memory["current_files"]["groups"]:
             return None
-        
+
         self.memory["current_files"]["groups"][group_name] = []
-        
+
         if "groups_info" not in self.memory["current_files"]:
             self.memory["current_files"]["groups_info"] = {}
-        
+
         self.memory["current_files"]["groups_info"][group_name] = {
             "query_prefix": description
         }
         self.save_memory()
         return {"message": f"Added group: {group_name}"}
-    
+
     def remove_group(self, group_name: str) -> Dict[str, str]:
         if group_name not in self.memory["current_files"]["groups"]:
             return None
@@ -91,18 +91,18 @@ class AutoCoderRunner:
         del self.memory["current_files"]["groups_info"][group_name]
         self.save_memory()
         return {"message": f"Removed group: {group_name}"}
-    
+
     def switch_groups(self, group_names: List[str]) -> Dict[str, str]:
         new_files = []
         for group_name in group_names:
             files = self.memory["current_files"]["groups"][group_name]
             new_files.extend(files)
-        self.memory["current_files"]["files"] = new_files 
+        self.memory["current_files"]["files"] = new_files
         self.memory["current_files"]["current_groups"] = group_names
         self.save_memory()
         return {"message": f"Switched to groups: {group_names}"}
 
-    def add_files_to_group(self, group_name: str, files: List[str]) -> Dict[str, Any]:        
+    def add_files_to_group(self, group_name: str, files: List[str]) -> Dict[str, Any]:
         for file in files:
             if file:
                 self.memory["current_files"]["groups"][group_name].append(
@@ -115,8 +115,9 @@ class AutoCoderRunner:
     def remove_files_from_group(self, group_name: str, files: List[str]) -> Dict[str, Any]:
         existing_files = self.memory["current_files"]["groups"][group_name]
         for file in files:
-            if file in existing_files:
-                existing_files.remove(os.path.join(self.project_path, file))
+            target_file = os.path.join(self.project_path, file)
+            if target_file in existing_files:
+                existing_files.remove(target_file)
         self.save_memory()
         return {
             "message": f"Removed files from group: {group_name}"
@@ -299,13 +300,21 @@ class AutoCoderRunner:
                 try:
                     auto_coder_main(
                         ["--file", execute_file, "--request_id", request_id])
-                finally:
+                except Exception as e:
                     _ = queue_communicate.send_event_no_wait(
                         request_id=request_id,
                         event=CommunicateEvent(
-                            event_type=CommunicateEventType.CODE_END.value, data=""
+                            event_type=CommunicateEventType.CODE_ERROR.value, data=str(e)
                         ),
                     )
+                    raise e
+                
+                _ = queue_communicate.send_event_no_wait(
+                    request_id=request_id,
+                    event=CommunicateEvent(
+                        event_type=CommunicateEventType.CODE_END.value, data=""
+                    ),
+                )
 
         _ = queue_communicate.send_event_no_wait(
             request_id=request_id,
