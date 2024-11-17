@@ -6,7 +6,7 @@ import Terminal from './components/Terminal/Terminal';
 import './App.css';
 
 const App: React.FC = () => {
-  const [activePanel, setActivePanel] = useState<'code' | 'filegroup'>('code');
+  const [activePanel, setActivePanel] = useState<'code' | 'filegroup' | 'preview'>('code');
   const [projectName, setProjectName] = useState<string>('');
 
   useEffect(() => {
@@ -57,12 +57,24 @@ const App: React.FC = () => {
             >
               File Groups
             </button>
+            <button
+              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${
+                activePanel === 'preview'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`}
+              onClick={() => setActivePanel('preview')}
+            >
+              Preview Changes
+            </button>
           </div>
         </div>
 
         {/* Upper Section - Dynamic Content */}
         <div className="flex-1">
-          {activePanel === 'code' ? <CodeEditor /> : <FileGroupPanel />}
+          {activePanel === 'code' && <CodeEditor />}
+          {activePanel === 'filegroup' && <FileGroupPanel />}
+          {activePanel === 'preview' && <CodePreview />}
         </div>
 
         {/* Lower Section - Terminal */}
