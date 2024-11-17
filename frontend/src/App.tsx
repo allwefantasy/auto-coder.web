@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Editor } from '@monaco-editor/react';
 import ChatPanel from './components/Sidebar/ChatPanel';
 import CodeEditor from './components/MainContent/CodeEditor';
 import FileGroupPanel from './components/MainContent/FileGroupPanel';
@@ -7,7 +8,17 @@ import PreviewPanel from './components/MainContent/PreviewPanel';
 import './App.css';
 
 const App: React.FC = () => {
-  const [activePanel, setActivePanel] = useState<'code' | 'filegroup' | 'preview'>('code');
+  const [activePanel, setActivePanel] = useState<'code' | 'filegroup' | 'preview' | 'clipboard'>('code');
+  const [clipboardContent, setClipboardContent] = useState<string>('');
+
+  const getClipboardContent = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setClipboardContent(text);
+    } catch (err) {
+      console.error('Failed to read clipboard:', err);
+    }
+  };
   const [projectName, setProjectName] = useState<string>('');
   const [previewFiles, setPreviewFiles] = useState<{ path: string, content: string }[]>([]);
 
@@ -72,6 +83,19 @@ const App: React.FC = () => {
             >
               Preview Changes
             </button>
+            <button
+              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${
+                activePanel === 'clipboard'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`}
+              onClick={() => {
+                setActivePanel('clipboard');
+                getClipboardContent();
+              }}
+            >
+              Clipboard
+            </button>
           </div>
         </div>
 
@@ -81,6 +105,23 @@ const App: React.FC = () => {
             <CodeEditor />
           ) : activePanel === 'filegroup' ? (
             <FileGroupPanel />
+          ) : activePanel === 'clipboard' ? (
+            <div className="h-full p-4">
+              <Editor
+                theme="vs-dark"
+                height="100%"
+                value={clipboardContent}
+                onChange={setClipboardContent}
+                defaultLanguage="plaintext"
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  lineNumbers: 'on',
+                  wordWrap: 'on',
+                  automaticLayout: true,
+                }}
+              />
+            </div>
           ) : (
             <PreviewPanel files={previewFiles} />
           )}
