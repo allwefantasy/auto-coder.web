@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AutoComplete, Card, Select, Switch, message, Tooltip } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
+import { Editor } from '@monaco-editor/react';
 
 interface FileGroup {
   id: string;
@@ -371,42 +372,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
           {/* Message Input */}
           <div className="p-4 flex flex-col space-y-2">
-            <div className="flex-1" style={{ minHeight: '38px' }}>
-              <Editor
-                height="38px"
-                defaultLanguage="plaintext" 
+            <div className="flex-1">
+              <Editor                                
                 theme="vs-dark"
                 value={inputText}
-                onChange={(value) => setInputText(value || '')}
-                options={{
-                  fontSize: 14,
-                  minimap: { enabled: false },
-                  scrollbar: { vertical: 'hidden' },
-                  lineNumbers: 'off',
-                  glyphMargin: false,
-                  folding: false,
-                  lineDecorationsWidth: 0,
-                  lineNumbersMinChars: 0,
-                  wordWrap: 'on',
-                  automaticLayout: true,
-                  autoClosingBrackets: "never",
-                  autoClosingQuotes: "never",
-                  renderLineHighlight: 'none',
-                  overviewRulerBorder: false,
-                  hideCursorInOverviewRuler: true,
-                  overviewRulerLanes: 0,
-                  suggest: {
-                    showWords: false
-                  }
-                }}
-                onMount={(editor, monaco) => {
-                  editor.onDidContentSizeChange(() => {
-                    const contentHeight = Math.min(Math.max(38, editor.getContentHeight()), 150);
-                    editor.layout({ width: editor.getLayoutInfo().width, height: contentHeight });
-                    const container = editor.getContainerDomNode();
-                    container.style.height = `${contentHeight}px`;
-                  });
-                }}
+                onChange={(value) => setInputText(value || '')}                               
               />
             </div>
             <div className="flex justify-end">
