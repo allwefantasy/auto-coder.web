@@ -26,7 +26,7 @@ interface CodingEvent {
 
 interface EventResponse {
   request_id: string;
-  event: CodingEvent;  
+  event: CodingEvent;
 }
 
 interface ChatPanelProps {
@@ -61,7 +61,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
   const [inputText, setInputText] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputText(e.target.value);    ;
+    setInputText(e.target.value);;
   };
 
   const pollEvents = async (requestId: string) => {
@@ -80,12 +80,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
         }
 
         const eventData: CodingEvent = await response.json();
-        
-        if(!eventData) {
+
+        if (!eventData) {
           await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1s before polling again
           continue;
         }
-          
+
         console.log('Received event:', eventData);
 
         const response_event = async (response: string) => {
@@ -112,29 +112,29 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
           break;
         }
 
-            if (eventData.event_type === 'code_merge_result') {
+        if (eventData.event_type === 'code_merge_result') {
           await response_event("proceed");
-          const blocks = JSON.parse(eventData.data) as CodeBlock[];          
+          const blocks = JSON.parse(eventData.data) as CodeBlock[];
           console.log('Received code blocks:', blocks);
-          
+
           // 更新 Preview Panel 数据
           const previewData = blocks.map(block => ({
             path: block.file_path,
             content: block.new_block
           }));
-          
+
           // 发送到 App 组件
           setPreviewFiles(previewData);
           setActivePanel('preview');
         }
-        
+
         if (eventData.event_type === 'code_human_as_model') {
-          const result = JSON.parse(eventData.data)                    
+          const result = JSON.parse(eventData.data)
           const v = JSON.stringify({
-              "value": ""
+            "value": ""
           })
           await response_event(v);
-      }
+        }
       } catch (error) {
         console.error('Error polling events:', error);
         break;
@@ -180,7 +180,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
   };
 
   return (
-    <div className="flex flex-col h-full">      
+    <div className="flex flex-col h-full">
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
         <div className="space-y-4">
@@ -194,7 +194,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
       {/* File Groups Section */}
       <div className="bg-gray-800 p-2 border-t border-gray-700">
         {/* Configuration Section */}
-        <Card 
+        <Card
           size="small"
           className="mb-2"
           style={{ backgroundColor: '#1f2937', borderColor: '#374151' }}
@@ -264,7 +264,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
           )}
         </Card>
 
-        <div className="mb-4">          
+        <div className="mb-4">
           <Select
             mode="multiple"
             style={{ width: '100%' }}
@@ -275,8 +275,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
             className="custom-select"
           >
             {fileGroups.map(group => (
-              <Select.Option 
-                key={group.name} 
+              <Select.Option
+                key={group.name}
                 value={group.name}
                 label={group.name}
               >
@@ -301,7 +301,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
             placeholder="Type your message..."
             onChange={handleInputChange}
           />
-          <button 
+          <button
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
             onClick={handleSendMessage}
           >
