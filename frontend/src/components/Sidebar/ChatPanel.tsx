@@ -164,7 +164,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
           // 更新 Preview Panel 数据
           const previewData = blocks.map(block => ({
             path: block.file_path,
-            content: block.new_block
+            content: `<<<<<<< SEARCH\n${block.old_block}\n=======\n${block.new_block}\n>>>>>>> REPLACE`
           }));
 
           // 发送到 App 组件
@@ -216,6 +216,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
         updateMessageStatus(messageId, 'sent');
         // Start polling for events
         pollEvents(data.request_id);
+        addBotMessage("代码修改完成。")
       }
 
     } catch (error) {
