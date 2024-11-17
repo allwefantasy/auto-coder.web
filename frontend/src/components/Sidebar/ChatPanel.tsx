@@ -540,11 +540,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
               value={inputText}
               onChange={(value) => setInputText(value || '')}
               defaultLanguage='markdown'
-                beforeMount={(monaco: typeof import('monaco-editor')) => {
-                  // 注册文件完成器
+                beforeMount={(monaco) => {
                   monaco.languages.registerCompletionItemProvider('markdown', {
                     triggerCharacters: ['@'],
-                    async provideCompletionItems(model: import('monaco-editor').editor.ITextModel, position: import('monaco-editor').Position) {
+                    async provideCompletionItems(model, position) {
                       // 获取当前位置之前的文本
                       const textUntilPosition: string = model.getValueInRange({
                         startLineNumber: position.lineNumber,
@@ -556,9 +555,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                       // 获取@后的文本
                       const match: RegExpMatchArray | null = textUntilPosition.match(/@([^@\s]*)$/);
                       const doubleMatch: RegExpMatchArray | null = textUntilPosition.match(/@@([^\s]*)$/);
-                      
                       if (match || doubleMatch) {
-                        const suggestions: monaco.languages.CompletionItem[] = [];
+                        const suggestions: import('monaco-editor').languages.CompletionItem[] = [];
                         const query: string = doubleMatch ? doubleMatch[1] : match![1];
                         const isSymbol: boolean = !!doubleMatch;
                         
@@ -588,9 +586,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                           }
 
                           const data: CompletionData = await response.json();
-                          
                           data.completions.forEach((item) => {
-                            const completionItem: monaco.languages.CompletionItem = {
+                            const completionItem: import('monaco-editor').languages.CompletionItem = {
                               label: isSymbol ? item.name : item.path,
                               kind: monaco.languages.CompletionItemKind.Reference,
                               documentation: item.display,
