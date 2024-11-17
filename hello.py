@@ -4,7 +4,3 @@ def hello():
 hello()
 def hello():
     print("Hello, World!")
-def hello():
-    "print a greeting"
-
-    print("hello")
