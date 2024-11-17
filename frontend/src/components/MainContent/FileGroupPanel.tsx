@@ -287,28 +287,38 @@ const FileGroupPanel: React.FC = () => {
                   className="custom-input"
                   onChange={(e) => {
                     const searchValue = e.target.value.toLowerCase();
-                    const filterTreeData = (nodes: DataNode[]): DataNode[] => {
+                    
+                    if (!searchValue) {
+                      setFilteredTreeData(treeData);
+                      return;
+                    }
+
+                    // Helper function to get all leaf nodes (files) from tree
+                    const getAllFiles = (nodes: DataNode[]): DataNode[] => {
                       return nodes.reduce((acc: DataNode[], node) => {
-                        if (node.children) {
-                          const filteredChildren = filterTreeData(node.children);
-                          if (filteredChildren.length > 0) {
-                            acc.push({ ...node, children: filteredChildren });
-                          } else if (node.title?.toString().toLowerCase().includes(searchValue)) {
-                            acc.push(node);
-                          }
-                        } else if (node.title?.toString().toLowerCase().includes(searchValue)) {
+                        if (node.isLeaf) {
                           acc.push(node);
+                        } else if (node.children) {
+                          acc.push(...getAllFiles(node.children));
                         }
                         return acc;
                       }, []);
                     };
 
-                    if (searchValue) {
-                      const filtered = filterTreeData([...treeData]);
-                      setFilteredTreeData(filtered);
-                    } else {
-                      setFilteredTreeData(treeData);
-                    }
+                    // Get all files that match the search value
+                    const allFiles = getAllFiles(treeData);
+                    const matchingFiles = allFiles.filter(file => {
+                      const fullPath = file.key.toString().toLowerCase();
+                      return fullPath.includes(searchValue);
+                    });
+
+                    // Create a flat tree structure for matching files
+                    const flattenedTree = matchingFiles.map(file => ({
+                      ...file,
+                      title: file.key, // Show full path as title
+                    }));
+
+                    setFilteredTreeData(flattenedTree);
                   }}
                 />
 
