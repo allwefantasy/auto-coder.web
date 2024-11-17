@@ -81,22 +81,3 @@ def read_file_content(project_path: str, file_path: str) -> str:
             return f.read()
     except (IOError, UnicodeDecodeError):
         return None
-
-def delete_file(project_path: str, file_path: str) -> bool:
-    """Delete a file from the filesystem
-    
-    Args:
-        project_path: The root project path
-        file_path: The relative path to the file to delete
-        
-    Returns:
-        bool: True if deletion was successful, False otherwise
-    """
-    try:
-        full_path = os.path.join(project_path, file_path)
-        if os.path.exists(full_path):
-            os.remove(full_path)
-            return True
-        return False
-    except (IOError, PermissionError):
-        return False
