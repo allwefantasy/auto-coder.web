@@ -26,36 +26,11 @@ const FileGroupPanel: React.FC = () => {
   // Helper function to get all file paths from tree data
   const getAllFilePaths = (nodes: DataNode[]): string[] => {
     const paths: string[] = [];
-    const pathMap: { [key: string]: boolean } = {};
 
     const traverse = (node: DataNode) => {
-      const currentPath = node.key as string;
-      
-      // If it's a leaf node
-      if (!node.children) {
-        let shouldAdd = true;
-        
-        // Check if this path is a prefix of any existing path
-        Object.keys(pathMap).forEach(existingPath => {
-          if (existingPath.startsWith(currentPath + '/')) {
-            shouldAdd = false;
-          }
-        });
-
-        if (shouldAdd) {
-          // Remove any existing paths that are prefixes of this path
-          Object.keys(pathMap).forEach(existingPath => {
-            if (currentPath.startsWith(existingPath + '/')) {
-              delete pathMap[existingPath];
-              paths.splice(paths.indexOf(existingPath), 1);
-            }
-          });
-          
-          paths.push(currentPath);
-          pathMap[currentPath] = true;
-        }
-      } else {
-        // Traverse children
+      if (node.isLeaf) {
+        paths.push(node.key as string);
+      } else if (node.children) {
         node.children.forEach(traverse);
       }
     };
