@@ -67,6 +67,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
     skip_build_index: true
   });
 
+  useEffect(() => {
+    // Fetch initial config
+    fetch('/api/conf')
+      .then(response => response.json())
+      .then(data => {
+        setConfig({
+          human_as_model: data.conf.human_as_model === "true",
+          skip_build_index: data.conf.skip_build_index === "true"
+        });
+      })
+      .catch(error => console.error('Error fetching config:', error));
+  }, []);
+
   const [pendingResponseEvent, setPendingResponseEvent] = useState<{
     requestId: string;
     eventData: CodingEvent;
@@ -429,15 +442,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                   size="small"
                   checked={config.human_as_model}
                   onChange={async (checked) => {
-                    const response = await fetch('/api/conf', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ human_as_model: checked })
-                    });
-                    if (response.ok) {
-                      setConfig(prev => ({ ...prev, human_as_model: checked }));
-                      AntdMessage.success('Updated');
-                    } else {
+                    try {
+                      const response = await fetch('/api/conf', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ human_as_model: String(checked) })
+                      });
+                      if (response.ok) {
+                        setConfig(prev => ({ ...prev, human_as_model: checked }));
+                        AntdMessage.success('Updated');
+                      } else {
+                        throw new Error('Failed to update');
+                      }
+                    } catch (error) {
+                      console.error('Error updating config:', error);
                       AntdMessage.error('Failed to update');
                     }
                   }}
@@ -452,15 +470,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                   size="small"
                   checked={config.skip_build_index}
                   onChange={async (checked) => {
-                    const response = await fetch('/api/conf', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ skip_build_index: checked })
-                    });
-                    if (response.ok) {
-                      setConfig(prev => ({ ...prev, skip_build_index: checked }));
-                      AntdMessage.success('Updated');
-                    } else {
+                    try {
+                      const response = await fetch('/api/conf', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ skip_build_index: String(checked) })
+                      });
+                      if (response.ok) {
+                        setConfig(prev => ({ ...prev, skip_build_index: checked }));
+                        AntdMessage.success('Updated');
+                      } else {
+                        throw new Error('Failed to update');
+                      }
+                    } catch (error) {
+                      console.error('Error updating config:', error);
                       AntdMessage.error('Failed to update');
                     }
                   }}
