@@ -107,10 +107,20 @@ const ChatPanel: React.FC = () => {
           break;
         }
 
-        if (eventData.event_type === 'code_merge_result') {
+            if (eventData.event_type === 'code_merge_result') {
           await response_event("proceed");
           const blocks = JSON.parse(eventData.data) as CodeBlock[];          
-          console.log('Received code blocks:', blocks);          
+          console.log('Received code blocks:', blocks);
+          
+          // 更新 Preview Panel 数据
+          const previewData = blocks.map(block => ({
+            path: block.file_path,
+            content: block.new_block
+          }));
+          
+          // 发送到 App 组件
+          setPreviewFiles(previewData);
+          setActivePanel('preview');
         }
         
         if (eventData.event_type === 'code_human_as_model') {
