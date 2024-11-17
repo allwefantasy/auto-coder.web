@@ -378,10 +378,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
                   height="180px"
                 value={inputText}
                 onChange={(value) => setInputText(value || '')}
+                defaultLanguage='markdown'
                 options={{
-                  minimap: { enabled: false },
+                  minimap: { enabled: false },                                    
                   fontSize: 14,
-                  lineNumbers: 'on',
+                  lineNumbers: 'off',
                   scrollBeyondLastLine: false,
                   wordWrap: 'on',
                   lineHeight: 1.5,
