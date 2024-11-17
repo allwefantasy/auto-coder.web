@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Response
+from fastapi import FastAPI, Request, HTTPException, Response, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -311,6 +311,31 @@ class ProxyServer:
         async def get_files():                                                
             tree = get_directory_tree(self.project_path)
             return {"tree": tree}
+            
+        @self.app.get("/api/completions/files")
+        async def get_file_completions(name: str = Query(...), active_files: str = Query(None)):
+            """获取文件名补全"""
+            active_file_list = active_files.split(",") if active_files else None
+            matches = find_files_by_name(self.project_path, name, active_file_list)
+            return {"completions": matches}
+            
+        @self.app.get("/api/completions/symbols") 
+        async def get_symbol_completions(name: str = Query(...)):
+            """获取符号补全"""
+            symbols = get_symbol_list(self.project_path)
+            matches = []
+            
+            for symbol in symbols:
+                if name.lower() in symbol.symbol_name.lower():
+                    relative_path = os.path.relpath(symbol.file_name, self.project_path) 
+                    matches.append({
+                        "name": symbol.symbol_name,
+                        "type": symbol.symbol_type.value,
+                        "location": relative_path,
+                        "display": f"{symbol.symbol_name} ({relative_path}/{symbol.symbol_type.value})"
+                    })
+                    
+            return {"completions": matches}
 
         @self.app.get("/api/file/{path:path}")
         async def get_file_content(path: str):            

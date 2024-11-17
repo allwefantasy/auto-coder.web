@@ -540,6 +540,65 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
               value={inputText}
               onChange={(value) => setInputText(value || '')}
               defaultLanguage='markdown'
+              beforeMount={(monaco) => {
+                // 注册文件完成器
+                monaco.languages.registerCompletionItemProvider('markdown', {
+                  triggerCharacters: ['@'],
+                  async provideCompletionItems(model, position) {
+                    const textUntilPosition = model.getValueInRange({
+                      startLineNumber: position.lineNumber,
+                      startColumn: 1,
+                      endLineNumber: position.lineNumber,
+                      endColumn: position.column,
+                    });
+
+                    // 获取@后的文本
+                    const match = textUntilPosition.match(/@([^@\s]*)$/);
+                    const doubleMatch = textUntilPosition.match(/@@([^\s]*)$/);
+                    
+                    if (match || doubleMatch) {
+                      const suggestions = [];
+                      const query = doubleMatch ? doubleMatch[1] : match[1];
+                      const isSymbol = !!doubleMatch;
+                      
+                      try {
+                        const activeFiles = memory.current_files.files.join(',');
+                        const endpoint = isSymbol ? '/api/completions/symbols' : '/api/completions/files';
+                        const response = await fetch(
+                          `${endpoint}?name=${encodeURIComponent(query)}${!isSymbol ? `&active_files=${encodeURIComponent(activeFiles)}` : ''}`
+                        );
+                        
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        
+                        const data = await response.json();
+                        
+                        data.completions.forEach((item: any) => {
+                          suggestions.push({
+                            label: isSymbol ? item.name : item.path,
+                            kind: monaco.languages.CompletionItemKind.Reference,
+                            documentation: item.display,
+                            insertText: isSymbol ? `${item.name}(location: ${item.location})` : item.path,
+                            range: {
+                              startLineNumber: position.lineNumber,
+                              endLineNumber: position.lineNumber,
+                              startColumn: position.column - query.length - (isSymbol ? 2 : 1),
+                              endColumn: position.column
+                            }
+                          });
+                        });
+                      } catch (error) {
+                        console.error('Error fetching completions:', error);
+                      }
+                      
+                      return {
+                        suggestions
+                      };
+                    }
+                    
+                    return { suggestions: [] };
+                  }
+                });
+              }}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
@@ -552,6 +611,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                 folding: true,
                 automaticLayout: true,
                 overviewRulerBorder: false,
+                quickSuggestions: { 
+                  other: true,
+                  comments: true,
+                  strings: true 
+                },
                 scrollbar: {
                   vertical: 'auto',
                   horizontal: 'auto'
