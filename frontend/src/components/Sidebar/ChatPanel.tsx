@@ -370,20 +370,54 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
           </div>
 
           {/* Message Input */}
-          <div className="p-4 flex items-center space-x-2">
-            <input
-              type="text"
-              className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Type your message..."
-              onChange={handleInputChange}
-            />
-            <button
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleSendMessage}
-              disabled={sendLoading}
-            >
-              {sendLoading ? 'Sending...' : 'Send'}
-            </button>
+          <div className="p-4 flex flex-col space-y-2">
+            <div className="flex-1" style={{ minHeight: '38px' }}>
+              <Editor
+                height="38px"
+                defaultLanguage="plaintext" 
+                theme="vs-dark"
+                value={inputText}
+                onChange={(value) => setInputText(value || '')}
+                options={{
+                  fontSize: 14,
+                  minimap: { enabled: false },
+                  scrollbar: { vertical: 'hidden' },
+                  lineNumbers: 'off',
+                  glyphMargin: false,
+                  folding: false,
+                  lineDecorationsWidth: 0,
+                  lineNumbersMinChars: 0,
+                  wordWrap: 'on',
+                  automaticLayout: true,
+                  autoClosingBrackets: "never",
+                  autoClosingQuotes: "never",
+                  renderLineHighlight: 'none',
+                  overviewRulerBorder: false,
+                  hideCursorInOverviewRuler: true,
+                  overviewRulerLanes: 0,
+                  suggest: {
+                    showWords: false
+                  }
+                }}
+                onMount={(editor, monaco) => {
+                  editor.onDidContentSizeChange(() => {
+                    const contentHeight = Math.min(Math.max(38, editor.getContentHeight()), 150);
+                    editor.layout({ width: editor.getLayoutInfo().width, height: contentHeight });
+                    const container = editor.getContainerDomNode();
+                    container.style.height = `${contentHeight}px`;
+                  });
+                }}
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleSendMessage}
+                disabled={sendLoading}
+              >
+                {sendLoading ? 'Sending...' : 'Send'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
