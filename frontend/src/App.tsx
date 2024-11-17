@@ -31,7 +31,10 @@ const App: React.FC = () => {
             auto-coder.chat | {projectName || 'Not Set'}
           </h2>
         </div>
-        <ChatPanel />
+        <ChatPanel 
+          setPreviewFiles={setPreviewFiles}
+          setActivePanel={setActivePanel}
+        />
       </div>
 
       {/* Right Content Area */}

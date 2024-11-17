@@ -29,7 +29,12 @@ interface EventResponse {
   event: CodingEvent;  
 }
 
-const ChatPanel: React.FC = () => {
+interface ChatPanelProps {
+  setPreviewFiles: (files: { path: string; content: string }[]) => void;
+  setActivePanel: (panel: 'code' | 'filegroup' | 'preview') => void;
+}
+
+const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }) => {
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [showConfig, setShowConfig] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
