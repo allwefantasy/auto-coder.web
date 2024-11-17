@@ -271,6 +271,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
 
 
     if (inputText.trim() === '确认' && pendingResponseEvent) {
+      updateMessageStatus(messageId, 'sent');
       const { requestId, eventData } = pendingResponseEvent;
       const v = JSON.stringify({
         "value": clipboardContent
