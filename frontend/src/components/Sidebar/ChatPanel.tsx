@@ -8,6 +8,12 @@ interface FileGroup {
   files: string[];
 }
 
+interface CodeBlock {
+  file_path: string;
+  new_block: string;
+  old_block: string;
+}
+
 interface ConfigState {
   human_as_model: boolean;
   skip_build_index: boolean;
@@ -103,9 +109,8 @@ const ChatPanel: React.FC = () => {
 
         if (eventData.event_type === 'code_merge_result') {
           await response_event("proceed");
-          const blocks = JSON.parse(eventData.data);
-          console.log('Received code blocks:', blocks);
-          break;
+          const blocks = JSON.parse(eventData.data) as CodeBlock[];          
+          console.log('Received code blocks:', blocks);          
         }
         
         if (eventData.event_type === 'code_human_as_model') {
