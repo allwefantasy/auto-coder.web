@@ -1,4 +1,26 @@
 // Utility function to determine the language based on file extension
+let pathSeparator = '/';
+
+export async function initPathSeparator() {
+  try {
+    const response = await fetch('/api/os');
+    const data = await response.json();
+    pathSeparator = data.os === 'nt' ? '\\' : '/';
+  } catch (error) {
+    console.error('Failed to get OS info:', error);
+    // Default to Unix-style separator
+    pathSeparator = '/';
+  }
+}
+
+export function getPathSeparator(): string {
+  return pathSeparator;
+}
+
+export function normalizePath(path: string): string {
+  return path.split(/[/\\]/).join(pathSeparator);
+}
+
 export function getLanguageByFileName(fileName: string): string {
   if (!fileName) return 'plaintext';
 

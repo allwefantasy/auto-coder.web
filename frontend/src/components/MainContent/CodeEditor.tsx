@@ -3,7 +3,7 @@ import { Tree } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
-import { getLanguageByFileName } from '../../utils/fileUtils';
+import { getLanguageByFileName, initPathSeparator, normalizePath } from '../../utils/fileUtils';
 
 const CodeEditor: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -11,7 +11,8 @@ const CodeEditor: React.FC = () => {
   const [treeData, setTreeData] = useState<DataNode[]>([]);
 
   useEffect(() => {
-    const fetchFileTree = async () => {
+    const init = async () => {
+      await initPathSeparator();
       try {
         const response = await fetch('/api/files');
         if (!response.ok) {

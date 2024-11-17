@@ -3,7 +3,7 @@ import { Tree, Input, Button, Modal, message, Table } from 'antd';
 import { DeleteOutlined, PlusOutlined, SearchOutlined, CheckOutlined } from '@ant-design/icons';
 import type { DataNode, EventDataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
-import { getLanguageByFileName } from '../../utils/fileUtils';
+import { getLanguageByFileName, initPathSeparator, normalizePath } from '../../utils/fileUtils';
 
 interface FileGroup {
   name: string;
@@ -90,8 +90,12 @@ const FileGroupPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchFileGroups();
-    fetchFileTree();
+    const init = async () => {
+      await initPathSeparator();
+      await fetchFileGroups();
+      await fetchFileTree();
+    };
+    init();
   }, []);
 
   // Create new group
