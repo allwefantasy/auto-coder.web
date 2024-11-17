@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AutoComplete, Card, Select, Switch, message, Tooltip } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
-
+import Editor, { OnMount } from '@monaco-editor/react';
 interface FileGroup {
   id: string;
   name: string;
@@ -69,7 +69,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
   const [inputText, setInputText] = useState<string>('');
   const [sendLoading, setSendLoading] = useState<boolean>(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const addUserMessage = (content: string) => {
     const newMessage: Message = {
@@ -235,192 +235,191 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
     }
   };
 
-    return (
-      <div className="flex flex-col h-full">
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
-          <div className="space-y-4">
-            {messages.map((message) => (
+  return (
+    <div className="flex flex-col h-full">
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
+        <div className="space-y-4">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
               <div
-                key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-300'
+                className={`max-w-[80%] rounded-lg p-3 ${message.role === 'user'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-800 text-gray-300'
                   }`}
-                >
-                  <div className="break-words">{message.content}</div>
-                  {message.status === 'sending' && (
-                    <div className="flex items-center text-xs text-gray-400 mt-1">
-                      <div className="mr-1">sending</div>
-                      <div className="animate-bounce">•</div>
-                      <div className="animate-bounce delay-100">•</div>
-                      <div className="animate-bounce delay-200">•</div>
-                    </div>
-                  )}
-                  {message.status === 'sent' && (
-                    <div className="text-xs text-green-400 mt-1">
-                      ✓ sent
-                    </div>
-                  )}
-                  {message.status === 'error' && (
-                    <div className="flex items-center text-xs text-red-400 mt-1">
-                      <span className="mr-1">⚠</span>
-                      failed to send
-                    </div>
-                  )}
-                </div>
+              >
+                <div className="break-words">{message.content}</div>
+                {message.status === 'sending' && (
+                  <div className="flex items-center text-xs text-gray-400 mt-1">
+                    <div className="mr-1">sending</div>
+                    <div className="animate-bounce">•</div>
+                    <div className="animate-bounce delay-100">•</div>
+                    <div className="animate-bounce delay-200">•</div>
+                  </div>
+                )}
+                {message.status === 'sent' && (
+                  <div className="text-xs text-green-400 mt-1">
+                    ✓ sent
+                  </div>
+                )}
+                {message.status === 'error' && (
+                  <div className="flex items-center text-xs text-red-400 mt-1">
+                    <span className="mr-1">⚠</span>
+                    failed to send
+                  </div>
+                )}
               </div>
-            ))}
-            <div ref={messagesEndRef} />
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {/* Input Area with integrated settings */}
+      <div className="bg-gray-800 border-t border-gray-700">
+        {/* Configuration and Groups Section */}
+        <div className="px-4 pt-2">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-300 text-sm font-semibold">Settings & Groups</span>
+            <Switch
+              size="small"
+              checked={showConfig}
+              onChange={setShowConfig}
+              className="ml-2"
+            />
           </div>
+
+          {showConfig && (
+            <div className="space-y-2 mb-2">
+              <div className="flex items-center justify-between">
+                <Tooltip title="Enable to let human act as the model">
+                  <span className="text-gray-300 text-xs">Human As Model</span>
+                </Tooltip>
+                <Switch
+                  size="small"
+                  checked={config.human_as_model}
+                  onChange={async (checked) => {
+                    const response = await fetch('/api/conf', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ human_as_model: checked })
+                    });
+                    if (response.ok) {
+                      setConfig(prev => ({ ...prev, human_as_model: checked }));
+                      message.success('Updated');
+                    } else {
+                      message.error('Failed to update');
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Tooltip title="Skip building index for better performance">
+                  <span className="text-gray-300 text-xs">Skip Build Index</span>
+                </Tooltip>
+                <Switch
+                  size="small"
+                  checked={config.skip_build_index}
+                  onChange={async (checked) => {
+                    const response = await fetch('/api/conf', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ skip_build_index: checked })
+                    });
+                    if (response.ok) {
+                      setConfig(prev => ({ ...prev, skip_build_index: checked }));
+                      message.success('Updated');
+                    } else {
+                      message.error('Failed to update');
+                    }
+                  }}
+                />
+              </div>
+
+              <Select
+                mode="multiple"
+                style={{ width: '100%' }}
+                placeholder="Select file groups"
+                value={selectedGroups}
+                onChange={(values) => setSelectedGroups(values)}
+                optionLabelProp="label"
+                className="custom-select mt-2"
+              >
+                {fileGroups.map(group => (
+                  <Select.Option
+                    key={group.name}
+                    value={group.name}
+                    label={group.name}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span>{group.name}</span>
+                      <span className="text-gray-400 text-xs">
+                        {group.files.length} files
+                      </span>
+                    </div>
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+          )}
         </div>
 
-        {/* Input Area with integrated settings */}
-        <div className="bg-gray-800 border-t border-gray-700">
-          {/* Configuration and Groups Section */}
-          <div className="px-4 pt-2">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-300 text-sm font-semibold">Settings & Groups</span>
-              <Switch
-                size="small"
-                checked={showConfig}
-                onChange={setShowConfig}
-                className="ml-2"
-              />
-            </div>
-            
-            {showConfig && (
-              <div className="space-y-2 mb-2">
-                <div className="flex items-center justify-between">
-                  <Tooltip title="Enable to let human act as the model">
-                    <span className="text-gray-300 text-xs">Human As Model</span>
-                  </Tooltip>
-                  <Switch
-                    size="small"
-                    checked={config.human_as_model}
-                    onChange={async (checked) => {
-                      const response = await fetch('/api/conf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ human_as_model: checked })
-                      });
-                      if (response.ok) {
-                        setConfig(prev => ({ ...prev, human_as_model: checked }));
-                        message.success('Updated');
-                      } else {
-                        message.error('Failed to update');
-                      }
-                    }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Tooltip title="Skip building index for better performance">
-                    <span className="text-gray-300 text-xs">Skip Build Index</span>
-                  </Tooltip>
-                  <Switch
-                    size="small"
-                    checked={config.skip_build_index}
-                    onChange={async (checked) => {
-                      const response = await fetch('/api/conf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ skip_build_index: checked })
-                      });
-                      if (response.ok) {
-                        setConfig(prev => ({ ...prev, skip_build_index: checked }));
-                        message.success('Updated');
-                      } else {
-                        message.error('Failed to update');
-                      }
-                    }}
-                  />
-                </div>
-
-                <Select
-                  mode="multiple"
-                  style={{ width: '100%' }}
-                  placeholder="Select file groups"
-                  value={selectedGroups}
-                  onChange={(values) => setSelectedGroups(values)}
-                  optionLabelProp="label"
-                  className="custom-select mt-2"
-                >
-                  {fileGroups.map(group => (
-                    <Select.Option
-                      key={group.name}
-                      value={group.name}
-                      label={group.name}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span>{group.name}</span>
-                        <span className="text-gray-400 text-xs">
-                          {group.files.length} files
-                        </span>
-                      </div>
-                    </Select.Option>
-                  ))}
-                </Select>
-              </div>
-            )}
+        {/* Message Input */}
+        <div className="p-4 flex flex-col space-y-2">
+          <div className="flex-1" style={{ minHeight: '38px' }}>
+            <Editor
+              height="38px"
+              defaultLanguage="plaintext"
+              theme="vs-dark"
+              value={inputText}
+              onChange={(value) => setInputText(value || '')}
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                scrollbar: { vertical: 'hidden' },
+                lineNumbers: 'off',
+                glyphMargin: false,
+                folding: false,
+                lineDecorationsWidth: 0,
+                lineNumbersMinChars: 0,
+                wordWrap: 'on',
+                automaticLayout: true,
+                autoClosingBrackets: "never",
+                autoClosingQuotes: "never",
+                renderLineHighlight: 'none',
+                overviewRulerBorder: false,
+                hideCursorInOverviewRuler: true,
+                overviewRulerLanes: 0,
+                suggest: {
+                  showWords: false
+                }
+              }}
+              onMount={(editor, monaco) => {
+                editor.onDidContentSizeChange(() => {
+                  const contentHeight = Math.min(Math.max(38, editor.getContentHeight()), 150);
+                  editor.layout({ width: editor.getLayoutInfo().width, height: contentHeight });
+                  const container = editor.getContainerDomNode();
+                  container.style.height = `${contentHeight}px`;
+                });
+              }}
+            />
           </div>
-
-          {/* Message Input */}
-          <div className="p-4 flex flex-col space-y-2">
-            <div className="flex-1" style={{ minHeight: '38px' }}>
-              <Editor
-                height="38px"
-                defaultLanguage="plaintext" 
-                theme="vs-dark"
-                value={inputText}
-                onChange={(value) => setInputText(value || '')}
-                options={{
-                  fontSize: 14,
-                  minimap: { enabled: false },
-                  scrollbar: { vertical: 'hidden' },
-                  lineNumbers: 'off',
-                  glyphMargin: false,
-                  folding: false,
-                  lineDecorationsWidth: 0,
-                  lineNumbersMinChars: 0,
-                  wordWrap: 'on',
-                  automaticLayout: true,
-                  autoClosingBrackets: "never",
-                  autoClosingQuotes: "never",
-                  renderLineHighlight: 'none',
-                  overviewRulerBorder: false,
-                  hideCursorInOverviewRuler: true,
-                  overviewRulerLanes: 0,
-                  suggest: {
-                    showWords: false
-                  }
-                }}
-                onMount={(editor, monaco) => {
-                  editor.onDidContentSizeChange(() => {
-                    const contentHeight = Math.min(Math.max(38, editor.getContentHeight()), 150);
-                    editor.layout({ width: editor.getLayoutInfo().width, height: contentHeight });
-                    const container = editor.getContainerDomNode();
-                    container.style.height = `${contentHeight}px`;
-                  });
-                }}
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleSendMessage}
-                disabled={sendLoading}
-              >
-                {sendLoading ? 'Sending...' : 'Send'}
-              </button>
-            </div>
+          <div className="flex justify-end">
+            <button
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleSendMessage}
+              disabled={sendLoading}
+            >
+              {sendLoading ? 'Sending...' : 'Send'}
+            </button>
           </div>
         </div>
       </div>
+    </div>
   );
 };
 
