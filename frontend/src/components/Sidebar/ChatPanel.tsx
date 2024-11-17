@@ -68,6 +68,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
   }, []);
 
   const [inputText, setInputText] = useState<string>('');
+  const [sendLoading, setSendLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);  
 
   const addUserMessage = (content: string) => {
@@ -197,6 +198,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
     const messageId = addUserMessage(inputText);
 
+    setSendLoading(true);
     try {
       const response = await fetch('/api/coding', {
         method: 'POST',
@@ -226,6 +228,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
       // Add error message from bot
       addBotMessage('Sorry, there was an error processing your request. Please try again.');
+    } finally {
+      setSendLoading(false);
     }
   };
 
@@ -372,10 +376,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
               onChange={handleInputChange}
             />
             <button
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSendMessage}
+              disabled={sendLoading}
             >
-              Send
+              {sendLoading ? 'Sending...' : 'Send'}
             </button>
           </div>
         </div>
