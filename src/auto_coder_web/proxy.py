@@ -263,6 +263,13 @@ class ProxyServer:
             description = data.get("description", "")                                
             group = await self.file_group_manager.create_group(name, description)
             return group
+        
+        @self.app.post("/api/file-groups/switch")
+        async def switch_file_groups(request: Request):
+            data = await request.json()
+            group_names = data.get("group_names", [])
+            result = await self.file_group_manager.switch_groups(group_names)
+            return result
             
         @self.app.delete("/api/file-groups/{name}")
         async def delete_file_group(name: str):

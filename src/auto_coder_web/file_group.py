@@ -8,7 +8,7 @@ class FileGroupManager:
         self.runner = auto_coder_runner        
         
     async def create_group(self, name: str, description: str) -> Dict:
-        group = self.runner.add_group(name)
+        group = self.runner.add_group(name,description=description)
         if group is None:
             raise HTTPException(status_code=400, detail="Group already exists")
         return {
@@ -17,8 +17,14 @@ class FileGroupManager:
             "files": []  
         }
     
+    async def switch_groups(self, group_names: List[str]) -> Dict:
+        result = self.runner.switch_groups(group_names)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Group not found")
+        return result
+    
     async def delete_group(self, name: str) -> None:
-        result = self.runner.remove_group(name) if hasattr(self.runner, "remove_group") else None
+        result = self.runner.remove_group(name)
         if result is None:
             raise HTTPException(status_code=404, detail="Group not found")
     

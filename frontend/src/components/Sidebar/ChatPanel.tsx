@@ -378,38 +378,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                   : 'bg-gray-800 text-gray-300'
                   }`}
               >
-                <div className="break-words">{message.content}</div>
-                {message === messages[messages.length - 1] && message.role === 'user' && (
-                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 hidden group-hover:block">
-                    <button
-                      className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/revert', {
-                            method: 'POST'
-                          });
-
-                          if (!response.ok) {
-                            throw new Error('Failed to revert changes');
-                          }
-
-                          const data = await response.json();
-                          AntdMessage.success('Changes reverted successfully');
-
-                          // Refresh preview panel if active
-                          setPreviewFiles([]);
-                          setActivePanel('code');
-
-                        } catch (error) {
-                          AntdMessage.error('Failed to revert changes');
-                          console.error('Error reverting changes:', error);
-                        }
-                      }}
-                    >
-                      Revert Changes
-                    </button>
-                  </div>
-                )}
+                <div className="break-words">{message.content}</div>                
                 {message.status === 'sending' && (
                   <div className="flex items-center text-xs text-gray-400 mt-1">
                     <div className="mr-1">sending</div>
@@ -503,7 +472,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                 style={{ width: '100%' }}
                 placeholder="Select file groups"
                 value={selectedGroups}
-                onChange={(values) => setSelectedGroups(values)}
+                onChange={(values) => {
+                  setSelectedGroups(values);
+                  fetch('/api/file-groups/switch', {
+                    method: 'POST',
+                    body: JSON.stringify({ group_names: values })
+                  });
+                }}
                 optionLabelProp="label"
                 className="custom-select mt-2"
               >
@@ -572,12 +547,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
             </div>
             <div className="flex items-center gap-2">
               <button
-                className="flex items-center p-2 bg-red-600 text-white rounded-md
-                  hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 
+                className="flex items-center p-2 bg-gray-600 text-white rounded-md
+                  hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 
                   focus:ring-offset-gray-900 transition-colors
-                  shadow-lg shadow-red-500/20"
+                  shadow-lg shadow-gray-500/20"
                 onClick={handleRevert}
-                title="Revert Changes"
+                title="撤销最近一次提交"
               >
                 <UndoOutlined style={{ fontSize: '18px' }} />
               </button>
