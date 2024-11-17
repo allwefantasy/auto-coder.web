@@ -218,11 +218,7 @@ class ProxyServer:
         self.client = httpx.AsyncClient() 
         self.project_path = project_path 
         self.auto_coder_runner = AutoCoderRunner(project_path)  
-            self.file_group_manager = FileGroupManager(self.auto_coder_runner)                     
-
-        @self.app.get("/api/os")
-        async def get_os():
-            return {"os": os.name}
+        self.file_group_manager = FileGroupManager(self.auto_coder_runner)                             
         
     def setup_middleware(self):
         self.app.add_middleware(
@@ -267,6 +263,10 @@ class ProxyServer:
             description = data.get("description", "")                                
             group = await self.file_group_manager.create_group(name, description)            
             return group
+        
+        @self.app.get("/api/os")
+        async def get_os():
+            return {"os": os.name}
         
         @self.app.post("/api/file-groups/switch")
         async def switch_file_groups(request: Request):
