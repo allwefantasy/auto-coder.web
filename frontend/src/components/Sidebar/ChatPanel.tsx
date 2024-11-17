@@ -83,6 +83,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
   const [inputText, setInputText] = useState<string>('');
   const [sendLoading, setSendLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
 
   const addUserMessage = (content: string) => {
     const newMessage: Message = {
@@ -246,7 +247,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
     }
   };
 
-  const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) {
@@ -283,6 +283,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
         } else {
           const messageBotId = addBotMessage("");
           await pollStreamResult(data.request_id, (newText) => {
+            if (newText === "") {
+              newText = "typing...";
+            }
             setMessages(prev => prev.map(msg =>
               msg.id === messageBotId ? { ...msg, content: newText } : msg
             ));
