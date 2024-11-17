@@ -198,6 +198,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
     const messageId = addUserMessage(inputText);
 
+    setInputText("");
+
     setSendLoading(true);
     try {
       const response = await fetch('/api/coding', {
@@ -217,7 +219,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
         // Update original message status
         updateMessageStatus(messageId, 'sent');
         // Start polling for events
-        pollEvents(data.request_id);
+        await pollEvents(data.request_id);
         addBotMessage("代码修改完成。")
       }
 

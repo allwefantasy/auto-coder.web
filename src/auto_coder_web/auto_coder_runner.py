@@ -264,12 +264,8 @@ class AutoCoderRunner:
                     f.write(yaml_content)
 
                 try:
-                    auto_coder_main(["--file", execute_file, "--request_id", request_id])
-                finally:
-                    try:
-                        os.remove(execute_file)
-                    except FileNotFoundError:
-                        pass
+                    auto_coder_main(["--file", execute_file, "--request_id", request_id])                    
+                finally:                    
                     _ = queue_communicate.send_event_no_wait(
                         request_id=request_id,
                         event=CommunicateEvent(
