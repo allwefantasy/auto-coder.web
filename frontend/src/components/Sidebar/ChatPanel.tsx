@@ -92,7 +92,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
   const addBotMessage = (content: string) => {
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: Date.now().toString(), 
       role: 'bot',
       content,
       status: 'sent',
@@ -100,6 +100,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
     };
     setMessages(prev => [...prev, newMessage]);
     return newMessage.id;
+  };
+
+  const updateMessageStatus = (messageId: string, status: 'sending' | 'sent' | 'error') => {
+    setMessages(prev => 
+      prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, status } 
+          : msg
+      )
+    );
   };
 
   const updateMessageStatus = (messageId: string, status: 'sending' | 'sent' | 'error') => {
@@ -228,8 +238,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
     } catch (error) {
       console.error('Error sending message:', error);
-      message.error('Failed to send message');
+      message.error('Failed to send message');      
       updateMessageStatus(messageId, 'error');
+      
+      // Add error message from bot
+      addBotMessage('Sorry, there was an error processing your request. Please try again.');
     }
   };
 
@@ -240,26 +253,39 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
         <div className="space-y-4">
           {messages.map((message) => (
             <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
               <div
-                className={`max-w-[80%] rounded-lg p-3 ${
-                  message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-800 text-gray-300'
-                }`}
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className="break-words">{message.content}</div>
-                {message.status === 'sending' && (
-                  <div className="text-xs text-gray-400 mt-1">sending...</div>
-                )}
-                {message.status === 'error' && (
-                  <div className="text-xs text-red-400 mt-1">failed to send</div>
-                )}
+                <div
+                  className={`max-w-[80%] rounded-lg p-3 ${
+                    message.role === 'user'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-800 text-gray-300'
+                  }`}
+                >
+                  <div className="break-words">{message.content}</div>
+                  {message.status === 'sending' && (
+                    <div className="flex items-center text-xs text-gray-400 mt-1">
+                      <div className="mr-1">sending</div>
+                      <div className="animate-bounce">•</div>
+                      <div className="animate-bounce delay-100">•</div>
+                      <div className="animate-bounce delay-200">•</div>
+                    </div>
+                  )}
+                  {message.status === 'sent' && (
+                    <div className="text-xs text-green-400 mt-1">
+                      ✓ sent
+                    </div>
+                  )}
+                  {message.status === 'error' && (
+                    <div className="flex items-center text-xs text-red-400 mt-1">
+                      <span className="mr-1">⚠</span>
+                      failed to send
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
           <div ref={messagesEndRef} />
         </div>
       </div>
