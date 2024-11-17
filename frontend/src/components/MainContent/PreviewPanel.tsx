@@ -7,38 +7,48 @@ interface PreviewPanelProps {
 }
 
 const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
+  const [activeFileIndex, setActiveFileIndex] = React.useState(0);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-hidden">
-        <div className="h-full flex">
+        <div className="h-full flex flex-col">
           {files.length === 0 ? (
             <div className="w-full flex items-center justify-center text-gray-400">
               No changes to preview
             </div>
           ) : (
-            <div className="flex-1 flex flex-col">
-              {files.map((file, index) => (
-                <div key={file.path} className="flex-1 min-h-[400px] border-b border-gray-700 last:border-b-0">
-                  <div className="bg-gray-800 px-4 py-2 text-gray-300 text-sm font-semibold">
+            <>
+              <div className="flex bg-gray-800">
+                {files.map((file, index) => (
+                  <button
+                    key={file.path}
+                    className={`px-4 py-2 text-sm ${
+                      index === activeFileIndex ? 'bg-gray-700 text-white' : 'text-gray-300'
+                    }`}
+                    onClick={() => setActiveFileIndex(index)}
+                  >
                     {file.path}
-                  </div>
-                  <Editor
-                    height="calc(100% - 36px)"
-                    language={getLanguageByFileName(file.path)}
-                    theme="vs-dark"
-                    value={file.content}
-                    options={{
-                      readOnly: true,
-                      minimap: { enabled: true },
-                      fontSize: 14,
-                      lineNumbers: 'on',
-                      folding: true,
-                      automaticLayout: true,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1">
+                <Editor
+                  height="100%"
+                  language={getLanguageByFileName(files[activeFileIndex].path)}
+                  theme="vs-dark"
+                  value={files[activeFileIndex].content}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: true },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    folding: true,
+                    automaticLayout: true,
+                  }}
+                />
+              </div>
+            </>
           )}
         </div>
       </div>
