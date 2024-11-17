@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { AutoComplete, Card, Select, Switch, message, Tooltip } from 'antd';
+import { AutoComplete, Card, Select, Switch, message as AntdMessage, Tooltip } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Editor } from '@monaco-editor/react';
 
@@ -70,7 +70,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
   const [inputText, setInputText] = useState<string>('');
   const [sendLoading, setSendLoading] = useState<boolean>(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const addUserMessage = (content: string) => {
     const newMessage: Message = {
@@ -193,7 +193,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) {
-      message.warning('Please enter a message');
+      AntdMessage.warning('Please enter a message');
       return;
     }
 
@@ -226,7 +226,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
     } catch (error) {
       console.error('Error sending message:', error);
-      message.error('Failed to send message');
+      AntdMessage.error('Failed to send message');
       updateMessageStatus(messageId, 'error');
 
       // Add error message from bot
@@ -236,229 +236,225 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
     }
   };
 
-    return (
-      <div className="flex flex-col h-full">
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
-          <div className="space-y-4">
-            {messages.map((message) => (
+  return (
+    <div className="flex flex-col h-full">
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
+        <div className="space-y-4">
+          {messages.map((message) => (
+            <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
-                <div 
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 relative group ${
-                      message.role === 'user'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-800 text-gray-300'
-                    }`}
-                  >
-                    <div className="break-words">{message.content}</div>
-                    {message === messages[messages.length - 1] && message.role === 'user' && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 hidden group-hover:block">
-                        <button
-                          className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/revert', {
-                                method: 'POST'
-                              });
-                              
-                              if (!response.ok) {
-                                throw new Error('Failed to revert changes');
-                              }
-                              
-                              const data = await response.json();
-                              message.success('Changes reverted successfully');
-                              
-                              // Refresh preview panel if active
-                              setPreviewFiles([]);
-                              setActivePanel('code');
-                              
-                            } catch (error) {
-                              message.error('Failed to revert changes');
-                              console.error('Error reverting changes:', error);
-                            }
-                          }}
-                        >
-                          Revert Changes
-                        </button>
-                      </div>
-                    )}
-                  {message.status === 'sending' && (
-                    <div className="flex items-center text-xs text-gray-400 mt-1">
-                      <div className="mr-1">sending</div>
-                      <div className="animate-bounce">•</div>
-                      <div className="animate-bounce delay-100">•</div>
-                      <div className="animate-bounce delay-200">•</div>
-                    </div>
-                  )}
-                  {message.status === 'sent' && (
-                    <div className="text-xs text-green-400 mt-1">
-                      ✓ sent
-                    </div>
-                  )}
-                  {message.status === 'error' && (
-                    <div className="flex items-center text-xs text-red-400 mt-1">
-                      <span className="mr-1">⚠</span>
-                      failed to send
-                    </div>
-                  )}
-                </div>
+                className={`max-w-[80%] rounded-lg p-3 relative group ${message.role === 'user'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-300'
+                  }`}
+              >
+                <div className="break-words">{message.content}</div>
+                {message === messages[messages.length - 1] && message.role === 'user' && (
+                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 hidden group-hover:block">
+                    <button
+                      className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/revert', {
+                            method: 'POST'
+                          });
+
+                          if (!response.ok) {
+                            throw new Error('Failed to revert changes');
+                          }
+
+                          const data = await response.json();
+                          AntdMessage.success('Changes reverted successfully');
+
+                          // Refresh preview panel if active
+                          setPreviewFiles([]);
+                          setActivePanel('code');
+
+                        } catch (error) {
+                          AntdMessage.error('Failed to revert changes');
+                          console.error('Error reverting changes:', error);
+                        }
+                      }}
+                    >
+                      Revert Changes
+                    </button>
+                  </div>
+                )}
+                {message.status === 'sending' && (
+                  <div className="flex items-center text-xs text-gray-400 mt-1">
+                    <div className="mr-1">sending</div>
+                    <div className="animate-bounce">•</div>
+                    <div className="animate-bounce delay-100">•</div>
+                    <div className="animate-bounce delay-200">•</div>
+                  </div>
+                )}
+                {message.status === 'sent' && (
+                  <div className="text-xs text-green-400 mt-1">
+                    ✓ sent
+                  </div>
+                )}
+                {message.status === 'error' && (
+                  <div className="flex items-center text-xs text-red-400 mt-1">
+                    <span className="mr-1">⚠</span>
+                    failed to send
+                  </div>
+                )}
               </div>
-            ))}
-            <div ref={messagesEndRef} />
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {/* Input Area with integrated settings */}
+      <div className="bg-gray-800 border-t border-gray-700">
+        {/* Configuration and Groups Section */}
+        <div className="px-4 pt-2">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-300 text-sm font-semibold">Settings & Groups</span>
+            <Switch
+              size="small"
+              checked={showConfig}
+              onChange={setShowConfig}
+              className="ml-2"
+            />
           </div>
+
+          {showConfig && (
+            <div className="space-y-2 mb-2">
+              <div className="flex items-center justify-between">
+                <Tooltip title="Enable to let human act as the model">
+                  <span className="text-gray-300 text-xs">Human As Model</span>
+                </Tooltip>
+                <Switch
+                  size="small"
+                  checked={config.human_as_model}
+                  onChange={async (checked) => {
+                    const response = await fetch('/api/conf', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ human_as_model: checked })
+                    });
+                    if (response.ok) {
+                      setConfig(prev => ({ ...prev, human_as_model: checked }));
+                      AntdMessage.success('Updated');
+                    } else {
+                      AntdMessage.error('Failed to update');
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Tooltip title="Skip building index for better performance">
+                  <span className="text-gray-300 text-xs">Skip Build Index</span>
+                </Tooltip>
+                <Switch
+                  size="small"
+                  checked={config.skip_build_index}
+                  onChange={async (checked) => {
+                    const response = await fetch('/api/conf', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ skip_build_index: checked })
+                    });
+                    if (response.ok) {
+                      setConfig(prev => ({ ...prev, skip_build_index: checked }));
+                      AntdMessage.success('Updated');
+                    } else {
+                      AntdMessage.error('Failed to update');
+                    }
+                  }}
+                />
+              </div>
+
+              <Select
+                mode="multiple"
+                style={{ width: '100%' }}
+                placeholder="Select file groups"
+                value={selectedGroups}
+                onChange={(values) => setSelectedGroups(values)}
+                optionLabelProp="label"
+                className="custom-select mt-2"
+              >
+                {fileGroups.map(group => (
+                  <Select.Option
+                    key={group.name}
+                    value={group.name}
+                    label={group.name}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span>{group.name}</span>
+                      <span className="text-gray-400 text-xs">
+                        {group.files.length} files
+                      </span>
+                    </div>
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+          )}
         </div>
 
-        {/* Input Area with integrated settings */}
-        <div className="bg-gray-800 border-t border-gray-700">
-          {/* Configuration and Groups Section */}
-          <div className="px-4 pt-2">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-300 text-sm font-semibold">Settings & Groups</span>
-              <Switch
-                size="small"
-                checked={showConfig}
-                onChange={setShowConfig}
-                className="ml-2"
-              />
-            </div>
-            
-            {showConfig && (
-              <div className="space-y-2 mb-2">
-                <div className="flex items-center justify-between">
-                  <Tooltip title="Enable to let human act as the model">
-                    <span className="text-gray-300 text-xs">Human As Model</span>
-                  </Tooltip>
-                  <Switch
-                    size="small"
-                    checked={config.human_as_model}
-                    onChange={async (checked) => {
-                      const response = await fetch('/api/conf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ human_as_model: checked })
-                      });
-                      if (response.ok) {
-                        setConfig(prev => ({ ...prev, human_as_model: checked }));
-                        message.success('Updated');
-                      } else {
-                        message.error('Failed to update');
-                      }
-                    }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Tooltip title="Skip building index for better performance">
-                    <span className="text-gray-300 text-xs">Skip Build Index</span>
-                  </Tooltip>
-                  <Switch
-                    size="small"
-                    checked={config.skip_build_index}
-                    onChange={async (checked) => {
-                      const response = await fetch('/api/conf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ skip_build_index: checked })
-                      });
-                      if (response.ok) {
-                        setConfig(prev => ({ ...prev, skip_build_index: checked }));
-                        message.success('Updated');
-                      } else {
-                        message.error('Failed to update');
-                      }
-                    }}
-                  />
-                </div>
-
-                <Select
-                  mode="multiple"
-                  style={{ width: '100%' }}
-                  placeholder="Select file groups"
-                  value={selectedGroups}
-                  onChange={(values) => setSelectedGroups(values)}
-                  optionLabelProp="label"
-                  className="custom-select mt-2"
-                >
-                  {fileGroups.map(group => (
-                    <Select.Option
-                      key={group.name}
-                      value={group.name}
-                      label={group.name}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span>{group.name}</span>
-                        <span className="text-gray-400 text-xs">
-                          {group.files.length} files
-                        </span>
-                      </div>
-                    </Select.Option>
-                  ))}
-                </Select>
-              </div>
-            )}
+        {/* Message Input */}
+        <div className="p-4 flex flex-col space-y-2">
+          <div className="flex-1 min-h-[180px]">
+            <Editor
+              theme="vs-dark"
+              height="180px"
+              value={inputText}
+              onChange={(value) => setInputText(value || '')}
+              defaultLanguage='markdown'
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'off',
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                lineHeight: 1.5,
+                padding: { top: 8, bottom: 8 },
+                suggestLineHeight: 24,
+                folding: true,
+                automaticLayout: true,
+                overviewRulerBorder: false,
+                scrollbar: {
+                  vertical: 'auto',
+                  horizontal: 'auto'
+                },
+              }}
+            />
           </div>
-
-          {/* Message Input */}
-          <div className="p-4 flex flex-col space-y-2">
-              <div className="flex-1 min-h-[180px]">
-                <Editor                                
-                  theme="vs-dark"
-                  height="180px"
-                value={inputText}
-                onChange={(value) => setInputText(value || '')}
-                defaultLanguage='markdown'
-                options={{
-                  minimap: { enabled: false },                                    
-                  fontSize: 14,
-                  lineNumbers: 'off',
-                  scrollBeyondLastLine: false,
-                  wordWrap: 'on',
-                  lineHeight: 1.5,
-                  padding: { top: 8, bottom: 8 },
-                  suggestLineHeight: 24,
-                  folding: true,
-                  automaticLayout: true,
-                  overviewRulerBorder: false,
-                  scrollbar: {
-                    vertical: 'auto',
-                    horizontal: 'auto'
-                  },
-                }}           
-              />
-            </div>
-            <div className="flex items-center justify-between mt-2 gap-2">
-              <div className="flex items-center gap-2">
-                <div className="text-xs text-gray-400">
-                  Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter to send
-                </div>
+          <div className="flex items-center justify-between mt-2 gap-2">
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-gray-400">
+                Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter to send
               </div>
-              <button
-                className="flex items-center px-4 py-2 bg-indigo-600 text-sm text-white rounded-md font-medium 
+            </div>
+            <button
+              className="flex items-center px-4 py-2 bg-indigo-600 text-sm text-white rounded-md font-medium 
                 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
                 focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed
                 shadow-lg shadow-indigo-500/20"
-                onClick={handleSendMessage}
-                disabled={sendLoading}
-              >
-                {sendLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Sending...
-                  </>
-                ) : (
-                  'Send'
-                )}
-              </button>
-            </div>
+              onClick={handleSendMessage}
+              disabled={sendLoading}
+            >
+              {sendLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Sending...
+                </>
+              ) : (
+                'Send'
+              )}
+            </button>
           </div>
         </div>
       </div>
+    </div>
   );
 };
 
