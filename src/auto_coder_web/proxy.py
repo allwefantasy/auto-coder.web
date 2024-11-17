@@ -283,17 +283,11 @@ class ProxyServer:
             group = await self.file_group_manager.remove_files_from_group(name, files)
             return group
 
-        @self.app.post("/api/revert")
+        @self.app.post("/api/revert") 
         async def revert():
-            yaml_file = get_last_yaml_file("actions")
-            if not yaml_file:
-                raise HTTPException(status_code=404, detail="No actions found to revert")
-                
-            file_path = os.path.join("actions", yaml_file)
-            
             try:
-                auto_coder_main(["revert", "--file", file_path])
-                return {"status": "success", "message": "Changes reverted successfully"}
+                result = self.auto_coder_runner.revert()
+                return result
             except Exception as e:
                 raise HTTPException(status_code=500, detail=str(e))
             
