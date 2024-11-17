@@ -57,6 +57,15 @@ interface ChatPanelProps {
   clipboardContent: string;
 }
 
+interface CompletionData {
+  completions: Array<{
+    name: string;
+    path: string;
+    display: string;
+    location?: string;
+  }>;
+}
+
 const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, setClipboardContent, clipboardContent }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
@@ -560,32 +569,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                         const query: string = doubleMatch ? doubleMatch[1] : match![1];
                         const isSymbol: boolean = !!doubleMatch;
                         
-                        try {
-                          // 从后端获取当前活动文件
-                          const activeFilesResponse = await fetch('/api/active-files');
-                          if (!activeFilesResponse.ok) {
-                            throw new Error('Failed to fetch active files');
-                          }
-                          const activeFilesData = await activeFilesResponse.json();
-                          const activeFiles: string = activeFilesData.files.join(',');
-
+                        try {                          
                           const endpoint: string = isSymbol ? '/api/completions/symbols' : '/api/completions/files';
-                          const response = await fetch(
-                            `${endpoint}?name=${encodeURIComponent(query)}${!isSymbol ? `&active_files=${encodeURIComponent(activeFiles)}` : ''}`
-                          );
+                          const response = await fetch(`${endpoint}?name=${encodeURIComponent(query)}`);
                           
                           if (!response.ok) throw new Error('Network response was not ok');
-                          
-                          interface CompletionData {
-                            completions: Array<{
-                              name: string;
-                              path: string;
-                              display: string;
-                              location?: string;
-                            }>;
-                          }
-
-                          const data: CompletionData = await response.json();
+                                                    
+                          const data: CompletionData = await response.json();                          
                           data.completions.forEach((item) => {
                             const completionItem: import('monaco-editor').languages.CompletionItem = {
                               label: isSymbol ? item.name : item.path,
@@ -603,8 +593,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                           });
                         } catch (error) {
                           console.error('Error fetching completions:', error instanceof Error ? error.message : 'Unknown error');
-                        }
-                        
+                        }                        
                         return {
                           suggestions
                         };

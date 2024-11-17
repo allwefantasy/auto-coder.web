@@ -31,7 +31,17 @@ from autocoder.utils.queue_communicate import (
 from autocoder.utils.log_capture import LogCapture
 from threading import Thread
 from byzerllm.utils import format_str_jinja2
+from autocoder.index.symbols_utils import (
+    extract_symbols,
+    symbols_info_to_str,
+    SymbolsInfo,
+    SymbolType,
+)
 
+class SymbolItem(BaseModel):
+    symbol_name: str
+    symbol_type: SymbolType
+    file_name: str
 
 class AutoCoderRunner:
     def __init__(self, project_path: str):
@@ -131,9 +141,27 @@ class AutoCoderRunner:
         files = [os.path.relpath(f, self.project_path) for f in files]
         return {"files": files}
 
+    def get_active_files(self) -> Dict[str, List[str]]:
+        return {"files": self.memory["current_files"]["files"]}
+
+    def get_exclude_dirs(self) -> Dict[str, List[str]]:
+        return {"files": self.memory.get("exclude_dirs", [])}
+
     def find_files_in_project(self, patterns: List[str]) -> List[str]:
-        project_root = os.getcwd()
+
+        project_root = self.project_path
         matched_files = []
+
+        active_files = self.get_active_files()
+        active_file_list = active_files.get("files", [])
+        if len(patterns) == 1 and patterns[0] == "":
+            return active_file_list
+
+        for pattern in patterns:
+            for file_path in active_file_list:
+                if pattern in os.path.basename(file_path):
+                    matched_files.append(file_path)                
+
         final_exclude_dirs = self.default_exclude_dirs + \
             self.memory.get("exclude_dirs", [])
 
@@ -163,6 +191,43 @@ class AutoCoderRunner:
                     matched_files.append(pattern)
 
         return list(set(matched_files))
+
+    def get_symbol_list(self) -> List[SymbolItem]:
+        """获取所有符号列表"""
+        list_of_symbols = []
+        index_file = os.path.join(
+            self.project_path, ".auto-coder", "index.json")
+
+        if os.path.exists(index_file):
+            with open(index_file, "r") as file:
+                index_data = json.load(file)
+        else:
+            return []
+
+        for item in index_data.values():
+            symbols_str = item["symbols"]
+            module_name = item["module_name"]
+            for name, symbol_type in self.extract_symbols(symbols_str).items():
+                list_of_symbols.append(
+                    SymbolItem(
+                        symbol_name=name,
+                        symbol_type=SymbolType(symbol_type.lower()),
+                        file_name=module_name
+                    )
+                )
+        return list_of_symbols
+
+    def extract_symbols(sefl, symbols_str: str) -> Dict[str, str]:
+        """从符号字符串中提取符号名和类型"""
+        symbols = {}
+        try:
+            data = json.loads(symbols_str)
+            for symbol_type in ["classes", "functions", "variables"]:
+                for name in data.get(symbol_type, []):
+                    symbols[name] = symbol_type
+        except json.JSONDecodeError:
+            pass
+        return symbols
 
     def convert_config_value(self, key: str, value: str) -> Any:
         field_info = AutoCoderArgs.model_fields.get(key)
@@ -304,11 +369,12 @@ class AutoCoderRunner:
                     _ = queue_communicate.send_event_no_wait(
                         request_id=request_id,
                         event=CommunicateEvent(
-                            event_type=CommunicateEventType.CODE_ERROR.value, data=str(e)
+                            event_type=CommunicateEventType.CODE_ERROR.value, data=str(
+                                e)
                         ),
                     )
                     raise e
-                
+
                 _ = queue_communicate.send_event_no_wait(
                     request_id=request_id,
                     event=CommunicateEvent(
