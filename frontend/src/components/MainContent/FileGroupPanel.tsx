@@ -287,24 +287,32 @@ const FileGroupPanel: React.FC = () => {
                   className="custom-input"
                   onChange={(e) => {
                     const searchValue = e.target.value.toLowerCase();
-                    const filterTreeData = (nodes: DataNode[]): DataNode[] => {
+                    
+                    // Helper function to get all leaf nodes (files) from tree
+                    const getAllFiles = (nodes: DataNode[]): DataNode[] => {
                       return nodes.reduce((acc: DataNode[], node) => {
-                        if (node.children) {
-                          const filteredChildren = filterTreeData(node.children);
-                          if (filteredChildren.length > 0) {
-                            acc.push({ ...node, children: filteredChildren });
-                          } else if (node.title?.toString().toLowerCase().includes(searchValue)) {
+                        if (node.isLeaf) {
+                          if (node.title?.toString().toLowerCase().includes(searchValue) || 
+                              node.key.toString().toLowerCase().includes(searchValue)) {
                             acc.push(node);
                           }
-                        } else if (node.title?.toString().toLowerCase().includes(searchValue)) {
-                          acc.push(node);
+                        } else if (node.children) {
+                          acc.push(...getAllFiles(node.children));
                         }
                         return acc;
                       }, []);
                     };
 
                     if (searchValue) {
-                      const filtered = filterTreeData([...treeData]);
+                      // Get all matching files and show them in a flat list
+                      const matchingFiles = getAllFiles([...treeData]);
+                      // Create a root node for filtered files
+                      const filtered = [{
+                        title: 'Filtered Files',
+                        key: 'filtered-root',
+                        children: matchingFiles,
+                        isLeaf: false
+                      }];
                       setFilteredTreeData(filtered);
                     } else {
                       setFilteredTreeData(treeData);
