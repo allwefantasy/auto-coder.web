@@ -52,10 +52,12 @@ interface Message {
 
 interface ChatPanelProps {
   setPreviewFiles: (files: { path: string; content: string }[]) => void;
-  setActivePanel: (panel: 'code' | 'filegroup' | 'preview') => void;
+  setActivePanel: (panel: 'code' | 'filegroup' | 'preview' | 'clipboard') => void;
+  setClipboardContent: (content: string) => void;
+  clipboardContent: string;
 }
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, setClipboardContent, clipboardContent }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [showConfig, setShowConfig] = useState(false);
@@ -64,6 +66,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
     human_as_model: false,
     skip_build_index: true
   });
+
+  const [pendingResponseEvent, setPendingResponseEvent] = useState<{
+    requestId: string;
+    eventData: CodingEvent;
+  } | null>(null);
+
   const fetchFileGroups = async () => {
     try {
       const response = await fetch('/api/file-groups');
@@ -232,10 +240,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
         if (eventData.event_type === 'code_human_as_model') {
           const result = JSON.parse(eventData.data)
-          const v = JSON.stringify({
-            "value": ""
-          })
-          await response_event(v);
+          setActivePanel('clipboard');
+          setClipboardContent(result.instruction);
+          setPendingResponseEvent({
+            requestId: requestId,
+            eventData: eventData
+          });
+          addBotMessage("请复制右侧的文本,然后将结果复制黏贴会右侧。黏贴完请回复 '确认'");
+          setSendLoading(false)          
         }
       } catch (error) {
         console.error('Error polling events:', error);
@@ -256,6 +268,30 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
 
     const messageId = addUserMessage(inputText);
     setInputText("");
+
+
+    if (inputText.trim() === '确认' && pendingResponseEvent) {
+      const { requestId, eventData } = pendingResponseEvent;
+      const v = JSON.stringify({
+        "value": clipboardContent
+      });
+      await fetch('/api/event/response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          request_id: requestId,
+          event: eventData,
+          response: v
+        })
+      });
+      setPendingResponseEvent(null);
+      addUserMessage(inputText);
+      setInputText("");
+      return;
+    }
+
     setSendLoading(true);
 
     try {

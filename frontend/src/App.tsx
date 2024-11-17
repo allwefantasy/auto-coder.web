@@ -9,16 +9,7 @@ import './App.css';
 
 const App: React.FC = () => {
   const [activePanel, setActivePanel] = useState<'code' | 'filegroup' | 'preview' | 'clipboard'>('code');
-  const [clipboardContent, setClipboardContent] = useState<string>('');
-
-  const getClipboardContent = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      setClipboardContent(text);
-    } catch (err) {
-      console.error('Failed to read clipboard:', err);
-    }
-  };
+  const [clipboardContent, setClipboardContent] = useState<string>('');  
   const [projectName, setProjectName] = useState<string>('');
   const [previewFiles, setPreviewFiles] = useState<{ path: string, content: string }[]>([]);
 
@@ -45,6 +36,8 @@ const App: React.FC = () => {
         <ChatPanel 
           setPreviewFiles={setPreviewFiles}
           setActivePanel={setActivePanel}
+          setClipboardContent={setClipboardContent}
+          clipboardContent={clipboardContent}
         />
       </div>
 
@@ -90,8 +83,7 @@ const App: React.FC = () => {
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
               }`}
               onClick={() => {
-                setActivePanel('clipboard');
-                getClipboardContent();
+                setActivePanel('clipboard');                
               }}
             >
               Clipboard
@@ -111,7 +103,7 @@ const App: React.FC = () => {
                 theme="vs-dark"
                 height="100%"
                 value={clipboardContent}
-                onChange={setClipboardContent}
+                onChange={(value) => setClipboardContent(value || '')}
                 defaultLanguage="plaintext"
                 options={{
                   minimap: { enabled: false },
