@@ -47,49 +47,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [showConfig, setShowConfig] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const addUserMessage = (content: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content,
-      status: 'sending',
-      timestamp: Date.now()
-    };
-    setMessages(prev => [...prev, newMessage]);
-    return newMessage.id;
-  };
-
-  const addBotMessage = (content: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: 'bot',
-      content,
-      status: 'sent',
-      timestamp: Date.now()
-    };
-    setMessages(prev => [...prev, newMessage]);
-    return newMessage.id;
-  };
-
-  const updateMessageStatus = (messageId: string, status: 'sending' | 'sent' | 'error') => {
-    setMessages(prev => 
-      prev.map(msg => 
-        msg.id === messageId 
-          ? { ...msg, status } 
-          : msg
-      )
-    );
-  };
   const [config, setConfig] = useState<ConfigState>({
     human_as_model: false,
     skip_build_index: true
@@ -239,6 +196,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   };
+
   const handleSendMessage = async () => {
     if (!inputText.trim()) {
       message.warning('Please enter a message');
@@ -268,18 +226,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
         pollEvents(data.request_id);
       }
 
-        // Update original message status
-        updateMessageStatus(messageId, 'sent');
-        // Start polling for events
-        pollEvents(data.request_id);
-      }
-
     } catch (error) {
       console.error('Error sending message:', error);
       message.error('Failed to send message');
       updateMessageStatus(messageId, 'error');
     }
   };
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
         <div className="space-y-4">
           {messages.map((message) => (
@@ -295,27 +251,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel }
                 }`}
               >
                 <div className="break-words">{message.content}</div>
-                {message.status === 'sending' && (
-                  <div className="text-xs text-gray-400 mt-1">
-                    <div className="flex items-center">
-                      <div className="animate-spin mr-2">⏳</div>
-                      sending...
-                    </div>
-                  </div>
-                )}
-                {message.status === 'error' && (
-                  <div className="text-xs text-red-400 mt-1">
-                    <div className="flex items-center">
-                      <div className="mr-2">❌</div>
-                      failed to send
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
                 {message.status === 'sending' && (
                   <div className="text-xs text-gray-400 mt-1">sending...</div>
                 )}
