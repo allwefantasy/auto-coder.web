@@ -40,6 +40,8 @@ const FileGroupPanel: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [currentDesc, setCurrentDesc] = useState('');
 
   // Helper function to get all file paths from tree data
   const getAllFilePaths = (nodes: DataNode[]): string[] => {
@@ -246,12 +248,55 @@ const FileGroupPanel: React.FC = () => {
           <div className="w-80 bg-gray-900 border-r border-gray-700 overflow-y-auto p-4">
             {selectedGroup ? (
               <div className="space-y-4">
-                <div>
-                  <h3 className="text-white font-medium text-lg mb-2">{selectedGroup.name}</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-white font-medium text-lg">{selectedGroup.name}</h3>
+                  <Button
+                    type="primary"
+                    size="small"
+                    onClick={async () => {
+                      if (editingDesc) {
+                        try {
+                          await fetch(`/api/file-groups/${selectedGroup.name}/files`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ description: currentDesc }),
+                          });
+                          selectedGroup.description = currentDesc;
+                        } catch (error) {
+                          message.error('Failed to update description');
+                        }
+                      }
+                      setEditingDesc(!editingDesc);
+                      setCurrentDesc(selectedGroup.description || '');
+                    }}
+                  >
+                    {editingDesc ? 'Save Description' : 'Edit Description'}
+                  </Button>
+                </div>
+                {editingDesc ? (
+                  <div className="h-48">
+                    <Editor
+                      height="100%"
+                      defaultLanguage="markdown"
+                      theme="vs-dark"
+                      value={currentDesc}
+                      onChange={(value) => setCurrentDesc(value || '')}
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        lineNumbers: 'off',
+                        wordWrap: 'on',
+                        automaticLayout: true,
+                      }}
+                    />
+                  </div>
+                ) : (
                   <p className="text-gray-400 text-sm">
                     {selectedGroup.description || 'No description'}
                   </p>
-                </div>
+                )}
+              </div>
                 <div>
                   <h4 className="text-white font-medium mb-2">Files ({selectedGroup.files.length})</h4>
                   <Table

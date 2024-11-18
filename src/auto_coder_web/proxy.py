@@ -300,7 +300,11 @@ class ProxyServer:
         async def add_files_to_group(name: str, request: Request):
             data = await request.json()
             files = data.get("files", [])
-            group = await self.file_group_manager.add_files_to_group(name, files)
+            description = data.get("description")
+            if description is not None:
+                group = await self.file_group_manager.update_group_description(name, description)
+            else:
+                group = await self.file_group_manager.add_files_to_group(name, files)
             return group
 
         @self.app.delete("/api/file-groups/{name}/files")
