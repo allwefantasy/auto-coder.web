@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AutoComplete, Card, Select, Switch, message as AntdMessage, Tooltip } from 'antd';
 import { DeleteOutlined, UndoOutlined } from '@ant-design/icons';
 import { Editor } from '@monaco-editor/react';
-import * as monaco from 'monaco-editor';
+import * as monacoEditor from 'monaco-editor';
 
 interface FileGroup {
   id: string;
@@ -58,13 +58,15 @@ interface ChatPanelProps {
   clipboardContent: string;
 }
 
+interface CompletionItem {
+  name: string;
+  path: string;
+  display: string;
+  location?: string;
+}
+
 interface CompletionData {
-  completions: Array<{
-    name: string;
-    path: string;
-    display: string;
-    location?: string;
-  }>;
+  completions: Array<CompletionItem>;
 }
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, setClipboardContent, clipboardContent }) => {
@@ -76,6 +78,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
     human_as_model: false,
     skip_build_index: true
   });
+  const [inputText, setInputText] = useState<string>('');
+  const [sendLoading, setSendLoading] = useState<boolean>(false);
+  const editorRef = useRef<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
 
   useEffect(() => {
     // Fetch initial config
@@ -136,14 +143,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
     fetchFileGroups();
   }, []);
 
-  const [inputText, setInputText] = useState<string>('');
-  const [sendLoading, setSendLoading] = useState<boolean>(false);
-  const [suggestions, setSuggestions] = useState<CompletionItem[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const editorRef = useRef<any>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
-
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
 
@@ -157,33 +156,33 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
           startColumn: wordRange.startColumn,
           endLineNumber: position.lineNumber,
           endColumn: position.column,
-        });
-
-        if (word.startsWith('@@')) {
+        });    
+        console.log(word);        
+        if (word.startsWith('@')) {
           // 符号补全
           const query = word.slice(2);
           const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
-          const data = await response.json();
+          const data = await response.json();          
           return {
             suggestions: data.completions.map((item: CompletionItem) => ({
-              label: item.name,
+              label: item.display,
               kind: monaco.languages.CompletionItemKind.Function,
               insertText: item.name,
-              detail: item.display,
+              detail: "",
               documentation: `Location: ${item.path}`,
             })),
           };
-        } else if (word.startsWith('@')) {
+        } else {
           // 文件补全
-          const query = word.slice(1);
+          const query = word.slice(1);          
           const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
           const data = await response.json();
           return {
             suggestions: data.completions.map((item: CompletionItem) => ({
-              label: item.name,
+              label: item.display,
               kind: monaco.languages.CompletionItemKind.File,
               insertText: item.path,
-              detail: item.display,
+              detail:"",
               documentation: `Location: ${item.location}`,
             })),
           };
@@ -272,7 +271,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
   };
 
   const handleEditorChange = (value: string | undefined) => {
-    setInputText(value || '');
+    // setInputText(value || '');
   };
 
   const pollEvents = async (requestId: string) => {
@@ -495,7 +494,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                   : 'bg-gray-800 text-gray-300'
                   }`}
               >
-                <div className="break-words">{message.content}</div>                
+                <div className="break-words">{message.content}</div>
                 {message.status === 'sending' && (
                   <div className="flex items-center text-xs text-gray-400 mt-1">
                     <div className="mr-1">sending</div>
