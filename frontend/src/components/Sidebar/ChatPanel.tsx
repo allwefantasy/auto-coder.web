@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { AutoComplete, Card, Select, Switch, message as AntdMessage, Tooltip } from 'antd';
-import { DeleteOutlined, UndoOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { Select, Switch, message as AntdMessage, Tooltip } from 'antd';
+import { UndoOutlined } from '@ant-design/icons';
 import { Editor } from '@monaco-editor/react';
-import * as monacoEditor from 'monaco-editor';
 
 interface FileGroup {
   id: string;
@@ -150,15 +149,23 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
     monaco.languages.registerCompletionItemProvider('markdown', {
       triggerCharacters: ['@'],
       provideCompletionItems: async (model: any, position: any) => {
-               
-        const word = model.getWordUntilPosition(position);
-        const wordText = word.word;
-        const prefix = model.getValueInRange({
+
+        // 获取当前行的文本内容
+        const textUntilPosition = model.getValueInRange({
           startLineNumber: position.lineNumber,
-          startColumn: word.startColumn - 2,
+          startColumn: 1,
           endLineNumber: position.lineNumber,
-          endColumn: word.startColumn
-        });       
+          endColumn: position.column
+        });
+
+        // 获取当前词和前缀
+        const word = model.getWordUntilPosition(position);
+        const prefix = textUntilPosition.charAt(word.startColumn - 2); // 获取触发字符
+  
+        //获取当前词
+        const wordText = word.word;
+
+        console.log('prefix:', prefix, 'word:', wordText);
 
         if (prefix === "@@") {
           // 符号补全
