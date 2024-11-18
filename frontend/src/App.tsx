@@ -100,11 +100,13 @@ const App: React.FC = () => {
 
         {/* Upper Section - Dynamic Content */}
         <div className="flex-1">
-          {activePanel === 'code' ? (
+          <div className={`h-full ${activePanel === 'code' ? 'block' : 'hidden'}`}>
             <CodeEditor />
-          ) : activePanel === 'filegroup' ? (
+          </div>
+          <div className={`h-full ${activePanel === 'filegroup' ? 'block' : 'hidden'}`}>
             <FileGroupPanel />
-          ) : activePanel === 'clipboard' ? (
+          </div>
+          <div className={`h-full ${activePanel === 'clipboard' ? 'block' : 'hidden'}`}>
             <div className="h-full p-4">
               <Editor
                 theme="vs-dark"
@@ -121,9 +123,10 @@ const App: React.FC = () => {
                 }}
               />
             </div>
-          ) : (
+          </div>
+          <div className={`h-full ${activePanel === 'preview' ? 'block' : 'hidden'}`}>
             <PreviewPanel files={previewFiles} />
-          )}
+          </div>
         </div>
 
         {/* Lower Section - Terminal */}
