@@ -138,8 +138,61 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
 
   const [inputText, setInputText] = useState<string>('');
   const [sendLoading, setSendLoading] = useState<boolean>(false);
+  const [suggestions, setSuggestions] = useState<CompletionItem[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const editorRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
+
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    editorRef.current = editor;
+
+    // 注册自动补全提供者
+    monaco.languages.registerCompletionItemProvider('markdown', {
+      triggerCharacters: ['@'],
+      provideCompletionItems: async (model: any, position: any) => {
+        const wordRange = model.getWordUntilPosition(position);
+        const word = model.getValueInRange({
+          startLineNumber: position.lineNumber,
+          startColumn: wordRange.startColumn,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
+        });
+
+        if (word.startsWith('@@')) {
+          // 符号补全
+          const query = word.slice(2);
+          const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
+          const data = await response.json();
+          return {
+            suggestions: data.completions.map((item: CompletionItem) => ({
+              label: item.name,
+              kind: monaco.languages.CompletionItemKind.Function,
+              insertText: item.name,
+              detail: item.display,
+              documentation: `Location: ${item.path}`,
+            })),
+          };
+        } else if (word.startsWith('@')) {
+          // 文件补全
+          const query = word.slice(1);
+          const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
+          const data = await response.json();
+          return {
+            suggestions: data.completions.map((item: CompletionItem) => ({
+              label: item.name,
+              kind: monaco.languages.CompletionItemKind.File,
+              insertText: item.path,
+              detail: item.display,
+              documentation: `Location: ${item.location}`,
+            })),
+          };
+        }
+
+        return { suggestions: [] };
+      },
+    });
+  };
 
   const addUserMessage = (content: string) => {
     const newMessage: Message = {
@@ -218,8 +271,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
     );
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputText(e.target.value);;
+  const handleEditorChange = (value: string | undefined) => {
+    setInputText(value || '');
   };
 
   const pollEvents = async (requestId: string) => {
@@ -543,8 +596,30 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
 
         {/* Message Input */}
         <div className="p-4 flex flex-col space-y-2">
-          <div className="flex-1 min-h-[180px]">
-            {/* Message Input Panel */}
+          <div className="flex-1 min-h-[180px] border border-gray-700 rounded-lg overflow-hidden">
+            <Editor
+              height="180px"
+              defaultLanguage="markdown"
+              theme="vs-dark"
+              value={inputText}
+              onChange={handleEditorChange}
+              onMount={handleEditorDidMount}
+              options={{
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                lineNumbers: 'off',
+                folding: false,
+                contextmenu: false,
+                fontFamily: 'monospace',
+                fontSize: 14,
+                lineHeight: 1.5,
+                padding: { top: 8, bottom: 8 },
+                suggestOnTriggerCharacters: true,
+                quickSuggestions: true,
+                acceptSuggestionOnEnter: 'smart',
+              }}
+            />
           </div>
           <div className="flex items-center justify-between mt-2 gap-2">
             <div className="flex items-center gap-2">
