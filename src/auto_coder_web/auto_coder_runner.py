@@ -193,41 +193,44 @@ class AutoCoderRunner:
         return list(set(matched_files))
 
     def get_symbol_list(self) -> List[SymbolItem]:
-        """获取所有符号列表"""
         list_of_symbols = []
-        index_file = os.path.join(
-            self.project_path, ".auto-coder", "index.json")
+        index_file = os.path.join(self.project_path,".auto-coder", "index.json")
 
         if os.path.exists(index_file):
             with open(index_file, "r") as file:
                 index_data = json.load(file)
         else:
-            return []
+            index_data = {}
 
         for item in index_data.values():
             symbols_str = item["symbols"]
             module_name = item["module_name"]
-            for name, symbol_type in self.extract_symbols(symbols_str).items():
+            info1 = extract_symbols(symbols_str)
+            for name in info1.classes:
                 list_of_symbols.append(
                     SymbolItem(
                         symbol_name=name,
-                        symbol_type=SymbolType(symbol_type.lower()),
-                        file_name=module_name
+                        symbol_type=SymbolType.CLASSES,
+                        file_name=module_name,
+                    )
+                )
+            for name in info1.functions:
+                list_of_symbols.append(
+                    SymbolItem(
+                        symbol_name=name,
+                        symbol_type=SymbolType.FUNCTIONS,
+                        file_name=module_name,
+                    )
+                )
+            for name in info1.variables:
+                list_of_symbols.append(
+                    SymbolItem(
+                        symbol_name=name,
+                        symbol_type=SymbolType.VARIABLES,
+                        file_name=module_name,
                     )
                 )
         return list_of_symbols
-
-    def extract_symbols(sefl, symbols_str: str) -> Dict[str, str]:
-        """从符号字符串中提取符号名和类型"""
-        symbols = {}
-        try:
-            data = json.loads(symbols_str)
-            for symbol_type in ["classes", "functions", "variables"]:
-                for name in data.get(symbol_type, []):
-                    symbols[name] = symbol_type
-        except json.JSONDecodeError:
-            pass
-        return symbols
 
     def convert_config_value(self, key: str, value: str) -> Any:
         field_info = AutoCoderArgs.model_fields.get(key)

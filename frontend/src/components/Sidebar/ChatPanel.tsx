@@ -160,28 +160,28 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
         
         // Get two characters before @
         const lineText = model.getLineContent(position.lineNumber);
-        const atIndex = wordRange.startColumn - 2; // -1 for 0-based index, -1 for @
-        const prefix = atIndex >= 2 ? lineText.substring(atIndex - 2, atIndex) : '';
+        const atIndex = wordRange.startColumn - 1; // -1 for 0-based index, -1 for @
+        const prefix = lineText.slice(atIndex - 2, atIndex);
         
         console.log('word:', wordText, 'prefix:', prefix);
         
-        if (wordText.startsWith('@')) {
+        if (prefix === "@@") {
           // 符号补全
-          const query = word.slice(2);
+          const query = wordText;          
           const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
           const data = await response.json();          
           return {
             suggestions: data.completions.map((item: CompletionItem) => ({
               label: item.display,
               kind: monaco.languages.CompletionItemKind.Function,
-              insertText: item.name,
+              insertText: item.path,
               detail: "",
               documentation: `Location: ${item.path}`,
             })),
           };
         } else {
           // 文件补全
-          const query = word.slice(1);          
+          const query = wordText;          
           const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
           const data = await response.json();
           return {
@@ -624,6 +624,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
                 suggestOnTriggerCharacters: true,
                 quickSuggestions: true,
                 acceptSuggestionOnEnter: 'smart',
+                overviewRulerLanes: 0,
+                overviewRulerBorder: false,
+                fixedOverflowWidgets: true,
+                suggest: {
+                  insertMode: 'replace',
+                  snippetsPreventQuickSuggestions: false,
+                }
               }}
             />
           </div>

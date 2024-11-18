@@ -3,13 +3,15 @@ import json
 from typing import List, Dict, Any, Optional
 
 
-def get_directory_tree(root_path: str) -> List[Dict[str, Any]]:
+def get_directory_tree(root_path: str, path: str = None, lazy: bool = False) -> List[Dict[str, Any]]:
     """
     Generate a directory tree structure while ignoring common directories and files
     that should not be included in version control or IDE specific files.
 
     Args:
         root_path: The root directory path to start traversing from
+        path: Optional path relative to root_path to get children for
+        lazy: If True, only return immediate children for directories
 
     Returns:
         A list of dictionaries representing the directory tree structure
@@ -41,31 +43,49 @@ def get_directory_tree(root_path: str) -> List[Dict[str, Any]]:
         # Ignore exact matches and pattern matches
         return name in IGNORE_PATTERNS
 
-    def build_tree(path: str) -> List[Dict[str, Any]]:
+    def build_tree(current_path: str) -> List[Dict[str, Any]]:
         """Recursively build the directory tree"""
         items = []
         try:
-            for name in sorted(os.listdir(path)):
+            for name in sorted(os.listdir(current_path)):
                 if should_ignore(name):
                     continue
 
-                full_path = os.path.join(path, name)
+                full_path = os.path.join(current_path, name)
                 relative_path = os.path.relpath(full_path, root_path)
 
                 if os.path.isdir(full_path):
-                    children = build_tree(full_path)
-                    if children:  # Only add non-empty directories
+                    if lazy:
+                        # For lazy loading, just check if directory has any visible children
+                        has_children = False
+                        for child_name in os.listdir(full_path):
+                            if not should_ignore(child_name):
+                                has_children = True
+                                break
+                        
                         items.append({
                             'title': name,
                             'key': relative_path,
-                            'children': children,
-                            'isLeaf': False
+                            'children': [],  # Empty children array for lazy loading
+                            'isLeaf': False,
+                            'hasChildren': has_children
                         })
+                    else:
+                        children = build_tree(full_path)
+                        if children:  # Only add non-empty directories
+                            items.append({
+                                'title': name,
+                                'key': relative_path,
+                                'children': children,
+                                'isLeaf': False,
+                                'hasChildren': True
+                            })
                 else:
                     items.append({
                         'title': name,
                         'key': relative_path,
-                        'isLeaf': True
+                        'isLeaf': True,
+                        'hasChildren': False
                     })
         except PermissionError:
             # Skip directories we don't have permission to read
@@ -73,6 +93,14 @@ def get_directory_tree(root_path: str) -> List[Dict[str, Any]]:
 
         return items
 
+    if path:
+        # If path is provided, get children of that specific directory
+        target_path = os.path.join(root_path, path)
+        if os.path.isdir(target_path):
+            return build_tree(target_path)
+        return []
+    
+    # If no path provided, build tree from root with lazy loading
     return build_tree(root_path)
 
 
@@ -84,6 +112,3 @@ def read_file_content(project_path: str, file_path: str) -> str:
             return f.read()
     except (IOError, UnicodeDecodeError):
         return None
-
-
-

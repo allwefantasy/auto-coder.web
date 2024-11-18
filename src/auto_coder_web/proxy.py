@@ -360,8 +360,8 @@ class ProxyServer:
                         symbol.file_name, self.project_path)
                     matches.append(CompletionItem(
                         name=symbol.symbol_name,
-                        path=relative_path,
-                        display=f"{symbol.symbol_name} ({relative_path}/{symbol.symbol_type.value})"
+                        path=f"{symbol.symbol_name} ({relative_path}/{symbol.symbol_type.value})",
+                        display=f"{symbol.symbol_name}(location: {relative_path})"
                     ))
             return CompletionResponse(completions=matches)
 
