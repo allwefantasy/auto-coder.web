@@ -55,6 +55,7 @@ interface ChatPanelProps {
   setActivePanel: (panel: 'code' | 'filegroup' | 'preview' | 'clipboard') => void;
   setClipboardContent: (content: string) => void;
   clipboardContent: string;
+  setRequestId: (requestId: string) => void;
 }
 
 interface CompletionItem {
@@ -68,7 +69,7 @@ interface CompletionData {
   completions: Array<CompletionItem>;
 }
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, setClipboardContent, clipboardContent }) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, setActivePanel, setClipboardContent, clipboardContent }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [showConfig, setShowConfig] = useState(false);
@@ -160,7 +161,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
         // 获取当前词和前缀
         const word = model.getWordUntilPosition(position);
         const prefix = textUntilPosition.charAt(word.startColumn - 2); // 获取触发字符
-  
+
         //获取当前词
         const wordText = word.word;
 
@@ -456,6 +457,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
       const data = await response.json();
       if (data.request_id) {
         // Update original message status
+        setRequestId(data.request_id);
         updateMessageStatus(messageId, 'sent');
         if (isWriteMode) {
           // Start polling for events

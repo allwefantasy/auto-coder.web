@@ -12,6 +12,7 @@ const App: React.FC = () => {
   const [clipboardContent, setClipboardContent] = useState<string>('');  
   const [projectName, setProjectName] = useState<string>('');
   const [previewFiles, setPreviewFiles] = useState<{ path: string, content: string }[]>([]);
+  const [requestId, setRequestId] = useState<string>('');
 
   useEffect(() => {
     fetch('/api/project-path')
@@ -45,6 +46,7 @@ const App: React.FC = () => {
           setActivePanel={setActivePanel}
           setClipboardContent={setClipboardContent}
           clipboardContent={clipboardContent}
+          setRequestId={setRequestId}
         />
       </div>
 
@@ -131,7 +133,7 @@ const App: React.FC = () => {
 
         {/* Lower Section - Terminal */}
         <div className="h-1/4 border-t border-gray-700">
-          <Terminal />
+          <Terminal requestId={requestId} />
         </div>
       </div>
     </div>

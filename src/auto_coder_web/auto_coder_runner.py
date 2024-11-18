@@ -38,10 +38,12 @@ from autocoder.index.symbols_utils import (
     SymbolType,
 )
 
+
 class SymbolItem(BaseModel):
     symbol_name: str
     symbol_type: SymbolType
     file_name: str
+
 
 class AutoCoderRunner:
     def __init__(self, project_path: str):
@@ -140,7 +142,7 @@ class AutoCoderRunner:
         files = self.memory["current_files"]["groups"][group_name]
         files = [os.path.relpath(f, self.project_path) for f in files]
         return {"files": files}
-    
+
     def get_group_description(self, group_name: str) -> str:
         if group_name not in self.memory["current_files"]["groups_info"]:
             return ""
@@ -165,7 +167,7 @@ class AutoCoderRunner:
         for pattern in patterns:
             for file_path in active_file_list:
                 if pattern in os.path.basename(file_path):
-                    matched_files.append(file_path)                
+                    matched_files.append(file_path)
 
         final_exclude_dirs = self.default_exclude_dirs + \
             self.memory.get("exclude_dirs", [])
@@ -199,7 +201,8 @@ class AutoCoderRunner:
 
     def get_symbol_list(self) -> List[SymbolItem]:
         list_of_symbols = []
-        index_file = os.path.join(self.project_path,".auto-coder", "index.json")
+        index_file = os.path.join(
+            self.project_path, ".auto-coder", "index.json")
 
         if os.path.exists(index_file):
             with open(index_file, "r") as file:
@@ -370,9 +373,11 @@ class AutoCoderRunner:
                 with open(execute_file, "w") as f:
                     f.write(yaml_content)
 
-                try:
-                    auto_coder_main(
-                        ["--file", execute_file, "--request_id", request_id])
+                try:                    
+                    log_capture = LogCapture(request_id=request_id)
+                    with log_capture.capture() as log_queue:
+                        auto_coder_main(
+                            ["--file", execute_file, "--request_id", request_id])
                 except Exception as e:
                     _ = queue_communicate.send_event_no_wait(
                         request_id=request_id,

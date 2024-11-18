@@ -20,6 +20,7 @@ from prompt_toolkit.formatted_text import HTML
 import subprocess
 from prompt_toolkit import prompt
 from pydantic import BaseModel
+from autocoder.utils.log_capture import LogCapture
 
 
 class EventGetRequest(BaseModel):
@@ -341,9 +342,10 @@ class ProxyServer:
             for file_name in matches:
                 path_parts = file_name.split(os.sep)
                 # 只显示最后三层路径，让显示更简洁
-                display_name = os.sep.join(path_parts[-3:]) if len(path_parts) > 3 else file_name
+                display_name = os.sep.join(
+                    path_parts[-3:]) if len(path_parts) > 3 else file_name
                 relative_path = os.path.relpath(file_name, project_root)
-                
+
                 completions.append(CompletionItem(
                     name=relative_path,  # 给补全项一个唯一标识
                     path=relative_path,  # 实际用于替换的路径
@@ -447,6 +449,10 @@ class ProxyServer:
             self.auto_coder_runner.response_event(
                 request_id, request.event, request.response)
             return {"message": "success"}
+
+        @self.app.get("/api/terminal/{request_id}")
+        async def get_terminal_logs(request_id: str):
+            return await self.auto_coder_runner.get_logs(request_id)
 
 
 def main():
