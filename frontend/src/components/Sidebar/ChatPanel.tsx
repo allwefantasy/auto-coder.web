@@ -150,26 +150,21 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
     monaco.languages.registerCompletionItemProvider('markdown', {
       triggerCharacters: ['@'],
       provideCompletionItems: async (model: any, position: any) => {
-        const wordRange = model.getWordUntilPosition(position);
-        const wordText = model.getValueInRange({
+               
+        const word = model.getWordUntilPosition(position);
+        const wordText = word.word;
+        const prefix = model.getValueInRange({
           startLineNumber: position.lineNumber,
-          startColumn: wordRange.startColumn,
+          startColumn: word.startColumn - 2,
           endLineNumber: position.lineNumber,
-          endColumn: position.column,
-        });
-        
-        // Get two characters before @
-        const lineText = model.getLineContent(position.lineNumber);
-        const atIndex = wordRange.startColumn - 1; // -1 for 0-based index, -1 for @
-        const prefix = lineText.slice(atIndex - 2, atIndex);
-        
-        console.log('word:', wordText, 'prefix:', prefix);
-        
+          endColumn: word.startColumn
+        });       
+
         if (prefix === "@@") {
           // 符号补全
-          const query = wordText;          
+          const query = wordText;
           const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
-          const data = await response.json();          
+          const data = await response.json();
           return {
             suggestions: data.completions.map((item: CompletionItem) => ({
               label: item.display,
@@ -179,9 +174,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
               documentation: `Location: ${item.path}`,
             })),
           };
-        } else {
+        } else if (prefix.includes("@")) {
           // 文件补全
-          const query = wordText;          
+          const query = wordText;
           const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
           const data = await response.json();
           return {
@@ -189,7 +184,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
               label: item.display,
               kind: monaco.languages.CompletionItemKind.File,
               insertText: item.path,
-              detail:"",
+              detail: "",
               documentation: `Location: ${item.location}`,
             })),
           };
@@ -278,7 +273,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
   };
 
   const handleEditorChange = (value: string | undefined) => {
-    // setInputText(value || '');
+    setInputText(value || '');
   };
 
   const pollEvents = async (requestId: string) => {
