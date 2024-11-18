@@ -149,7 +149,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
     monaco.languages.registerCompletionItemProvider('markdown', {
       triggerCharacters: ['@'],
       provideCompletionItems: async (model: any, position: any) => {
-
         // 获取当前行的文本内容
         const textUntilPosition = model.getValueInRange({
           startLineNumber: position.lineNumber,
@@ -180,6 +179,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
               detail: "",
               documentation: `Location: ${item.path}`,
             })),
+            incomplete: true
           };
         } else if (prefix.includes("@")) {
           // 文件补全
@@ -194,6 +194,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
               detail: "",
               documentation: `Location: ${item.location}`,
             })),
+            incomplete: true
           };
         }
 
