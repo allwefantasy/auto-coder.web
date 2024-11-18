@@ -11,6 +11,24 @@ interface FileGroup {
   files: string[];
 }
 
+// CSS styles for the custom input in dark mode
+const darkModeInputStyles = `
+.custom-input {
+  background-color: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.custom-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.custom-input:hover {
+  border-color: #4b5563;
+}
+`;
+
 const FileGroupPanel: React.FC = () => {
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<FileGroup | null>(null);
@@ -241,13 +259,73 @@ const FileGroupPanel: React.FC = () => {
                   title: 'Group',
                   dataIndex: 'name',
                   key: 'name',
-                  render: (name, record) => (
-                    <div>
-                      <div className="text-white font-medium">{name}</div>
-                      <div className="text-gray-400 text-sm">{record.description}</div>
-                      <div className="text-gray-500 text-xs mt-1">{record.files.length} files</div>
-                    </div>
-                  )
+                  render: (name, record) => {
+                    const [isEditing, setIsEditing] = useState(false);
+                    const [description, setDescription] = useState(record.description);
+
+                    const handleDescriptionUpdate = async () => {
+                      try {
+                        const response = await fetch(`/api/file-groups/${name}/description`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ description }),
+                        });
+                        
+                        if (!response.ok) throw new Error('Failed to update description');
+                        
+                        setIsEditing(false);
+                        message.success('Description updated successfully');
+                      } catch (error) {
+                        message.error('Failed to update description');
+                      }
+                    };
+
+                    return (
+                      <div>
+                        <div className="text-white font-medium">{name}</div>
+                        <div className="text-gray-400 text-sm">
+                          {isEditing ? (
+                            <div className="flex items-center space-x-2">
+                              <Input
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                onPressEnter={handleDescriptionUpdate}
+                                className="custom-input"
+                                size="small"
+                              />
+                              <Button
+                                size="small"
+                                type="primary"
+                                onClick={handleDescriptionUpdate}
+                                className="px-2 py-1"
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                size="small"
+                                onClick={() => {
+                                  setIsEditing(false);
+                                  setDescription(record.description);
+                                }}
+                                className="px-2 py-1"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <div
+                              className="cursor-pointer hover:text-blue-400"
+                              onClick={() => setIsEditing(true)}
+                              title="Click to edit"
+                            >
+                              {description || 'Add description...'}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-gray-500 text-xs mt-1">{record.files.length} files</div>
+                      </div>
+                    );
+                  }
                 },
                 {
                   title: 'Action',
