@@ -53,7 +53,8 @@ class FileGroupManager:
         return [
             {
                 "name": group_name,
-                "files": self.runner.get_files_in_group(group_name).get("files", [])
+                "files": self.runner.get_files_in_group(group_name).get("files", []),
+                "description": self.runner.get_group_description(group_name)
             }
             for group_name in groups.get("groups", [])
         ]

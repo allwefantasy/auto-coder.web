@@ -140,6 +140,11 @@ class AutoCoderRunner:
         files = self.memory["current_files"]["groups"][group_name]
         files = [os.path.relpath(f, self.project_path) for f in files]
         return {"files": files}
+    
+    def get_group_description(self, group_name: str) -> str:
+        if group_name not in self.memory["current_files"]["groups_info"]:
+            return ""
+        return self.memory["current_files"]["groups_info"][group_name].get("query_prefix", "")
 
     def get_active_files(self) -> Dict[str, List[str]]:
         return {"files": self.memory["current_files"]["files"]}

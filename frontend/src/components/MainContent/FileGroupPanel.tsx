@@ -96,7 +96,7 @@ const FileGroupPanel: React.FC = () => {
         body: JSON.stringify({ name: newGroupName, description: newGroupDesc }),
       });
       if (!response.ok) throw new Error('Failed to create group');
-      
+
       message.success('Group created successfully');
       setIsModalVisible(false);
       setNewGroupName('');
@@ -114,7 +114,7 @@ const FileGroupPanel: React.FC = () => {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete group');
-      
+
       message.success('Group deleted successfully');
       fetchFileGroups();
       if (selectedGroup?.name === name) setSelectedGroup(null);
@@ -126,8 +126,8 @@ const FileGroupPanel: React.FC = () => {
   // Add files to group
   const handleAddFiles = async () => {
     if (!selectedGroup || checkedKeys.length === 0) return;
-    
-    try {      
+
+    try {
       if (checkedKeys.length === 0) {
         message.info('No files selected (directories are ignored)');
         return;
@@ -139,7 +139,7 @@ const FileGroupPanel: React.FC = () => {
         body: JSON.stringify({ files: checkedKeys }),
       });
       if (!response.ok) throw new Error('Failed to add files');
-      
+
       message.success('Files added successfully');
       fetchFileGroups();
       setCheckedKeys([]);
@@ -157,7 +157,7 @@ const FileGroupPanel: React.FC = () => {
         body: JSON.stringify({ files: [filePath] }),
       });
       if (!response.ok) throw new Error('Failed to remove file');
-      
+
       message.success('File removed successfully');
       fetchFileGroups();
     } catch (error) {
@@ -192,7 +192,7 @@ const FileGroupPanel: React.FC = () => {
           </Button>
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-hidden">
         <div className="h-full flex">
           {/* File Groups List */}
@@ -200,7 +200,7 @@ const FileGroupPanel: React.FC = () => {
             <Table
               dataSource={fileGroups}
               rowKey="name"
-              rowClassName={(record) => 
+              rowClassName={(record) =>
                 record.name === selectedGroup?.name ? 'bg-blue-600' : 'bg-gray-800'
               }
               onRow={(record) => ({
@@ -222,7 +222,7 @@ const FileGroupPanel: React.FC = () => {
                         dataIndex: 'path',
                         key: 'path',
                         render: (path) => (
-                          <span 
+                          <span
                             className="text-gray-300 cursor-pointer"
                             onDoubleClick={(e) => {
                               e.stopPropagation();
@@ -260,67 +260,18 @@ const FileGroupPanel: React.FC = () => {
                   dataIndex: 'name',
                   key: 'name',
                   render: (name, record) => {
-                    const [isEditing, setIsEditing] = useState(false);
-                    const [description, setDescription] = useState(record.description);
 
-                    const handleDescriptionUpdate = async () => {
-                      try {
-                        const response = await fetch(`/api/file-groups/${name}/description`, {
-                          method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ description }),
-                        });
-                        
-                        if (!response.ok) throw new Error('Failed to update description');
-                        
-                        setIsEditing(false);
-                        message.success('Description updated successfully');
-                      } catch (error) {
-                        message.error('Failed to update description');
-                      }
-                    };
 
                     return (
                       <div>
                         <div className="text-white font-medium">{name}</div>
                         <div className="text-gray-400 text-sm">
-                          {isEditing ? (
-                            <div className="flex items-center space-x-2">
-                              <Input
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                onPressEnter={handleDescriptionUpdate}
-                                className="custom-input"
-                                size="small"
-                              />
-                              <Button
-                                size="small"
-                                type="primary"
-                                onClick={handleDescriptionUpdate}
-                                className="px-2 py-1"
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                size="small"
-                                onClick={() => {
-                                  setIsEditing(false);
-                                  setDescription(record.description);
-                                }}
-                                className="px-2 py-1"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          ) : (
-                            <div
-                              className="cursor-pointer hover:text-blue-400"
-                              onClick={() => setIsEditing(true)}
-                              title="Click to edit"
-                            >
-                              {description || 'Add description...'}
-                            </div>
-                          )}
+                          <div
+                            className="cursor-pointer hover:text-blue-400"
+                            title="Click to edit"
+                          >
+                            {record.description || 'Add description...'}
+                          </div>
                         </div>
                         <div className="text-gray-500 text-xs mt-1">{record.files.length} files</div>
                       </div>
@@ -357,7 +308,7 @@ const FileGroupPanel: React.FC = () => {
                   className="custom-input"
                   onChange={(e) => {
                     const searchValue = e.target.value.toLowerCase();
-                    
+
                     if (!searchValue) {
                       setFilteredTreeData(treeData);
                       return;
