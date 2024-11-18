@@ -151,14 +151,21 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
       triggerCharacters: ['@'],
       provideCompletionItems: async (model: any, position: any) => {
         const wordRange = model.getWordUntilPosition(position);
-        const word = model.getValueInRange({
+        const wordText = model.getValueInRange({
           startLineNumber: position.lineNumber,
           startColumn: wordRange.startColumn,
           endLineNumber: position.lineNumber,
           endColumn: position.column,
-        });    
-        console.log(word);        
-        if (word.startsWith('@')) {
+        });
+        
+        // Get two characters before @
+        const lineText = model.getLineContent(position.lineNumber);
+        const atIndex = wordRange.startColumn - 2; // -1 for 0-based index, -1 for @
+        const prefix = atIndex >= 2 ? lineText.substring(atIndex - 2, atIndex) : '';
+        
+        console.log('word:', wordText, 'prefix:', prefix);
+        
+        if (wordText.startsWith('@')) {
           // 符号补全
           const query = word.slice(2);
           const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
