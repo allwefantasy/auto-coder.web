@@ -22,7 +22,7 @@ if os.path.exists(readme_path):
         readme_contents = fp.read().strip()
 
 setup(
-    name="auto-coder.web",
+    name="auto_coder_web",
     version=__version__,
     description="auto-coder.web: A Python Project",
     author="allwefantasy",
