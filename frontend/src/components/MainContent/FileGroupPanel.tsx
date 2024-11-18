@@ -196,7 +196,7 @@ const FileGroupPanel: React.FC = () => {
       <div className="flex-1 overflow-hidden">
         <div className="h-full flex">
           {/* File Groups List */}
-          <div className="w-80 bg-gray-900 border-r border-gray-700 overflow-y-auto p-4">
+          <div className="w-60 bg-gray-900 border-r border-gray-700 overflow-y-auto p-4">
             <Table
               dataSource={fileGroups}
               rowKey="name"
@@ -210,10 +210,52 @@ const FileGroupPanel: React.FC = () => {
               className="dark-mode-table"
               size="small"
               pagination={false}
-              expandable={{
-                expandedRowRender: (record) => (
+              columns={[
+                {
+                  title: 'Group',
+                  dataIndex: 'name',
+                  key: 'name',
+                  render: (name, record) => (
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-medium">{name}</span>
+                      <span className="text-gray-500 text-xs">{record.files.length}</span>
+                    </div>
+                  )
+                },
+                {
+                  title: 'Action',
+                  key: 'action',
+                  width: 40,
+                  render: (_, record) => (
+                    <Button
+                      type="text"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteGroup(record.name);
+                      }}
+                    />
+                  )
+                }
+              ]}
+            />
+          </div>
+
+          {/* Group Details Panel */}
+          <div className="w-80 bg-gray-900 border-r border-gray-700 overflow-y-auto p-4">
+            {selectedGroup ? (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-white font-medium text-lg mb-2">{selectedGroup.name}</h3>
+                  <p className="text-gray-400 text-sm">
+                    {selectedGroup.description || 'No description'}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-white font-medium mb-2">Files ({selectedGroup.files.length})</h4>
                   <Table
-                    dataSource={record.files.map(file => ({ path: file }))}
+                    dataSource={selectedGroup.files.map(file => ({ path: file }))}
                     rowKey="path"
                     showHeader={false}
                     columns={[
@@ -236,13 +278,13 @@ const FileGroupPanel: React.FC = () => {
                       {
                         title: 'Action',
                         key: 'action',
-                        width: 60,
+                        width: 40,
                         render: (_, { path }) => (
                           <DeleteOutlined
                             className="text-red-400 cursor-pointer hover:text-red-500"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRemoveFile(record.name, path);
+                              handleRemoveFile(selectedGroup.name, path);
                             }}
                           />
                         )
@@ -250,52 +292,15 @@ const FileGroupPanel: React.FC = () => {
                     ]}
                     pagination={false}
                     size="small"
-                    className="nested-table dark-mode-table"
+                    className="dark-mode-table"
                   />
-                )
-              }}
-              columns={[
-                {
-                  title: 'Group',
-                  dataIndex: 'name',
-                  key: 'name',
-                  render: (name, record) => {
-
-
-                    return (
-                      <div>
-                        <div className="text-white font-medium">{name}</div>
-                        <div className="text-gray-400 text-sm">
-                          <div
-                            className="cursor-pointer hover:text-blue-400"
-                            title="Click to edit"
-                          >
-                            {record.description || 'Add description...'}
-                          </div>
-                        </div>
-                        <div className="text-gray-500 text-xs mt-1">{record.files.length} files</div>
-                      </div>
-                    );
-                  }
-                },
-                {
-                  title: 'Action',
-                  key: 'action',
-                  width: 60,
-                  render: (_, record) => (
-                    <Button
-                      type="text"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteGroup(record.name);
-                      }}
-                    />
-                  )
-                }
-              ]}
-            />
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-400 text-center mt-4">
+                Select a group to view details
+              </div>
+            )}
           </div>
 
           {/* File Tree */}
