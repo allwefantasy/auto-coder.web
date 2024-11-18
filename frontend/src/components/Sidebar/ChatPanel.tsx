@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AutoComplete, Card, Select, Switch, message as AntdMessage, Tooltip } from 'antd';
 import { DeleteOutlined, UndoOutlined } from '@ant-design/icons';
 import { Editor } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
 
 interface FileGroup {
   id: string;
@@ -543,89 +544,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setActivePanel, 
         {/* Message Input */}
         <div className="p-4 flex flex-col space-y-2">
           <div className="flex-1 min-h-[180px]">
-            <Editor
-              theme="vs-dark"
-              height="180px"
-              value={inputText}
-              onChange={(value) => setInputText(value || '')}
-              defaultLanguage='markdown'
-                beforeMount={(monaco) => {
-                  monaco.languages.registerCompletionItemProvider('markdown', {
-                    triggerCharacters: ['@'],
-                    async provideCompletionItems(model, position) {
-                      // 获取当前位置之前的文本
-                      const textUntilPosition: string = model.getValueInRange({
-                        startLineNumber: position.lineNumber,
-                        startColumn: 1,
-                        endLineNumber: position.lineNumber,
-                        endColumn: position.column,
-                      });
-
-                      // 获取@后的文本
-                      const match: RegExpMatchArray | null = textUntilPosition.match(/@([^@\s]*)$/);
-                      const doubleMatch: RegExpMatchArray | null = textUntilPosition.match(/@@([^\s]*)$/);
-                      if (match || doubleMatch) {
-                        const suggestions: import('monaco-editor').languages.CompletionItem[] = [];
-                        const query: string = doubleMatch ? doubleMatch[1] : match![1];
-                        const isSymbol: boolean = !!doubleMatch;
-                        
-                        try {                          
-                          const endpoint: string = isSymbol ? '/api/completions/symbols' : '/api/completions/files';
-                          const response = await fetch(`${endpoint}?name=${encodeURIComponent(query)}`);
-                          
-                          if (!response.ok) throw new Error('Network response was not ok');
-                                                    
-                          const data: CompletionData = await response.json();                          
-                          data.completions.forEach((item) => {
-                            const completionItem: import('monaco-editor').languages.CompletionItem = {
-                              label: isSymbol ? item.name : item.path,
-                              kind: monaco.languages.CompletionItemKind.Reference,
-                              documentation: item.display,
-                              insertText: isSymbol ? `${item.name}(location: ${item.location})` : item.path,
-                              range: {
-                                startLineNumber: position.lineNumber,
-                                endLineNumber: position.lineNumber,
-                                startColumn: position.column - query.length - (isSymbol ? 2 : 1),
-                                endColumn: position.column
-                              }
-                            };
-                            suggestions.push(completionItem);
-                          });
-                        } catch (error) {
-                          console.error('Error fetching completions:', error instanceof Error ? error.message : 'Unknown error');
-                        }                        
-                        return {
-                          suggestions
-                        };
-                      }
-                      
-                      return { suggestions: [] };
-                    }
-                  });
-                }}
-              options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                lineNumbers: 'off',
-                scrollBeyondLastLine: false,
-                wordWrap: 'on',
-                lineHeight: 1.5,
-                padding: { top: 8, bottom: 8 },
-                suggestLineHeight: 24,
-                folding: true,
-                automaticLayout: true,
-                overviewRulerBorder: false,
-                quickSuggestions: { 
-                  other: true,
-                  comments: true,
-                  strings: true 
-                },
-                scrollbar: {
-                  vertical: 'auto',
-                  horizontal: 'auto'
-                },
-              }}
-            />
+            {/* Message Input Panel */}
           </div>
           <div className="flex items-center justify-between mt-2 gap-2">
             <div className="flex items-center gap-2">
