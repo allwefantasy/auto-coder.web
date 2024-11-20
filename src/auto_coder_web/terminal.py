@@ -36,7 +36,8 @@ class TerminalSession:
             os.execvpe(self.shell, [self.shell], env)
         else:  # Parent process
             self.running = True
-            await self._handle_io()
+            asyncio.create_task(self._handle_io())
+            # await self._handle_io()
 
     def resize(self, rows: int, cols: int):
         """Resize the terminal"""
@@ -78,56 +79,59 @@ class TerminalSession:
                 await asyncio.sleep(1)  # Brief pause before retry
                 continue
 
-    async def _handle_io(self):
+    async def _handle_io(self):        
+        """Handle I/O between PTY and WebSocket"""
+        loop = asyncio.get_running_loop()
+        
+        def _read_pty(fd, size=1024):
+            """Synchronous PTY read with timeout"""
+            r, _, _ = select.select([fd], [], [], 0.1)
+            if r:
+                try:
+                    return os.read(fd, size)
+                except (OSError, EOFError) as e:
+                    print(f"Error reading PTY: {e}")
+                    return None
+            return None
+
         try:
-            try:
-                heartbeat_task = asyncio.create_task(self._send_heartbeat())
-                loop = asyncio.get_running_loop()
-                
-                while self.running:
-                    try:
-                        # Use select to check if there's data to read with timeout
-                        r, _, _ = await loop.run_in_executor(None, select.select, [self.fd], [], [], 0.1)
-                        
-                        if not self.running:
-                            break
-                            
-                        if r:
-                            try:
-                                data = await loop.run_in_executor(None, os.read, self.fd, 1024)
-                                if data:
-                                    try:
-                                        if self.websocket.client_state.CONNECTED:
-                                            await self.websocket.send_text(data.decode('utf-8', errors='replace'))
-                                        else:
-                                            print("WebSocket not connected, stopping terminal session")
-                                            break
-                                    except Exception as e:
-                                        print(f"Error sending data to websocket: {str(e)}")
-                                        break
-                                else:
-                                    if self.pid is None or not psutil.pid_exists(self.pid):
-                                        print(f"Process {self.pid} is not alive")
-                                        break
-                            except (EOFError, OSError) as e:
-                                print(f"Error reading from PTY: {str(e)}")
-                                break
-                        
-                        await asyncio.sleep(0.001)
-                        
-                    except Exception as e:
-                        print(f"Unexpected error in terminal I/O: {str(e)}")
-                        if not self.running:
-                            break
-            except asyncio.CancelledError:
-                print("Terminal I/O task cancelled")
-                raise
-            except Exception as e:
-                print(f"Fatal error in terminal I/O: {str(e)}")
+            while self.running:
+                # 在新线程中执行PTY读取
+                try:
+                    data = await loop.run_in_executor(None, _read_pty, self.fd)
                     
+                    if not self.running:
+                        break
+                        
+                    if data:
+                        try:
+                            if self.websocket.client_state.CONNECTED:
+                                await self.websocket.send_text(data.decode('utf-8', errors='replace'))
+                            else:
+                                print("WebSocket disconnected")
+                                self.running = False
+                                break
+                        except Exception as e:
+                            print(f"WebSocket send error: {e}")
+                            self.running = False
+                            break
+                    elif data is None:  # 读取出错
+                        print("PTY read error")
+                        self.running = False
+                        break
+                    
+                except Exception as e:
+                    print(f"IO handling error: {e}")
+                    self.running = False
+                    break
+                
+                await asyncio.sleep(0.001)  # 防止CPU过度使用
+                
+        except Exception as e:
+            print(f"Fatal error in IO handling: {e}")
+            self.running = False
         finally:
-            heartbeat_task.cancel()
-            self.cleanup()
+            print("IO handling stopped")                                
 
     def write(self, data: str):
         """Write data to the terminal"""
@@ -191,22 +195,23 @@ class TerminalManager:
                 while True:
                     try:
                         data = await websocket.receive_text()
-                        try:
+                        try:                            
                             message = json.loads(data)
                             if message['type'] == 'resize':
                                 session.resize(message['rows'], message['cols'])
                             elif message['type'] == 'heartbeat':
                                 session._last_heartbeat = time.time()
-                            else:
+                            else:                                
                                 session.write(data)
                         except json.JSONDecodeError:
-                            # 如果不是JSON，就当作普通输入处理
+                            # 如果不是JSON，就当作普通输入处理                            
                             session.write(data)
                     except RuntimeError as e:
                         if "WebSocket is not connected" in str(e):
                             break
                         raise
             except websockets.exceptions.ConnectionClosed:
+                print("WebSocket closed normally during terminal session")
                 pass
             finally:
                 if session_id in self.sessions:
