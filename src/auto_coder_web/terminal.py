@@ -50,14 +50,33 @@ class TerminalSession:
     async def _send_heartbeat(self):
         while self.running:
             try:
-                if time.time() - self._last_heartbeat > 30:  # No heartbeat for 30 seconds
-                    print("No heartbeat received for 30 seconds, closing connection")
+                # Shorter heartbeat timeout
+                if time.time() - self._last_heartbeat > 15:  # Reduced from 30 to 15 seconds
+                    print("No heartbeat received for 15 seconds, initiating reconnection")
+                    self.running = False
+                    try:
+                        await self.websocket.close(code=1000, reason="Heartbeat timeout")
+                    except Exception:
+                        pass
                     break
-                await self.websocket.send_json({"type": "heartbeat"})
-                await asyncio.sleep(15)  # Send heartbeat every 15 seconds
-            except Exception as e:
-                print(f"Error sending heartbeat: {e}")
+                
+                if self.websocket.client_state.CONNECTED:
+                    await self.websocket.send_json({"type": "heartbeat"})
+                else:
+                    print("WebSocket disconnected, stopping heartbeat")
+                    break
+                    
+                await asyncio.sleep(5)  # Reduced from 15 to 5 seconds
+                
+            except websockets.exceptions.ConnectionClosed:
+                print("Connection closed normally during heartbeat")
                 break
+            except Exception as e:
+                print(f"Error in heartbeat: {str(e)}")
+                if not self.running:
+                    break
+                await asyncio.sleep(1)  # Brief pause before retry
+                continue
 
     async def _handle_io(self):
         try:

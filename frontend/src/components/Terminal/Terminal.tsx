@@ -52,30 +52,44 @@ const Terminal: React.FC = () => {
     ws.onopen = () => {
       xterm.writeln('Connected to terminal backend');
       
-      // Start heartbeat with error handling
-      heartbeatIntervalRef.current = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) {
-          try {
-            ws.send(JSON.stringify({ type: 'heartbeat' }));
-          } catch (error) {
-            console.error('Failed to send heartbeat:', error);
-            // Clear interval if we can't send heartbeats
-            if (heartbeatIntervalRef.current) {
-              clearInterval(heartbeatIntervalRef.current);
-            }
-            // Try to reconnect
-            if (ws.readyState === WebSocket.CLOSED) {
-              const newWs = new WebSocket('ws://localhost:8007/ws/terminal');
-              websocketRef.current = newWs;
-              // Reattach event handlers
-              newWs.onopen = ws.onopen;
-              newWs.onmessage = ws.onmessage;
-              newWs.onclose = ws.onclose;
-              newWs.onerror = ws.onerror;
+      // Start heartbeat with error handling and retry mechanism
+      const startHeartbeat = () => {
+        if (heartbeatIntervalRef.current) {
+          clearInterval(heartbeatIntervalRef.current);
+        }
+        
+        heartbeatIntervalRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            try {
+              ws.send(JSON.stringify({ type: 'heartbeat' }));
+            } catch (error) {
+              console.error('Failed to send heartbeat:', error);
+              handleReconnect();
             }
           }
+        }, 5000); // Reduced interval to 5 seconds
+      };
+
+      const handleReconnect = () => {
+        if (heartbeatIntervalRef.current) {
+          clearInterval(heartbeatIntervalRef.current);
         }
-      }, 10000);
+        
+        if (websocketRef.current?.readyState === WebSocket.CLOSED) {
+          xterm.writeln('\r\nConnection lost. Attempting to reconnect...');
+          
+          const newWs = new WebSocket('ws://localhost:8007/ws/terminal');
+          websocketRef.current = newWs;
+          
+          // Reattach all event handlers
+          newWs.onopen = ws.onopen;
+          newWs.onmessage = ws.onmessage;
+          newWs.onclose = ws.onclose;
+          newWs.onerror = ws.onerror;
+        }
+      };
+
+      startHeartbeat();
 
       // Send initial size with error handling
       try {
