@@ -14,3 +14,13 @@ def hello():
         str: A greeting message
     """
     return "Hello, Auto-Coder!"
+def say_hello(name: str = "World") -> str:
+    """Returns a greeting message.
+    
+    Args:
+        name: The name to greet. Defaults to "World".
+        
+    Returns:
+        A greeting string
+    """
+    return f"Hello, {name}!"
