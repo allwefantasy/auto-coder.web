@@ -510,12 +510,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           {messages.map((message) => (
             <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-[80%] rounded-lg p-3 relative group ${message.role === 'user'
+                className={`max-w-[80%] rounded-lg p-2 relative group text-sm ${message.role === 'user'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-800 text-gray-300'
                   }`}
               >
-                <div className="break-words">{message.content}</div>
+                <div className="break-words text-sm">{message.content}</div>
                 {message.status === 'sending' && (
                   <div className="flex items-center text-xs text-gray-400 mt-1">
                     <div className="mr-1">sending</div>
