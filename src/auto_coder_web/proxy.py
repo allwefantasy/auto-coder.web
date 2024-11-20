@@ -329,17 +329,9 @@ class ProxyServer:
             return {"groups": groups}
 
         @self.app.get("/api/files")
-        async def get_files(path: str = None):
-            tree = get_directory_tree(self.project_path, path)
+        async def get_files():
+            tree = get_directory_tree(self.project_path)
             return {"tree": tree}
-
-        @self.app.delete("/api/files/{path:path}")
-        async def delete_file(path: str):
-            from .file_manager import delete_path
-            if delete_path(self.project_path, path):
-                return {"status": "success"}
-            else:
-                raise HTTPException(status_code=500, detail="Failed to delete")
 
         @self.app.get("/api/completions/files")
         async def get_file_completions(name: str = Query(...)):

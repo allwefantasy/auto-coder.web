@@ -112,17 +112,3 @@ def read_file_content(project_path: str, file_path: str) -> str:
             return f.read()
     except (IOError, UnicodeDecodeError):
         return None
-
-def delete_path(project_path: str, path: str) -> bool:
-    """Delete a file or directory"""
-    import shutil
-    try:
-        full_path = os.path.join(project_path, path)
-        if os.path.isdir(full_path):
-            shutil.rmtree(full_path)
-        else:
-            os.remove(full_path)
-        return True
-    except Exception as e:
-        print(f"Error deleting {path}: {str(e)}")
-        return False
