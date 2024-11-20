@@ -9,6 +9,8 @@ const Terminal: React.FC = () => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerminal | null>(null);
   const websocketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!terminalRef.current) return;
@@ -41,29 +43,43 @@ const Terminal: React.FC = () => {
     // Ensure dimensions are set before fitting
     setTimeout(() => {
       fitAddon.fit();
-      // Send initial size to backend
-      if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
-        websocketRef.current.send(JSON.stringify({
-          type: 'resize',
-          cols: xterm.cols,
-          rows: xterm.rows
-        }));
-      }
     }, 0);
 
-    // Initialize WebSocket connection
+    // Initialize WebSocket connection with heartbeat
     const ws = new WebSocket('ws://localhost:8007/ws/terminal');
     websocketRef.current = ws;
 
     ws.onopen = () => {
       xterm.writeln('Connected to terminal backend');
+      
+      // Start heartbeat
+      heartbeatIntervalRef.current = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'heartbeat' }));
+        }
+      }, 10000);
+
+      // Send initial size
+      ws.send(JSON.stringify({
+        type: 'resize',
+        cols: xterm.cols,
+        rows: xterm.rows
+      }));
     };
 
     ws.onmessage = (event) => {
       try {
         const data = event.data;
         if (typeof data === 'string') {
-          xterm.write(data);
+          try {
+            const jsonData = JSON.parse(data);
+            if (jsonData.type === 'heartbeat') {
+              return; // Ignore heartbeat messages
+            }
+          } catch {
+            // Not JSON, treat as terminal data
+            xterm.write(data);
+          }
         } else if (data instanceof Blob) {
           const reader = new FileReader();
           reader.onload = () => {
@@ -82,51 +98,42 @@ const Terminal: React.FC = () => {
       xterm.writeln('\r\nWebSocket error: ' + error);
     };
 
-    ws.onclose = () => {
-      console.log('WebSocket connection closed');
-      xterm.writeln('\r\nConnection closed');
-      // Try to reconnect after a delay
-      setTimeout(() => {
-        if (websocketRef.current?.readyState === WebSocket.CLOSED) {
-          websocketRef.current = new WebSocket('ws://localhost:8007/ws/terminal');
-        }
-      }, 3000);
+    ws.onclose = (event) => {
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+      }
+
+      xterm.writeln(`\r\nConnection closed. Code: ${event.code}, Reason: ${event.reason}`);
+      
+      if (!event.wasClean) {
+        xterm.writeln('\r\nWebSocket closed unexpectedly. Reconnecting...');
+        // Try to reconnect after a delay
+        reconnectTimeoutRef.current = setTimeout(() => {
+          if (websocketRef.current?.readyState === WebSocket.CLOSED) {
+            const newWs = new WebSocket('ws://localhost:8007/ws/terminal');
+            websocketRef.current = newWs;
+            // Reattach all event handlers
+            newWs.onopen = ws.onopen;
+            newWs.onmessage = ws.onmessage;
+            newWs.onclose = ws.onclose;
+            newWs.onerror = ws.onerror;
+          }
+        }, 3000);
+      }
     };
 
     // Handle terminal input
     xterm.onData((data) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        try {
-          ws.send(data);
-        } catch (error) {
-          console.error('Error sending data:', error);
-          xterm.writeln('\r\nError sending data: ' + error);
-        }
-      } else {
-        console.warn('WebSocket is not open. Current state:', ws.readyState);
-        xterm.writeln('\r\nWebSocket is not connected. Trying to reconnect...');
+      if (websocketRef.current?.readyState === WebSocket.OPEN) {
+        websocketRef.current.send(data);
       }
     });
-
-    // Handle keyboard events
-    xterm.attachCustomKeyEventHandler((event: KeyboardEvent) => {
-      // Allow all keyboard input including special keys
-      return true;
-    });
-
-    // Ensure initial focus
-    setTimeout(() => {
-      xterm.focus();
-    }, 100);
-
-    // Make terminal focusable
-    xterm.focus();
 
     // Handle window resize
     const handleResize = () => {
       fitAddon.fit();
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
+      if (websocketRef.current?.readyState === WebSocket.OPEN) {
+        websocketRef.current.send(JSON.stringify({
           type: 'resize',
           cols: xterm.cols,
           rows: xterm.rows
@@ -136,15 +143,28 @@ const Terminal: React.FC = () => {
 
     window.addEventListener('resize', handleResize);
 
+    // Store refs for cleanup
     xtermRef.current = xterm;
 
-    // Cleanup
+    // Cleanup function
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+      }
+      if (websocketRef.current) {
+        websocketRef.current.close();
+        websocketRef.current = null;
+      }
+      if (xtermRef.current) {
+        xtermRef.current.dispose();
+        xtermRef.current = null;
+      }
       window.removeEventListener('resize', handleResize);
-      ws.close();
-      xterm.dispose();
     };
-  }, []);
+  }, []); // Empty dependency array since we want this to run once
 
   return (
     <div className="h-full w-full bg-[#1e1e1e]">
@@ -153,4 +173,4 @@ const Terminal: React.FC = () => {
   );
 };
 
-export default Terminal;
+export default React.memo(Terminal);

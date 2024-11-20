@@ -11,6 +11,8 @@ import signal
 from typing import Dict, Optional
 import threading
 import select
+import psutil
+import time
 
 class TerminalSession:
     def __init__(self, websocket: WebSocket, shell: str = '/bin/bash'):
@@ -20,6 +22,7 @@ class TerminalSession:
         self.pid: Optional[int] = None
         self.running = False
         self._lock = threading.Lock()
+        self._last_heartbeat = time.time()
 
     async def start(self):
         """Start the terminal session"""
@@ -44,42 +47,56 @@ class TerminalSession:
                 # Set new window size
                 fcntl.ioctl(self.fd, termios.TIOCSWINSZ, size)
 
+    async def _send_heartbeat(self):
+        while self.running:
+            try:
+                if time.time() - self._last_heartbeat > 30:  # No heartbeat for 30 seconds
+                    print("No heartbeat received for 30 seconds, closing connection")
+                    break
+                await self.websocket.send_json({"type": "heartbeat"})
+                await asyncio.sleep(15)  # Send heartbeat every 15 seconds
+            except Exception as e:
+                print(f"Error sending heartbeat: {e}")
+                break
+
     async def _handle_io(self):
-        """Handle I/O between websocket and PTY"""
-        loop = asyncio.get_running_loop()
         try:
+            heartbeat_task = asyncio.create_task(self._send_heartbeat())
+            
+            loop = asyncio.get_running_loop()
             while self.running:
                 try:
                     # Use select to check if there's data to read
-                    r, w, e = await loop.run_in_executor(None, select.select, [self.fd], [], [], 0.1)
+                    r, _, _ = await loop.run_in_executor(None, select.select, [self.fd], [], [], 0.1)
                     
-                    if self.fd in r:
-                        data = await loop.run_in_executor(None, os.read, self.fd, 8192)
-                        if data:
-                            try:
-                                # Try to decode as UTF-8
-                                decoded_data = data.decode('utf-8', errors='replace')
-                                await self.websocket.send_text(decoded_data)
-                            except Exception as e:
-                                print(f"Error sending data to websocket: {e}")
-                                break
-                        else:
-                            print("No data received from PTY")
+                    if not self.running:
+                        break
+                        
+                    if r:
+                        try:
+                            data = await loop.run_in_executor(None, os.read, self.fd, 1024)
+                            if data:
+                                try:
+                                    await self.websocket.send_text(data.decode('utf-8', errors='replace'))
+                                except Exception as e:
+                                    print(f"Error sending data to websocket: {e}")
+                                    break
+                            else:
+                                if self.pid is None or not psutil.pid_exists(self.pid):
+                                    print(f"Process {self.pid} is not alive")
+                                    break
+                        except (EOFError, OSError) as e:
+                            print(f"Error reading from PTY: {e}")
                             break
                     
-                    # Small delay to prevent CPU overload
                     await asyncio.sleep(0.001)
                     
-                except (OSError, IOError) as e:
-                    print(f"Error reading from PTY: {e}")
-                    break
                 except Exception as e:
                     print(f"Unexpected error in terminal I/O: {str(e)}")
                     break
                     
-        except Exception as e:
-            print(f"Fatal error in terminal I/O: {str(e)}")
         finally:
+            heartbeat_task.cancel()
             self.cleanup()
 
     def write(self, data: str):
@@ -87,14 +104,16 @@ class TerminalSession:
         with self._lock:
             if self.fd is not None:
                 try:
-                    # Ensure data is properly encoded
+                    # Ensure data is properly encoded                    
                     encoded_data = data.encode('utf-8')
+                    print(f"Getting data from websocket: {encoded_data}")
                     os.write(self.fd, encoded_data)
                 except Exception as e:
                     print(f"Error writing to terminal: {e}")
 
     def cleanup(self):
         """Clean up the terminal session"""
+        print("Cleaning up terminal session...")
         self.running = False
         if self.pid:
             try:
@@ -114,7 +133,10 @@ class TerminalManager:
         self.sessions: Dict[str, TerminalSession] = {}
 
     async def create_session(self, websocket: WebSocket, session_id: str):
-        """Create a new terminal session"""
+        """Create a new terminal session"""        
+
+        # if self.sessions:
+        #     return list(self.sessions.values())[-1]        
         if session_id in self.sessions:
             await self.close_session(session_id)
             
@@ -143,6 +165,8 @@ class TerminalManager:
                             message = json.loads(data)
                             if message['type'] == 'resize':
                                 session.resize(message['rows'], message['cols'])
+                            elif message['type'] == 'heartbeat':
+                                session._last_heartbeat = time.time()
                             else:
                                 session.write(data)
                         except json.JSONDecodeError:
