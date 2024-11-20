@@ -601,6 +601,28 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                 />
               </div>
 
+              <div className="flex items-center justify-between">
+                <Tooltip title="Filter files by extensions (e.g. .py,.ts)">
+                  <span className="text-gray-300 text-xs">Project Type</span>
+                </Tooltip>
+                <Select
+                  mode="tags"
+                  size="small"
+                  style={{ width: '60%' }}
+                  placeholder="e.g. .py,.ts"
+                  value={config.project_type ? config.project_type.split(',') : []}
+                  onChange={(values) => updateConfig('project_type', values.join(','))}
+                  className="custom-select"
+                  tokenSeparators={[',']}
+                >
+                  {['.py', '.ts', '.tsx', '.js', '.jsx'].map(ext => (
+                    <Select.Option key={ext} value={ext}>
+                      {ext}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+
               <Select
                 mode="multiple"
                 style={{ width: '100%' }}
