@@ -25,7 +25,8 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
     const initTerminal = async () => {
       if (!terminalRef.current) return;
 
-      // Create terminal instance
+      console.log('[Terminal] Initializing terminal instance');
+      // Initialize terminal instance
       const terminal = new XTerm({
         theme: {
           background: '#1E1E1E',
@@ -67,6 +68,7 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
       terminal.open(terminalRef.current);
       fitAddon.fit();
 
+      console.log('[Terminal] Creating new terminal session');
       // Create terminal session
       try {
         const response = await fetch('/api/terminal/create', { 
@@ -90,7 +92,9 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
 
       // Handle input with proper control sequences
       terminal.onData((data) => {
+        console.log('[Terminal] Received input data:', data.charCodeAt(0)); 
         if (data === '\r') { // Enter key
+          console.log('[Terminal] Enter key pressed, executing command:', commandBufferRef.current);
           const command = commandBufferRef.current.trim();
           if (command) {
             handleCommand(command);
@@ -145,17 +149,19 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
   }, []);
 
   const startPolling = () => {
+    console.log('[Terminal] Starting output polling');
     if (pollingIntervalRef.current) return;
     
     pollingIntervalRef.current = setInterval(async () => {
       if (!sessionIdRef.current || !xtermRef.current) return;
 
       try {
-        console.log(sessionIdRef.current);
+        console.log('[Terminal] Polling output for session:', sessionIdRef.current);
         const response = await fetch(`/api/terminal/${sessionIdRef.current}/output`, {
           signal: AbortSignal.timeout(5000) // 5 second timeout
         });
         
+        console.log('[Terminal] Received output response:', response.status);
         if (response.status === 404) {
           // Session expired, try to reconnect
           sessionIdRef.current = null;
@@ -189,6 +195,7 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
         }
         
         if (data.output && data.output.length > 0) {
+          console.log('[Terminal] Received output data:', data.output);
           data.output.forEach((line: string) => {
             xtermRef.current?.write(line);
           });
@@ -214,7 +221,11 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
   };
 
   const handleCommand = async (command: string) => {
-    if (!sessionIdRef.current || !xtermRef.current) return;
+    if (!sessionIdRef.current || !xtermRef.current) {
+      console.log('[Terminal] Cannot execute command - missing session or terminal reference');
+      return;
+    }
+    console.log('[Terminal] Executing command:', command);
 
     try {
       const response = await fetch(`/api/terminal/${sessionIdRef.current}/input`, {
