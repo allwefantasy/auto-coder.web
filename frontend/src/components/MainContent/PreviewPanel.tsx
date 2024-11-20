@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import Iframe from 'react-iframe';
+import Split from 'react-split';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 
 interface PreviewPanelProps {
@@ -10,23 +11,40 @@ interface PreviewPanelProps {
 const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
   const [activeFileIndex, setActiveFileIndex] = React.useState(0);
   const [showWebPreview, setShowWebPreview] = React.useState(false);
-  const [previewUrl, setPreviewUrl] = React.useState('');
+  const [previewUrl, setPreviewUrl] = React.useState('http://127.0.0.1:3000');
+  const [isUrlFocused, setIsUrlFocused] = React.useState(false);
 
-  const handleUrlSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const input = e.currentTarget.elements.namedItem('url') as HTMLInputElement;
-    if (input.value) {
-      setPreviewUrl(input.value);
-      setShowWebPreview(true);
+  useEffect(() => {
+    setShowWebPreview(true);
+  }, []);
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPreviewUrl(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      setShowWebPreview(false);
+      setTimeout(() => setShowWebPreview(true), 100); // Brief delay to trigger reload
     }
   };
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-hidden">
-        <div className="h-full flex">
+        <Split 
+          className="h-full flex split"
+          sizes={[50, 50]}
+          minSize={200}
+          gutterSize={4}
+          gutterStyle={() => ({
+            backgroundColor: '#4B5563',
+            cursor: 'col-resize'
+          })}
+        >
           {/* Left Panel - Code Preview */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex flex-col">
             {files.length === 0 ? (
               <div className="w-full flex items-center justify-center text-gray-400">
                 No changes to preview
@@ -67,37 +85,36 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
           </div>
 
           {/* Right Panel - Web Preview */}
-          <div className="w-1/2 flex flex-col border-l border-gray-700">
-            <div className="p-4 bg-gray-800">
-              <form onSubmit={handleUrlSubmit} className="flex gap-2">
+          <div className="flex flex-col border-l border-gray-700">
+            <div className="p-2 bg-gray-800">
+              <div className={`flex items-center px-2 py-1 bg-gray-900 rounded-lg border ${isUrlFocused ? 'border-blue-500' : 'border-gray-700'}`}>
+                <div className="flex items-center px-2 text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
                 <input
                   type="url"
-                  name="url"
+                  value={previewUrl}
+                  onChange={handleUrlChange}
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => setIsUrlFocused(true)}
+                  onBlur={() => setIsUrlFocused(false)}
+                  className="flex-1 px-2 py-1 bg-transparent text-white text-sm focus:outline-none"
                   placeholder="Enter URL to preview"
-                  className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 
-                    focus:outline-none focus:border-blue-500"
-                  defaultValue={previewUrl}
                 />
                 <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
-                    focus:ring-offset-gray-800"
+                  onClick={() => {
+                    setShowWebPreview(false);
+                    setTimeout(() => setShowWebPreview(true), 100);
+                  }}
+                  className="px-2 text-gray-400 hover:text-white"
                 >
-                  Preview
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
                 </button>
-                {showWebPreview && (
-                  <button
-                    type="button"
-                    onClick={() => setShowWebPreview(false)}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 
-                      focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 
-                      focus:ring-offset-gray-800"
-                  >
-                    Close
-                  </button>
-                )}
-              </form>
+              </div>
             </div>
             <div className="flex-1">
               {showWebPreview ? (

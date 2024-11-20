@@ -77,6 +77,21 @@ html, body {
   color: #9CA3AF !important;
 }
 
+/* Split pane styles */
+.split {
+  display: flex;
+  flex-direction: row;
+}
+
+.gutter {
+  background-color: #4B5563;
+  cursor: col-resize;
+}
+
+.gutter:hover {
+  background-color: #6B7280;
+}
+
 /* Custom input styles for dark mode */
 .custom-input {
   background-color: #1F2937 !important;
