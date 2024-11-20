@@ -103,3 +103,149 @@ const CodeEditor: React.FC = () => {
 };
 
 export default CodeEditor;
+import React, { useEffect, useState } from 'react';
+import { Tree, Dropdown, Modal, message } from 'antd';
+import type { MenuProps } from 'antd';
+import { CodeOutlined, FolderOutlined } from '@ant-design/icons';
+import { getLanguageByFileName } from '../../utils/fileUtils';
+import { Editor } from '@monaco-editor/react';
+
+interface FileTreeItem {
+  title: string;
+  key: string;
+  children?: FileTreeItem[];
+  isLeaf: boolean;
+  hasChildren: boolean;
+}
+
+interface CodeEditorProps {
+  onFileSelect: (filePath: string) => void;
+}
+
+const CodeEditor: React.FC<CodeEditorProps> = ({ onFileSelect }) => {
+  const [treeData, setTreeData] = useState<FileTreeItem[]>([]);
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const [rightClickedNode, setRightClickedNode] = useState<FileTreeItem | null>(null);
+
+  useEffect(() => {
+    fetchTreeData();
+  }, []);
+
+  const fetchTreeData = async (path?: string) => {
+    try {
+      const response = await fetch(`/api/files${path ? `?path=${encodeURIComponent(path)}` : ''}`);
+      const data = await response.json();
+      if (path) {
+        // Update specific node's children
+        updateTreeNode(data.tree, path);
+      } else {
+        setTreeData(data.tree);
+      }
+    } catch (error) {
+      message.error('Failed to load file tree');
+    }
+  };
+
+  const updateTreeNode = (newChildren: FileTreeItem[], path: string) => {
+    const updateNode = (nodes: FileTreeItem[]): FileTreeItem[] => {
+      return nodes.map(node => {
+        if (node.key === path) {
+          return { ...node, children: newChildren };
+        }
+        if (node.children) {
+          return { ...node, children: updateNode(node.children) };
+        }
+        return node;
+      });
+    };
+    setTreeData(prev => updateNode(prev));
+  };
+
+  const handleDelete = async () => {
+    if (!rightClickedNode) return;
+
+    Modal.confirm({
+      title: 'Delete Confirmation',
+      content: `Are you sure you want to delete ${rightClickedNode.title}?`,
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          const response = await fetch(`/api/files/${encodeURIComponent(rightClickedNode.key)}`, {
+            method: 'DELETE',
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to delete');
+          }
+
+          message.success('Successfully deleted');
+          // Refresh the parent directory
+          const parentPath = rightClickedNode.key.split('/').slice(0, -1).join('/');
+          if (parentPath) {
+            await fetchTreeData(parentPath);
+          } else {
+            await fetchTreeData();
+          }
+        } catch (error) {
+          message.error('Failed to delete');
+        }
+      },
+    });
+  };
+
+  const getContextMenuItems = (): MenuProps['items'] => {
+    if (!rightClickedNode) return [];
+
+    return [
+      {
+        key: 'delete',
+        label: 'Delete',
+        danger: true,
+        onClick: handleDelete,
+      },
+    ];
+  };
+
+  const onLoadData = async (node: any) => {
+    if (node.children || node.isLeaf) return;
+    await fetchTreeData(node.key);
+  };
+
+  const onSelect = (selectedKeys: string[], info: any) => {
+    setSelectedKeys(selectedKeys);
+    if (info.node.isLeaf) {
+      onFileSelect(info.node.key);
+    }
+  };
+
+  return (
+    <div className="h-full overflow-auto p-4">
+      <Dropdown
+        menu={{ items: getContextMenuItems() }}
+        trigger={['contextMenu']}
+        open={!!rightClickedNode}
+        onOpenChange={(open) => {
+          if (!open) setRightClickedNode(null);
+        }}
+      >
+        <div>
+          <Tree
+            treeData={treeData}
+            selectedKeys={selectedKeys}
+            loadData={onLoadData}
+            onSelect={onSelect}
+            onRightClick={({ node }) => {
+              setRightClickedNode(node);
+            }}
+            icon={({ isLeaf }) =>
+              isLeaf ? <CodeOutlined /> : <FolderOutlined />
+            }
+          />
+        </div>
+      </Dropdown>
+    </div>
+  );
+};
+
+export default CodeEditor;
