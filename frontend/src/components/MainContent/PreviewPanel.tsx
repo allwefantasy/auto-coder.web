@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import Iframe from 'react-iframe';
 import Split from 'react-split';
@@ -14,7 +14,6 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
   const [showWebPreview, setShowWebPreview] = React.useState(false);
   const [previewUrl, setPreviewUrl] = React.useState('http://127.0.0.1:3000');
   const [isUrlFocused, setIsUrlFocused] = React.useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     setShowWebPreview(true);
@@ -37,7 +36,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
       <div className="flex-1 overflow-hidden">
         <Split 
           className="split-container"
-          sizes={isCollapsed ? [95, 5] : [50, 50]}
+          sizes={[50, 50]}
           minSize={[200, 200]}
           gutterSize={8}
           snapOffset={30}
@@ -88,23 +87,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
           </div>
 
           {/* Right Panel - Web Preview */}
-          <div className={`flex flex-col border-l border-gray-700 relative ${isCollapsed ? 'w-12' : ''}`}>
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="absolute -left-3 top-1/2 transform -translate-y-1/2 z-10 
-                bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white
-                rounded-full p-1 shadow-lg transition-colors duration-200"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className={`h-4 w-4 transform transition-transform duration-200 ${isCollapsed ? 'rotate-180' : ''}`} 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+          <div className="flex flex-col border-l border-gray-700">
             <div className="p-2 bg-gray-800">
               <div className={`flex items-center px-2 py-1 bg-gray-900 rounded-lg border ${isUrlFocused ? 'border-blue-500' : 'border-gray-700'}`}>
                 <div className="flex items-center px-2 text-gray-400">
