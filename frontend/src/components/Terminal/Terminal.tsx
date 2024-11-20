@@ -118,17 +118,23 @@ const Terminal: React.FC = () => {
     const handleResize = () => {
       try {
         fitAddon.fit();
-        if (ws.readyState === WebSocket.OPEN) {
-          const { rows, cols } = xterm;
-          ws.send(JSON.stringify({ type: 'resize', rows, cols }));
-        }
+        // 确保终端已经完全加载并且有正确的尺寸
+        setTimeout(() => {
+          if (ws.readyState === WebSocket.OPEN && xterm.element) {
+            const { rows, cols } = xterm;
+            ws.send(JSON.stringify({ type: 'resize', rows, cols }));
+          }
+        }, 100);
       } catch (error) {
         console.error('Error resizing terminal:', error);
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Initial fit
+    // 等待终端完全加载后再设置尺寸
+    setTimeout(() => {
+      handleResize();
+      window.addEventListener('resize', handleResize);
+    }, 100);
 
     xtermRef.current = xterm;
 
