@@ -284,11 +284,10 @@ class ProxyServer:
         @self.app.get("/api/terminal/{session_id}/output")
         async def get_terminal_output(session_id: str):
             """Get output from a terminal session"""
-            try:
-                output = terminal_manager.get_output(session_id)
-                return {"output": output, "status": "success"}
-            except Exception as e:
-                return {"output": [], "status": "error", "message": str(e)}
+            output = terminal_manager.get_output(session_id)
+            if output is None:
+                raise HTTPException(status_code=404, detail="Terminal session not found or expired")
+            return {"output": output, "status": "success"}
 
         @self.app.delete("/api/terminal/{session_id}")
         async def delete_terminal(session_id: str):

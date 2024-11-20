@@ -146,6 +146,30 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
 
       try {
         const response = await fetch(`/api/terminal/${sessionIdRef.current}/output`);
+        
+        if (response.status === 404) {
+          // Session expired, try to reconnect
+          sessionIdRef.current = null;
+          xtermRef.current.write('\r\n\x1b[1;31mTerminal session expired. Reconnecting...\x1b[0m\r\n');
+          
+          try {
+            const newSession = await fetch('/api/terminal/create', { 
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!newSession.ok) throw new Error('Failed to create new session');
+            const data = await newSession.json();
+            sessionIdRef.current = data.session_id;
+            xtermRef.current.write('\x1b[1;32mReconnected successfully\x1b[0m\r\n');
+            return;
+          } catch (e) {
+            xtermRef.current.write('\x1b[1;31mFailed to reconnect. Please refresh the page.\x1b[0m\r\n');
+            stopPolling();
+            return;
+          }
+        }
+
         if (!response.ok) throw new Error('Failed to fetch terminal output');
         const data = await response.json();
         
@@ -162,7 +186,7 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
       } catch (error) {
         console.error('Failed to fetch terminal output:', error);
         if (xtermRef.current) {
-          xtermRef.current.write('\r\n\x1b[1;31mFailed to fetch terminal output. Retrying...\x1b[0m\r\n');
+          xtermRef.current.write('\r\n\x1b[1;31mConnection error. Retrying...\x1b[0m\r\n');
         }
       }
     }, 1000);

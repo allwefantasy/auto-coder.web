@@ -81,12 +81,14 @@ class TerminalManager:
         if session:
             session.execute_command(command)
 
-    def get_output(self, session_id: str) -> List[str]:
-        """Get output from a specific session"""
+    def get_output(self, session_id: str) -> Optional[List[str]]:
+        """Get output from a specific session with validity check"""
         session = self.get_session(session_id)
-        if session:
-            return session.read()
-        return []
+        if not session or not session.running:
+            if session_id in self.sessions:
+                del self.sessions[session_id]  # Clean up invalid session
+            return None
+        return session.read()
 
     def delete_session(self, session_id: str) -> None:
         """Delete a terminal session"""
