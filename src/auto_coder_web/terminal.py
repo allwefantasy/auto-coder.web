@@ -85,53 +85,82 @@ class TerminalSession:
         
         def _read_pty(fd, size=1024):
             """Synchronous PTY read with timeout"""
-            r, _, _ = select.select([fd], [], [], 0.1)
-            if r:
-                try:
-                    return os.read(fd, size)
-                except (OSError, EOFError) as e:
-                    print(f"Error reading PTY: {e}")
-                    return None
-            return None
+            try:
+                r, _, _ = select.select([fd], [], [], 0.1)
+                if r:
+                    try:
+                        data = os.read(fd, size)
+                        return data if data else None  # 返回None表示EOF
+                    except (OSError, EOFError) as e:
+                        print(f"Error reading PTY: {e}")
+                        return None
+                return b''  # 没有数据可读但不是错误
+            except Exception as e:
+                print(f"Fatal error in PTY read: {e}")
+                return None  # 严重错误
+
+        async def _safe_send(data: bytes):
+            """Safely send data to websocket with error handling"""
+            try:
+                if self.websocket.client_state.CONNECTED:
+                    await self.websocket.send_text(data.decode('utf-8', errors='replace'))
+                    return True
+                else:
+                    print("WebSocket disconnected")
+                    return False
+            except Exception as e:
+                print(f"WebSocket send error: {e}")
+                return False
+
+        read_errors = 0  # 跟踪连续读取错误
+        MAX_READ_ERRORS = 3  # 最大允许的连续读取错误
 
         try:
             while self.running:
-                # 在新线程中执行PTY读取
                 try:
-                    data = await loop.run_in_executor(None, _read_pty, self.fd)
+                    with self._lock:  # 使用锁保护PTY读取
+                        if self.fd is None:
+                            break
+                        data = await loop.run_in_executor(None, _read_pty, self.fd)
                     
                     if not self.running:
                         break
-                        
-                    if data:
-                        try:
-                            if self.websocket.client_state.CONNECTED:
-                                await self.websocket.send_text(data.decode('utf-8', errors='replace'))
-                            else:
-                                print("WebSocket disconnected")
-                                self.running = False
-                                break
-                        except Exception as e:
-                            print(f"WebSocket send error: {e}")
-                            self.running = False
+
+                    if data is None:  # 严重错误或EOF
+                        read_errors += 1
+                        if read_errors >= MAX_READ_ERRORS:
+                            print(f"Too many PTY read errors ({read_errors}), stopping")
                             break
-                    elif data is None:  # 读取出错
-                        print("PTY read error")
-                        self.running = False
-                        break
+                        await asyncio.sleep(0.1)  # 错误后短暂等待
+                        continue
+                        
+                    read_errors = 0  # 重置错误计数
+                    
+                    if data:  # 有实际数据
+                        if not await _safe_send(data):
+                            break
+                    
+                    await asyncio.sleep(0.001)  # 防止CPU过度使用
                     
                 except Exception as e:
                     print(f"IO handling error: {e}")
-                    self.running = False
-                    break
-                
-                await asyncio.sleep(0.001)  # 防止CPU过度使用
-                
+                    read_errors += 1
+                    if read_errors >= MAX_READ_ERRORS:
+                        break
+                    await asyncio.sleep(0.1)
+                    
         except Exception as e:
             print(f"Fatal error in IO handling: {e}")
-            self.running = False
         finally:
-            print("IO handling stopped")                                
+            self.running = False  # 确保设置运行状态
+            print("IO handling stopped")
+            # 确保清理
+            if self.fd is not None:
+                try:
+                    os.close(self.fd)
+                except:
+                    pass
+                self.fd = None
 
     def write(self, data: str):
         """Write data to the terminal"""
