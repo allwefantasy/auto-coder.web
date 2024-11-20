@@ -6,7 +6,7 @@ mkdir -p /app/logs
 # conda activate py310
 
 # 安装依赖
-pip install -U auto-coder-web
+pip install -U auto_coder_web
 ray start --head > /app/logs/ray.log 2>&1
 
 byzerllm deploy --pretrained_model_type saas/openai \
@@ -23,4 +23,4 @@ cd /app/work
 tail -f /app/logs/*.log &
 
 # 保持容器运行
-exec auto-coder-web --quick --port 8007 2>&1 | tee /app/logs/auto-coder-web.log
+exec auto-coder.web --quick --port 8007 2>&1 | tee /app/logs/auto-coder-web.log

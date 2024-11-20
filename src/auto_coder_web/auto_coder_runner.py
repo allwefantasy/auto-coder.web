@@ -136,6 +136,8 @@ class AutoCoderRunner:
         }
 
     def get_groups(self) -> Dict[str, List[str]]:
+        if "groups" not in self.memory["current_files"]:
+            return {"groups": []}
         return {"groups": list(self.memory["current_files"]["groups"].keys())}
 
     def get_files_in_group(self, group_name: str) -> Dict[str, List[str]]:

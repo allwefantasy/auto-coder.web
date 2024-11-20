@@ -6,3 +6,7 @@ release: ## Build and package web assets
 	mv web.static.tar.gz src/auto_coder_web/web/	
 	cd src/auto_coder_web/web/ && tar -xzf web.static.tar.gz && rm web.static.tar.gz
 	./deploy.sh && pip install -e .
+
+.PHONY: docker-build
+docker-build: ## Build docker images
+	scp -r docker/* remote:/home/winubuntu/auto-coder-web-docker/

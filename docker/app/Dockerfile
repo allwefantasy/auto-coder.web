@@ -1,11 +1,9 @@
-FROM auto-coder:latest
+FROM allwefantasy/auto-coder:latest
 
 WORKDIR /app
 
 ENV PATH=/opt/conda/bin:$PATH
 SHELL ["conda", "run", "-n", "py310", "/bin/bash", "-c"]
-
-RUN pip install aiofiles
 
 # 创建工作目录和日志目录
 RUN mkdir -p /app/work /app/logs
