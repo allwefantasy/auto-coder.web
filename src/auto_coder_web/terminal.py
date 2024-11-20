@@ -61,39 +61,50 @@ class TerminalSession:
 
     async def _handle_io(self):
         try:
-            heartbeat_task = asyncio.create_task(self._send_heartbeat())
-            
-            loop = asyncio.get_running_loop()
-            while self.running:
-                try:
-                    # Use select to check if there's data to read
-                    r, _, _ = await loop.run_in_executor(None, select.select, [self.fd], [], [], 0.1)
-                    
-                    if not self.running:
-                        break
+            try:
+                heartbeat_task = asyncio.create_task(self._send_heartbeat())
+                loop = asyncio.get_running_loop()
+                
+                while self.running:
+                    try:
+                        # Use select to check if there's data to read with timeout
+                        r, _, _ = await loop.run_in_executor(None, select.select, [self.fd], [], [], 0.1)
                         
-                    if r:
-                        try:
-                            data = await loop.run_in_executor(None, os.read, self.fd, 1024)
-                            if data:
-                                try:
-                                    await self.websocket.send_text(data.decode('utf-8', errors='replace'))
-                                except Exception as e:
-                                    print(f"Error sending data to websocket: {e}")
-                                    break
-                            else:
-                                if self.pid is None or not psutil.pid_exists(self.pid):
-                                    print(f"Process {self.pid} is not alive")
-                                    break
-                        except (EOFError, OSError) as e:
-                            print(f"Error reading from PTY: {e}")
+                        if not self.running:
                             break
-                    
-                    await asyncio.sleep(0.001)
-                    
-                except Exception as e:
-                    print(f"Unexpected error in terminal I/O: {str(e)}")
-                    break
+                            
+                        if r:
+                            try:
+                                data = await loop.run_in_executor(None, os.read, self.fd, 1024)
+                                if data:
+                                    try:
+                                        if self.websocket.client_state.CONNECTED:
+                                            await self.websocket.send_text(data.decode('utf-8', errors='replace'))
+                                        else:
+                                            print("WebSocket not connected, stopping terminal session")
+                                            break
+                                    except Exception as e:
+                                        print(f"Error sending data to websocket: {str(e)}")
+                                        break
+                                else:
+                                    if self.pid is None or not psutil.pid_exists(self.pid):
+                                        print(f"Process {self.pid} is not alive")
+                                        break
+                            except (EOFError, OSError) as e:
+                                print(f"Error reading from PTY: {str(e)}")
+                                break
+                        
+                        await asyncio.sleep(0.001)
+                        
+                    except Exception as e:
+                        print(f"Unexpected error in terminal I/O: {str(e)}")
+                        if not self.running:
+                            break
+            except asyncio.CancelledError:
+                print("Terminal I/O task cancelled")
+                raise
+            except Exception as e:
+                print(f"Fatal error in terminal I/O: {str(e)}")
                     
         finally:
             heartbeat_task.cancel()

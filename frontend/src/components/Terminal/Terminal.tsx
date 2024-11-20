@@ -52,19 +52,42 @@ const Terminal: React.FC = () => {
     ws.onopen = () => {
       xterm.writeln('Connected to terminal backend');
       
-      // Start heartbeat
+      // Start heartbeat with error handling
       heartbeatIntervalRef.current = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'heartbeat' }));
+          try {
+            ws.send(JSON.stringify({ type: 'heartbeat' }));
+          } catch (error) {
+            console.error('Failed to send heartbeat:', error);
+            // Clear interval if we can't send heartbeats
+            if (heartbeatIntervalRef.current) {
+              clearInterval(heartbeatIntervalRef.current);
+            }
+            // Try to reconnect
+            if (ws.readyState === WebSocket.CLOSED) {
+              const newWs = new WebSocket('ws://localhost:8007/ws/terminal');
+              websocketRef.current = newWs;
+              // Reattach event handlers
+              newWs.onopen = ws.onopen;
+              newWs.onmessage = ws.onmessage;
+              newWs.onclose = ws.onclose;
+              newWs.onerror = ws.onerror;
+            }
+          }
         }
       }, 10000);
 
-      // Send initial size
-      ws.send(JSON.stringify({
-        type: 'resize',
-        cols: xterm.cols,
-        rows: xterm.rows
-      }));
+      // Send initial size with error handling
+      try {
+        ws.send(JSON.stringify({
+          type: 'resize',
+          cols: xterm.cols,
+          rows: xterm.rows
+        }));
+      } catch (error) {
+        console.error('Failed to send initial size:', error);
+        xterm.writeln('\r\nFailed to initialize terminal size');
+      }
     };
 
     ws.onmessage = (event) => {
