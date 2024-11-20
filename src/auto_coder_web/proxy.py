@@ -21,6 +21,8 @@ import subprocess
 from prompt_toolkit import prompt
 from pydantic import BaseModel
 from autocoder.utils.log_capture import LogCapture
+from typing import Optional, Dict, List, Any
+from .terminal import terminal_manager
 
 
 class EventGetRequest(BaseModel):
@@ -258,6 +260,33 @@ class ProxyServer:
         async def shutdown_event():
             await self.client.aclose()
 
+        @self.app.post("/api/terminal/create")
+        async def create_terminal():
+            """Create a new terminal session"""
+            session_id = terminal_manager.create_session()
+            return {"session_id": session_id}
+
+        @self.app.post("/api/terminal/{session_id}/input")
+        async def send_terminal_input(session_id: str, request: Request):
+            """Send input to a terminal session"""
+            data = await request.json()
+            command = data.get("command")
+            if command:
+                terminal_manager.execute_command(session_id, command)
+            return {"status": "ok"}
+
+        @self.app.get("/api/terminal/{session_id}/output")
+        async def get_terminal_output(session_id: str):
+            """Get output from a terminal session"""
+            output = terminal_manager.get_output(session_id)
+            return {"output": output}
+
+        @self.app.delete("/api/terminal/{session_id}")
+        async def delete_terminal(session_id: str):
+            """Delete a terminal session"""
+            terminal_manager.delete_session(session_id)
+            return {"status": "ok"}
+
         @self.app.delete("/api/files/{path:path}")
         async def delete_file(path: str):
             try:
@@ -270,7 +299,8 @@ class ProxyServer:
                         os.remove(full_path)
                     return {"message": f"Successfully deleted {path}"}
                 else:
-                    raise HTTPException(status_code=404, detail="File not found")
+                    raise HTTPException(
+                        status_code=404, detail="File not found")
             except Exception as e:
                 raise HTTPException(status_code=500, detail=str(e))
 
@@ -393,17 +423,18 @@ class ProxyServer:
                 data = await request.json()
                 content = data.get("content")
                 if content is None:
-                    raise HTTPException(status_code=400, detail="Content is required")
-                
+                    raise HTTPException(
+                        status_code=400, detail="Content is required")
+
                 full_path = os.path.join(self.project_path, path)
-                
+
                 # Ensure the directory exists
                 os.makedirs(os.path.dirname(full_path), exist_ok=True)
-                
+
                 # Write the file content
                 with open(full_path, 'w', encoding='utf-8') as f:
                     f.write(content)
-                
+
                 return {"message": f"Successfully updated {path}"}
             except Exception as e:
                 raise HTTPException(status_code=500, detail=str(e))
