@@ -152,6 +152,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       setIsMaximized(prev => !prev);
     });
 
+    // Add keyboard shortcut for submission
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+      if (!sendLoading) {
+        handleSendMessage();
+      }
+    });
+
     // 注册自动补全提供者
     monaco.languages.registerCompletionItemProvider('markdown', {
       triggerCharacters: ['@'],
