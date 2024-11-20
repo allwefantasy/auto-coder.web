@@ -85,7 +85,11 @@ class TerminalSession:
             except ProcessLookupError:
                 pass
         if self.fd is not None:
-            os.close(self.fd)
+            try:
+                os.close(self.fd)
+            except OSError:
+                # File descriptor may already be closed
+                pass
 
 
 class TerminalManager:
@@ -110,25 +114,37 @@ class TerminalManager:
 
     async def handle_websocket(self, websocket: WebSocket, session_id: str):
         """Handle websocket connection for a terminal session"""
-        await websocket.accept()
-        session = await self.create_session(websocket, session_id)
-        
         try:
-            while True:
-                data = await websocket.receive_text()
-                try:
-                    message = json.loads(data)
-                    if message['type'] == 'input':
-                        session.write(message['data'])
-                    elif message['type'] == 'resize':
-                        session.resize(message['rows'], message['cols'])
-                except json.JSONDecodeError:
-                    # If not JSON, treat as raw input
-                    print(f"Received non-JSON data: {data}")
-                    session.write(data)
-        except websockets.exceptions.ConnectionClosed:
-            pass
-        finally:
-            await self.close_session(session_id)
+            await websocket.accept()
+            session = await self.create_session(websocket, session_id)
+            
+            try:
+                while True:
+                    try:
+                        data = await websocket.receive_text()
+                        try:
+                            message = json.loads(data)
+                            if message['type'] == 'input':
+                                session.write(message['data'])
+                            elif message['type'] == 'resize':
+                                session.resize(message['rows'], message['cols'])
+                        except json.JSONDecodeError:
+                            # If not JSON, treat as raw input
+                            print(f"Received non-JSON data: {data}")
+                            session.write(data)
+                    except RuntimeError as e:
+                        if "WebSocket is not connected" in str(e):
+                            break
+                        raise
+            except websockets.exceptions.ConnectionClosed:
+                pass
+            finally:
+                if session_id in self.sessions:
+                    await self.close_session(session_id)
+        except Exception as e:
+            print(f"Error in terminal websocket: {str(e)}")
+            if session_id in self.sessions:
+                await self.close_session(session_id)
+            raise
 
 terminal_manager = TerminalManager()
