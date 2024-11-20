@@ -7,7 +7,11 @@ import os
 import subprocess
 import select
 import fcntl
-import os
+import pty
+import termios
+import struct
+import signal
+import sys
 
 class TerminalSession:
     def __init__(self, session_id: str):
@@ -19,6 +23,13 @@ class TerminalSession:
         self.running = True
         self.current_process = None
         self.last_activity = asyncio.get_event_loop().time()
+        self.master_fd = None
+        self.slave_fd = None
+        
+        # Initialize PTY
+        self.master_fd, self.slave_fd = pty.openpty()
+        # Set terminal size
+        self.set_winsize(24, 80)
         
         # Set default working directory to project root
         self.working_directory = os.getcwd()
@@ -41,6 +52,11 @@ class TerminalSession:
             output.append(self.output_queue.get())
         return output
 
+    def set_winsize(self, rows: int, cols: int):
+        """Set the terminal window size"""
+        size = struct.pack("HHHH", rows, cols, 0, 0)
+        fcntl.ioctl(self.slave_fd, termios.TIOCSWINSZ, size)
+
     def execute_command(self, command: str) -> None:
         """Execute a command and store it in history"""
         if not command:
@@ -55,27 +71,27 @@ class TerminalSession:
             if self.current_process and self.current_process.poll() is None:
                 print(f"[Terminal] Session {self.session_id} terminating previous process")
                 try:
-                    self.current_process.terminate()
+                    os.killpg(os.getpgid(self.current_process.pid), signal.SIGTERM)
                     self.current_process.wait(timeout=1)
                 except:
-                    print(f"[Terminal] Session {self.session_id} force killing previous process")
+                    print(f"[Terminal] Session {self.session_id} force killing process")
                     try:
-                        self.current_process.kill()
+                        os.killpg(os.getpgid(self.current_process.pid), signal.SIGKILL)
                     except:
-                        print(f"[Terminal] Session {self.session_id} failed to kill previous process")
+                        print(f"[Terminal] Session {self.session_id} failed to kill process")
                         pass
             
-            # Special command handling
+            # Special command handling for cd
             if command.startswith('cd '):
                 new_dir = command[3:].strip()
                 try:
-                    # Convert relative path to absolute
                     if not os.path.isabs(new_dir):
                         new_dir = os.path.join(self.working_directory, new_dir)
                     new_dir = os.path.abspath(new_dir)
                     
                     if os.path.isdir(new_dir):
                         self.working_directory = new_dir
+                        os.chdir(new_dir)  # Actually change directory in PTY
                         print(f"[Terminal] Session {self.session_id} changed directory to: {new_dir}")
                         self.write(f"Changed directory to {new_dir}\n")
                     else:
@@ -86,17 +102,19 @@ class TerminalSession:
                     self.write(f"Error changing directory: {str(e)}\n")
                 return
                 
-            # Execute command
+            # Execute command using PTY
             print(f"[Terminal] Session {self.session_id} starting process with command: {command}")
             self.current_process = subprocess.Popen(
                 command,
                 shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                bufsize=1,  # Line buffered
+                preexec_fn=os.setsid,  # Create new process group
+                stdin=self.slave_fd,
+                stdout=self.slave_fd,
+                stderr=self.slave_fd,
+                universal_newlines=True,
                 cwd=self.working_directory,
-                env=self.env
+                env=self.env,
+                start_new_session=True
             )
             print(f"[Terminal] Session {self.session_id} process started with PID: {self.current_process.pid}")
                         
