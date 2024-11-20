@@ -83,6 +83,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const editorRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
+  const [isMaximized, setIsMaximized] = useState<boolean>(false);
 
   useEffect(() => {
     // Fetch initial config
@@ -145,6 +146,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
+
+    // Add keyboard shortcut for maximize/minimize
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {
+      setIsMaximized(prev => !prev);
+    });
 
     // 注册自动补全提供者
     monaco.languages.registerCompletionItemProvider('markdown', {
@@ -616,10 +622,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         </div>
 
         {/* Message Input */}
-        <div className="p-4 flex flex-col space-y-2">
-          <div className="flex-1 min-h-[180px] border border-gray-700 rounded-lg overflow-hidden">
+        <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''}`}>
+          <div className={`flex-1 ${isMaximized ? 'h-full' : 'min-h-[180px]'} border border-gray-700 rounded-lg overflow-hidden`}>
             <Editor
-              height="180px"
+              height={isMaximized ? "100vh" : "180px"}
               defaultLanguage="markdown"
               theme="vs-dark"
               value={inputText}
