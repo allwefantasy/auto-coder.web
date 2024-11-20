@@ -161,30 +161,13 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
           signal: AbortSignal.timeout(5000) // 5 second timeout
         });
         
-        console.log('[Terminal] Received output response:', response.status);
-        if (response.status === 404) {
-          // Session expired, try to reconnect
-          sessionIdRef.current = null;
-          stopPolling();
-          xtermRef.current.write('\r\n\x1b[1;31mTerminal session expired. Reconnecting...\x1b[0m\r\n');
-          
-          try {
-            const newSession = await fetch('/api/terminal/create', { 
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
-            });
-            
-            if (!newSession.ok) throw new Error('Failed to create new session');
-            const data = await newSession.json();
-            sessionIdRef.current = data.session_id;
-            xtermRef.current.write('\x1b[1;32mReconnected successfully\x1b[0m\r\n');
-            startPolling();
-            return;
-          } catch (e) {
-            xtermRef.current.write('\x1b[1;31mFailed to reconnect. Please refresh the page.\x1b[0m\r\n');
-            return;
-          }
-        }
+            console.log('[Terminal] Polling output response:', response.status); 
+            if (response.status === 404) {
+              // 会话不存在时不要重新创建,而是提示用户刷新
+              stopPolling();
+              xtermRef.current?.write('\r\n\x1b[1;31mTerminal session expired. Please refresh page to reconnect.\x1b[0m\r\n');
+              return;
+            }
 
         if (!response.ok) throw new Error('Failed to fetch terminal output');
         const data = await response.json();
@@ -203,12 +186,12 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
           console.warn('Terminal output request timed out');
+          // 超时不需要特殊处理,下一轮轮询会自动重试
           return;
         }
+        
+        // 避免在连接错误时反复写入错误信息
         console.error('Failed to fetch terminal output:', error);
-        if (xtermRef.current) {
-          xtermRef.current.write('\r\n\x1b[1;31mConnection error. Retrying...\x1b[0m\r\n');
-        }
       }
     }, 1000);
   };
