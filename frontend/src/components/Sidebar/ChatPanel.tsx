@@ -552,14 +552,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       <div className="bg-gray-800 border-t border-gray-700">
         {/* Configuration and Groups Section */}
         <div className="px-4 pt-2">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-300 text-sm font-semibold">Settings & Groups</span>
-            <Switch
-              size="small"
-              checked={showConfig}
-              onChange={setShowConfig}
-              className="ml-2"
-            />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-300 text-sm font-semibold">Settings & Groups</span>
+              <Switch
+                size="small"
+                checked={showConfig}
+                onChange={setShowConfig}
+                className="ml-2"
+              />
+            </div>
+            <div className="text-gray-400 text-xs">
+              Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + P to maximize/minimize input area
+            </div>
           </div>
 
           {showConfig && (
