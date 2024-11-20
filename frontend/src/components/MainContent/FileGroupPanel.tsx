@@ -149,7 +149,7 @@ const FileGroupPanel: React.FC = () => {
         fetchFileGroups(); // Refresh all groups data
         if (selectedGroup) {
           const updatedGroups = await (await fetch('/api/file-groups')).json();
-          const updatedGroup = updatedGroups.groups.find(g => g.name === selectedGroup.name);
+          const updatedGroup = updatedGroups.groups.find((g:FileGroup) => g.name === selectedGroup.name);
           if (updatedGroup) {
             setSelectedGroup(updatedGroup);
           }
@@ -174,7 +174,7 @@ const FileGroupPanel: React.FC = () => {
       fetchFileGroups(); // Refresh all groups data
       if (selectedGroup) {
         const updatedGroups = await (await fetch('/api/file-groups')).json();
-        const updatedGroup = updatedGroups.groups.find(g => g.name === selectedGroup.name);
+        const updatedGroup = updatedGroups.groups.find((g:FileGroup) => g.name === selectedGroup.name);
         if (updatedGroup) {
           setSelectedGroup(updatedGroup);
         }
