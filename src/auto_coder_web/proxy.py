@@ -387,6 +387,27 @@ class ProxyServer:
                     ))
             return CompletionResponse(completions=matches)
 
+        @self.app.put("/api/file/{path:path}")
+        async def update_file(path: str, request: Request):
+            try:
+                data = await request.json()
+                content = data.get("content")
+                if content is None:
+                    raise HTTPException(status_code=400, detail="Content is required")
+                
+                full_path = os.path.join(self.project_path, path)
+                
+                # Ensure the directory exists
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                
+                # Write the file content
+                with open(full_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                
+                return {"message": f"Successfully updated {path}"}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+
         @self.app.get("/api/file/{path:path}")
         async def get_file_content(path: str):
             from .file_manager import read_file_content

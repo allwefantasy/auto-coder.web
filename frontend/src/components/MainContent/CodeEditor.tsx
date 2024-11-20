@@ -10,6 +10,33 @@ const CodeEditor: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [code, setCode] = useState<string>('// Select a file to edit');
   const [treeData, setTreeData] = useState<DataNode[]>([]);
+  const [saving, setSaving] = useState<boolean>(false);
+
+  const handleSave = async () => {
+    if (!selectedFile || saving) return;
+    
+    try {
+      setSaving(true);
+      const response = await fetch(`/api/file/${selectedFile}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: code })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save file');
+      }
+
+      message.success('File saved successfully');
+    } catch (error) {
+      console.error('Error saving file:', error);
+      message.error('Failed to save file');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     const fetchFileTree = async () => {
@@ -126,10 +153,27 @@ const CodeEditor: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <div className="bg-gray-800 p-2 border-b border-gray-700">
-        <div className="flex items-center">
+        <div className="flex items-center justify-between">
           <span className="text-white text-sm">
             {selectedFile || 'No file selected'}
           </span>
+          {selectedFile && (
+            <button
+              onClick={handleSave}
+              disabled={!code}
+              className="px-3 py-1.5 bg-blue-600 text-sm text-white rounded-md
+                hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500
+                focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors
+                disabled:opacity-50 disabled:cursor-not-allowed
+                flex items-center gap-2 shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              Save
+            </button>
+          )}
         </div>
       </div>
 
