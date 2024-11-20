@@ -5,6 +5,9 @@ import queue
 import uuid
 import os
 import subprocess
+import select
+import fcntl
+import os
 
 class TerminalSession:
     def __init__(self, session_id: str):
@@ -96,12 +99,7 @@ class TerminalSession:
                 env=self.env
             )
             print(f"[Terminal] Session {self.session_id} process started with PID: {self.current_process.pid}")
-            
-            # Use non-blocking reads
-            import select
-            import fcntl
-            import os
-
+                        
             # Set non-blocking mode for stdout and stderr
             for pipe in [self.current_process.stdout, self.current_process.stderr]:
                 fd = pipe.fileno()
