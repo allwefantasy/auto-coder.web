@@ -437,6 +437,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       });
       setPendingResponseEvent(null);
       setInputText("");
+      console.log('Response event:', JSON.stringify({
+        request_id: requestId,
+        event: eventData,
+        response: v
+      }));
       return;
     }
 
@@ -581,6 +586,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                 placeholder="Select file groups"
                 value={selectedGroups}
                 onChange={(values) => {
+                  console.log('Selected groups:', values);
                   setSelectedGroups(values);
                   fetch('/api/file-groups/switch', {
                     method: 'POST',
