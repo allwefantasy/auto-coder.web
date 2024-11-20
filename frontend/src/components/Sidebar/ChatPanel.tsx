@@ -420,12 +420,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   };
 
   const handleSendMessage = async () => {
-    if (!inputText.trim()) {
+    const trimmedText = inputText.trim();
+    if (!trimmedText) {
       AntdMessage.warning('Please enter a message');
       return;
     }
 
-    const messageId = addUserMessage(inputText);
+    const messageId = addUserMessage(trimmedText);
     setInputText("");
 
 
