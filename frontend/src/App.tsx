@@ -9,6 +9,7 @@ import './App.css';
 
 const App: React.FC = () => {
   const [activePanel, setActivePanel] = useState<'code' | 'filegroup' | 'preview' | 'clipboard'>('code');
+const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [clipboardContent, setClipboardContent] = useState<string>('');  
   const [projectName, setProjectName] = useState<string>('');
   const [previewFiles, setPreviewFiles] = useState<{ path: string, content: string }[]>([]);
@@ -131,9 +132,71 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Lower Section - Terminal */}
-        <div className="h-1/4 border-t border-gray-700">
-          <Terminal requestId={requestId} />
+        {/* Lower Section - Tool Panels */}
+        <div className="h-1/4 border-t border-gray-700 flex flex-col">
+          {/* Tool Panel Navigation */}
+          <div className="bg-[#1f1f1f] border-b border-gray-700 px-2">
+            <div className="flex items-center gap-1">
+              {['Problems', 'Output', 'Debug Console', 'Terminal', 'Ports'].map((tab, index) => (
+                <button
+                  key={tab}
+                  className={`px-3 py-1.5 text-sm rounded-t transition-colors ${
+                    activeToolPanel === tab.toLowerCase() 
+                      ? 'text-white bg-[#2d2d2d]' 
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                  onClick={() => setActiveToolPanel(tab.toLowerCase())}
+                >
+                  {tab}
+                  {tab === 'Problems' && (
+                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-[#4d4d4d] rounded-full">
+                      4
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tool Panel Content */}
+          <div className="flex-1 bg-[#2d2d2d] overflow-auto">
+            {/* Problems Panel */}
+            <div className={`h-full ${activeToolPanel === 'problems' ? 'block' : 'hidden'}`}>
+              <div className="p-2 text-gray-300">
+                {/* Problems content here */}
+                Problems panel content
+              </div>
+            </div>
+
+            {/* Output Panel */}
+            <div className={`h-full ${activeToolPanel === 'output' ? 'block' : 'hidden'}`}>
+              <div className="p-2 text-gray-300">
+                {/* Output content here */}
+                Output panel content
+              </div>
+            </div>
+
+            {/* Debug Console Panel */}
+            <div className={`h-full ${activeToolPanel === 'debug console' ? 'block' : 'hidden'}`}>
+              <div className="p-2 text-gray-300">
+                {/* Debug Console content here */}
+                Debug Console panel content
+              </div>
+            </div>
+
+            {/* Terminal Panel */}
+            <div className={`h-full ${activeToolPanel === 'terminal' ? 'block' : 'hidden'}`}>
+              <Terminal requestId={requestId} />
+            </div>
+
+            {/* Ports Panel */}
+            <div className={`h-full ${activeToolPanel === 'ports' ? 'block' : 'hidden'}`}>
+              <div className="p-2 text-gray-300">
+                {/* Ports content here */}
+                Ports panel content
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
