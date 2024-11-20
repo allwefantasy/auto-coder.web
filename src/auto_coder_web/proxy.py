@@ -259,6 +259,11 @@ class ProxyServer:
         @self.app.on_event("shutdown")
         async def shutdown_event():
             await self.client.aclose()
+            
+        @self.app.websocket("/ws/terminal")
+        async def terminal_websocket(websocket: WebSocket):
+            session_id = str(uuid.uuid4())
+            await terminal_manager.handle_websocket(websocket, session_id)
         
 
         @self.app.delete("/api/files/{path:path}")
