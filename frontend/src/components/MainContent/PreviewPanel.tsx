@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Editor from '@monaco-editor/react';
 import Iframe from 'react-iframe';
-import Split from 'react-split';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 
 interface PreviewPanelProps {
@@ -11,34 +10,21 @@ interface PreviewPanelProps {
 const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
   const [activeFileIndex, setActiveFileIndex] = React.useState(0);
   const [showWebPreview, setShowWebPreview] = React.useState(false);
-  const [previewUrl, setPreviewUrl] = React.useState('http://127.0.0.1:3000');
+  const [previewUrl, setPreviewUrl] = React.useState('');
 
-  useEffect(() => {
-    setShowWebPreview(true);
-  }, []);
-
-  const handleRefresh = () => {
-    setPreviewUrl(prev => prev);
+  const handleUrlSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const input = e.currentTarget.elements.namedItem('url') as HTMLInputElement;
+    if (input.value) {
+      setPreviewUrl(input.value);
+      setShowWebPreview(true);
+    }
   };
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-hidden">
-        <Split 
-          className="h-full flex split"
-          sizes={[50, 50]}
-          minSize={200}
-          gutterStyle={(dimension) => ({
-            backgroundColor: '#4a5568',
-            width: '4px',
-            cursor: 'col-resize'
-          })}
-          gutter={() => {
-            const gutter = document.createElement('div')
-            gutter.className = 'gutter bg-gray-600 hover:bg-indigo-500 transition-colors'
-            return gutter
-          }}
-        >
+        <div className="h-full flex">
           {/* Left Panel - Code Preview */}
           <div className="flex-1 flex flex-col">
             {files.length === 0 ? (
@@ -81,41 +67,54 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
           </div>
 
           {/* Right Panel - Web Preview */}
-          <div className="flex flex-col border-l border-gray-700">
-            <div className="flex items-center p-2 bg-gray-800 border-b border-gray-700">
-              <div className="flex-1 flex items-center gap-2 px-2 bg-gray-700 rounded-lg">
-                <div className="flex space-x-2 p-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                </div>
+          <div className="w-1/2 flex flex-col border-l border-gray-700">
+            <div className="p-4 bg-gray-800">
+              <form onSubmit={handleUrlSubmit} className="flex gap-2">
                 <input
                   type="url"
-                  value={previewUrl}
-                  onChange={(e) => setPreviewUrl(e.target.value)}
-                  className="flex-1 bg-transparent text-white px-2 py-1 focus:outline-none"
-                  placeholder="Enter URL"
+                  name="url"
+                  placeholder="Enter URL to preview"
+                  className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 
+                    focus:outline-none focus:border-blue-500"
+                  defaultValue={previewUrl}
                 />
                 <button
-                  onClick={() => setShowWebPreview(true)}
-                  className="p-1 hover:bg-gray-600 rounded"
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
+                    focus:ring-offset-gray-800"
                 >
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
+                  Preview
                 </button>
-              </div>
+                {showWebPreview && (
+                  <button
+                    type="button"
+                    onClick={() => setShowWebPreview(false)}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 
+                      focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 
+                      focus:ring-offset-gray-800"
+                  >
+                    Close
+                  </button>
+                )}
+              </form>
             </div>
             <div className="flex-1">
-              <Iframe
-              url={previewUrl}
-              width="100%"
-              height="100%"
-              className="border-0"
-              display="block"
-              position="relative"
-              allowFullScreen
-            />
+              {showWebPreview ? (
+                <Iframe
+                  url={previewUrl}
+                  width="100%"
+                  height="100%"
+                  className="border-0"
+                  display="block"
+                  position="relative"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400">
+                  Enter a URL above to preview web content
+                </div>
+              )}
             </div>
           </div>
         </div>
