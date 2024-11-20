@@ -81,12 +81,42 @@ class TerminalSession:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                bufsize=1,  # Line buffered
                 cwd=self.working_directory,
                 env=self.env
             )
             
+            # Use non-blocking reads
+            import select
+            import fcntl
+            import os
+
+            # Set non-blocking mode for stdout and stderr
+            for pipe in [self.current_process.stdout, self.current_process.stderr]:
+                fd = pipe.fileno()
+                fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+                fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+            # Read output while process is running
+            while True:
+                reads = [self.current_process.stdout.fileno(), self.current_process.stderr.fileno()]
+                ret = select.select(reads, [], [], 0.1)[0]
+
+                for fd in ret:
+                    if fd == self.current_process.stdout.fileno():
+                        line = self.current_process.stdout.readline()
+                        if line:
+                            self.write(line)
+                    if fd == self.current_process.stderr.fileno():
+                        line = self.current_process.stderr.readline()
+                        if line:
+                            self.write(line)
+
+                if self.current_process.poll() is not None:
+                    break
+
+            # Get any remaining output
             stdout, stderr = self.current_process.communicate()
-            
             if stdout:
                 self.write(stdout)
             if stderr:

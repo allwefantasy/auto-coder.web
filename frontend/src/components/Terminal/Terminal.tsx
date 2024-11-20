@@ -6,11 +6,8 @@ import { SearchAddon } from '@xterm/addon-search';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
 import '@xterm/xterm/css/xterm.css';
 
-interface TerminalProps {
-  requestId: string;
-}
 
-const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
+const Terminal: React.FC = () => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon>(null);
@@ -114,7 +111,7 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
           terminal.write(data);
         }
       });
-
+      
       // Handle resize with ResizeObserver
       resizeObserverRef.current = new ResizeObserver(() => {
         if (fitAddonRef.current) {
@@ -158,16 +155,15 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
       try {
         console.log('[Terminal] Polling output for session:', sessionIdRef.current);
         const response = await fetch(`/api/terminal/${sessionIdRef.current}/output`, {
-          signal: AbortSignal.timeout(5000) // 5 second timeout
+          signal: AbortSignal.timeout(2000) // Reduced timeout to 2 seconds
         });
         
-            console.log('[Terminal] Polling output response:', response.status); 
-            if (response.status === 404) {
-              // 会话不存在时不要重新创建,而是提示用户刷新
-              stopPolling();
-              xtermRef.current?.write('\r\n\x1b[1;31mTerminal session expired. Please refresh page to reconnect.\x1b[0m\r\n');
-              return;
-            }
+        console.log('[Terminal] Polling output response:', response.status); 
+        if (response.status === 404) {
+          stopPolling();
+          xtermRef.current?.write('\r\n\x1b[1;31mTerminal session expired. Please refresh page to reconnect.\x1b[0m\r\n');
+          return;
+        }
 
         if (!response.ok) throw new Error('Failed to fetch terminal output');
         const data = await response.json();
@@ -186,14 +182,11 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
           console.warn('Terminal output request timed out');
-          // 超时不需要特殊处理,下一轮轮询会自动重试
           return;
         }
-        
-        // 避免在连接错误时反复写入错误信息
         console.error('Failed to fetch terminal output:', error);
       }
-    }, 1000);
+    }, 500); // Reduced polling interval to 500ms
   };
 
   const stopPolling = () => {
@@ -221,6 +214,18 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
 
       if (!response.ok) {
         throw new Error('Failed to send command');
+      }
+
+      // Immediately fetch output after sending command
+      const outputResponse = await fetch(`/api/terminal/${sessionIdRef.current}/output`);
+      if (outputResponse.ok) {
+        const data = await outputResponse.json();
+        if (data.output && data.output.length > 0) {
+          console.log('[Terminal] Received immediate output:', data.output);
+          data.output.forEach((line: string) => {
+            xtermRef.current?.write(line);
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to send command:', error);

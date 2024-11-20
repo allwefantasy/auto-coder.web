@@ -184,7 +184,7 @@ const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
 
             {/* Terminal Panel */}
             <div className={`h-full ${activeToolPanel === 'terminal' ? 'block' : 'hidden'}`}>
-              <Terminal requestId={requestId} />
+              <Terminal/>
             </div>
 
             {/* Ports Panel */}
