@@ -264,39 +264,44 @@ class ProxyServer:
         async def create_terminal():
             """Create a new terminal session"""
             session_id = terminal_manager.create_session()
-            terminal_manager.execute_command(session_id, "pwd")
-            terminal_manager.execute_command(session_id, "ls")
             return {"session_id": session_id}
 
         @self.app.post("/api/terminal/{session_id}/input")
         async def send_terminal_input(session_id: str, request: Request):
             """Send input to a terminal session"""
-            data = await request.json()
-            command = data.get("command", "")
-            if not command:
-                return {"status": "error", "message": "Command is required"}
             try:
+                data = await request.json()
+                command = data.get("command", "").strip()
+                
+                session = terminal_manager.get_session(session_id)
+                if not session:
+                    raise HTTPException(status_code=404, detail="Session not found")
+                    
                 terminal_manager.execute_command(session_id, command)
                 return {"status": "success"}
+                
             except Exception as e:
-                return {"status": "error", "message": str(e)}
+                raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.get("/api/terminal/{session_id}/output")
         async def get_terminal_output(session_id: str):
             """Get output from a terminal session"""
-            output = terminal_manager.get_output(session_id)
-            if output is None:
-                raise HTTPException(status_code=404, detail="Terminal session not found or expired")
-            return {"output": output, "status": "success"}
+            try:
+                output = terminal_manager.get_output(session_id)
+                if output is None:  # Session expired or invalid
+                    raise HTTPException(status_code=404, detail="Session not found")
+                return {"output": output}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
 
-        @self.app.delete("/api/terminal/{session_id}")
+        @self.app.delete("/api/terminal/{session_id}/delete")
         async def delete_terminal(session_id: str):
             """Delete a terminal session"""
             try:
                 terminal_manager.delete_session(session_id)
                 return {"status": "success"}
             except Exception as e:
-                return {"status": "error", "message": str(e)}
+                raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.delete("/api/files/{path:path}")
         async def delete_file(path: str):

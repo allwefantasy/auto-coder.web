@@ -76,7 +76,7 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
           }
         });
         if (!response.ok) throw new Error('Failed to create terminal session');
-        const data = await response.json();
+        const data = await response.json();        
         sessionIdRef.current = data.session_id;
         setIsConnected(true);
 
@@ -128,8 +128,14 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
         resizeObserverRef.current?.disconnect();
         stopPolling();
         if (sessionIdRef.current) {
-          fetch(`/api/terminal/${sessionIdRef.current}`, { method: 'DELETE' })
-            .catch(console.error);
+          fetch(`/api/terminal/${sessionIdRef.current}/delete`, { 
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).catch(error => {
+            console.error('Failed to delete terminal session:', error);
+          });
         }
         terminal.dispose();
       };
@@ -145,11 +151,15 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
       if (!sessionIdRef.current || !xtermRef.current) return;
 
       try {
-        const response = await fetch(`/api/terminal/${sessionIdRef.current}/output`);
+        console.log(sessionIdRef.current);
+        const response = await fetch(`/api/terminal/${sessionIdRef.current}/output`, {
+          signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
         
         if (response.status === 404) {
           // Session expired, try to reconnect
           sessionIdRef.current = null;
+          stopPolling();
           xtermRef.current.write('\r\n\x1b[1;31mTerminal session expired. Reconnecting...\x1b[0m\r\n');
           
           try {
@@ -162,10 +172,10 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
             const data = await newSession.json();
             sessionIdRef.current = data.session_id;
             xtermRef.current.write('\x1b[1;32mReconnected successfully\x1b[0m\r\n');
+            startPolling();
             return;
           } catch (e) {
             xtermRef.current.write('\x1b[1;31mFailed to reconnect. Please refresh the page.\x1b[0m\r\n');
-            stopPolling();
             return;
           }
         }
@@ -184,6 +194,10 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
           });
         }
       } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.warn('Terminal output request timed out');
+          return;
+        }
         console.error('Failed to fetch terminal output:', error);
         if (xtermRef.current) {
           xtermRef.current.write('\r\n\x1b[1;31mConnection error. Retrying...\x1b[0m\r\n');
@@ -208,12 +222,15 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ command }),
+        body: JSON.stringify({ command })
       });
-      if (!response.ok) throw new Error('Failed to send command');
+
+      if (!response.ok) {
+        throw new Error('Failed to send command');
+      }
     } catch (error) {
       console.error('Failed to send command:', error);
-      xtermRef.current.writeln('\r\n\x1b[1;31mFailed to send command\x1b[0m');
+      xtermRef.current.write('\r\n\x1b[1;31mFailed to send command\x1b[0m\r\n');
     }
   };
 
