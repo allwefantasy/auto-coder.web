@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Tree, Modal, message } from 'antd';
+import { Tree } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
-import { FolderOutlined, FileOutlined, DeleteOutlined } from '@ant-design/icons';
+import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 
 const CodeEditor: React.FC = () => {
@@ -39,57 +39,6 @@ const CodeEditor: React.FC = () => {
 
     fetchFileTree();
   }, []);
-
-  const [confirmDelete, setConfirmDelete] = useState<{visible: boolean; path: string}>({
-    visible: false,
-    path: ''
-  });
-
-  const handleDelete = async (path: string) => {
-    try {
-      const response = await fetch(`/api/file/${path}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete file/directory');
-      }
-      message.success('Successfully deleted');
-      // Refresh the file tree
-      const response2 = await fetch('/api/files');
-      if (!response2.ok) {
-        throw new Error('Failed to fetch file tree');
-      }
-      const data = await response2.json();
-      const transformNode = (node: any): DataNode => {
-        const isLeaf = node.isLeaf;
-        return {
-          title: (
-            <div className="flex items-center justify-between group">
-              <span>{node.title}</span>
-              <DeleteOutlined
-                className="opacity-0 group-hover:opacity-100 text-red-500 ml-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setConfirmDelete({
-                    visible: true,
-                    path: node.key
-                  });
-                }}
-              />
-            </div>
-          ),
-          key: node.key,
-          icon: isLeaf ? <FileOutlined /> : <FolderOutlined />,
-          children: node.children ? node.children.map(transformNode) : undefined,
-          isLeaf,
-        };
-      };
-      setTreeData(data.tree.map(transformNode));
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      message.error('Failed to delete file/directory');
-    }
-  };
 
   const handleSelect = async (selectedKeys: React.Key[], info: any) => {
     const key = selectedKeys[0] as string;
@@ -149,22 +98,6 @@ const CodeEditor: React.FC = () => {
           </div>
         </div>
       </div>
-
-      <Modal
-        title="Confirm Delete"
-        open={confirmDelete.visible}
-        onOk={() => {
-          handleDelete(confirmDelete.path);
-          setConfirmDelete({ visible: false, path: '' });
-        }}
-        onCancel={() => setConfirmDelete({ visible: false, path: '' })}
-        okText="Delete"
-        cancelText="Cancel"
-        okButtonProps={{ danger: true }}
-      >
-        <p>Are you sure you want to delete this {confirmDelete.path.includes('.') ? 'file' : 'directory'}?</p>
-        <p className="text-gray-500">{confirmDelete.path}</p>
-      </Modal>
     </div>
   );
 };
