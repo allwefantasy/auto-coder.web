@@ -19,4 +19,19 @@ http://localhost:8007
 
 开始你的编程！
 
+## 使用 Docker 运行
+
+```
+docker run  \
+  --name auto-coder-web \
+  -e BASE_URL=https://api.deepseek.com/v1 \
+  -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
+  -e MODEL=deepseek-chat \
+  -p 8007:8007 \
+  -p 8265:8265 \
+  -v <你的项目>:/app/work \
+  -v <你的日志目录>:/app/logs \
+  allwefantasy/auto-coder-web
+```
+
 

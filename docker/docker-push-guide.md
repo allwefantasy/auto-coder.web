@@ -19,7 +19,7 @@ docker login
 docker tag base:latest allwefantasy/auto-coder:latest
 
 # 标记应用镜像
-docker tag app:latest allwefantasy/auto-coder-web:latest
+docker tag auto-coder-web:latest allwefantasy/auto-coder-web:latest
 ```
 
 
