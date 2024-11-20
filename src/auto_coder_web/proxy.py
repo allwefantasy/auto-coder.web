@@ -333,25 +333,6 @@ class ProxyServer:
             tree = get_directory_tree(self.project_path)
             return {"tree": tree}
 
-        @self.app.delete("/api/directory/{path:path}")
-        async def delete_directory(path: str):
-            try:
-                import shutil
-                full_path = os.path.join(self.project_path, path)
-                if not os.path.exists(full_path):
-                    raise HTTPException(status_code=404, detail="Directory not found")
-                if not os.path.isdir(full_path):
-                    raise HTTPException(status_code=400, detail="Path is not a directory")
-                
-                # 安全检查：确保要删除的目录在项目路径下
-                if not os.path.abspath(full_path).startswith(os.path.abspath(self.project_path)):
-                    raise HTTPException(status_code=403, detail="Access denied")
-                
-                shutil.rmtree(full_path)
-                return {"message": "Directory deleted successfully"}
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
         @self.app.get("/api/completions/files")
         async def get_file_completions(name: str = Query(...)):
             """获取文件名补全"""
