@@ -21,7 +21,7 @@ http://localhost:8007
 
 ## 使用 Docker 运行
 
-```
+```shell
 docker run  \
   --name auto-coder-web \
   -e BASE_URL=https://api.deepseek.com/v1 \
@@ -33,5 +33,11 @@ docker run  \
   -v <你的日志目录>:/app/logs \
   allwefantasy/auto-coder-web
 ```
+
+打开浏览器
+
+http://localhost:8007
+
+开始你的编程！
 
 
