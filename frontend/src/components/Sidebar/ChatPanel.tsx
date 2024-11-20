@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Select, Switch, message as AntdMessage, Tooltip } from 'antd';
-import { UndoOutlined } from '@ant-design/icons';
+import { Select, Switch, message as AntdMessage, Tooltip, Modal } from 'antd';
+import { UndoOutlined, ExpandAltOutlined } from '@ant-design/icons';
 import { Editor } from '@monaco-editor/react';
 
 interface FileGroup {
@@ -83,6 +83,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const editorRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
+  const [isMaximized, setIsMaximized] = useState<boolean>(false);
+  const [maximizedEditorRef, setMaximizedEditorRef] = useState<any>(null);
 
   useEffect(() => {
     // Fetch initial config
@@ -648,7 +650,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
               <div className="text-xs text-gray-400">
                 Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter to send
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Switch
                   size="small"
                   checked={isWriteMode}
@@ -657,6 +659,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                   unCheckedChildren="Chat"
                   className="bg-gray-600"
                 />
+                <button
+                  className="flex items-center p-2 bg-gray-600 text-white rounded-md
+                    hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 
+                    focus:ring-offset-gray-900 transition-colors
+                    shadow-lg shadow-gray-500/20"
+                  onClick={() => setIsMaximized(true)}
+                  title="最大化编辑"
+                >
+                  <ExpandAltOutlined style={{ fontSize: '18px' }} />
+                </button>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -694,6 +706,76 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           </div>
         </div>
       </div>
+
+      {/* Maximized Editor Modal */}
+      <Modal
+        title="高级编辑"
+        open={isMaximized}
+        onCancel={() => setIsMaximized(false)}
+        footer={null}
+        width="80%"
+        style={{ 
+          top: '50%', 
+          transform: 'translateY(-50%)',
+          maxWidth: '1200px'
+        }}
+        bodyStyle={{ 
+          height: '70vh',
+          padding: '20px'
+        }}
+      >
+        <div className="h-full flex flex-col">
+          <div className="flex-1">
+            <Editor
+              height="calc(100vh - 250px)"
+              defaultLanguage="markdown"
+              theme="vs-dark"
+              value={inputText}
+              onChange={handleEditorChange}
+              onMount={(editor) => setMaximizedEditorRef(editor)}
+              options={{
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                lineNumbers: 'off',
+                folding: false,
+                contextmenu: false,
+                fontFamily: 'monospace',
+                fontSize: 14,
+                lineHeight: 1.5,
+                padding: { top: 8, bottom: 8 },
+                suggestOnTriggerCharacters: true,
+                quickSuggestions: true,
+                acceptSuggestionOnEnter: 'smart',
+                overviewRulerLanes: 0,
+                overviewRulerBorder: false,
+                fixedOverflowWidgets: true,
+                suggest: {
+                  insertMode: 'replace',
+                  snippetsPreventQuickSuggestions: false,
+                }
+              }}
+            />
+          </div>
+          <div className="flex justify-end mt-4 gap-2">
+            <button
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              onClick={() => setIsMaximized(false)}
+            >
+              取消
+            </button>
+            <button
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              onClick={() => {
+                handleSendMessage();
+                setIsMaximized(false);
+              }}
+            >
+              发送
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
