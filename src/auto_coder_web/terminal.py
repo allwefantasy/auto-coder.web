@@ -8,6 +8,7 @@ import subprocess
 
 class TerminalSession:
     def __init__(self, session_id: str):
+        print(f"[Terminal] Creating new session with ID: {session_id}")
         self.session_id = session_id
         self.output_queue = queue.Queue()
         self.command_history: List[str] = []
@@ -18,6 +19,7 @@ class TerminalSession:
         
         # Set default working directory to project root
         self.working_directory = os.getcwd()
+        print(f"[Terminal] Session {session_id} initialized with working directory: {self.working_directory}")
         
         # Copy current environment variables
         self.env = os.environ.copy()
@@ -41,19 +43,23 @@ class TerminalSession:
         if not command:
             return
             
+        print(f"[Terminal] Session {self.session_id} executing command: {command}")
         self.command_history.append(command)
         self.last_activity = asyncio.get_event_loop().time()
         
         try:
             # Kill previous process if it exists
             if self.current_process and self.current_process.poll() is None:
+                print(f"[Terminal] Session {self.session_id} terminating previous process")
                 try:
                     self.current_process.terminate()
                     self.current_process.wait(timeout=1)
                 except:
+                    print(f"[Terminal] Session {self.session_id} force killing previous process")
                     try:
                         self.current_process.kill()
                     except:
+                        print(f"[Terminal] Session {self.session_id} failed to kill previous process")
                         pass
             
             # Special command handling
@@ -67,14 +73,18 @@ class TerminalSession:
                     
                     if os.path.isdir(new_dir):
                         self.working_directory = new_dir
+                        print(f"[Terminal] Session {self.session_id} changed directory to: {new_dir}")
                         self.write(f"Changed directory to {new_dir}\n")
                     else:
+                        print(f"[Terminal] Session {self.session_id} failed to change directory - not found: {new_dir}")
                         self.write(f"Directory not found: {new_dir}\n")
                 except Exception as e:
+                    print(f"[Terminal] Session {self.session_id} error changing directory: {str(e)}")
                     self.write(f"Error changing directory: {str(e)}\n")
                 return
                 
             # Execute command
+            print(f"[Terminal] Session {self.session_id} starting process with command: {command}")
             self.current_process = subprocess.Popen(
                 command,
                 shell=True,
@@ -85,6 +95,7 @@ class TerminalSession:
                 cwd=self.working_directory,
                 env=self.env
             )
+            print(f"[Terminal] Session {self.session_id} process started with PID: {self.current_process.pid}")
             
             # Use non-blocking reads
             import select
@@ -132,15 +143,19 @@ class TerminalSession:
 
     def stop(self):
         """Stop the terminal session"""
+        print(f"[Terminal] Stopping session {self.session_id}")
         self.running = False
         if self.current_process and self.current_process.poll() is None:
+            print(f"[Terminal] Session {self.session_id} terminating running process")
             try:
                 self.current_process.terminate()
                 self.current_process.wait(timeout=1)
             except:
+                print(f"[Terminal] Session {self.session_id} force killing process")
                 try:
                     self.current_process.kill()
                 except:
+                    print(f"[Terminal] Session {self.session_id} failed to kill process")
                     pass
         
         while not self.output_queue.empty():
@@ -153,7 +168,9 @@ class TerminalManager:
     def create_session(self) -> str:
         """Create a new terminal session"""
         session_id = str(uuid.uuid4())
+        print(f"[Terminal] Creating new terminal session with ID: {session_id}")
         self.sessions[session_id] = TerminalSession(session_id)
+        print(f"[Terminal] Successfully created session {session_id}")
         return session_id
 
     def get_session(self, session_id: str) -> Optional[TerminalSession]:
@@ -177,9 +194,14 @@ class TerminalManager:
 
     def delete_session(self, session_id: str) -> None:
         """Delete a terminal session"""
+        print(f"[Terminal] Request to delete session {session_id}")
         if session_id in self.sessions:
+            print(f"[Terminal] Found active session {session_id}, stopping it")
             self.sessions[session_id].stop()
             del self.sessions[session_id]
+            print(f"[Terminal] Successfully deleted session {session_id}")
+        else:
+            print(f"[Terminal] Session {session_id} not found for deletion")
 
 # Global terminal manager instance
 terminal_manager = TerminalManager()
