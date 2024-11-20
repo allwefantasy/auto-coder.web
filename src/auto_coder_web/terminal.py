@@ -1,4 +1,3 @@
-
 from fastapi import WebSocket
 import asyncio
 import websockets
@@ -47,22 +46,21 @@ class TerminalSession:
 
     async def _handle_io(self):
         """Handle I/O between websocket and PTY"""
+        loop = asyncio.get_running_loop()
         try:
             while self.running:
-                # Use select to check if there's data to read
-                r, _, _ = select.select([self.fd], [], [], 0.1)
-                
-                if r:
-                    try:
-                        data = os.read(self.fd, 1024)
-                        if data:
-                            await self.websocket.send_text(data.decode())
-                        else:
-                            break
-                    except (OSError, IOError):
+                try:
+                    # 使用异步的方式读取数据
+                    data = await loop.run_in_executor(None, os.read, self.fd, 1024)
+                    if data:
+                        await self.websocket.send_text(data.decode())
+                    else:
                         break
+                except (OSError, IOError) as e:
+                    print(f"Error reading from PTY: {e}")
+                    break
                 
-                # Small delay to prevent high CPU usage
+                # 给其他任务执行的机会
                 await asyncio.sleep(0.01)
                 
         except Exception as e:
@@ -124,13 +122,12 @@ class TerminalManager:
                         data = await websocket.receive_text()
                         try:
                             message = json.loads(data)
-                            if message['type'] == 'input':
-                                session.write(message['data'])
-                            elif message['type'] == 'resize':
+                            if message['type'] == 'resize':
                                 session.resize(message['rows'], message['cols'])
+                            else:
+                                session.write(data)
                         except json.JSONDecodeError:
-                            # If not JSON, treat as raw input
-                            print(f"Received non-JSON data: {data}")
+                            # 如果不是JSON，就当作普通输入处理
                             session.write(data)
                     except RuntimeError as e:
                         if "WebSocket is not connected" in str(e):

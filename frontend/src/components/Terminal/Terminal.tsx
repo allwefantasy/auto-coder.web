@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Terminal as XTerminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
@@ -42,6 +41,14 @@ const Terminal: React.FC = () => {
     // Ensure dimensions are set before fitting
     setTimeout(() => {
       fitAddon.fit();
+      // Send initial size to backend
+      if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+        websocketRef.current.send(JSON.stringify({
+          type: 'resize',
+          cols: xterm.cols,
+          rows: xterm.rows
+        }));
+      }
     }, 0);
 
     // Initialize WebSocket connection
@@ -74,27 +81,17 @@ const Terminal: React.FC = () => {
     xterm.onData((data) => {
       if (ws.readyState === WebSocket.OPEN) {
         try {
-          // 发送数据到服务器
-          ws.send(JSON.stringify({ type: 'input', data }));
-
-          // 本地不进行回显，让服务器端负责回显          
+          ws.send(data);
         } catch (error) {
           console.error('Error sending data:', error);
         }
       }
     });
 
-    // 仅处理特殊的控制键组合
+    // 处理所有键盘事件
     xterm.attachCustomKeyEventHandler((event: KeyboardEvent) => {
-      const ctrlKey = event.ctrlKey || event.metaKey;
-      
-      // 允许Ctrl+C, Ctrl+D等控制字符通过
-      if (ctrlKey) {
-        return true;
-      }
-
-      // 对于普通按键，让onData处理
-      return !event.altKey; 
+      // 始终返回true以允许所有键盘输入
+      return true;
     });
 
     // Make terminal focusable
@@ -102,25 +99,17 @@ const Terminal: React.FC = () => {
 
     // Handle window resize
     const handleResize = () => {
-      try {
-        fitAddon.fit();
-        // 确保终端已经完全加载并且有正确的尺寸
-        setTimeout(() => {
-          if (ws.readyState === WebSocket.OPEN && xterm.element) {
-            const { rows, cols } = xterm;
-            ws.send(JSON.stringify({ type: 'resize', rows, cols }));
-          }
-        }, 100);
-      } catch (error) {
-        console.error('Error resizing terminal:', error);
+      fitAddon.fit();
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'resize',
+          cols: xterm.cols,
+          rows: xterm.rows
+        }));
       }
     };
 
-    // 等待终端完全加载后再设置尺寸
-    setTimeout(() => {
-      handleResize();
-      window.addEventListener('resize', handleResize);
-    }, 100);
+    window.addEventListener('resize', handleResize);
 
     xtermRef.current = xterm;
 
