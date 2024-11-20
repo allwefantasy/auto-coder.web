@@ -70,45 +70,31 @@ const Terminal: React.FC = () => {
       xterm.writeln('\r\nConnection closed');
     };
 
-    // Handle terminal input - ensure terminal is focusable and handles input
-    xterm.attachCustomKeyEventHandler((event: KeyboardEvent) => {
-      return true; // Allow all key events to be processed
-    });
-
+    // 使用onData处理所有输入
     xterm.onData((data) => {
       if (ws.readyState === WebSocket.OPEN) {
         try {
-          // 如果是回车键，发送特殊的换行符序列
-          if (data === '\r') {
-            ws.send(JSON.stringify({ type: 'input', data: '\n' }));
-          } else {
-            ws.send(JSON.stringify({ type: 'input', data }));
-          }
-          
-          // 如果是可打印字符，在本地回显
-          if (data >= ' ' || data === '\r' || data === '\n' || data === '\b') {
-            xterm.write(data);
-          }
+          // 发送数据到服务器
+          ws.send(JSON.stringify({ type: 'input', data }));
+
+          // 本地不进行回显，让服务器端负责回显          
         } catch (error) {
           console.error('Error sending data:', error);
         }
       }
     });
 
-    // 处理特殊键
-    xterm.onKey((event) => {
-      const ev = event.domEvent;
-      const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
-
-      if (ev.keyCode === 13) { // Enter
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'input', data: '\n' }));
-        }
-      } else if (ev.keyCode === 8) { // Backspace
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'input', data: '\b' }));
-        }
+    // 仅处理特殊的控制键组合
+    xterm.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+      const ctrlKey = event.ctrlKey || event.metaKey;
+      
+      // 允许Ctrl+C, Ctrl+D等控制字符通过
+      if (ctrlKey) {
+        return true;
       }
+
+      // 对于普通按键，让onData处理
+      return !event.altKey; 
     });
 
     // Make terminal focusable
