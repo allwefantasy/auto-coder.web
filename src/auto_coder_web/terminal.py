@@ -14,7 +14,8 @@ class TerminalSession:
 
     def write(self, data: str):
         """Write data to the terminal output queue"""
-        self.output_queue.put(data)
+        if data:
+            self.output_queue.put(data)
 
     def read(self) -> List[str]:
         """Read all available output from the terminal"""
@@ -25,14 +26,40 @@ class TerminalSession:
 
     def execute_command(self, command: str) -> None:
         """Execute a command and store it in history"""
+        if not command:
+            return
+            
         self.command_history.append(command)
-        # Here you can implement actual command execution
-        # For now, we'll just echo the command
-        self.write(f"> {command}\n")
+        
+        try:
+            import subprocess
+            process = subprocess.Popen(
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            stdout, stderr = process.communicate()
+            
+            if stdout:
+                self.write(stdout)
+            if stderr:
+                self.write(stderr)
+                
+            if process.returncode != 0:
+                self.write(f"Command exited with status {process.returncode}\n")
+                
+        except Exception as e:
+            self.write(f"Error executing command: {str(e)}\n")
+        
+        self.write(f"\n")
 
     def stop(self):
         """Stop the terminal session"""
         self.running = False
+        while not self.output_queue.empty():
+            self.output_queue.get()
 
 class TerminalManager:
     def __init__(self):

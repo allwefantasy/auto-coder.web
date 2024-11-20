@@ -149,6 +149,11 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
         if (!response.ok) throw new Error('Failed to fetch terminal output');
         const data = await response.json();
         
+        if (data.status === "error") {
+          xtermRef.current?.write('\r\n\x1b[1;31m' + data.message + '\x1b[0m\r\n');
+          return;
+        }
+        
         if (data.output && data.output.length > 0) {
           data.output.forEach((line: string) => {
             xtermRef.current?.write(line);
@@ -156,6 +161,9 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
         }
       } catch (error) {
         console.error('Failed to fetch terminal output:', error);
+        if (xtermRef.current) {
+          xtermRef.current.write('\r\n\x1b[1;31mFailed to fetch terminal output. Retrying...\x1b[0m\r\n');
+        }
       }
     }, 1000);
   };
