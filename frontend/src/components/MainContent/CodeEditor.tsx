@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Tree } from 'antd';
+import { Tree, Dropdown, Modal } from 'antd';
+import type { MenuProps } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
@@ -40,6 +41,57 @@ const CodeEditor: React.FC = () => {
     fetchFileTree();
   }, []);
 
+  const handleDelete = async (nodePath: string) => {
+    Modal.confirm({
+      title: 'Delete Confirmation',
+      content: `Are you sure you want to delete this directory: ${nodePath}?`,
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          const response = await fetch(`/api/directory/${encodeURIComponent(nodePath)}`, {
+            method: 'DELETE',
+          });
+          if (!response.ok) {
+            throw new Error('Failed to delete directory');
+          }
+          // Refresh the file tree after successful deletion
+          const fetchFileTree = async () => {
+            try {
+              const response = await fetch('/api/files');
+              if (!response.ok) {
+                throw new Error('Failed to fetch file tree');
+              }
+              const data = await response.json();
+              
+              const transformNode = (node: any): DataNode => {
+                const isLeaf = node.isLeaf;
+                return {
+                  title: node.title,
+                  key: node.key,
+                  icon: isLeaf ? <FileOutlined /> : <FolderOutlined />,
+                  children: node.children ? node.children.map(transformNode) : undefined,
+                  isLeaf,
+                };
+              };
+              
+              setTreeData(data.tree.map(transformNode));
+            } catch (error) {
+              console.error('Error fetching file tree:', error);
+            }
+          };
+          await fetchFileTree();
+        } catch (error) {
+          console.error('Error deleting directory:', error);
+          Modal.error({
+            title: 'Error',
+            content: 'Failed to delete directory',
+          });
+        }
+      },
+    });
+  };
+
   const handleSelect = async (selectedKeys: React.Key[], info: any) => {
     const key = selectedKeys[0] as string;
     if (key && info.node.isLeaf) {
@@ -57,6 +109,18 @@ const CodeEditor: React.FC = () => {
       }
     }
   };
+
+  const getContextMenu = (node: any): MenuProps => ({
+    items: [
+      {
+        key: 'delete',
+        label: 'Delete Directory',
+        danger: true,
+        disabled: node.isLeaf,
+        onClick: () => handleDelete(node.key as string),
+      },
+    ],
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -77,6 +141,13 @@ const CodeEditor: React.FC = () => {
               onSelect={handleSelect}
               treeData={treeData}
               className="bg-gray-900 text-gray-300"
+              onRightClick={({ node }) => {
+                const menu = getContextMenu(node);
+                Dropdown.open({
+                  overlay: menu,
+                  trigger: ['contextMenu'],
+                });
+              }}
             />
           </div>          
           <div className="flex-1 bg-gray-900">            
