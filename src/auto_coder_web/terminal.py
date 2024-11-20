@@ -124,6 +124,7 @@ class TerminalManager:
                         session.resize(message['rows'], message['cols'])
                 except json.JSONDecodeError:
                     # If not JSON, treat as raw input
+                    print(f"Received non-JSON data: {data}")
                     session.write(data)
         except websockets.exceptions.ConnectionClosed:
             pass
