@@ -92,7 +92,7 @@ const Terminal: React.FC = () => {
     // 处理特殊键
     xterm.onKey((event) => {
       const ev = event.domEvent;
-      const printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
+      const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
 
       if (ev.keyCode === 13) { // Enter
         if (ws.readyState === WebSocket.OPEN) {
