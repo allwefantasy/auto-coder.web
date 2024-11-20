@@ -72,9 +72,35 @@ const Terminal: React.FC = () => {
     xterm.onData((data) => {
       if (ws.readyState === WebSocket.OPEN) {
         try {
-          ws.send(JSON.stringify({ type: 'input', data }));
+          // 如果是回车键，发送特殊的换行符序列
+          if (data === '\r') {
+            ws.send(JSON.stringify({ type: 'input', data: '\n' }));
+          } else {
+            ws.send(JSON.stringify({ type: 'input', data }));
+          }
+          
+          // 如果是可打印字符，在本地回显
+          if (data >= ' ' || data === '\r' || data === '\n' || data === '\b') {
+            xterm.write(data);
+          }
         } catch (error) {
           console.error('Error sending data:', error);
+        }
+      }
+    });
+
+    // 处理特殊键
+    xterm.onKey((event) => {
+      const ev = event.domEvent;
+      const printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
+
+      if (ev.keyCode === 13) { // Enter
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'input', data: '\n' }));
+        }
+      } else if (ev.keyCode === 8) { // Backspace
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'input', data: '\b' }));
         }
       }
     });
