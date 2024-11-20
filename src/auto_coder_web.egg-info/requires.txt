@@ -1,4 +1,5 @@
-auto-coder
+auto-coder==0.1.194
 aiofiles
 psutil
 sse-starlette
+websockets

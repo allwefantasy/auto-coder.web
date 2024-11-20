@@ -1,16 +1,17 @@
 Metadata-Version: 2.1
 Name: auto_coder_web
-Version: 0.1.1
+Version: 0.1.2
 Summary: auto-coder.web: A Python Project
 Author: allwefantasy
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Description-Content-Type: text/markdown
-Requires-Dist: auto-coder
+Requires-Dist: auto-coder==0.1.194
 Requires-Dist: aiofiles
 Requires-Dist: psutil
 Requires-Dist: sse-starlette
+Requires-Dist: websockets
 
 # auto-coder.web
 
@@ -28,6 +29,27 @@ auto-coder.web
 ```
 
 ## 打开浏览器
+
+http://localhost:8007
+
+开始你的编程！
+
+## 使用 Docker 运行
+
+```shell
+docker run  \
+  --name auto-coder-web \
+  -e BASE_URL=https://api.deepseek.com/v1 \
+  -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
+  -e MODEL=deepseek-chat \
+  -p 8007:8007 \
+  -p 8265:8265 \
+  -v <你的项目>:/app/work \
+  -v <你的日志目录>:/app/logs \
+  allwefantasy/auto-coder-web
+```
+
+打开浏览器
 
 http://localhost:8007
 
