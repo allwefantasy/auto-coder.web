@@ -4,6 +4,7 @@ import ChatPanel from './components/Sidebar/ChatPanel';
 import CodeEditor from './components/MainContent/CodeEditor';
 import FileGroupPanel from './components/MainContent/FileGroupPanel';
 import Terminal from './components/Terminal/Terminal';
+import OutputPanel from './components/Terminal/OutputPanel';
 import PreviewPanel from './components/MainContent/PreviewPanel';
 import './App.css';
 
@@ -170,10 +171,7 @@ const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
 
             {/* Output Panel */}
             <div className={`h-full ${activeToolPanel === 'output' ? 'block' : 'hidden'}`}>
-              <div className="p-2 text-gray-300">
-                {/* Output content here */}
-                Output panel content
-              </div>
+              <OutputPanel requestId={requestId} />
             </div>
 
             {/* Debug Console Panel */}
