@@ -498,7 +498,7 @@ class ProxyServer:
                 request_id, request.event, request.response)
             return {"message": "success"}
 
-        @self.app.get("/api/terminal/{request_id}")
+        @self.app.get("/api/output/{request_id}")
         async def get_terminal_logs(request_id: str):
             return self.auto_coder_runner.get_logs(request_id)
 

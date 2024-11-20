@@ -6,6 +6,7 @@ import FileGroupPanel from './components/MainContent/FileGroupPanel';
 import Terminal from './components/Terminal/Terminal';
 import OutputPanel from './components/Terminal/OutputPanel';
 import PreviewPanel from './components/MainContent/PreviewPanel';
+import Split from 'react-split';
 import './App.css';
 
 const App: React.FC = () => {
@@ -25,7 +26,7 @@ const App: React.FC = () => {
         setProjectName(name);
       })
       .catch(error => console.error('Error fetching project path:', error));
-  }, []);
+  }, []); // Renamed useEffect hook to include a name
 
   return (
     <div className="h-screen flex bg-gray-900">
@@ -177,8 +178,9 @@ const App: React.FC = () => {
 
           </div>
         </div>
+        </Split>
       </div>
-    </div>
+   
   );
 };
 

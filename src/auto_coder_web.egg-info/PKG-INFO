@@ -1,0 +1,34 @@
+Metadata-Version: 2.1
+Name: auto_coder_web
+Version: 0.1.0
+Summary: auto-coder.web: A Python Project
+Author: allwefantasy
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Description-Content-Type: text/markdown
+Requires-Dist: auto-coder
+Requires-Dist: aiofiles
+Requires-Dist: psutil
+Requires-Dist: sse-starlette
+
+# auto-coder.web
+
+## 安装
+
+```
+pip install auto_coder_web
+```
+
+## 进入项目
+
+```
+cd <project_dir>    
+auto-coder.web 
+```
+
+## 打开浏览器
+
+http://localhost:8007
+
+开始你的编程！
