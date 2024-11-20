@@ -50,21 +50,35 @@ class TerminalSession:
         try:
             while self.running:
                 try:
-                    # 使用异步的方式读取数据
-                    data = await loop.run_in_executor(None, os.read, self.fd, 1024)
-                    if data:
-                        await self.websocket.send_text(data.decode())
-                    else:
-                        break
+                    # Use select to check if there's data to read
+                    r, w, e = await loop.run_in_executor(None, select.select, [self.fd], [], [], 0.1)
+                    
+                    if self.fd in r:
+                        data = await loop.run_in_executor(None, os.read, self.fd, 8192)
+                        if data:
+                            try:
+                                # Try to decode as UTF-8
+                                decoded_data = data.decode('utf-8', errors='replace')
+                                await self.websocket.send_text(decoded_data)
+                            except Exception as e:
+                                print(f"Error sending data to websocket: {e}")
+                                break
+                        else:
+                            print("No data received from PTY")
+                            break
+                    
+                    # Small delay to prevent CPU overload
+                    await asyncio.sleep(0.001)
+                    
                 except (OSError, IOError) as e:
                     print(f"Error reading from PTY: {e}")
                     break
-                
-                # 给其他任务执行的机会
-                await asyncio.sleep(0.01)
-                
+                except Exception as e:
+                    print(f"Unexpected error in terminal I/O: {str(e)}")
+                    break
+                    
         except Exception as e:
-            print(f"Error in terminal I/O: {str(e)}")
+            print(f"Fatal error in terminal I/O: {str(e)}")
         finally:
             self.cleanup()
 
@@ -72,7 +86,12 @@ class TerminalSession:
         """Write data to the terminal"""
         with self._lock:
             if self.fd is not None:
-                os.write(self.fd, data.encode())
+                try:
+                    # Ensure data is properly encoded
+                    encoded_data = data.encode('utf-8')
+                    os.write(self.fd, encoded_data)
+                except Exception as e:
+                    print(f"Error writing to terminal: {e}")
 
     def cleanup(self):
         """Clean up the terminal session"""

@@ -61,9 +61,19 @@ const Terminal: React.FC = () => {
 
     ws.onmessage = (event) => {
       try {
-        xterm.write(event.data);
+        const data = event.data;
+        if (typeof data === 'string') {
+          xterm.write(data);
+        } else if (data instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            xterm.write(reader.result as string);
+          };
+          reader.readAsText(data);
+        }
       } catch (error) {
         console.error('Error writing to terminal:', error);
+        xterm.writeln('\r\nError writing to terminal: ' + error);
       }
     };
 
@@ -75,24 +85,39 @@ const Terminal: React.FC = () => {
     ws.onclose = () => {
       console.log('WebSocket connection closed');
       xterm.writeln('\r\nConnection closed');
+      // Try to reconnect after a delay
+      setTimeout(() => {
+        if (websocketRef.current?.readyState === WebSocket.CLOSED) {
+          websocketRef.current = new WebSocket('ws://localhost:8007/ws/terminal');
+        }
+      }, 3000);
     };
 
-    // 使用onData处理所有输入
+    // Handle terminal input
     xterm.onData((data) => {
       if (ws.readyState === WebSocket.OPEN) {
         try {
           ws.send(data);
         } catch (error) {
           console.error('Error sending data:', error);
+          xterm.writeln('\r\nError sending data: ' + error);
         }
+      } else {
+        console.warn('WebSocket is not open. Current state:', ws.readyState);
+        xterm.writeln('\r\nWebSocket is not connected. Trying to reconnect...');
       }
     });
 
-    // 处理所有键盘事件
+    // Handle keyboard events
     xterm.attachCustomKeyEventHandler((event: KeyboardEvent) => {
-      // 始终返回true以允许所有键盘输入
+      // Allow all keyboard input including special keys
       return true;
     });
+
+    // Ensure initial focus
+    setTimeout(() => {
+      xterm.focus();
+    }, 100);
 
     // Make terminal focusable
     xterm.focus();
