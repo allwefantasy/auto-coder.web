@@ -10,8 +10,8 @@ import './App.css';
 
 const App: React.FC = () => {
   const [activePanel, setActivePanel] = useState<'code' | 'filegroup' | 'preview' | 'clipboard'>('code');
-const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
-  const [clipboardContent, setClipboardContent] = useState<string>('');  
+  const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
+  const [clipboardContent, setClipboardContent] = useState<string>('');
   const [projectName, setProjectName] = useState<string>('');
   const [previewFiles, setPreviewFiles] = useState<{ path: string, content: string }[]>([]);
   const [requestId, setRequestId] = useState<string>('');
@@ -43,7 +43,7 @@ const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
             </div>
           </div>
         </div>
-        <ChatPanel 
+        <ChatPanel
           setPreviewFiles={setPreviewFiles}
           setActivePanel={setActivePanel}
           setClipboardContent={setClipboardContent}
@@ -58,43 +58,39 @@ const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
         <div className="bg-gray-800 p-2 border-b border-gray-700">
           <div className="flex space-x-2">
             <button
-              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${
-                activePanel === 'code'
+              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${activePanel === 'code'
                   ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700'
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-              }`}
+                }`}
               onClick={() => setActivePanel('code')}
             >
               Code Editor
             </button>
             <button
-              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${
-                activePanel === 'filegroup'
+              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${activePanel === 'filegroup'
                   ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700'
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-              }`}
+                }`}
               onClick={() => setActivePanel('filegroup')}
             >
               File Groups
             </button>
             <button
-              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${
-                activePanel === 'preview'
+              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${activePanel === 'preview'
                   ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700'
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-              }`}
+                }`}
               onClick={() => setActivePanel('preview')}
             >
               Preview Changes
             </button>
             <button
-              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${
-                activePanel === 'clipboard'
+              className={`px-4 py-2 rounded-md transition-all duration-200 font-medium ${activePanel === 'clipboard'
                   ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700'
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-              }`}
+                }`}
               onClick={() => {
-                setActivePanel('clipboard');                
+                setActivePanel('clipboard');
               }}
             >
               Clipboard
@@ -138,22 +134,16 @@ const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
           {/* Tool Panel Navigation */}
           <div className="bg-[#1f1f1f] border-b border-gray-700 px-2">
             <div className="flex items-center gap-1">
-              {['Problems', 'Output', 'Debug Console', 'Terminal', 'Ports'].map((tab, index) => (
+              {['Output', 'Terminal'].map((tab, index) => (
                 <button
                   key={tab}
-                  className={`px-3 py-1.5 text-sm rounded-t transition-colors ${
-                    activeToolPanel === tab.toLowerCase() 
-                      ? 'text-white bg-[#2d2d2d]' 
+                  className={`px-3 py-1.5 text-sm rounded-t transition-colors ${activeToolPanel === tab.toLowerCase()
+                      ? 'text-white bg-[#2d2d2d]'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                   onClick={() => setActiveToolPanel(tab.toLowerCase())}
                 >
                   {tab}
-                  {tab === 'Problems' && (
-                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-[#4d4d4d] rounded-full">
-                      4
-                    </span>
-                  )}
                 </button>
               ))}
             </div>
@@ -161,39 +151,18 @@ const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
 
           {/* Tool Panel Content */}
           <div className="flex-1 bg-[#2d2d2d] overflow-auto">
-            {/* Problems Panel */}
-            <div className={`h-full ${activeToolPanel === 'problems' ? 'block' : 'hidden'}`}>
-              <div className="p-2 text-gray-300">
-                {/* Problems content here */}
-                Problems panel content
-              </div>
-            </div>
 
             {/* Output Panel */}
             <div className={`h-full ${activeToolPanel === 'output' ? 'block' : 'hidden'}`}>
               <OutputPanel requestId={requestId} />
             </div>
 
-            {/* Debug Console Panel */}
-            <div className={`h-full ${activeToolPanel === 'debug console' ? 'block' : 'hidden'}`}>
-              <div className="p-2 text-gray-300">
-                {/* Debug Console content here */}
-                Debug Console panel content
-              </div>
-            </div>
 
             {/* Terminal Panel */}
             <div className={`h-full ${activeToolPanel === 'terminal' ? 'block' : 'hidden'}`}>
-              <Terminal/>
+              <Terminal />
             </div>
 
-            {/* Ports Panel */}
-            <div className={`h-full ${activeToolPanel === 'ports' ? 'block' : 'hidden'}`}>
-              <div className="p-2 text-gray-300">
-                {/* Ports content here */}
-                Ports panel content
-              </div>
-            </div>
           </div>
         </div>
       </div>
