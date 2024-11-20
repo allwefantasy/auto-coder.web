@@ -21,7 +21,7 @@ http://localhost:8007
 
 ## 使用 Docker 运行
 > 使用 docker 时，需要你的项目已经是一个被 auto-coder.chat 初始化过的项目。
-> 或者启动后，通过 `docker exec -it auto-coder-web /bin/bash` 进入容器，然后运行 `auto-coder init --source_dir .` 初始化项目。
+> 或者启动后，在界面 Terminal 中执行 `auto-coder init --source_dir .` 初始化项目。
 
 
 ```shell
