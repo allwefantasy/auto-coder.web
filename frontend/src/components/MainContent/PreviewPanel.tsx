@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import Iframe from 'react-iframe';
 import Split from 'react-split';
+import './PreviewPanel.css';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 
 interface PreviewPanelProps {
@@ -34,14 +35,15 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-hidden">
         <Split 
-          className="h-full flex split"
+          className="split-container"
           sizes={[50, 50]}
-          minSize={200}
-          gutterSize={4}
-          gutterStyle={() => ({
-            backgroundColor: '#4B5563',
-            cursor: 'col-resize'
-          })}
+          minSize={[200, 200]}
+          gutterSize={8}
+          snapOffset={30}
+          dragInterval={1}
+          direction="horizontal"
+          cursor="col-resize"
+          style={{ display: 'flex', flexDirection: 'row', height: '100%' }}
         >
           {/* Left Panel - Code Preview */}
           <div className="flex flex-col">
