@@ -95,8 +95,28 @@ html, body {
   color: #E5E7EB !important;
 }
 
-.custom-input .anticon {
+.custom-select .anticon {
   color: #9CA3AF !important;
+}
+
+/* Split Pane Styles */
+.split {
+  display: flex;
+  flex-direction: row;
+}
+
+.gutter {
+  background-color: #4a5568;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.gutter:hover {
+  background-color: #6366f1;
+}
+
+.gutter.gutter-horizontal {
+  cursor: col-resize;
 }
 
 /* Dark mode table styles */
