@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Tree } from 'antd';
+import { Tree, Dropdown, Modal, message } from 'antd';
 import type { DataNode } from 'antd/es/tree';
+import type { MenuProps } from 'antd';
 import Editor from '@monaco-editor/react';
-import { FolderOutlined, FileOutlined } from '@ant-design/icons';
+import { FolderOutlined, FileOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 
 const CodeEditor: React.FC = () => {
@@ -58,6 +59,70 @@ const CodeEditor: React.FC = () => {
     }
   };
 
+  const [contextMenuNode, setContextMenuNode] = useState<DataNode | null>(null);
+
+  const handleDelete = async (node: DataNode) => {
+    try {
+      const response = await fetch(`/api/files/${node.key}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete');
+      }
+
+      message.success(`Successfully deleted ${node.title}`);
+      
+      // Refresh the file tree
+      const response2 = await fetch('/api/files');
+      if (response2.ok) {
+        const data = await response2.json();
+        const transformNode = (node: any): DataNode => {
+          const isLeaf = node.isLeaf;
+          return {
+            title: node.title,
+            key: node.key,
+            icon: isLeaf ? <FileOutlined /> : <FolderOutlined />,
+            children: node.children ? node.children.map(transformNode) : undefined,
+            isLeaf,
+          };
+        };
+        setTreeData(data.tree.map(transformNode));
+      }
+    } catch (error) {
+      message.error('Failed to delete file/directory');
+      console.error('Error:', error);
+    }
+  };
+
+  const handleRightClick = ({ event, node }: { event: React.MouseEvent; node: DataNode }) => {
+    event.preventDefault();
+    setContextMenuNode(node);
+  };
+
+  const menuItems: MenuProps['items'] = [
+    {
+      key: 'delete',
+      icon: <DeleteOutlined />,
+      label: 'Delete',
+      danger: true,
+      onClick: () => {
+        if (contextMenuNode) {
+          Modal.confirm({
+            title: 'Delete Confirmation',
+            content: `Are you sure you want to delete ${contextMenuNode.title}?`,
+            okText: 'Yes',
+            okType: 'danger',
+            cancelText: 'No',
+            onOk() {
+              handleDelete(contextMenuNode);
+            },
+          });
+        }
+      },
+    },
+  ];
+
   return (
     <div className="flex flex-col h-full">
       <div className="bg-gray-800 p-2 border-b border-gray-700">
@@ -71,13 +136,16 @@ const CodeEditor: React.FC = () => {
       <div className="flex-1 overflow-hidden">
         <div className="h-full flex">
           <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto p-2">
-            <Tree
-              showIcon
-              defaultExpandAll
-              onSelect={handleSelect}
-              treeData={treeData}
-              className="bg-gray-900 text-gray-300"
-            />
+            <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
+              <Tree
+                showIcon
+                defaultExpandAll
+                onSelect={handleSelect}
+                onRightClick={handleRightClick}
+                treeData={treeData}
+                className="bg-gray-900 text-gray-300"
+              />
+            </Dropdown>
           </div>          
           <div className="flex-1 bg-gray-900">            
             <Editor

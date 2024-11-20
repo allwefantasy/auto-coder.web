@@ -258,6 +258,22 @@ class ProxyServer:
         async def shutdown_event():
             await self.client.aclose()
 
+        @self.app.delete("/api/files/{path:path}")
+        async def delete_file(path: str):
+            try:
+                full_path = os.path.join(self.project_path, path)
+                if os.path.exists(full_path):
+                    if os.path.isdir(full_path):
+                        import shutil
+                        shutil.rmtree(full_path)
+                    else:
+                        os.remove(full_path)
+                    return {"message": f"Successfully deleted {path}"}
+                else:
+                    raise HTTPException(status_code=404, detail="File not found")
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+
         @self.app.get("/", response_class=HTMLResponse)
         async def read_root():
             if os.path.exists(self.index_html_path):
