@@ -145,6 +145,16 @@ const FileGroupPanel: React.FC = () => {
       message.success('Files added successfully');
       fetchFileGroups();
       setCheckedKeys([]);
+      if (response.ok) {
+        fetchFileGroups(); // Refresh all groups data
+        if (selectedGroup) {
+          const updatedGroups = await (await fetch('/api/file-groups')).json();
+          const updatedGroup = updatedGroups.groups.find(g => g.name === selectedGroup.name);
+          if (updatedGroup) {
+            setSelectedGroup(updatedGroup);
+          }
+        }
+      }
     } catch (error) {
       message.error('Failed to add files');
     }
@@ -161,7 +171,14 @@ const FileGroupPanel: React.FC = () => {
       if (!response.ok) throw new Error('Failed to remove file');
 
       message.success('File removed successfully');
-      fetchFileGroups();
+      fetchFileGroups(); // Refresh all groups data
+      if (selectedGroup) {
+        const updatedGroups = await (await fetch('/api/file-groups')).json();
+        const updatedGroup = updatedGroups.groups.find(g => g.name === selectedGroup.name);
+        if (updatedGroup) {
+          setSelectedGroup(updatedGroup);
+        }
+      }
     } catch (error) {
       message.error('Failed to remove file');
     }
