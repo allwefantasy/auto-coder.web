@@ -47,23 +47,40 @@ const Terminal: React.FC = () => {
     };
 
     ws.onmessage = (event) => {
-      xterm.write(event.data);
+      try {
+        xterm.write(event.data);
+      } catch (error) {
+        console.error('Error writing to terminal:', error);
+      }
     };
 
     ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
       xterm.writeln('\r\nWebSocket error: ' + error);
     };
 
     ws.onclose = () => {
+      console.log('WebSocket connection closed');
       xterm.writeln('\r\nConnection closed');
     };
 
-    // Handle terminal input
+    // Handle terminal input - ensure terminal is focusable and handles input
+    xterm.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+      return true; // Allow all key events to be processed
+    });
+
     xterm.onData((data) => {
       if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'input', data }));
+        try {
+          ws.send(JSON.stringify({ type: 'input', data }));
+        } catch (error) {
+          console.error('Error sending data:', error);
+        }
       }
     });
+
+    // Make terminal focusable
+    xterm.focus();
 
     // Handle window resize
     const handleResize = () => {
