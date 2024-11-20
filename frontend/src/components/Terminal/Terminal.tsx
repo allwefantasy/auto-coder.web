@@ -15,7 +15,7 @@ const Terminal: React.FC<TerminalProps> = ({ requestId }) => {
         try {
           const response = await fetch(`/api/terminal/${requestId}`);
           const data = await response.json();
-          if (!data.logs) break;
+          if(data.logs === null) break;                              
           setLogs(prevLogs => [...prevLogs, ...data.logs]);
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {

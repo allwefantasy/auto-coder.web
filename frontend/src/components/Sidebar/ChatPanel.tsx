@@ -464,8 +464,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           const { final_status, content } = await pollEvents(data.request_id);
           if (final_status === 'completed') {
             addBotMessage("代码修改完成。请查看右侧修改预览面板。如果不满意，在发送按钮左侧点击撤销最近修改");
+            setRequestId("");
           } else {
             addBotMessage("代码修改失败：" + content);
+            setRequestId("");
           }
         } else {
           const messageBotId = addBotMessage("");
