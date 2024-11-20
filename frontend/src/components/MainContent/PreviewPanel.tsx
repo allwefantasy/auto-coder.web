@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import Iframe from 'react-iframe';
 import Split from 'react-split';
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import './PreviewPanel.css';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 
@@ -14,6 +15,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
   const [showWebPreview, setShowWebPreview] = React.useState(false);
   const [previewUrl, setPreviewUrl] = React.useState('http://127.0.0.1:3000');
   const [isUrlFocused, setIsUrlFocused] = React.useState(false);
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   useEffect(() => {
     setShowWebPreview(true);
@@ -36,8 +38,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
       <div className="flex-1 overflow-hidden">
         <Split 
           className="split-container"
-          sizes={[50, 50]}
-          minSize={[200, 200]}
+          sizes={isCollapsed ? [10, 90] : [50, 50]}
+          minSize={isCollapsed ? [50, 200] : [200, 200]}
           gutterSize={8}
           snapOffset={30}
           dragInterval={1}
@@ -46,7 +48,14 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
           style={{ display: 'flex', flexDirection: 'row', height: '100%' }}
         >
           {/* Left Panel - Code Preview */}
-          <div className="flex flex-col">
+          <div className={`flex flex-col relative ${isCollapsed ? 'w-[50px]' : ''}`}>
+            <button 
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="absolute -right-4 top-1/2 transform -translate-y-1/2 z-10 
+                        bg-gray-700 rounded-full p-1 hover:bg-gray-600 transition-colors"
+            >
+              {isCollapsed ? <RightOutlined /> : <LeftOutlined />}
+            </button>
             {files.length === 0 ? (
               <div className="w-full flex items-center justify-center text-gray-400">
                 No changes to preview
