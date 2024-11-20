@@ -161,13 +161,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         // 获取当前词和前缀
         const word = model.getWordUntilPosition(position);
         const prefix = textUntilPosition.charAt(word.startColumn - 2); // 获取触发字符
+        const double_prefix = textUntilPosition.charAt(word.startColumn - 3); // 获取触发字符
 
         //获取当前词
         const wordText = word.word;
 
         console.log('prefix:', prefix, 'word:', wordText);
 
-        if (prefix === "@@") {
+        if (prefix === "@" && double_prefix === "@") {
           // 符号补全
           const query = wordText;
           const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
@@ -182,7 +183,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             })),
             incomplete: true
           };
-        } else if (prefix.includes("@")) {
+        } else if (prefix === "@") {
           // 文件补全
           const query = wordText;
           const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
@@ -312,6 +313,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         console.log('Received event:', eventData);
 
         const response_event = async (response: string) => {
+          console.log('Response event:', response);
           await fetch('/api/event/response', {
             method: 'POST',
             headers: {
