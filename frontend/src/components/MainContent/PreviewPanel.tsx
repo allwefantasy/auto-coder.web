@@ -1,88 +1,32 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import Editor from '@monaco-editor/react';
 import Iframe from 'react-iframe';
 import { getLanguageByFileName } from '../../utils/fileUtils';
-import { ReloadOutlined } from '@ant-design/icons';
 
 interface PreviewPanelProps {
   files: { path: string; content: string }[];
 }
 
-const DEFAULT_URL = 'http://127.0.0.1:3000';
-const MIN_PANE_WIDTH = 300;
-
 const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
-  const [activeFileIndex, setActiveFileIndex] = useState(0);
-  const [previewUrl, setPreviewUrl] = useState(DEFAULT_URL);
-  const [leftPaneWidth, setLeftPaneWidth] = useState('50%');
-  const separatorRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeFileIndex, setActiveFileIndex] = React.useState(0);
+  const [showWebPreview, setShowWebPreview] = React.useState(false);
+  const [previewUrl, setPreviewUrl] = React.useState('');
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    let isDragging = false;
-    let startX = 0;
-    let startWidth = 0;
-
-    const onMouseDown = (e: MouseEvent) => {
-      isDragging = true;
-      startX = e.clientX;
-      startWidth = container.offsetWidth / 2;
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
-      
-      const containerWidth = container.offsetWidth;
-      const delta = e.clientX - startX;
-      const newWidth = Math.max(MIN_PANE_WIDTH, Math.min(startWidth + delta, containerWidth - MIN_PANE_WIDTH));
-      const percentage = (newWidth / containerWidth) * 100;
-      setLeftPaneWidth(`${percentage}%`);
-    };
-
-    const onMouseUp = () => {
-      isDragging = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-
-    const separator = separatorRef.current;
-    if (separator) {
-      separator.addEventListener('mousedown', onMouseDown);
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-    }
-
-    return () => {
-      if (separator) {
-        separator.removeEventListener('mousedown', onMouseDown);
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      }
-    };
-  }, []);
-
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPreviewUrl(e.target.value);
-  };
-
-  const handleRefresh = () => {
-    const iframe = document.querySelector('iframe');
-    if (iframe) {
-      iframe.src = previewUrl;
+  const handleUrlSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const input = e.currentTarget.elements.namedItem('url') as HTMLInputElement;
+    if (input.value) {
+      setPreviewUrl(input.value);
+      setShowWebPreview(true);
     }
   };
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-hidden">
-        <div ref={containerRef} className="h-full flex">
+        <div className="h-full flex">
           {/* Left Panel - Code Preview */}
-          <div style={{ width: leftPaneWidth }} className="flex-none flex flex-col">
+          <div className="flex-1 flex flex-col">
             {files.length === 0 ? (
               <div className="w-full flex items-center justify-center text-gray-400">
                 No changes to preview
@@ -122,45 +66,55 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
             )}
           </div>
 
-          
-          {/* Resizer */}
-          <div 
-            ref={separatorRef}
-            className="w-1 bg-gray-700 hover:bg-blue-500 cursor-col-resize flex-none"
-          />
-
           {/* Right Panel - Web Preview */}
-          <div className="flex-1 flex flex-col border-l border-gray-700">
+          <div className="w-1/2 flex flex-col border-l border-gray-700">
             <div className="p-4 bg-gray-800">
-              <div className="flex items-center gap-2">
-                <div className="flex-1 flex items-center bg-gray-700 text-white rounded-md border border-gray-600 overflow-hidden">
-                  {/* URL Bar with browser-like styling */}
-                  <div className="flex items-center px-2 bg-gray-600">
-                    <ReloadOutlined 
-                      className="text-gray-300 hover:text-white cursor-pointer" 
-                      onClick={handleRefresh}
-                    />
-                  </div>
-                  <input
-                    type="url"
-                    value={previewUrl}
-                    onChange={handleUrlChange}
-                    className="flex-1 px-3 py-2 bg-transparent border-none outline-none"
-                    placeholder="Enter URL to preview"
-                  />
-                </div>
-              </div>
+              <form onSubmit={handleUrlSubmit} className="flex gap-2">
+                <input
+                  type="url"
+                  name="url"
+                  placeholder="Enter URL to preview"
+                  className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 
+                    focus:outline-none focus:border-blue-500"
+                  defaultValue={previewUrl}
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
+                    focus:ring-offset-gray-800"
+                >
+                  Preview
+                </button>
+                {showWebPreview && (
+                  <button
+                    type="button"
+                    onClick={() => setShowWebPreview(false)}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 
+                      focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 
+                      focus:ring-offset-gray-800"
+                  >
+                    Close
+                  </button>
+                )}
+              </form>
             </div>
             <div className="flex-1">
-              <Iframe
-                url={previewUrl}
-                width="100%"
-                height="100%"
-                className="border-0"
-                display="block"
-                position="relative"
-                allowFullScreen
-              />
+              {showWebPreview ? (
+                <Iframe
+                  url={previewUrl}
+                  width="100%"
+                  height="100%"
+                  className="border-0"
+                  display="block"
+                  position="relative"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400">
+                  Enter a URL above to preview web content
+                </div>
+              )}
             </div>
           </div>
         </div>
