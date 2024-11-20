@@ -23,6 +23,8 @@ const Terminal: React.FC = () => {
         background: '#1e1e1e',
         foreground: '#d4d4d4',
       },
+      rows: 24,
+      cols: 80,
     });
 
     // Initialize addons
@@ -36,7 +38,11 @@ const Terminal: React.FC = () => {
 
     // Open terminal in the container
     xterm.open(terminalRef.current);
-    fitAddon.fit();
+    
+    // Ensure dimensions are set before fitting
+    setTimeout(() => {
+      fitAddon.fit();
+    }, 0);
 
     // Initialize WebSocket connection
     const ws = new WebSocket('ws://localhost:8007/ws/terminal');
@@ -110,10 +116,14 @@ const Terminal: React.FC = () => {
 
     // Handle window resize
     const handleResize = () => {
-      fitAddon.fit();
-      if (ws.readyState === WebSocket.OPEN) {
-        const { rows, cols } = xterm;
-        ws.send(JSON.stringify({ type: 'resize', rows, cols }));
+      try {
+        fitAddon.fit();
+        if (ws.readyState === WebSocket.OPEN) {
+          const { rows, cols } = xterm;
+          ws.send(JSON.stringify({ type: 'resize', rows, cols }));
+        }
+      } catch (error) {
+        console.error('Error resizing terminal:', error);
       }
     };
 
