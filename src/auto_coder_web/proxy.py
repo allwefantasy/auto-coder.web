@@ -372,14 +372,28 @@ class ProxyServer:
             return CompletionResponse(completions=matches)
 
         @self.app.get("/api/file/{path:path}")
-        async def get_file_content(path: str):
-            from .file_manager import read_file_content
-            content = read_file_content(self.project_path, path)
-            if content is None:
-                raise HTTPException(
-                    status_code=404, detail="File not found or cannot be read")
+async def get_file_content(path: str):
+    from .file_manager import read_file_content
+    content = read_file_content(self.project_path, path)
+    if content is None:
+        raise HTTPException(
+            status_code=404, detail="File not found or cannot be read")
 
-            return {"content": content}
+    return {"content": content}
+
+@self.app.delete("/api/file/{path:path}")
+async def delete_file(path: str):
+    """Delete a file or directory"""
+    try:
+        full_path = os.path.join(self.project_path, path)
+        if os.path.isfile(full_path):
+            os.remove(full_path)
+        elif os.path.isdir(full_path):
+            import shutil
+            shutil.rmtree(full_path)
+        return {"message": f"Successfully deleted {path}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.get("/api/active-files")
         async def get_active_files():
