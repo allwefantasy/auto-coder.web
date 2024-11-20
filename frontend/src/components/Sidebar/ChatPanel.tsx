@@ -78,12 +78,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     human_as_model: false,
     skip_build_index: true
   });
-  const [inputText, setInputText] = useState<string>('');
+
   const [sendLoading, setSendLoading] = useState<boolean>(false);
   const editorRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
+  const [shouldSendMessage, setShouldSendMessage] = useState(false);
+
+  useEffect(() => {
+    if (shouldSendMessage) {
+      handleSendMessage();
+      setShouldSendMessage(false);
+    }
+  }, [shouldSendMessage]);
 
   useEffect(() => {
     // Fetch initial config
@@ -154,7 +162,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
     // Add keyboard shortcut for submission
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      handleSendMessage();
+      setShouldSendMessage(true);
     });
 
     // 注册自动补全提供者
@@ -293,9 +301,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     );
   };
 
-  const handleEditorChange = (value: string | undefined) => {
-    setInputText(value || '');
-  };
 
   const pollEvents = async (requestId: string) => {
     let final_status = 'completed';
@@ -427,10 +432,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     }
 
     const messageId = addUserMessage(trimmedText);
-    setInputText("");
+    editorRef.current?.setValue("");
 
 
-    if (inputText.trim() === '确认' && pendingResponseEvent) {
+    if (trimmedText.trim() === '确认' && pendingResponseEvent) {
       updateMessageStatus(messageId, 'sent');
       const { requestId, eventData } = pendingResponseEvent;
       const v = JSON.stringify({
@@ -448,7 +453,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         })
       });
       setPendingResponseEvent(null);
-      setInputText("");
       console.log('Response event:', JSON.stringify({
         request_id: requestId,
         event: eventData,
@@ -466,7 +470,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query: inputText })
+        body: JSON.stringify({ query: trimmedText })
       });
 
       if (!response.ok) {
@@ -639,8 +643,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
               height={isMaximized ? "100vh" : "180px"}
               defaultLanguage="markdown"
               theme="vs-dark"
-              value={inputText}
-              onChange={handleEditorChange}
               onMount={handleEditorDidMount}
               options={{
                 minimap: { enabled: false },
