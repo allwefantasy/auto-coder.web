@@ -154,9 +154,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
     // Add keyboard shortcut for submission
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      if (!sendLoading) {
-        handleSendMessage();
-      }
+      handleSendMessage();
     });
 
     // 注册自动补全提供者
