@@ -134,9 +134,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
               )}
             </div>
           </div>
-        </div>
+        </Split>
       </div>
-    </div>
+    </div>    
   );
 };
 
