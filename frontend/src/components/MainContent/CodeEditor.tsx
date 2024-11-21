@@ -179,9 +179,41 @@ const CodeEditor: React.FC = () => {
 
       <div className="flex-1 overflow-hidden">
         <div className="h-full flex">
-          <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto p-2">
-            <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
-              <Tree
+          <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-hidden flex flex-col">
+            <div className="p-2 border-b border-gray-700 flex justify-end">
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/files');
+                    if (response.ok) {
+                      const data = await response.json();
+                      const transformNode = (node: any): DataNode => {
+                        const isLeaf = node.isLeaf;
+                        return {
+                          title: node.title,
+                          key: node.key,
+                          icon: isLeaf ? <FileOutlined /> : <FolderOutlined />,
+                          children: node.children ? node.children.map(transformNode) : undefined,
+                          isLeaf,
+                        };
+                      };
+                      setTreeData(data.tree.map(transformNode));
+                    }
+                  } catch (error) {
+                    console.error('Error refreshing file tree:', error);
+                  }
+                }}
+                className="p-1.5 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+                title="Refresh file tree"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2">
+              <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
+                <Tree
                 showIcon
                 defaultExpandAll
                 onSelect={handleSelect}
