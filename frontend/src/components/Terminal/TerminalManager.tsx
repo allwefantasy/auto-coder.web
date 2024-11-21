@@ -96,10 +96,10 @@ const TerminalManager: React.FC = () => {
                   activeTerminal === terminal.id ? 'text-white' : 'text-gray-400'
                 }`}
                 value={terminal.name}
-                onDoubleClick={(e) => e.target.select()}
-                onChange={(e) => renameTerminal(terminal.id, e.target.value)}
+                onDoubleClick={(e) => (e.target as HTMLInputElement).select()}
+                onChange={(e) => renameTerminal(terminal.id, (e.target as HTMLInputElement).value)}
                 onBlur={(e) => {
-                  if (!e.target.value.trim()) {
+                  if (!(e.target as HTMLInputElement).value.trim()) {
                     renameTerminal(terminal.id, `Terminal ${terminal.id}`);
                   }
                 }}
