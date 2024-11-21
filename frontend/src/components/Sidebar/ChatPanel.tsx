@@ -626,49 +626,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                 </Select>
               </div>
 
-              {/* Custom Configuration */}
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex-1 flex space-x-2">
-                  <Select
-                    showSearch
-                    size="small"
-                    style={{ width: '40%' }}
-                    placeholder="Key"
-                    className="custom-select"
-                    onChange={(value) => {
-                      const input = document.querySelector<HTMLInputElement>('input[data-testid="custom-config-value"]');
-                      if (input) {
-                        input.value = config[value] || '';
-                      }
-                    }}
-                  >
-                    {Object.keys(config).map(key => (
-                      <Select.Option key={key} value={key}>
-                        {key}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                  <input
-                    type="text"
-                    data-testid="custom-config-value"
-                    className="flex-1 bg-gray-700 text-white text-sm rounded px-2 py-1 border border-gray-600 focus:border-blue-500 focus:outline-none"
-                    placeholder="Value"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const key = (document.querySelector('.ant-select-selection-search input') as HTMLInputElement)?.value;
-                        const value = (e.target as HTMLInputElement).value;
-                        if (key && value) {
-                          updateConfig(key, value);
-                          // 清空输入
-                          (e.target as HTMLInputElement).value = '';
-                          (document.querySelector('.ant-select-selection-search input') as HTMLInputElement).value = '';
-                        }
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-
               <Select
                 mode="multiple"
                 style={{ width: '100%' }}
