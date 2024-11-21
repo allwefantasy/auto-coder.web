@@ -41,27 +41,16 @@ const TerminalManager: React.FC = () => {
   return (
     <Split
       className="flex h-full"
-      sizes={[80, 20]}
-      minSize={[400, 150]}
+      sizes={[20, 80]}
+      minSize={[150, 400]}
       gutterSize={4}
       cursor="col-resize"
     >
-      {/* Left Panel - Terminal Content */}
-      <div className="h-full">
-        {terminals.map((terminal) => (
-          <div
-            key={terminal.id}
-            className={`h-full ${activeTerminal === terminal.id ? 'block' : 'hidden'}`}
-          >
-            <Terminal />
-          </div>
-        ))}
-      </div>
-
-      {/* Right Panel - Terminal Management */}
+      {/* Left Panel - Terminal Management */}
       <div className="bg-gray-900 flex flex-col">
         <div className="p-2 border-b border-gray-700">
           <div className="flex items-center justify-between">
+            <span className="text-gray-300 text-sm font-medium">TERMINAL</span>
             <div className="flex items-center gap-1">
               <Tooltip title="New Terminal">
                 <button 
@@ -83,74 +72,41 @@ const TerminalManager: React.FC = () => {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {terminals.map((terminal) => {
-            const [isEditing, setIsEditing] = useState(false);
-            const [editName, setEditName] = useState(terminal.name);
-            
-            const handleDoubleClick = () => {
-              setIsEditing(true);
-            };
-            
-            const handleBlur = () => {
-              setIsEditing(false);
-              if (editName.trim()) {
-                renameTerminal(terminal.id, editName);
-              } else {
-                setEditName(terminal.name);
-              }
-            };
-            
-            const handleKeyDown = (e: React.KeyboardEvent) => {
-              if (e.key === 'Enter') {
-                handleBlur();
-              }
-              if (e.key === 'Escape') {
-                setIsEditing(false);
-                setEditName(terminal.name);
-              }
-            };
-
-            return (
-              <div
-                key={terminal.id}
-                className={`group flex items-center justify-between px-3 py-2 cursor-pointer 
-                  ${activeTerminal === terminal.id ? 'bg-gray-700 text-white' : 'text-gray-400 hover:bg-gray-800'}`}
-                onClick={() => setActiveTerminal(terminal.id)}
-                onDoubleClick={handleDoubleClick}
-              >
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    onBlur={handleBlur}
-                    onKeyDown={handleKeyDown}
-                    className="bg-gray-800 text-white text-sm px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                ) : (
-                  <span className="text-sm truncate">{terminal.name}</span>
-                )}
-                {terminals.length > 1 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeTerminal(terminal.id);
-                    }}
-                    className={`p-1 rounded hover:bg-gray-600 
-                      ${activeTerminal === terminal.id ? 'text-gray-300' : 'invisible group-hover:visible'}`}
-                  >
-                    <DeleteOutlined style={{ fontSize: '12px' }} />
-                  </button>
-                )}
-              </div>
-            );
-          })}
+          {terminals.map((terminal) => (
+            <div
+              key={terminal.id}
+              className={`group flex items-center justify-between px-3 py-2 cursor-pointer 
+                ${activeTerminal === terminal.id ? 'bg-gray-700 text-white' : 'text-gray-400 hover:bg-gray-800'}`}
+              onClick={() => setActiveTerminal(terminal.id)}
+            >
+              <span className="text-sm truncate">{terminal.name}</span>
+              {terminals.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeTerminal(terminal.id);
+                  }}
+                  className={`p-1 rounded hover:bg-gray-600 
+                    ${activeTerminal === terminal.id ? 'text-gray-300' : 'invisible group-hover:visible'}`}
+                >
+                  <DeleteOutlined style={{ fontSize: '12px' }} />
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
-
+      {/* Right Panel - Active Terminal */}
+      <div className="h-full">
+        {terminals.map((terminal) => (
+          <div
+            key={terminal.id}
+            className={`h-full ${activeTerminal === terminal.id ? 'block' : 'hidden'}`}
+          >
+            <Terminal />
+          </div>
+        ))}
       </div>
 
       {/* Settings Modal */}
