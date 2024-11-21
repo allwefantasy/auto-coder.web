@@ -297,6 +297,26 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         const data: ResponseData = await response.json();
         status = data.status;
 
+        if (config.human_as_model && !isWriteMode) {
+          if ('value' in data.result && Array.isArray(data.result.value)) {
+            const newText = data.result.value.join('');
+            if (newText !== result) {
+              result += newText;
+            }
+          }
+          if (status === 'completed') {
+            setActivePanel('clipboard');
+            setClipboardContent(result);
+            onUpdate("因为你开启了 human as model，你可以拷贝右侧黏贴板内容到任意web版本大模型里获得结果");
+            break;
+          }
+
+          if (status === 'running') {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          continue;
+        }
+
         if ('value' in data.result && Array.isArray(data.result.value)) {
           const newText = data.result.value.join('');
           if (newText !== result) {
@@ -742,18 +762,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                             const response = await fetch(`/api/conf/${key}`, {
                               method: 'DELETE'
                             });
-                            
+
                             if (!response.ok) {
                               throw new Error('Failed to delete configuration');
                             }
-                            
+
                             const newExtraConf = { ...config.extra_conf };
                             delete newExtraConf[key];
                             setConfig(prev => ({
                               ...prev,
                               extra_conf: newExtraConf
                             }));
-                            
+
                             AntdMessage.success('Configuration deleted successfully');
                           } catch (error) {
                             console.error('Error deleting configuration:', error);
