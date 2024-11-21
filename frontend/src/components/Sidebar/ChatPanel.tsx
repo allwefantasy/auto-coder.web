@@ -659,57 +659,101 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
               </div>
 
               {/* Custom Configuration */}
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex-1 flex space-x-2">
-                  <Select
-                    showSearch
-                    size="small"
-                    style={{ width: '40%' }}
-                    placeholder="Key"
-                    className="custom-select"
-                    onChange={(value) => {
-                      const input = document.querySelector<HTMLInputElement>('input[data-testid="custom-config-value"]');
-                      if (input) {
-                        input.value = config.extra_conf[value] || '';
-                      }
+              <div className="space-y-2 mt-2">
+                {/* Heading */}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-300 text-xs font-medium">Custom Configuration</span>
+                  <button
+                    onClick={() => {
+                      const newExtraConf = { ...config.extra_conf };
+                      newExtraConf[`custom_key_${Object.keys(config.extra_conf).length}`] = '';
+                      setConfig(prev => ({
+                        ...prev,
+                        extra_conf: newExtraConf
+                      }));
                     }}
-                    optionLabelProp="label"
+                    className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                   >
-                    {config.available_keys.map(configKey => (
-                      <Select.Option
-                        key={configKey.key}
-                        value={configKey.key}
-                        label={configKey.key}
+                    Add Config
+                  </button>
+                </div>
+
+                {/* Config Items */}
+                <div className="space-y-2">
+                  {Object.entries(config.extra_conf).map(([key, value], index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <Select
+                        showSearch
+                        size="small"
+                        value={key}
+                        style={{ width: '40%' }}
+                        placeholder="Key"
+                        className="custom-select"
+                        onChange={(newKey) => {
+                          const newExtraConf = { ...config.extra_conf };
+                          delete newExtraConf[key];
+                          newExtraConf[newKey] = value;
+                          setConfig(prev => ({
+                            ...prev,
+                            extra_conf: newExtraConf
+                          }));
+                        }}
+                        optionLabelProp="label"
                       >
-                        <Tooltip title={`Type: ${configKey.type}${configKey.description ? `\nDescription: ${configKey.description}` : ''}`}>
-                          <div className="flex justify-between items-center">
-                            <span>{configKey.key}</span>
-                            <span className="text-gray-400 text-xs">
-                              {configKey.type}
-                            </span>
-                          </div>
-                        </Tooltip>
-                      </Select.Option>
-                    ))}
-                  </Select>
-                  <input
-                    type="text"
-                    data-testid="custom-config-value"
-                    className="flex-1 bg-gray-700 text-white text-sm rounded px-2 py-1 border border-gray-600 focus:border-blue-500 focus:outline-none"
-                    placeholder="Value"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const key = (document.querySelector('.ant-select-selection-search input') as HTMLInputElement)?.value;
-                        const value = (e.target as HTMLInputElement).value;
-                        if (key && value) {
-                          updateConfig(key, value);
-                          // 清空输入
-                          (e.target as HTMLInputElement).value = '';
-                          (document.querySelector('.ant-select-selection-search input') as HTMLInputElement).value = '';
-                        }
-                      }
-                    }}
-                  />
+                        {config.available_keys.map(configKey => (
+                          <Select.Option
+                            key={configKey.key}
+                            value={configKey.key}
+                            label={configKey.key}
+                          >
+                            <Tooltip title={`Type: ${configKey.type}${configKey.description ? `\nDescription: ${configKey.description}` : ''}`}>
+                              <div className="flex justify-between items-center">
+                                <span>{configKey.key}</span>
+                                <span className="text-gray-400 text-xs">
+                                  {configKey.type}
+                                </span>
+                              </div>
+                            </Tooltip>
+                          </Select.Option>
+                        ))}
+                      </Select>
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => {
+                          const newExtraConf = { ...config.extra_conf };
+                          newExtraConf[key] = e.target.value;
+                          setConfig(prev => ({
+                            ...prev,
+                            extra_conf: newExtraConf
+                          }));
+                        }}
+                        onBlur={() => {
+                          if (key && config.extra_conf[key] !== '') {
+                            updateConfig(key, config.extra_conf[key]);
+                          }
+                        }}
+                        className="flex-1 bg-gray-700 text-white text-sm rounded px-2 py-1 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                        placeholder="Value"
+                      />
+                      <button
+                        onClick={() => {
+                          const newExtraConf = { ...config.extra_conf };
+                          delete newExtraConf[key];
+                          setConfig(prev => ({
+                            ...prev,
+                            extra_conf: newExtraConf
+                          }));
+                          updateConfig(key, '');
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
