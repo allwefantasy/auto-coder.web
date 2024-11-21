@@ -318,6 +318,32 @@ class ProxyServer:
             result = await self.file_group_manager.switch_groups(group_names)
             return result
 
+        @self.app.get("/api/conf/keys")
+        async def get_conf_keys():
+            """Get all available configuration keys from AutoCoderArgs"""
+            field_info = AutoCoderArgs.model_fields
+            keys = []
+            for field_name, field in field_info.items():
+                field_type = field.annotation
+                type_str = str(field_type)
+                if "Optional" in type_str:
+                    # Extract the inner type for Optional fields
+                    inner_type = type_str.split("[")[1].split("]")[0]
+                    if "Union" in inner_type:
+                        # Handle Union types
+                        types = [t.strip() for t in inner_type.split(",")[:-1]]  # Remove Union
+                        type_str = " | ".join(types)
+                    else:
+                        type_str = inner_type
+                
+                keys.append({
+                    "key": field_name,
+                    "type": type_str,
+                    "description": field.description or "",
+                    "default": field.default
+                })
+            return {"keys": keys}
+
         @self.app.delete("/api/file-groups/{name}")
         async def delete_file_group(name: str):
             await self.file_group_manager.delete_group(name)

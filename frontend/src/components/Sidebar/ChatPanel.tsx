@@ -15,11 +15,19 @@ interface CodeBlock {
   old_block: string;
 }
 
+interface ConfigKey {
+  key: string;
+  type: string;
+  description: string;
+  default: any;
+}
+
 interface ConfigState {
   human_as_model: boolean;
   skip_build_index: boolean;
   project_type: string;
   extra_conf: { [key: string]: string };
+  available_keys: ConfigKey[];
 }
 
 interface CodingEvent {
@@ -80,8 +88,25 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     human_as_model: false,
     skip_build_index: true,
     project_type: "py",
-    extra_conf: {}
+    extra_conf: {},
+    available_keys: []
   });
+
+  useEffect(() => {
+    // Fetch available configuration keys
+    fetch('/api/conf/keys')
+      .then(response => response.json())
+      .then(data => {
+        setConfig(prev => ({
+          ...prev,
+          available_keys: data.keys
+        }));
+      })
+      .catch(error => {
+        console.error('Error fetching configuration keys:', error);
+        AntdMessage.error('Failed to fetch configuration keys');
+      });
+  }, []);
 
   const [sendLoading, setSendLoading] = useState<boolean>(false);
   const editorRef = useRef<any>(null);
@@ -645,10 +670,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                         input.value = config.extra_conf[value] || '';
                       }
                     }}
+                    optionLabelProp="label"
                   >
-                    {Object.keys(config.extra_conf).map(key => (
-                      <Select.Option key={key} value={key}>
-                        {key}
+                    {config.available_keys.map(configKey => (
+                      <Select.Option 
+                        key={configKey.key} 
+                        value={configKey.key}
+                        label={configKey.key}
+                      >
+                        <Tooltip title={`Type: ${configKey.type}${configKey.description ? `\nDescription: ${configKey.description}` : ''}`}>
+                          <div className="flex justify-between items-center">
+                            <span>{configKey.key}</span>
+                            <span className="text-gray-400 text-xs">
+                              {configKey.type}
+                            </span>
+                          </div>
+                        </Tooltip>
                       </Select.Option>
                     ))}
                   </Select>
