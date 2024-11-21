@@ -642,11 +642,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                     onChange={(value) => {
                       const input = document.querySelector<HTMLInputElement>('input[data-testid="custom-config-value"]');
                       if (input) {
-                        input.value = config[value] || '';
+                        input.value = config.extra_conf[value] || '';
                       }
                     }}
                   >
-                    {Object.keys(config).map(key => (
+                    {Object.keys(config.extra_conf).map(key => (
                       <Select.Option key={key} value={key}>
                         {key}
                       </Select.Option>
@@ -672,7 +672,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                   />
                 </div>
               </div>
-
+              {/* Select File Groups */}
               <Select
                 mode="multiple"
                 style={{ width: '100%' }}
