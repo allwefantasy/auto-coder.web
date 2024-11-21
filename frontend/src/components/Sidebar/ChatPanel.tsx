@@ -18,6 +18,7 @@ interface CodeBlock {
 interface ConfigState {
   human_as_model: boolean;
   skip_build_index: boolean;
+  project_type: string;
 }
 
 interface CodingEvent {
@@ -76,7 +77,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [config, setConfig] = useState<ConfigState>({
     human_as_model: false,
-    skip_build_index: true
+    skip_build_index: true,
+    project_type: "py"
   });
 
   const [sendLoading, setSendLoading] = useState<boolean>(false);
@@ -100,7 +102,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       .then(data => {
         setConfig({
           human_as_model: data.conf.human_as_model === "true",
-          skip_build_index: data.conf.skip_build_index === "true"
+          skip_build_index: data.conf.skip_build_index === "true",
+          project_type: data.conf.project_type
         });
       })
       .catch(error => {
@@ -109,7 +112,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       });
   }, []);
 
-  const updateConfig = async (key: string, value: boolean) => {
+  const updateConfig = async (key: string, value: boolean | string) => {
     try {
       const response = await fetch('/api/conf', {
         method: 'POST',
