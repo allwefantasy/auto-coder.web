@@ -41,16 +41,28 @@ const TerminalManager: React.FC = () => {
   return (
     <Split
       className="flex h-full"
-      sizes={[20, 80]}
-      minSize={[150, 400]}
+      sizes={[80, 20]}
+      minSize={[400, 150]}
       gutterSize={4}
       cursor="col-resize"
     >
       {/* Left Panel - Terminal Management */}
+      {/* Left Panel - Active Terminal */}
+      <div className="h-full">
+        {terminals.map((terminal) => (
+          <div
+            key={terminal.id}
+            className={`h-full ${activeTerminal === terminal.id ? 'block' : 'hidden'}`}
+          >
+            <Terminal />
+          </div>
+        ))}
+      </div>
+
+      {/* Right Panel - Terminal Management */}
       <div className="bg-gray-900 flex flex-col">
         <div className="p-2 border-b border-gray-700">
           <div className="flex items-center justify-between">
-            <span className="text-gray-300 text-sm font-medium">TERMINAL</span>
             <div className="flex items-center gap-1">
               <Tooltip title="New Terminal">
                 <button 
@@ -79,7 +91,19 @@ const TerminalManager: React.FC = () => {
                 ${activeTerminal === terminal.id ? 'bg-gray-700 text-white' : 'text-gray-400 hover:bg-gray-800'}`}
               onClick={() => setActiveTerminal(terminal.id)}
             >
-              <span className="text-sm truncate">{terminal.name}</span>
+              <input 
+                className={`text-sm truncate bg-transparent outline-none w-full ${
+                  activeTerminal === terminal.id ? 'text-white' : 'text-gray-400'
+                }`}
+                value={terminal.name}
+                onDoubleClick={(e) => e.target.select()}
+                onChange={(e) => renameTerminal(terminal.id, e.target.value)}
+                onBlur={(e) => {
+                  if (!e.target.value.trim()) {
+                    renameTerminal(terminal.id, `Terminal ${terminal.id}`);
+                  }
+                }}
+              />
               {terminals.length > 1 && (
                 <button
                   onClick={(e) => {
@@ -97,17 +121,7 @@ const TerminalManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Panel - Active Terminal */}
-      <div className="h-full">
-        {terminals.map((terminal) => (
-          <div
-            key={terminal.id}
-            className={`h-full ${activeTerminal === terminal.id ? 'block' : 'hidden'}`}
-          >
-            <Terminal />
-          </div>
-        ))}
-      </div>
+
 
       {/* Settings Modal */}
       <Modal
