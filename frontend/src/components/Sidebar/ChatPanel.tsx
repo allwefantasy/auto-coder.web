@@ -737,14 +737,28 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                         placeholder="Value"
                       />
                       <button
-                        onClick={() => {
-                          const newExtraConf = { ...config.extra_conf };
-                          delete newExtraConf[key];
-                          setConfig(prev => ({
-                            ...prev,
-                            extra_conf: newExtraConf
-                          }));
-                          updateConfig(key, '');
+                        onClick={async () => {
+                          try {
+                            const response = await fetch(`/api/conf/${key}`, {
+                              method: 'DELETE'
+                            });
+                            
+                            if (!response.ok) {
+                              throw new Error('Failed to delete configuration');
+                            }
+                            
+                            const newExtraConf = { ...config.extra_conf };
+                            delete newExtraConf[key];
+                            setConfig(prev => ({
+                              ...prev,
+                              extra_conf: newExtraConf
+                            }));
+                            
+                            AntdMessage.success('Configuration deleted successfully');
+                          } catch (error) {
+                            console.error('Error deleting configuration:', error);
+                            AntdMessage.error('Failed to delete configuration');
+                          }
                         }}
                         className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                       >

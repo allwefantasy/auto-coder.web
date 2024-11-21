@@ -475,6 +475,16 @@ class ProxyServer:
                 return {"status": "success"}
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e))
+                
+        @self.app.delete("/api/conf/{key}")
+        async def delete_config(key: str):
+            try:
+                result = self.auto_coder_runner.drop_config(key)
+                return result
+            except ValueError as e:
+                raise HTTPException(status_code=404, detail=str(e))
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
 
         @self.app.post("/api/coding")
         async def coding(request: Request):
