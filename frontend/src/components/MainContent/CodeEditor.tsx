@@ -9,9 +9,8 @@ import { getLanguageByFileName } from '../../utils/fileUtils';
 const CodeEditor: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [code, setCode] = useState<string>('// Select a file to edit');
-  const [treeData, setTreeData] = useState<DataNode[]>([]);  
-  const [filteredTreeData, setFilteredTreeData] = useState<DataNode[]>([]);
-  const [saving, setSaving] = useState<boolean>(false);
+  const [treeData, setTreeData] = useState<DataNode[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
 
   const handleSave = async () => {
@@ -61,9 +60,7 @@ const CodeEditor: React.FC = () => {
           };
         };
         
-        const transformedTreeData = data.tree.map(transformNode);
-        setTreeData(transformedTreeData);
-        setFilteredTreeData(transformedTreeData);
+        setTreeData(data.tree.map(transformNode));
       } catch (error) {
         console.error('Error fetching file tree:', error);
       }
@@ -227,60 +224,17 @@ const CodeEditor: React.FC = () => {
 
       <div className="flex-1 overflow-hidden">
         <div className="h-full flex">
-          <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto">
-            <div className="p-2">
-              <Input
-                prefix={<SearchOutlined className="text-gray-400" />}
-                placeholder="Filter files by path..."
-                className="custom-input mb-2"
-                onChange={(e) => {
-                  const searchValue = e.target.value.toLowerCase();
-
-                  if (!searchValue) {
-                    setFilteredTreeData(treeData);
-                    return;
-                  }
-
-                  // Helper function to get all leaf nodes (files) from tree
-                  const getAllFiles = (nodes: DataNode[]): DataNode[] => {
-                    return nodes.reduce((acc: DataNode[], node) => {
-                      if (node.isLeaf) {
-                        acc.push(node);
-                      } else if (node.children) {
-                        acc.push(...getAllFiles(node.children));
-                      }
-                      return acc;
-                    }, []);
-                  };
-
-                  // Get all files that match the search value
-                  const allFiles = getAllFiles(treeData);
-                  const matchingFiles = allFiles.filter(file => {
-                    const fullPath = file.key.toString().toLowerCase();
-                    return fullPath.includes(searchValue);
-                  });
-
-                  // Create a flat tree structure for matching files
-                  const flattenedTree = matchingFiles.map(file => ({
-                    ...file,
-                    title: file.key, // Show full path as title when filtered
-                  }));
-
-                  setFilteredTreeData(flattenedTree as DataNode[]);
-                }}
+          <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto p-2">
+            <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
+              <Tree
+                showIcon
+                defaultExpandAll
+                onSelect={handleSelect}
+                onRightClick={handleRightClick}
+                treeData={treeData}
+                className="bg-gray-900 text-gray-300"
               />
-
-              <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
-                <Tree
-                  showIcon
-                  defaultExpandAll
-                  onSelect={handleSelect}
-                  onRightClick={handleRightClick}
-                  treeData={filteredTreeData}
-                  className="bg-gray-900 text-gray-300"
-                />
-              </Dropdown>
-            </div>
+            </Dropdown>
           </div>          
           <div className="flex-1 bg-gray-900">            
             <Editor
