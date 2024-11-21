@@ -671,41 +671,44 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                     }}
                   />
                 </div>
-              </div>
-              {/* Select File Groups */}
-              <Select
-                mode="multiple"
-                style={{ width: '100%' }}
-                placeholder="Select file groups"
-                value={selectedGroups}
-                onChange={(values) => {
-                  console.log('Selected groups:', values);
-                  setSelectedGroups(values);
-                  fetch('/api/file-groups/switch', {
-                    method: 'POST',
-                    body: JSON.stringify({ group_names: values })
-                  });
-                }}
-                optionLabelProp="label"
-                className="custom-select mt-2"
-              >
-                {fileGroups.map(group => (
-                  <Select.Option
-                    key={group.name}
-                    value={group.name}
-                    label={group.name}
-                  >
-                    <div className="flex justify-between items-center">
-                      <span>{group.name}</span>
-                      <span className="text-gray-400 text-xs">
-                        {group.files.length} files
-                      </span>
-                    </div>
-                  </Select.Option>
-                ))}
-              </Select>
+              </div>              
             </div>
           )}
+          
+          {/* File Groups Select - Now outside of showConfig condition */}
+          <div className="px-2 mb-2">
+            <Select
+              mode="multiple"
+              style={{ width: '100%' }}
+              placeholder="Select file groups"
+              value={selectedGroups}
+              onChange={(values) => {
+                console.log('Selected groups:', values);
+                setSelectedGroups(values);
+                fetch('/api/file-groups/switch', {
+                  method: 'POST',
+                  body: JSON.stringify({ group_names: values })
+                });
+              }}
+              optionLabelProp="label"
+              className="custom-select"
+            >
+              {fileGroups.map(group => (
+                <Select.Option
+                  key={group.name}
+                  value={group.name}
+                  label={group.name}
+                >
+                  <div className="flex justify-between items-center">
+                    <span>{group.name}</span>
+                    <span className="text-gray-400 text-xs">
+                      {group.files.length} files
+                    </span>
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
         </div>
 
         {/* Message Input */}
