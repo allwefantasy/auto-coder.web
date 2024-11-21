@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Tree, Dropdown, Modal, message } from 'antd';
+import { Tree, Dropdown, Modal, message, Input } from 'antd';
+import { debounce } from 'lodash';
 import type { DataNode } from 'antd/es/tree';
 import type { MenuProps } from 'antd';
 import Editor from '@monaco-editor/react';
-import { FolderOutlined, FileOutlined, DeleteOutlined } from '@ant-design/icons';
+import { FolderOutlined, FileOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 
 const CodeEditor: React.FC = () => {
@@ -225,6 +226,26 @@ const CodeEditor: React.FC = () => {
       <div className="flex-1 overflow-hidden">
         <div className="h-full flex">
           <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto p-2">
+            <div className="mb-2">
+              <Input
+                prefix={<SearchOutlined className="text-gray-400" />}
+                placeholder="Search files..."
+                className="custom-input"
+                onChange={debounce(async (e) => {
+                  try {
+                    const response = await fetch(`/api/files?search=${encodeURIComponent(e.target.value)}`);
+                    if (!response.ok) {
+                      throw new Error('Failed to fetch file tree');
+                    }
+                    const data = await response.json();
+                    setTreeData(data.tree.map(transformNode));
+                  } catch (error) {
+                    console.error('Error fetching file tree:', error);
+                    message.error('Failed to search files');
+                  }
+                }, 300)}
+              />
+            </div>
             <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
               <Tree
                 showIcon

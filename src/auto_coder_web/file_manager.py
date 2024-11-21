@@ -3,7 +3,7 @@ import json
 from typing import List, Dict, Any, Optional
 
 
-def get_directory_tree(root_path: str, path: str = None, lazy: bool = False) -> List[Dict[str, Any]]:
+def get_directory_tree(root_path: str, path: str = None, lazy: bool = False, search_query: str = None) -> List[Dict[str, Any]]:
     """
     Generate a directory tree structure while ignoring common directories and files
     that should not be included in version control or IDE specific files.
@@ -53,6 +53,10 @@ def get_directory_tree(root_path: str, path: str = None, lazy: bool = False) -> 
 
                 full_path = os.path.join(current_path, name)
                 relative_path = os.path.relpath(full_path, root_path)
+
+                # Apply search filter if query is provided
+                if search_query and not (search_query.lower() in name.lower() or search_query.lower() in relative_path.lower()):
+                    continue
 
                 if os.path.isdir(full_path):
                     if lazy:

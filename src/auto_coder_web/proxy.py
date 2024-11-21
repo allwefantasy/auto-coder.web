@@ -382,8 +382,8 @@ class ProxyServer:
             return {"groups": groups}
 
         @self.app.get("/api/files")
-        async def get_files():
-            tree = get_directory_tree(self.project_path)
+        async def get_files(search: Optional[str] = None):
+            tree = get_directory_tree(self.project_path, search_query=search)
             return {"tree": tree}
 
         @self.app.get("/api/completions/files")
