@@ -154,9 +154,42 @@ const CodeEditor: React.FC = () => {
     <div className="flex flex-col h-full">
       <div className="bg-gray-800 p-2 border-b border-gray-700">
         <div className="flex items-center justify-between">
-          <span className="text-white text-sm">
-            {selectedFile || 'No file selected'}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/files');
+                  if (!response.ok) {
+                    throw new Error('Failed to fetch file tree');
+                  }
+                  const data = await response.json();
+                  const transformNode = (node: any): DataNode => {
+                    const isLeaf = node.isLeaf;
+                    return {
+                      title: node.title,
+                      key: node.key,
+                      icon: isLeaf ? <FileOutlined /> : <FolderOutlined />,
+                      children: node.children ? node.children.map(transformNode) : undefined,
+                      isLeaf,
+                    };
+                  };
+                  setTreeData(data.tree.map(transformNode));
+                  message.success('Refreshed file tree successfully');
+                } catch (error) {
+                  message.error('Failed to refresh file tree');
+                  console.error('Error fetching file tree:', error);
+                }
+              }}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+            <span className="text-white text-sm">
+              {selectedFile || 'No file selected'}
+            </span>
+          </div>
           {selectedFile && (
             <button
               onClick={handleSave}
