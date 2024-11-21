@@ -3,7 +3,7 @@ import { Editor } from '@monaco-editor/react';
 import ChatPanel from './components/Sidebar/ChatPanel';
 import CodeEditor from './components/MainContent/CodeEditor';
 import FileGroupPanel from './components/MainContent/FileGroupPanel';
-import Terminal from './components/Terminal/Terminal';
+import TerminalManager from './components/Terminal/TerminalManager';
 import OutputPanel from './components/Terminal/OutputPanel';
 import PreviewPanel from './components/MainContent/PreviewPanel';
 import Split from 'react-split';
@@ -188,7 +188,7 @@ const App: React.FC = () => {
 
             {/* Terminal Panel */}
             <div className={`h-full ${activeToolPanel === 'terminal' ? 'block' : 'hidden'}`}>
-              <Terminal />
+              <TerminalManager />
             </div>
 
           </div>
