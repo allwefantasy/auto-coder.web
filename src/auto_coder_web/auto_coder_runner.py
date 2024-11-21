@@ -245,6 +245,8 @@ class AutoCoderRunner:
     def convert_config_value(self, key: str, value: str) -> Any:
         field_info = AutoCoderArgs.model_fields.get(key)
         if field_info:
+            if value.strip() == "":
+                return value
             if value.lower() in ["true", "false"]:
                 return value.lower() == "true"
             elif "int" in str(field_info.annotation):
@@ -305,6 +307,12 @@ class AutoCoderRunner:
         self.memory["conf"][key] = value
         self.save_memory()
         return {"message": f"Set {key} to {value}"}
+    
+    def drop_config(self, key: str) -> Dict[str, str]:
+        if key in self.memory["conf"]:
+            del self.memory["conf"][key]
+            self.save_memory()
+            return {"message": f"Deleted configuration: {key}"}
 
     def get_config(self) -> Dict[str, str]:
         """Get current configuration
