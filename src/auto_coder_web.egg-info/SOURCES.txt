@@ -21,10 +21,10 @@ src/auto_coder_web/web/logo192.png
 src/auto_coder_web/web/logo512.png
 src/auto_coder_web/web/manifest.json
 src/auto_coder_web/web/robots.txt
-src/auto_coder_web/web/static/css/main.d8df580b.css
-src/auto_coder_web/web/static/css/main.d8df580b.css.map
+src/auto_coder_web/web/static/css/main.d3950267.css
+src/auto_coder_web/web/static/css/main.d3950267.css.map
 src/auto_coder_web/web/static/js/453.8ab44547.chunk.js
 src/auto_coder_web/web/static/js/453.8ab44547.chunk.js.map
-src/auto_coder_web/web/static/js/main.17ff65df.js
-src/auto_coder_web/web/static/js/main.17ff65df.js.LICENSE.txt
-src/auto_coder_web/web/static/js/main.17ff65df.js.map
+src/auto_coder_web/web/static/js/main.80a0dc24.js
+src/auto_coder_web/web/static/js/main.80a0dc24.js.LICENSE.txt
+src/auto_coder_web/web/static/js/main.80a0dc24.js.map

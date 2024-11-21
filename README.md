@@ -30,6 +30,7 @@ docker run  \
   -e BASE_URL=https://api.deepseek.com/v1 \
   -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
   -e MODEL=deepseek-chat \
+  -p 8006:8006 \
   -p 8007:8007 \
   -p 8265:8265 \
   -v <你的项目>:/app/work \
