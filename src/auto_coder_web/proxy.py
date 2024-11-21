@@ -24,6 +24,7 @@ from pydantic import BaseModel
 from autocoder.utils.log_capture import LogCapture
 from typing import Optional, Dict, List, Any
 from .terminal import terminal_manager
+from autocoder.common import AutoCoderArgs
 
 
 class EventGetRequest(BaseModel):

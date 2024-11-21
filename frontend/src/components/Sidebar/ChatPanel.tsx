@@ -92,21 +92,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     available_keys: []
   });
 
-  useEffect(() => {
-    // Fetch available configuration keys
-    fetch('/api/conf/keys')
-      .then(response => response.json())
-      .then(data => {
-        setConfig(prev => ({
-          ...prev,
-          available_keys: data.keys
-        }));
-      })
-      .catch(error => {
-        console.error('Error fetching configuration keys:', error);
-        AntdMessage.error('Failed to fetch configuration keys');
-      });
-  }, []);
+
 
   const [sendLoading, setSendLoading] = useState<boolean>(false);
   const editorRef = useRef<any>(null);
@@ -132,12 +118,29 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           human_as_model: human_as_model === "true",
           skip_build_index: skip_build_index === "true",
           project_type: project_type,
-          extra_conf: extraConf
+          extra_conf: extraConf,
+          available_keys: []
         });
       })
       .catch(error => {
         console.error('Error fetching config:', error);
         AntdMessage.error('Failed to fetch configuration');
+      });
+  }, []);
+
+  useEffect(() => {
+    // Fetch available configuration keys
+    fetch('/api/conf/keys')
+      .then(response => response.json())
+      .then(data => {
+        setConfig(prev => ({
+          ...prev,
+          available_keys: data.keys
+        }));
+      })
+      .catch(error => {
+        console.error('Error fetching configuration keys:', error);
+        AntdMessage.error('Failed to fetch configuration keys');
       });
   }, []);
 
@@ -673,8 +676,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                     optionLabelProp="label"
                   >
                     {config.available_keys.map(configKey => (
-                      <Select.Option 
-                        key={configKey.key} 
+                      <Select.Option
+                        key={configKey.key}
                         value={configKey.key}
                         label={configKey.key}
                       >
@@ -708,10 +711,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                     }}
                   />
                 </div>
-              </div>              
+              </div>
             </div>
           )}
-          
+
           {/* File Groups Select - Now outside of showConfig condition */}
           <div className="px-4">
             <div className="h-[1px] bg-gray-700/50 my-3"></div>
