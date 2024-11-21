@@ -676,11 +676,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           )}
           
           {/* File Groups Select - Now outside of showConfig condition */}
-          <div className="px-2 mb-2">
+          <div className="px-4">
+            <div className="h-[1px] bg-gray-700/50 my-3"></div>
             <Select
               mode="multiple"
               style={{ width: '100%' }}
-              placeholder="Select file groups"
+              placeholder="Select file groups to work with"
               value={selectedGroups}
               onChange={(values) => {
                 console.log('Selected groups:', values);
