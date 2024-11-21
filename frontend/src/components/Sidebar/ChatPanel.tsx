@@ -19,6 +19,7 @@ interface ConfigState {
   human_as_model: boolean;
   skip_build_index: boolean;
   project_type: string;
+  extra_conf: { [key: string]: string };
 }
 
 interface CodingEvent {
@@ -78,7 +79,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const [config, setConfig] = useState<ConfigState>({
     human_as_model: false,
     skip_build_index: true,
-    project_type: "py"
+    project_type: "py",
+    extra_conf: {}
   });
 
   const [sendLoading, setSendLoading] = useState<boolean>(false);
@@ -100,10 +102,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     fetch('/api/conf')
       .then(response => response.json())
       .then(data => {
+        const { human_as_model, skip_build_index, project_type, ...extraConf } = data.conf;
         setConfig({
-          human_as_model: data.conf.human_as_model === "true",
-          skip_build_index: data.conf.skip_build_index === "true",
-          project_type: data.conf.project_type
+          human_as_model: human_as_model === "true",
+          skip_build_index: skip_build_index === "true",
+          project_type: project_type,
+          extra_conf: extraConf
         });
       })
       .catch(error => {
