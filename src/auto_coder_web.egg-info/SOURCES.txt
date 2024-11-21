@@ -4,7 +4,6 @@ src/auto_coder_web/__init__.py
 src/auto_coder_web/auto_coder_runner.py
 src/auto_coder_web/file_group.py
 src/auto_coder_web/file_manager.py
-src/auto_coder_web/hello.py
 src/auto_coder_web/json_file_storage.py
 src/auto_coder_web/proxy.py
 src/auto_coder_web/terminal.py
@@ -26,6 +25,6 @@ src/auto_coder_web/web/static/css/main.d8df580b.css
 src/auto_coder_web/web/static/css/main.d8df580b.css.map
 src/auto_coder_web/web/static/js/453.8ab44547.chunk.js
 src/auto_coder_web/web/static/js/453.8ab44547.chunk.js.map
-src/auto_coder_web/web/static/js/main.ba643932.js
-src/auto_coder_web/web/static/js/main.ba643932.js.LICENSE.txt
-src/auto_coder_web/web/static/js/main.ba643932.js.map
+src/auto_coder_web/web/static/js/main.17ff65df.js
+src/auto_coder_web/web/static/js/main.17ff65df.js.LICENSE.txt
+src/auto_coder_web/web/static/js/main.17ff65df.js.map
