@@ -92,7 +92,7 @@ const TerminalManager: React.FC = () => {
               onClick={() => setActiveTerminal(terminal.id)}
             >
               <input 
-                className={`text-sm truncate bg-transparent outline-none w-full ${
+                className={`text-xs truncate bg-transparent outline-none w-full ${
                   activeTerminal === terminal.id ? 'text-white' : 'text-gray-400'
                 }`}
                 value={terminal.name}
@@ -113,7 +113,7 @@ const TerminalManager: React.FC = () => {
                   className={`p-1 rounded hover:bg-gray-600 
                     ${activeTerminal === terminal.id ? 'text-gray-300' : 'invisible group-hover:visible'}`}
                 >
-                  <DeleteOutlined style={{ fontSize: '12px' }} />
+                  <DeleteOutlined style={{ fontSize: '11px' }} />
                 </button>
               )}
             </div>
