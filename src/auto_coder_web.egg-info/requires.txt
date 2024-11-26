@@ -3,3 +3,6 @@ aiofiles
 psutil
 sse-starlette
 websockets
+
+[:sys_platform == "win32"]
+pywinpty
