@@ -229,3 +229,108 @@ def send_event(self, request_id: str, event: Any, timeout: int = TIMEOUT) -> Any
 3. 确保请求ID的唯一性
 4. 适当处理并发情况
 5. 及时清理不再需要的队列
+
+## 流式结果处理
+
+### pollStreamResult 函数
+
+`pollStreamResult` 是一个用于处理流式结果的关键函数，它实现了前端持续轮询并实时展示后端生成的内容。
+
+#### 函数签名
+```typescript
+const pollStreamResult = async (
+    requestId: string, 
+    onUpdate: (text: string) => void
+): Promise<PollResult>
+```
+
+#### 参数说明
+- `requestId`: 请求ID，用于标识特定的轮询会话
+- `onUpdate`: 回调函数，用于处理每次更新的文本内容
+- 返回值: 包含最终文本和状态的 `PollResult` 对象
+
+#### 工作流程
+
+1. **初始化**
+   ```typescript
+   let result = '';
+   let status: 'running' | 'completed' | 'failed' = 'running';
+   ```
+
+2. **轮询循环**
+   - 持续轮询直到状态不为 'running'
+   - 每次轮询间隔 1 秒
+   ```typescript
+   while (status === 'running') {
+       const response = await fetch(`/api/result/${requestId}`);
+       const data: ResponseData = await response.json();
+       status = data.status;
+   ```
+
+3. **特殊模式处理**
+   - 支持 human_as_model 模式
+   ```typescript
+   if (config.human_as_model && !isWriteMode) {
+       if ('value' in data.result && Array.isArray(data.result.value)) {
+           const newText = data.result.value.join('');
+           if (newText !== result) {
+               result += newText;
+           }
+       }
+       // ... 处理人工模型模式
+   }
+   ```
+
+4. **结果更新**
+   - 支持数组和字符串两种格式的结果
+   ```typescript
+   if ('value' in data.result && Array.isArray(data.result.value)) {
+       const newText = data.result.value.join('');
+       if (newText !== result) {
+           result = newText;
+           onUpdate(result);
+       }
+   }
+   ```
+
+#### 使用示例
+
+1. **基本使用**
+   ```typescript
+   const messageBotId = addBotMessage("");
+   await pollStreamResult(data.request_id, (newText) => {
+       setMessages(prev => prev.map(msg =>
+           msg.id === messageBotId ? { ...msg, content: newText } : msg
+       ));
+   });
+   ```
+
+2. **带错误处理**
+   ```typescript
+   try {
+       const { text, status } = await pollStreamResult(requestId, onUpdate);
+       if (status === 'failed') {
+           handleError(text);
+       }
+   } catch (error) {
+       console.error('Polling error:', error);
+   }
+   ```
+
+#### 注意事项
+
+1. **超时处理**
+   - 确保设置适当的请求超时时间
+   - 处理网络错误和超时异常
+
+2. **状态管理**
+   - 正确处理 running/completed/failed 状态
+   - 在组件卸载时取消轮询
+
+3. **性能优化**
+   - 使用防抖处理频繁更新
+   - 避免不必要的状态更新
+
+4. **错误处理**
+   - 捕获并处理网络错误
+   - 提供用户友好的错误提示
