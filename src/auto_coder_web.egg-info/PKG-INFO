@@ -7,7 +7,7 @@ Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Description-Content-Type: text/markdown
-Requires-Dist: auto-coder==0.1.195
+Requires-Dist: auto-coder
 Requires-Dist: aiofiles
 Requires-Dist: psutil
 Requires-Dist: sse-starlette

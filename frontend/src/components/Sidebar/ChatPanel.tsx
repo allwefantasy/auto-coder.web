@@ -15,6 +15,13 @@ interface CodeBlock {
   old_block: string;
 }
 
+interface UnmergeCodeBlock {
+  file_path: string;
+  head: string;
+  update: string;
+  similarity: number;
+}
+
 interface ConfigKey {
   key: string;
   type: string;
@@ -414,6 +421,27 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           content = eventData.data;
           break;
         }
+
+        if (eventData.event_type === 'code_unmerge_result') {
+          await response_event("proceed");
+          const blocks = JSON.parse(eventData.data) as UnmergeCodeBlock[];
+          console.log('Received unmerged code blocks:', blocks);
+
+          // 更新 Preview Panel 数据
+          const previewData = blocks.map(block => ({
+            path: block.file_path,
+            content: `<<<<<<< SEARCH(${block.similarity})\n${block.head}\n=======\n${block.update}\n>>>>>>> REPLACE`
+          }));
+
+          // 发送到 App 组件
+          setPreviewFiles(previewData);
+          setActivePanel('preview');
+          final_status = 'failed';
+          content = "Code block merge failed";
+          break;
+
+        }
+          
 
         if (eventData.event_type === 'code_merge_result') {
           await response_event("proceed");
