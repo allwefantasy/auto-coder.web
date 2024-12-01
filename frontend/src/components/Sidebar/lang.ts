@@ -5,8 +5,8 @@ interface Message {
 
 export const messages: { [key: string]: Message } = {
   indexBuildStart: {
-    en: "Starting to build index...",
-    zh: "开始构建索引..."
+    en: "Build incremental index...",
+    zh: "增量索引..."
   },
   indexBuildComplete: {
     en: "Index build complete",

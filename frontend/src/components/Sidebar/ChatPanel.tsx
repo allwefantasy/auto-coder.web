@@ -846,14 +846,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           {messages.map((message) => (
             <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-[80%] rounded-lg p-2 relative group text-sm ${message.role === 'user'
+                className={`max-w-[80%] rounded-lg p-2 relative group text-2xs ${message.role === 'user'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-800 text-gray-300'
                   }`}
               >
-                <div className="break-words text-sm">{message.content}</div>
+                <div className="break-words text-2xs">{message.content}</div>
                 {message.status === 'sending' && (
-                  <div className="flex items-center text-xs text-gray-400 mt-1">
+                  <div className="flex items-center text-2xs text-gray-400 mt-1">
                     <div className="mr-1">sending</div>
                     <div className="animate-bounce">•</div>
                     <div className="animate-bounce delay-100">•</div>
@@ -861,12 +861,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                   </div>
                 )}
                 {message.status === 'sent' && (
-                  <div className="text-xs text-green-400 mt-1">
+                  <div className="text-2xs text-green-400 mt-1">
                     ✓ sent
                   </div>
                 )}
                 {message.status === 'error' && (
-                  <div className="flex items-center text-xs text-red-400 mt-1">
+                  <div className="flex items-center text-2xs text-red-400 mt-1">
                     <span className="mr-1">⚠</span>
                     failed to send
                   </div>
@@ -1016,7 +1016,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                             updateConfig(key, config.extra_conf[key]);
                           }
                         }}
-                        className="flex-1 bg-gray-700 text-white text-sm rounded px-2 py-1 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                        className="flex-1 bg-gray-700 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:border-blue-500 focus:outline-none"
                         placeholder="Value"
                       />
                       <button
