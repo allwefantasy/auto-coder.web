@@ -172,9 +172,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       const data = await response.json();
       setChatLists(data.chat_lists);
       
-      // Automatically load the latest chat if there are any chats
-      if (data.chat_lists && data.chat_lists.length > 0) {
-        // The first chat in the list is the latest one since they're sorted by modification time
+      // Create a new chat list if none exists
+      if (!data.chat_lists || data.chat_lists.length === 0) {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const newChatName = `chat_${timestamp}`;
+        
+        // Save the new chat list
+        await saveChatList({
+          name: newChatName,
+          messages: []
+        });
+        
+        // Update the chat lists
+        setChatLists([newChatName]);
+        await loadChatList(newChatName);
+      } else {
+        // Load the first chat from the list (latest one)
         await loadChatList(data.chat_lists[0]);
       }
     } catch (error) {
