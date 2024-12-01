@@ -200,14 +200,15 @@ const FileGroupPanel: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <div className="bg-gray-800 p-2 border-b border-gray-700">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center px-0">
           <h2 className="text-white text-lg font-semibold">File Groups</h2>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => setIsModalVisible(true)}
+            className="ml-1"
           >
-            New Group
+            +
           </Button>
         </div>
       </div>
