@@ -107,8 +107,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     extra_conf: {},
     available_keys: []
   });
-
-
+  const [chatLists, setChatLists] = useState<string[]>([]);
+  const [chatListName, setChatListName] = useState<string>('');
+  const [showChatListInput, setShowChatListInput] = useState(false);
 
   const [sendLoading, setSendLoading] = useState<boolean>(false);
   const editorRef = useRef<any>(null);
@@ -160,6 +161,89 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         AntdMessage.error('Failed to fetch configuration keys');
       });
   }, []);
+
+  useEffect(() => {
+    fetchChatLists();
+  }, []);
+
+  const fetchChatLists = async () => {
+    try {
+      const response = await fetch('/api/chat-lists');
+      const data = await response.json();
+      setChatLists(data.chat_lists);
+      
+      // Automatically load the latest chat if there are any chats
+      if (data.chat_lists && data.chat_lists.length > 0) {
+        // The first chat in the list is the latest one since they're sorted by modification time
+        await loadChatList(data.chat_lists[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching chat lists:', error);
+      AntdMessage.error('Failed to fetch chat lists');
+    }
+  };
+
+  const saveChatList = async () => {
+    if (!chatListName.trim()) {
+      AntdMessage.error('Please enter a name for the chat list');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/chat-lists/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: chatListName,
+          messages: messages,
+        }),
+      });
+
+      if (response.ok) {
+        AntdMessage.success('Chat list saved successfully');
+        setShowChatListInput(false);
+        setChatListName('');
+        fetchChatLists();
+      } else {
+        AntdMessage.error('Failed to save chat list');
+      }
+    } catch (error) {
+      console.error('Error saving chat list:', error);
+      AntdMessage.error('Failed to save chat list');
+    }
+  };
+
+  const loadChatList = async (name: string) => {
+    try {
+      const response = await fetch(`/api/chat-lists/${name}`);
+      const data = await response.json();
+      setMessages(data.messages);
+      AntdMessage.success('Chat list loaded successfully');
+    } catch (error) {
+      console.error('Error loading chat list:', error);
+      AntdMessage.error('Failed to load chat list');
+    }
+  };
+
+  const deleteChatList = async (name: string) => {
+    try {
+      const response = await fetch(`/api/chat-lists/${name}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        AntdMessage.success('Chat list deleted successfully');
+        fetchChatLists();
+      } else {
+        AntdMessage.error('Failed to delete chat list');
+      }
+    } catch (error) {
+      console.error('Error deleting chat list:', error);
+      AntdMessage.error('Failed to delete chat list');
+    }
+  };
 
   const updateConfig = async (key: string, value: boolean | string) => {
     try {
@@ -954,7 +1038,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         </div>
 
         {/* Message Input */}
-        <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''}`}>
+        <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''}`}>          
           <div className={`flex-1 ${isMaximized ? 'h-full' : 'min-h-[180px]'} border border-gray-700 rounded-lg overflow-hidden`}>
             <Editor
               height={isMaximized ? "100vh" : "180px"}
