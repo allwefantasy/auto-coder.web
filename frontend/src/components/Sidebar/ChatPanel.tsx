@@ -42,6 +42,14 @@ interface CodingEvent {
   data: string;
 }
 
+const INDEX_EVENT_TYPES = {
+  BUILD_START: 'code_index_build_start',
+  BUILD_END: 'code_index_build_end',
+  FILTER_START: 'code_index_filter_start',
+  FILTER_END: 'code_index_filter_end',
+  FILTER_FILE_SELECTED: 'code_index_filter_file_selected'
+} as const;
+
 interface EventResponse {
   request_id: string;
   event: CodingEvent;
@@ -422,6 +430,45 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           break;
         }
 
+        if (eventData.event_type === 'code_error') {
+          await response_event("proceed");
+          final_status = 'failed';
+          content = eventData.data;
+          break;
+        }
+
+        // Handle index build events
+        if (eventData.event_type === INDEX_EVENT_TYPES.BUILD_START) {
+          await response_event("proceed");
+          addBotMessage("开始构建索引...");
+        }
+
+        if (eventData.event_type === INDEX_EVENT_TYPES.BUILD_END) {
+          await response_event("proceed");
+          addBotMessage("索引构建完成");
+        }
+
+        // Handle index filter events
+        if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_START) {
+          await response_event("proceed");
+          addBotMessage("开始过滤文件...");
+        }
+
+        if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_END) {
+          await response_event("proceed");
+          addBotMessage("文件过滤完成");
+        }
+
+        if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_FILE_SELECTED) {
+          await response_event("proceed");
+          try {
+            const fileData = JSON.parse(eventData.data);
+            addBotMessage(`已选择文件: ${fileData.file}`);
+          } catch (e) {
+            console.error('Failed to parse file selection data:', e);
+          }
+        }
+
         if (eventData.event_type === 'code_unmerge_result') {
           await response_event("proceed");
           const blocks = JSON.parse(eventData.data) as UnmergeCodeBlock[];
@@ -441,7 +488,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           break;
 
         }
-          
+
 
         if (eventData.event_type === 'code_merge_result') {
           await response_event("proceed");
@@ -495,7 +542,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       }
 
       const data = await response.json();
-      AntdMessage.success('Changes reverted successfully');
+      if (data.status) {
+        AntdMessage.success('Changes reverted successfully');
+        addBotMessage('Successfully reverted the last chat action.');
+      } else {
+        AntdMessage.error(data.message);
+        addBotMessage(`Failed to revert: ${data.message}`);
+      }
 
       // Refresh preview panel if active
       setPreviewFiles([]);
@@ -503,6 +556,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
     } catch (error) {
       AntdMessage.error('Failed to revert changes');
+      addBotMessage('Failed to revert changes. Please try again.');
       console.error('Error reverting changes:', error);
     }
   };

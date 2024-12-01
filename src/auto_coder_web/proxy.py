@@ -539,6 +539,11 @@ class ProxyServer:
         async def get_terminal_logs(request_id: str):
             return self.auto_coder_runner.get_logs(request_id)
 
+        @self.app.get("/api/last-yaml")
+        async def get_last_yaml(self):
+            """Get information about the last YAML file"""
+            return JSONResponse(content=self.auto_coder_runner.get_last_yaml_info())
+
 
 def main():
     parser = argparse.ArgumentParser(description="Proxy Server")

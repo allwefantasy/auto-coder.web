@@ -571,11 +571,11 @@ class AutoCoderRunner:
 
             if "Successfully reverted changes" in result:
                 os.remove(file_path)
-                return {"message": "Reverted the last chat action successfully"}
+                return {"message": "Reverted the last chat action successfully", "status": True}
             else:
-                return {"message": result}
+                return {"message": result, "status": False}
         else:
-            return {"message": "No previous chat action found to revert."}
+            return {"message": "No previous chat action found to revert.", "status": False}
 
     async def index_build(self) -> Dict[str, str]:
         request_id = str(uuid.uuid4())
@@ -702,3 +702,31 @@ query: |
                                                     docs.append(f.read())
 
         return docs
+
+    def get_last_yaml_info(self) -> Dict[str, Any]:
+        last_yaml_file = get_last_yaml_file("actions")
+        if last_yaml_file:
+            file_path = os.path.join("actions", last_yaml_file)
+            try:
+                with open(file_path, 'r') as f:
+                    yaml_content = yaml.safe_load(f)
+                return {
+                    "status": True,
+                    "file_name": last_yaml_file,
+                    "content": yaml_content
+                }
+            except yaml.YAMLError as e:
+                return {
+                    "status": False,
+                    "message": f"Error parsing YAML file: {str(e)}"
+                }
+            except Exception as e:
+                return {
+                    "status": False,
+                    "message": f"Error reading YAML file: {str(e)}"
+                }
+        else:
+            return {
+                "status": False,
+                "message": "No previous chat action found."
+            }
