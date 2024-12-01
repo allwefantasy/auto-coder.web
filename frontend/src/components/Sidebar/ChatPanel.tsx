@@ -176,10 +176,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     fetchChatLists();
   }, []);
 
-  useEffect(() => {
-    fetchChatLists();
-  }, []);
-
   const fetchChatLists = async () => {
     try {
       const response = await fetch('/api/chat-lists');
@@ -316,7 +312,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     editorRef.current = editor;
 
     // Add keyboard shortcut for maximize/minimize
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, () => {
       setIsMaximized(prev => !prev);
     });
 
@@ -911,7 +907,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
               />
             </div>
             <div className="text-gray-400 text-xs">
-              Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + P to maximize/minimize input area
+              Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize input area
             </div>
           </div>
 
