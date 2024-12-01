@@ -201,14 +201,14 @@ const FileGroupPanel: React.FC = () => {
     <div className="flex flex-col h-full">
       <div className="bg-gray-800 p-2 border-b border-gray-700">
         <div className="flex justify-between items-center">
-          <h2 className="text-white text-lg font-semibold">File Groups</h2>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setIsModalVisible(true)}
-          >
-            New Group
-          </Button>
+          <div className="flex items-center gap-2">
+            <h2 className="text-white text-lg font-semibold">File Groups</h2>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setIsModalVisible(true)}
+            />
+          </div>
         </div>
       </div>
 
