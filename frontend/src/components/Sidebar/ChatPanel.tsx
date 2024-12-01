@@ -115,6 +115,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [shouldSendMessage, setShouldSendMessage] = useState(false);
+  const [pendingRevert, setPendingRevert] = useState<boolean>(false);
 
   useEffect(() => {
     if (shouldSendMessage) {
@@ -533,31 +534,35 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
   const handleRevert = async () => {
     try {
-      const response = await fetch('/api/revert', {
-        method: 'POST'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to revert changes');
+      // First get the YAML content
+      const yamlResponse = await fetch('/api/last-yaml');
+      if (!yamlResponse.ok) {
+        throw new Error('Failed to get last action information');
       }
 
-      const data = await response.json();
-      if (data.status) {
-        AntdMessage.success('Changes reverted successfully');
-        addBotMessage('Successfully reverted the last chat action.');
-      } else {
-        AntdMessage.error(data.message);
-        addBotMessage(`Failed to revert: ${data.message}`);
+      const yamlData = await yamlResponse.json();
+      if (!yamlData.status) {
+        AntdMessage.error(yamlData.message);
+        addBotMessage(yamlData.message);
+        return;
       }
 
-      // Refresh preview panel if active
-      setPreviewFiles([]);
-      setActivePanel('code');
+      // Get the query from YAML content
+      const query = yamlData.content.query;
+      if (!query) {
+        AntdMessage.error('No query found in the last action');
+        addBotMessage('No query found in the last action');
+        return;
+      }
+
+      // Ask for confirmation
+      addBotMessage(`Are you sure you want to revert the following action?\n\nQuery: ${query}\n\nPlease reply 'confirm' to proceed with the revert.`);
+      setPendingRevert(true);
 
     } catch (error) {
-      AntdMessage.error('Failed to revert changes');
-      addBotMessage('Failed to revert changes. Please try again.');
-      console.error('Error reverting changes:', error);
+      AntdMessage.error('Failed to get last action information');
+      addBotMessage('Failed to get last action information. Please try again.');
+      console.error('Error getting last action:', error);
     }
   };
 
@@ -571,7 +576,44 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     const messageId = addUserMessage(trimmedText);
     editorRef.current?.setValue("");
 
+    // Handle revert confirmation
+    if (pendingRevert) {
+      if (trimmedText.toLowerCase() === 'confirm') {
+        try {
+          const response = await fetch('/api/revert', {
+            method: 'POST'
+          });
 
+          if (!response.ok) {
+            throw new Error('Failed to revert changes');
+          }
+
+          const data = await response.json();
+          if (data.status) {
+            AntdMessage.success('Changes reverted successfully');
+            addBotMessage('Successfully reverted the last chat action.');
+          } else {
+            AntdMessage.error(data.message);
+            addBotMessage(`Failed to revert: ${data.message}`);
+          }
+
+          // Refresh preview panel if active
+          setPreviewFiles([]);
+          setActivePanel('code');
+        } catch (error) {
+          AntdMessage.error('Failed to revert changes');
+          addBotMessage('Failed to revert changes. Please try again.');
+          console.error('Error reverting changes:', error);
+        }
+      } else {
+        addBotMessage('Revert cancelled.');
+      }
+      setPendingRevert(false);
+      updateMessageStatus(messageId, 'sent');
+      return;
+    }
+
+    // Original handleSendMessage logic
     if (trimmedText.trim() === '确认' && pendingResponseEvent) {
       updateMessageStatus(messageId, 'sent');
       const { requestId, eventData } = pendingResponseEvent;
