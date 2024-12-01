@@ -351,6 +351,9 @@ class AutoCoderRunner:
         self.memory["conversation"].append({"role": "user", "content": query})
         conf = self.memory.get("conf", {})
         current_files = self.memory["current_files"]["files"]
+        current_groups = self.memory["current_files"].get("current_groups", [])
+        groups = self.memory["current_files"].get("groups", {})
+        groups_info = self.memory["current_files"].get("groups_info", {})
         request_id = str(uuid.uuid4())
 
         def process():
@@ -377,6 +380,19 @@ class AutoCoderRunner:
                     converted_value = self.convert_config_value(key, value)
                     if converted_value is not None:
                         yaml_config[key] = converted_value
+                                
+                if current_groups:
+                    active_groups_context = "下面是对上面文件按分组给到的一些描述，当用户的需求正好匹配描述的时候，参考描述来做修改：\n"
+                    for group in current_groups:
+                        group_files = groups.get(group, [])
+                        query_prefix = groups_info.get(group, {}).get("query_prefix", "")
+                        active_groups_context += f"组名: {group}\n"
+                        active_groups_context += f"文件列表:\n"
+                        for file in group_files:
+                            active_groups_context += f"- {file}\n"
+                        active_groups_context += f"组描述: {query_prefix}\n\n"
+
+                    yaml_config["context"] = active_groups_context + "\n"        
 
                 yaml_content = self.convert_yaml_config_to_str(yaml_config)
                 execute_file = os.path.join("actions", latest_yaml_file)
