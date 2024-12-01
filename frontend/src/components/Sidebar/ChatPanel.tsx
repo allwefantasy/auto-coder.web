@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Select, Switch, message as AntdMessage, Tooltip } from 'antd';
 import { UndoOutlined } from '@ant-design/icons';
 import { Editor } from '@monaco-editor/react';
+import { getMessage } from './lang';
 
 interface FileGroup {
   id: string;
@@ -323,7 +324,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           if (status === 'completed') {
             setActivePanel('clipboard');
             setClipboardContent(result);
-            onUpdate("因为你开启了 human as model，你可以拷贝右侧黏贴板内容到任意web版本大模型里获得结果");
+            onUpdate(getMessage("humanAsModelInstructions"));
             break;
           }
 
@@ -441,30 +442,30 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         // Handle index build events
         if (eventData.event_type === INDEX_EVENT_TYPES.BUILD_START) {
           await response_event("proceed");
-          addBotMessage("开始构建索引...");
+          addBotMessage(getMessage('indexBuildStart'));
         }
 
         if (eventData.event_type === INDEX_EVENT_TYPES.BUILD_END) {
           await response_event("proceed");
-          addBotMessage("索引构建完成");
+          addBotMessage(getMessage('indexBuildComplete'));
         }
 
         // Handle index filter events
         if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_START) {
           await response_event("proceed");
-          addBotMessage("开始过滤文件...");
+          addBotMessage(getMessage('filterStart'));
         }
 
         if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_END) {
           await response_event("proceed");
-          addBotMessage("文件过滤完成");
+          addBotMessage(getMessage('filterComplete'));
         }
 
         if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_FILE_SELECTED) {
           await response_event("proceed");
           try {
             const fileData = JSON.parse(eventData.data);
-            addBotMessage(`已选择文件: ${fileData.file}`);
+            addBotMessage(getMessage('fileSelected', { file: fileData.file }));
           } catch (e) {
             console.error('Failed to parse file selection data:', e);
           }
@@ -515,7 +516,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             requestId: requestId,
             eventData: eventData
           });
-          addBotMessage("请复制右侧的文本,然后将结果复制黏贴会右侧。黏贴完请回复 '确认'");
+          addBotMessage(getMessage('copyInstructions'));
           setSendLoading(false)
         }
       } catch (error) {
@@ -551,17 +552,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       const query = yamlData.content.query;
       if (!query) {
         AntdMessage.error('No query found in the last action');
-        addBotMessage('No query found in the last action');
+        addBotMessage(getMessage('noQueryFound'));
         return;
       }
 
       // Ask for confirmation
-      addBotMessage(`Are you sure you want to revert the following action?\n\nQuery: ${query}\n\nPlease reply 'confirm' to proceed with the revert.`);
+      addBotMessage(getMessage('revertConfirmation', { query }));
       setPendingRevert(true);
 
     } catch (error) {
       AntdMessage.error('Failed to get last action information');
-      addBotMessage('Failed to get last action information. Please try again.');
+      addBotMessage(getMessage('getLastActionError'));
       console.error('Error getting last action:', error);
     }
   };
@@ -578,7 +579,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
     // Handle revert confirmation
     if (pendingRevert) {
-      if (trimmedText.toLowerCase() === 'confirm') {
+      if (trimmedText.toLowerCase() === 'confirm' || trimmedText.toLowerCase() === '确认') {
         try {
           const response = await fetch('/api/revert', {
             method: 'POST'
@@ -591,10 +592,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           const data = await response.json();
           if (data.status) {
             AntdMessage.success('Changes reverted successfully');
-            addBotMessage('Successfully reverted the last chat action.');
+            addBotMessage(getMessage('revertSuccess'));
           } else {
             AntdMessage.error(data.message);
-            addBotMessage(`Failed to revert: ${data.message}`);
+            addBotMessage(getMessage('revertFailure', { message: data.message }));
           }
 
           // Refresh preview panel if active
@@ -602,11 +603,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           setActivePanel('code');
         } catch (error) {
           AntdMessage.error('Failed to revert changes');
-          addBotMessage('Failed to revert changes. Please try again.');
+          addBotMessage(getMessage('revertError'));
           console.error('Error reverting changes:', error);
         }
       } else {
-        addBotMessage('Revert cancelled.');
+        addBotMessage(getMessage('revertCancelled'));
       }
       setPendingRevert(false);
       updateMessageStatus(messageId, 'sent');
@@ -614,7 +615,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     }
 
     // Original handleSendMessage logic
-    if (trimmedText.trim() === '确认' && pendingResponseEvent) {
+    if ((trimmedText.trim() === '确认' || trimmedText.trim() === 'confirm') && pendingResponseEvent) {
       updateMessageStatus(messageId, 'sent');
       const { requestId, eventData } = pendingResponseEvent;
       const v = JSON.stringify({
@@ -665,10 +666,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           // Start polling for events
           const { final_status, content } = await pollEvents(data.request_id);
           if (final_status === 'completed') {
-            addBotMessage("代码修改完成。请查看右侧修改预览面板。如果不满意，在发送按钮左侧点击撤销最近修改");
+            addBotMessage(getMessage('codeModificationComplete'));
             setRequestId("");
           } else {
-            addBotMessage("代码修改失败：" + content);
+            addBotMessage(getMessage('codeModificationFailed', { content }));
             setRequestId("");
           }
         } else {
@@ -691,7 +692,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       updateMessageStatus(messageId, 'error');
 
       // Add error message from bot
-      addBotMessage('Sorry, there was an error processing your request. Please try again.');
+      addBotMessage(getMessage('processingError'));
     } finally {
       setSendLoading(false);
     }
@@ -850,14 +851,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                             value={configKey.key}
                             label={configKey.key}
                           >
-                            <Tooltip title={`Type: ${configKey.type}${configKey.description ? `\nDescription: ${configKey.description}` : ''}`}>
-                              <div className="flex justify-between items-center">
-                                <span>{configKey.key}</span>
-                                <span className="text-gray-400 text-xs">
-                                  {configKey.type}
-                                </span>
-                              </div>
-                            </Tooltip>
+                            <div className="flex justify-between items-center">
+                              <span>{configKey.key}</span>
+                              <span className="text-gray-400 text-xs">
+                                {configKey.type}
+                              </span>
+                            </div>
                           </Select.Option>
                         ))}
                       </Select>
