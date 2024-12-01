@@ -98,6 +98,14 @@ interface CompletionData {
 }
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, setActivePanel, setClipboardContent, clipboardContent }) => {
+  const handleNewChat = () => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const newChatName = `chat_${timestamp}`;
+    setChatListName(newChatName);
+    setMessages([]);
+    setChatLists(prev => [newChatName, ...prev]);
+  };
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [showConfig, setShowConfig] = useState(false);
@@ -844,14 +852,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       <div className="flex-1 overflow-y-auto p-4 bg-gray-900 relative">
         {/* New Chat Button */}
         <button
-          onClick={() => {
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const newChatName = `chat_${timestamp}`;
-            setChatListName(newChatName);
-            setMessages([]);
-            setChatLists(prev => [newChatName, ...prev]);
-          }}
-          className="absolute top-2 left-2 z-10 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-colors"
+          onClick={handleNewChat}
+          className="absolute top-2 left-2 z-10 p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-colors"
           title="New Chat"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
