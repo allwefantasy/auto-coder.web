@@ -4,6 +4,8 @@ import { UndoOutlined } from '@ant-design/icons';
 import { Editor } from '@monaco-editor/react';
 import { getMessage } from './lang';
 
+const CONFIRMATION_WORDS = ['confirm', '确认'] as const;
+
 interface FileGroup {
   id: string;
   name: string;
@@ -166,16 +168,26 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     fetchChatLists();
   }, []);
 
+  useEffect(() => {
+    fetchChatLists();
+  }, []);
+
   const fetchChatLists = async () => {
     try {
       const response = await fetch('/api/chat-lists');
       const data = await response.json();
-      setChatLists(data.chat_lists);
-      
+
       // Automatically load the latest chat if there are any chats
       if (data.chat_lists && data.chat_lists.length > 0) {
         // The first chat in the list is the latest one since they're sorted by modification time
+        setChatListName(data.chat_lists[0]);
+        setChatLists(data.chat_lists);
         await loadChatList(data.chat_lists[0]);
+      } else {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const newChatName = `chat_${timestamp}`;
+        setChatListName(newChatName);
+        setChatLists([newChatName]);        
       }
     } catch (error) {
       console.error('Error fetching chat lists:', error);
@@ -183,8 +195,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     }
   };
 
-  const saveChatList = async () => {
-    if (!chatListName.trim()) {
+  const saveChatList = async (name: string, newMessages: Message[] = []) => {
+    console.log('save chat list:', name);
+    console.log('messages:', newMessages);
+    if (!name.trim()) {
       AntdMessage.error('Please enter a name for the chat list');
       return;
     }
@@ -196,31 +210,33 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: chatListName,
-          messages: messages,
+          name: name,
+          messages: newMessages,
         }),
       });
 
-      if (response.ok) {
-        AntdMessage.success('Chat list saved successfully');
+      if (response.ok) {        
         setShowChatListInput(false);
         setChatListName('');
         fetchChatLists();
       } else {
-        AntdMessage.error('Failed to save chat list');
+        console.error('Failed to save chat list',response.json());
       }
     } catch (error) {
-      console.error('Error saving chat list:', error);
-      AntdMessage.error('Failed to save chat list');
+      console.error('Error saving chat list:', error);      
     }
   };
 
   const loadChatList = async (name: string) => {
     try {
       const response = await fetch(`/api/chat-lists/${name}`);
-      const data = await response.json();
-      setMessages(data.messages);
-      AntdMessage.success('Chat list loaded successfully');
+      const data = await response.json();   
+      data.messages.forEach((message: Message) => {
+        if (message.role === 'user') {
+          message.status = 'sent';
+        }
+      });
+      setMessages(data.messages);      
     } catch (error) {
       console.error('Error loading chat list:', error);
       AntdMessage.error('Failed to load chat list');
@@ -367,8 +383,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       content,
       status: 'sending',
       timestamp: Date.now()
-    };
-    setMessages(prev => [...prev, newMessage]);
+    };    
+    setMessages(prev => {
+      const newMessages = [...prev, newMessage];      
+      if (newMessages.length > 0 && chatListName) {
+        saveChatList(chatListName, newMessages);
+      }
+      return newMessages;
+    });
     return newMessage.id;
   };
 
@@ -379,7 +401,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       content,
       timestamp: Date.now()
     };
-    setMessages(prev => [...prev, newMessage]);
+    setMessages(prev => {
+      const newMessages = [...prev, newMessage];      
+      if (newMessages.length > 0 && chatListName) {
+        saveChatList(chatListName,newMessages);
+      }
+      return newMessages;
+    });
     return newMessage.id;
   };
 
@@ -541,7 +569,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         }
 
         if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_END) {
-          await response_event("proceed");
+          await response_event("proceed");          
           addBotMessage(getMessage('filterComplete'));
         }
 
@@ -549,7 +577,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           await response_event("proceed");
           try {
             const fileData = JSON.parse(eventData.data);
-            addBotMessage(getMessage('fileSelected', { file: fileData.file }));
+            //addBotMessage(getMessage('fileSelected', { file: fileData.filtered_files.join(', ') }));
           } catch (e) {
             console.error('Failed to parse file selection data:', e);
           }
@@ -663,7 +691,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
     // Handle revert confirmation
     if (pendingRevert) {
-      if (trimmedText.toLowerCase() === 'confirm' || trimmedText.toLowerCase() === '确认') {
+      const isConfirmed = CONFIRMATION_WORDS.includes(trimmedText.toLowerCase());
+      if (isConfirmed) {
         try {
           const response = await fetch('/api/revert', {
             method: 'POST'
@@ -699,29 +728,55 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     }
 
     // Original handleSendMessage logic
-    if ((trimmedText.trim() === '确认' || trimmedText.trim() === 'confirm') && pendingResponseEvent) {
-      updateMessageStatus(messageId, 'sent');
-      const { requestId, eventData } = pendingResponseEvent;
-      const v = JSON.stringify({
-        "value": clipboardContent
-      });
-      await fetch('/api/event/response', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+    if (pendingResponseEvent) {
+      const isConfirmed = CONFIRMATION_WORDS.includes(trimmedText.toLowerCase());
+      if (isConfirmed) {        
+        const { requestId, eventData } = pendingResponseEvent;
+        const v = JSON.stringify({
+          "value": clipboardContent
+        });
+        await fetch('/api/event/response', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            request_id: requestId,
+            event: eventData,
+            response: v
+          })
+        });
+        console.log('Response event:', JSON.stringify({
           request_id: requestId,
           event: eventData,
           response: v
-        })
-      });
+        }));
+      } else {        
+        const { requestId, eventData } = pendingResponseEvent;
+        const v = JSON.stringify({
+          "value": ""
+        });
+        await fetch('/api/event/response', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            request_id: requestId,
+            event: eventData,
+            response: v
+          })
+        });
+        console.log('Response event:', JSON.stringify({
+          request_id: requestId,
+          event: eventData,
+          response: v
+        }));
+        addBotMessage(getMessage('cancelResponseEvent'));
+      }
+      updateMessageStatus(messageId, 'sent');
       setPendingResponseEvent(null);
-      console.log('Response event:', JSON.stringify({
-        request_id: requestId,
-        event: eventData,
-        response: v
-      }));
+      updateMessageStatus(messageId, 'sent');
       return;
     }
 
@@ -1038,7 +1093,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         </div>
 
         {/* Message Input */}
-        <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''}`}>          
+        <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''}`}>
           <div className={`flex-1 ${isMaximized ? 'h-full' : 'min-h-[180px]'} border border-gray-700 rounded-lg overflow-hidden`}>
             <Editor
               height={isMaximized ? "100vh" : "180px"}

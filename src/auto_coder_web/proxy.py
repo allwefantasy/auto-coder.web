@@ -545,7 +545,7 @@ class ProxyServer:
             return self.auto_coder_runner.get_logs(request_id)
 
         @self.app.get("/api/last-yaml")
-        async def get_last_yaml(self):
+        async def get_last_yaml():
             """Get information about the last YAML file"""
             return JSONResponse(content=self.auto_coder_runner.get_last_yaml_info())
 

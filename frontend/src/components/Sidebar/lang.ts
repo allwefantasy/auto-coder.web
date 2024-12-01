@@ -67,6 +67,10 @@ export const messages: { [key: string]: Message } = {
   processingError: {
     en: "Sorry, there was an error processing your request. Please try again.",
     zh: "抱歉，处理您的请求时出错，请重试。"
+  },
+  cancelResponseEvent: {
+    en: "Cancel response event",
+    zh: "取消响应事件"
   }
 };
 

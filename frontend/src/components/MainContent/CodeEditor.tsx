@@ -181,6 +181,7 @@ const CodeEditor: React.FC = () => {
                     };
                   };
                   setTreeData(data.tree.map(transformNode));
+                  setFilteredTreeData(data.tree.map(transformNode));
                   message.success('Refreshed file tree successfully');
                 } catch (error) {
                   message.error('Failed to refresh file tree');
