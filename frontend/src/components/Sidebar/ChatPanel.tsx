@@ -841,7 +841,23 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   return (
     <div className="flex flex-col h-full">
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-900 relative">
+        {/* New Chat Button */}
+        <button
+          onClick={() => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const newChatName = `chat_${timestamp}`;
+            setChatListName(newChatName);
+            setMessages([]);
+            setChatLists(prev => [newChatName, ...prev]);
+          }}
+          className="absolute top-2 left-2 z-10 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-colors"
+          title="New Chat"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+          </svg>
+        </button>
         <div className="space-y-4">
           {messages.map((message) => (
             <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
