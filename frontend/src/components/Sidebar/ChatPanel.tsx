@@ -576,8 +576,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_FILE_SELECTED) {
           await response_event("proceed");
           try {
-            const fileData = JSON.parse(eventData.data);
-            //addBotMessage(getMessage('fileSelected', { file: fileData.filtered_files.join(', ') }));
+            const fileData = JSON.parse(eventData.data) as [string, string][];
+            const selectedFiles = fileData.map(([file, reason]) => file).join(', ');
+            addBotMessage(getMessage('fileSelected', { file: selectedFiles }));
           } catch (e) {
             console.error('Failed to parse file selection data:', e);
           }
