@@ -518,7 +518,7 @@ class AutoCoderRunner:
 
             def execute_ask():
                 cmd = ["agent", "chat", "--file",
-                       execute_file, "--request_id", request_id]
+                       execute_file, "--request_id", request_id, "--skip_events"]
                 if is_new:
                     cmd.append("--new_session")
                 auto_coder_main(cmd)

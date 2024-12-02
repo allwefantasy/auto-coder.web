@@ -787,8 +787,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
     setSendLoading(true);
 
-    try {
+    try {      
       const endpoint = isWriteMode ? '/api/coding' : '/api/chat';
+      console.log('Sending message to:', endpoint);
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
