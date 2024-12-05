@@ -71,6 +71,14 @@ export const messages: { [key: string]: Message } = {
   cancelResponseEvent: {
     en: "Cancel response event",
     zh: "取消响应事件"
+  },
+  ragSearchStart: {
+    en: "Starting RAG search...",
+    zh: "开始RAG搜索..."
+  },
+  ragSearchComplete: {
+    en: "RAG search complete",
+    zh: "RAG搜索完成"
   }
 };
 

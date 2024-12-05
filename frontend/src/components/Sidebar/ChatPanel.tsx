@@ -191,7 +191,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const newChatName = `chat_${timestamp}`;
         setChatListName(newChatName);
-        setChatLists([newChatName]);        
+        setChatLists([newChatName]);
       }
     } catch (error) {
       console.error('Error fetching chat lists:', error);
@@ -219,28 +219,28 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         }),
       });
 
-      if (response.ok) {        
+      if (response.ok) {
         setShowChatListInput(false);
         setChatListName('');
         fetchChatLists();
       } else {
-        console.error('Failed to save chat list',response.json());
+        console.error('Failed to save chat list', response.json());
       }
     } catch (error) {
-      console.error('Error saving chat list:', error);      
+      console.error('Error saving chat list:', error);
     }
   };
 
   const loadChatList = async (name: string) => {
     try {
       const response = await fetch(`/api/chat-lists/${name}`);
-      const data = await response.json();   
+      const data = await response.json();
       data.messages.forEach((message: Message) => {
         if (message.role === 'user') {
           message.status = 'sent';
         }
       });
-      setMessages(data.messages);      
+      setMessages(data.messages);
     } catch (error) {
       console.error('Error loading chat list:', error);
       AntdMessage.error('Failed to load chat list');
@@ -387,9 +387,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       content,
       status: 'sending',
       timestamp: Date.now()
-    };    
+    };
     setMessages(prev => {
-      const newMessages = [...prev, newMessage];      
+      const newMessages = [...prev, newMessage];
       if (newMessages.length > 0 && chatListName) {
         saveChatList(chatListName, newMessages);
       }
@@ -406,9 +406,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       timestamp: Date.now()
     };
     setMessages(prev => {
-      const newMessages = [...prev, newMessage];      
+      const newMessages = [...prev, newMessage];
       if (newMessages.length > 0 && chatListName) {
-        saveChatList(chatListName,newMessages);
+        saveChatList(chatListName, newMessages);
       }
       return newMessages;
     });
@@ -477,6 +477,33 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     }
 
     return { text: result, status };
+  };
+
+  const runBothPolls = async (requestId: string, onUpdate: (text: string) => void) => {
+    try {
+      const [eventsResult, streamResult] = await Promise.all([
+        pollEvents(requestId),
+        pollStreamResult(requestId, onUpdate)
+      ]);
+
+      // 合并两个结果的状态
+      const finalStatus = eventsResult.final_status === 'completed' && streamResult.status === 'completed'
+        ? 'completed'
+        : 'failed';
+
+      return {
+        status: finalStatus,
+        content: streamResult.text,
+        eventsContent: eventsResult.content
+      };
+    } catch (error) {
+      console.error('Error in runBothPolls:', error);
+      return {
+        status: 'failed',
+        content: 'Error running polls: ' + error,
+        eventsContent: ''
+      };
+    }
   };
 
   const updateMessageStatus = (messageId: string, status: 'sending' | 'sent' | 'error') => {
@@ -573,7 +600,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         }
 
         if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_END) {
-          await response_event("proceed");          
+          await response_event("proceed");
           addBotMessage(getMessage('filterComplete'));
         }
 
@@ -623,6 +650,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           // 发送到 App 组件
           setPreviewFiles(previewData);
           setActivePanel('preview');
+        }
+
+        if (eventData.event_type === "code_rag_search_start") {
+          await response_event("proceed");
+          addBotMessage(getMessage('ragSearchStart'));
+        }
+
+        if (eventData.event_type === "code_rag_search_end") {
+          await response_event("proceed");
+          addBotMessage(getMessage('ragSearchComplete'));
         }
 
         if (eventData.event_type === 'code_human_as_model') {
@@ -735,7 +772,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     // Original handleSendMessage logic
     if (pendingResponseEvent) {
       const isConfirmed = CONFIRMATION_WORDS.includes(trimmedText.toLowerCase());
-      if (isConfirmed) {        
+      if (isConfirmed) {
         const { requestId, eventData } = pendingResponseEvent;
         const v = JSON.stringify({
           "value": clipboardContent
@@ -756,7 +793,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           event: eventData,
           response: v
         }));
-      } else {        
+      } else {
         const { requestId, eventData } = pendingResponseEvent;
         const v = JSON.stringify({
           "value": ""
@@ -787,7 +824,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
     setSendLoading(true);
 
-    try {      
+    try {
       const endpoint = isWriteMode ? '/api/coding' : '/api/chat';
       console.log('Sending message to:', endpoint);
       const response = await fetch(endpoint, {

@@ -186,7 +186,7 @@ class AutoCoderRunner:
                             matched_files.append(abs_path)
             else:
                 is_added = False
-                for root, dirs, files in os.walk(project_root):
+                for root, dirs, files in os.walk(project_root, followlinks=True):
                     dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
                     if pattern in files:
                         matched_files.append(os.path.join(root, pattern))
