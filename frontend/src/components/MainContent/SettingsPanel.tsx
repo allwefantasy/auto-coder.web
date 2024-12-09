@@ -95,7 +95,7 @@ const SettingsPanel: React.FC = () => {
         
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <span className="text-gray-300">Enable RAG</span>
+            <span className="text-gray-300">RAG</span>
             <Switch
               checked={config.rag}
               onChange={(checked) => updateConfig('rag', checked)}
@@ -139,7 +139,7 @@ const SettingsPanel: React.FC = () => {
 
           <div className="border-t border-gray-700 mt-6 pt-6">
             <div className="flex items-center justify-between">
-              <span className="text-gray-300">Enable Index</span>
+              <span className="text-gray-300">Index</span>
               <Switch
                 checked={config.index_enabled}
                 onChange={(checked) => updateConfig('index_enabled', checked)}
