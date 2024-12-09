@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Switch, Input, message, Card } from 'antd';
+import { Switch, Input, message, Card, Select } from 'antd';
 import { Editor } from '@monaco-editor/react';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage, setLanguage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 
 const SettingsPanel: React.FC = () => {
@@ -18,11 +18,13 @@ const SettingsPanel: React.FC = () => {
     index_filter_file_num: string;
     index_build_workers: string;
     available_keys: AutoCoderArgs[];
+    language: string;
   }>({
     rag: false,
     rag_url: '',
     rag_type: '',
     rag_token: '',
+    language: 'en',
     index_enabled: false,
     skip_build_index: false,
     skip_filter_index: false,
@@ -106,6 +108,20 @@ const SettingsPanel: React.FC = () => {
 
           {config.rag && (
             <div className="space-y-4 mt-4">
+              <div>
+                <label className="block text-gray-300 mb-2">Language / 语言</label>
+                <Select
+                  value={config.language}
+                  onChange={(value) => {
+                    setConfig(prev => ({ ...prev, language: value }));
+                    setLanguage(value);
+                  }}
+                  className="custom-select w-full"
+                >
+                  <Select.Option value="en">English</Select.Option>
+                  <Select.Option value="zh">中文</Select.Option>
+                </Select>
+              </div>
               <div>
               <label className="block text-gray-300 mb-2">{getMessage('ragUrlInput')}</label>
               <Input
