@@ -898,13 +898,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         <div className="space-y-4">
           {messages.map((message) => (
             <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div
+                <div
                 className={`max-w-[80%] rounded-lg p-2 relative group text-2xs ${message.role === 'user'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-800 text-gray-300'
                   }`}
               >
-                <Markdown html limitedMarkdown={false}>{message.content}</Markdown>
+                <Markdown>{message.content}</Markdown>
                 {message.status === 'sending' && (
                   <div className="flex items-center text-2xs text-gray-400 mt-1">
                     <div className="mr-1">sending</div>
