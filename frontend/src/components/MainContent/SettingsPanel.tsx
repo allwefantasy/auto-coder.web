@@ -9,12 +9,26 @@ const SettingsPanel: React.FC = () => {
     rag_url: string;
     rag_type: string;
     rag_token: string;
+    index_enabled: boolean;
+    skip_build_index: boolean;
+    skip_filter_index: boolean;
+    index_filter_level: string;
+    index_filter_workers: string;
+    index_filter_file_num: string;
+    index_build_workers: string;
     available_keys: AutoCoderArgs[];
   }>({
     rag: false,
     rag_url: '',
     rag_type: '',
     rag_token: '',
+    index_enabled: false,
+    skip_build_index: false,
+    skip_filter_index: false,
+    index_filter_level: '1',
+    index_filter_workers: '100',
+    index_filter_file_num: '10',
+    index_build_workers: '100',
     available_keys: []
   });
 
@@ -122,6 +136,85 @@ const SettingsPanel: React.FC = () => {
               </div>
             </div>
           )}
+
+          <div className="border-t border-gray-700 mt-6 pt-6">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-300">Enable Index</span>
+              <Switch
+                checked={config.index_enabled}
+                onChange={(checked) => updateConfig('index_enabled', checked)}
+                className="bg-gray-600"
+              />
+            </div>
+
+            {config.index_enabled && (
+              <div className="space-y-4 mt-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-300">Skip Build Index</span>
+                  <Switch
+                    checked={config.skip_build_index}
+                    onChange={(checked) => updateConfig('skip_build_index', checked)}
+                    className="bg-gray-600"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-300">Skip Filter Index</span>
+                  <Switch
+                    checked={config.skip_filter_index}
+                    onChange={(checked) => updateConfig('skip_filter_index', checked)}
+                    className="bg-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2">Index Filter Level</label>
+                  <select
+                    value={config.index_filter_level}
+                    onChange={(e) => updateConfig('index_filter_level', e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-md px-3 py-2"
+                  >
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2">Index Filter Workers</label>
+                  <Input
+                    type="number"
+                    value={config.index_filter_workers}
+                    onChange={(e) => updateConfig('index_filter_workers', e.target.value)}
+                    placeholder="Default: 100"
+                    className="custom-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2">Index Filter File Number</label>
+                  <Input
+                    type="number"
+                    value={config.index_filter_file_num}
+                    onChange={(e) => updateConfig('index_filter_file_num', e.target.value)}
+                    placeholder="Default: 10"
+                    className="custom-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2">Index Build Workers</label>
+                  <Input
+                    type="number"
+                    value={config.index_build_workers}
+                    onChange={(e) => updateConfig('index_build_workers', e.target.value)}
+                    placeholder="Default: 100"
+                    className="custom-input"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </Card>
     </div>
