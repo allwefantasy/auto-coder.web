@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Switch, Input, message, Card, Select } from 'antd';
 import { Editor } from '@monaco-editor/react';
-import { getMessage, setLanguage } from '../Sidebar/lang';
+import { getMessage, setLanguage, getCurrentLanguage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 
 const SettingsPanel: React.FC = () => {
@@ -32,7 +32,7 @@ const SettingsPanel: React.FC = () => {
     index_filter_file_num: '10',
     index_build_workers: '100',
     available_keys: [],
-    language: 'en'
+    language: getCurrentLanguage()
   });
 
   useEffect(() => {
