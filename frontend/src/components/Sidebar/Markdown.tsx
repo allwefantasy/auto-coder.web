@@ -66,7 +66,7 @@ export const Markdown = memo(({ children, html = false, limitedMarkdown = false 
     <div className="prose prose-invert max-w-none">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={rehypePlugins}
+        rehypePlugins={rehypePlugins as any[]}
         components={limitedMarkdown ? undefined : components}
       >
         {children}
