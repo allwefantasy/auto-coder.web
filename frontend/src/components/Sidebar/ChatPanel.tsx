@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Markdown } from './Markdown';
 import { Select, Switch, message as AntdMessage, Tooltip } from 'antd';
 import { UndoOutlined } from '@ant-design/icons';
 import { Editor } from '@monaco-editor/react';
@@ -903,7 +904,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                   : 'bg-gray-800 text-gray-300'
                   }`}
               >
-                <div className="break-words text-2xs">{message.content}</div>
+                <Markdown html limitedMarkdown={false}>{message.content}</Markdown>
                 {message.status === 'sending' && (
                   <div className="flex items-center text-2xs text-gray-400 mt-1">
                     <div className="mr-1">sending</div>
