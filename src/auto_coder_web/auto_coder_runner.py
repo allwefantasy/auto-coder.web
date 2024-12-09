@@ -100,7 +100,8 @@ class AutoCoderRunner:
         if group_name not in self.memory["current_files"]["groups"]:
             return None
         del self.memory["current_files"]["groups"][group_name]
-        del self.memory["current_files"]["groups_info"][group_name]
+        if group_name in self.memory["current_files"]["groups_info"]:
+            del self.memory["current_files"]["groups_info"][group_name]
         self.save_memory()
         return {"message": f"Removed group: {group_name}"}
 
