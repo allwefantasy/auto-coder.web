@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Switch, Input, message, Card } from 'antd';
 import { Editor } from '@monaco-editor/react';
+import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 
 const SettingsPanel: React.FC = () => {
@@ -81,21 +82,21 @@ const SettingsPanel: React.FC = () => {
       }
 
       setConfig(prev => ({ ...prev, [key]: value }));
-      message.success('Configuration updated successfully');
+      message.success(getMessage('settingsUpdateSuccess'));
     } catch (error) {
       console.error('Error updating config:', error);
-      message.error('Failed to update configuration');
+      message.error(getMessage('settingsUpdateError'));
     }
   };
 
   return (
     <div className="h-full bg-gray-900 p-6 overflow-y-auto">
       <Card className="bg-gray-800 border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Settings</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">{getMessage('settingsTitle')}</h2>
         
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <span className="text-gray-300">RAG</span>
+            <span className="text-gray-300">{getMessage('ragToggle')}</span>
             <Switch
               checked={config.rag}
               onChange={(checked) => setConfig(prev => ({ ...prev, rag: checked }))}
@@ -106,31 +107,31 @@ const SettingsPanel: React.FC = () => {
           {config.rag && (
             <div className="space-y-4 mt-4">
               <div>
-                <label className="block text-gray-300 mb-2">RAG URL</label>
-                <Input
-                  value={config.rag_url}
-                  onChange={(e) => updateConfig('rag_url', e.target.value)}
-                  placeholder="Enter RAG URL"
+              <label className="block text-gray-300 mb-2">{getMessage('ragUrlInput')}</label>
+              <Input
+                value={config.rag_url}
+                onChange={(e) => updateConfig('rag_url', e.target.value)}
+                placeholder={getMessage('ragUrlPlaceholder')}
                   className="custom-input"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-300 mb-2">RAG Type</label>
-                <Input
-                  value={config.rag_type}
-                  onChange={(e) => updateConfig('rag_type', e.target.value)}
-                  placeholder="Enter RAG Type"
+              <label className="block text-gray-300 mb-2">{getMessage('ragTypeInput')}</label>
+              <Input
+                value={config.rag_type}
+                onChange={(e) => updateConfig('rag_type', e.target.value)}
+                placeholder={getMessage('ragTypePlaceholder')}
                   className="custom-input"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-300 mb-2">RAG Token</label>
-                <Input.Password
-                  value={config.rag_token}
-                  onChange={(e) => updateConfig('rag_token', e.target.value)}
-                  placeholder="Enter RAG Token"
+              <label className="block text-gray-300 mb-2">{getMessage('ragTokenInput')}</label>
+              <Input.Password
+                value={config.rag_token}
+                onChange={(e) => updateConfig('rag_token', e.target.value)}
+                placeholder={getMessage('ragTokenPlaceholder')}
                   className="custom-input"
                 />
               </div>
@@ -139,7 +140,7 @@ const SettingsPanel: React.FC = () => {
 
           <div className="border-t border-gray-700 mt-6 pt-6">
             <div className="flex items-center justify-between">
-              <span className="text-gray-300">Index</span>
+              <span className="text-gray-300">{getMessage('indexToggle')}</span>
               <Switch
                 checked={config.index_enabled}
                 onChange={(checked) => setConfig(prev => ({ ...prev, index_enabled: checked }))}
@@ -150,7 +151,7 @@ const SettingsPanel: React.FC = () => {
             {config.index_enabled && (
               <div className="space-y-4 mt-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Skip Build Index</span>
+                  <span className="text-gray-300">{getMessage('skipBuildIndexToggle')}</span>
                   <Switch
                     checked={config.skip_build_index}
                     onChange={(checked) => updateConfig('skip_build_index', checked)}
@@ -159,7 +160,7 @@ const SettingsPanel: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Skip Filter Index</span>
+                  <span className="text-gray-300">{getMessage('skipFilterIndexToggle')}</span>
                   <Switch
                     checked={config.skip_filter_index}
                     onChange={(checked) => updateConfig('skip_filter_index', checked)}
@@ -168,7 +169,7 @@ const SettingsPanel: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-2">Index Filter Level</label>
+                  <label className="block text-gray-300 mb-2">{getMessage('indexFilterLevelInput')}</label>
                   <select
                     value={config.index_filter_level}
                     onChange={(e) => updateConfig('index_filter_level', e.target.value)}
@@ -181,34 +182,34 @@ const SettingsPanel: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-2">Index Filter Workers</label>
+                  <label className="block text-gray-300 mb-2">{getMessage('indexFilterWorkersInput')}</label>
                   <Input
                     type="number"
                     value={config.index_filter_workers}
                     onChange={(e) => updateConfig('index_filter_workers', e.target.value)}
-                    placeholder="Default: 100"
+                    placeholder={getMessage('indexFilterWorkersPlaceholder')}
                     className="custom-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-2">Index Filter File Number</label>
+                  <label className="block text-gray-300 mb-2">{getMessage('indexFilterFileNumInput')}</label>
                   <Input
                     type="number"
                     value={config.index_filter_file_num}
                     onChange={(e) => updateConfig('index_filter_file_num', e.target.value)}
-                    placeholder="Default: 10"
+                    placeholder={getMessage('indexFilterFileNumPlaceholder')}
                     className="custom-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-2">Index Build Workers</label>
+                  <label className="block text-gray-300 mb-2">{getMessage('indexBuildWorkersInput')}</label>
                   <Input
                     type="number"
                     value={config.index_build_workers}
                     onChange={(e) => updateConfig('index_build_workers', e.target.value)}
-                    placeholder="Default: 100"
+                    placeholder={getMessage('indexBuildWorkersPlaceholder')}
                     className="custom-input"
                   />
                 </div>

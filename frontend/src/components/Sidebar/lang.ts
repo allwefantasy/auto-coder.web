@@ -4,6 +4,87 @@ interface Message {
 }
 
 export const messages: { [key: string]: Message } = {
+  // Settings Panel
+  settingsTitle: {
+    en: "Settings",
+    zh: "设置"
+  },
+  ragToggle: {
+    en: "RAG",
+    zh: "RAG检索增强"
+  },
+  ragUrlInput: {
+    en: "RAG URL",
+    zh: "RAG 服务地址"
+  },
+  ragUrlPlaceholder: {
+    en: "Enter RAG URL",
+    zh: "请输入RAG服务地址"
+  },
+  ragTypeInput: {
+    en: "RAG Type",
+    zh: "RAG 类型"
+  },
+  ragTypePlaceholder: {
+    en: "Enter RAG Type",
+    zh: "请输入RAG类型"
+  },
+  ragTokenInput: {
+    en: "RAG Token",
+    zh: "RAG 访问令牌"
+  },
+  ragTokenPlaceholder: {
+    en: "Enter RAG Token",
+    zh: "请输入RAG访问令牌"
+  },
+  indexToggle: {
+    en: "Index",
+    zh: "索引"
+  },
+  skipBuildIndexToggle: {
+    en: "Skip Build Index",
+    zh: "跳过构建索引"
+  },
+  skipFilterIndexToggle: {
+    en: "Skip Filter Index",
+    zh: "跳过过滤索引"
+  },
+  indexFilterLevelInput: {
+    en: "Index Filter Level",
+    zh: "索引过滤级别"
+  },
+  indexFilterWorkersInput: {
+    en: "Index Filter Workers",
+    zh: "索引过滤工作线程数"
+  },
+  indexFilterWorkersPlaceholder: {
+    en: "Default: 100",
+    zh: "默认值：100"
+  },
+  indexFilterFileNumInput: {
+    en: "Index Filter File Number",
+    zh: "索引过滤文件数量"
+  },
+  indexFilterFileNumPlaceholder: {
+    en: "Default: 10",
+    zh: "默认值：10"
+  },
+  indexBuildWorkersInput: {
+    en: "Index Build Workers",
+    zh: "索引构建工作线程数"
+  },
+  indexBuildWorkersPlaceholder: {
+    en: "Default: 100",
+    zh: "默认值：100"
+  },
+  settingsUpdateSuccess: {
+    en: "Configuration updated successfully",
+    zh: "配置更新成功"
+  },
+  settingsUpdateError: {
+    en: "Failed to update configuration",
+    zh: "配置更新失败"
+  },
   indexBuildStart: {
     en: "Build incremental index...",
     zh: "增量索引..."
