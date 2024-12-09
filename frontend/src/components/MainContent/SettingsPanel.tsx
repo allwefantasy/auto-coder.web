@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Switch, Input, message, Card } from 'antd';
+import { Switch, Input, message, Card, Select } from 'antd';
 import { Editor } from '@monaco-editor/react';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage, setLanguage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 
 const SettingsPanel: React.FC = () => {
@@ -18,6 +18,7 @@ const SettingsPanel: React.FC = () => {
     index_filter_file_num: string;
     index_build_workers: string;
     available_keys: AutoCoderArgs[];
+    language: string;
   }>({
     rag: false,
     rag_url: '',
@@ -30,7 +31,8 @@ const SettingsPanel: React.FC = () => {
     index_filter_workers: '100',
     index_filter_file_num: '10',
     index_build_workers: '100',
-    available_keys: []
+    available_keys: [],
+    language: 'en'
   });
 
   useEffect(() => {
@@ -95,6 +97,20 @@ const SettingsPanel: React.FC = () => {
         <h2 className="text-xl font-semibold text-white mb-6">{getMessage('settingsTitle')}</h2>
         
         <div className="space-y-6">
+          <div>
+            <label className="block text-gray-300 mb-2">Language / 语言</label>
+            <Select
+              value={config.language}
+              onChange={(value) => {
+                setConfig(prev => ({ ...prev, language: value }));
+                setLanguage(value as 'en' | 'zh');
+              }}
+              className="custom-select w-full"
+            >
+              <Select.Option value="en">English</Select.Option>
+              <Select.Option value="zh">中文</Select.Option>
+            </Select>
+          </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-300">{getMessage('ragToggle')}</span>
             <Switch
