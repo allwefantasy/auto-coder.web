@@ -903,7 +903,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                   : 'bg-gray-800 text-gray-300'
                   }`}
               >
-                <div className="break-words text-2xs">{message.content}</div>
+                <Markdown html>{message.content}</Markdown>
                 {message.status === 'sending' && (
                   <div className="flex items-center text-2xs text-gray-400 mt-1">
                     <div className="mr-1">sending</div>
