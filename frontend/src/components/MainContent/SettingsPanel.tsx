@@ -98,7 +98,7 @@ const SettingsPanel: React.FC = () => {
             <span className="text-gray-300">RAG</span>
             <Switch
               checked={config.rag}
-              onChange={(checked) => updateConfig('rag', checked)}
+              onChange={(checked) => setConfig(prev => ({ ...prev, rag: checked }))}
               className="bg-gray-600"
             />
           </div>
@@ -142,7 +142,7 @@ const SettingsPanel: React.FC = () => {
               <span className="text-gray-300">Index</span>
               <Switch
                 checked={config.index_enabled}
-                onChange={(checked) => updateConfig('index_enabled', checked)}
+                onChange={(checked) => setConfig(prev => ({ ...prev, index_enabled: checked }))}
                 className="bg-gray-600"
               />
             </div>
