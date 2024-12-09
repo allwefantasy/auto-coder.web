@@ -1,0 +1,12 @@
+**/node_modules/
+**/.github/
+**/.git/
+**/.serveignore
+**/.husky/
+**/assets/
+**/.vscode/
+**/.cursorrules/
+**/.cursorignore/
+**/package-lock.json
+**/pnpm-lock.yaml
+**/yarn.lock
