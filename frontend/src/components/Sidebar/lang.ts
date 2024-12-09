@@ -171,6 +171,11 @@ export const setLanguage = (lang: 'en' | 'zh') => {
   currentLanguage = lang;
 };
 
+// 获取当前语言
+export const getCurrentLanguage = () => {
+  return currentLanguage;
+};
+
 // 获取消息文本
 export const getMessage = (key: keyof typeof messages, params: { [key: string]: string } = {}): string => {
   const message = messages[key]?.[currentLanguage] || messages[key]?.en || String(key);
