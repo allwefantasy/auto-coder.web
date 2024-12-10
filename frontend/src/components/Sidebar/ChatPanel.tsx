@@ -1193,7 +1193,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
               <div className="text-xs text-gray-400">
                 Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter to send
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2">
                 <Switch
                   size="small"
                   checked={isWriteMode}
@@ -1204,9 +1204,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                 />
                 <Tooltip title="Clear event queue to resolve any stuck operations" placement="top">
                   <button
-                    className="px-3 py-1.5 bg-gray-600 text-gray-200 rounded-lg hover:bg-gray-700 
-                    hover:text-white transition-all duration-200 flex items-center gap-2 
-                    shadow-sm hover:shadow-md transform hover:-translate-y-0.5
+                    className="px-2 py-1 bg-gray-600 text-gray-200 text-xs rounded hover:bg-gray-700 
+                    hover:text-white transition-all duration-200 flex items-center justify-center gap-1.5
+                    shadow-sm hover:shadow-md
                     border border-gray-500 hover:border-gray-400"
                     onClick={async () => {
                       try {
@@ -1223,13 +1223,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                       }
                     }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    <span className="text-sm">Clear Queue</span>
+                    <span>Clear Queue</span>
                   </button>
                 </Tooltip>
-                
               </div>
             </div>
             <div className="flex items-center gap-2">
