@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Markdown } from './Markdown';
 import { Select, Switch, message as AntdMessage, Tooltip } from 'antd';
 import { UndoOutlined } from '@ant-design/icons';
@@ -293,16 +293,24 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     eventData: CodingEvent;
   } | null>(null);
 
-  const fetchFileGroups = async () => {
-    try {
-      const response = await fetch('/api/file-groups');
-      if (!response.ok) throw new Error('Failed to fetch file groups');
-      const data = await response.json();
-      setFileGroups(data.groups);
-    } catch (error) {
-      console.error('Failed to load file groups');
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  
+  const fetchFileGroups = useCallback(async () => {
+    const now = Date.now();
+    const timeSinceLastFetch = now - lastFetchTime;
+    
+    if (timeSinceLastFetch >= 30000) { // 30 seconds
+      try {
+        const response = await fetch('/api/file-groups');
+        if (!response.ok) throw new Error('Failed to fetch file groups');
+        const data = await response.json();
+        setFileGroups(data.groups);
+        setLastFetchTime(now);
+      } catch (error) {
+        console.error('Failed to load file groups');
+      }
     }
-  };
+  }, [lastFetchTime]);
 
   // Initial fetch
   useEffect(() => {
@@ -1112,22 +1120,23 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           {/* File Groups Select - Now outside of showConfig condition */}
           <div className="px-4">
             <div className="h-[1px] bg-gray-700/50 my-3"></div>
-            <Select
-              mode="multiple"
-              style={{ width: '100%' }}
-              placeholder="Select file groups to work with"
-              value={selectedGroups}
-              onChange={(values) => {
-                console.log('Selected groups:', values);
-                setSelectedGroups(values);
-                fetch('/api/file-groups/switch', {
-                  method: 'POST',
-                  body: JSON.stringify({ group_names: values })
-                });
-              }}
-              optionLabelProp="label"
-              className="custom-select"
-            >
+          <Select
+            mode="multiple"
+            style={{ width: '100%' }}
+            placeholder="Select file groups to work with"
+            value={selectedGroups}
+            onFocus={fetchFileGroups}
+            onChange={(values) => {
+              console.log('Selected groups:', values);
+              setSelectedGroups(values);
+              fetch('/api/file-groups/switch', {
+                method: 'POST',
+                body: JSON.stringify({ group_names: values })
+              });
+            }}
+            optionLabelProp="label"
+            className="custom-select"
+          >
               {fileGroups.map(group => (
                 <Select.Option
                   key={group.name}
