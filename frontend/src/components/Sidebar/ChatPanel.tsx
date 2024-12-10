@@ -15,8 +15,9 @@ interface FileGroup {
 
 interface CodeBlock {
   file_path: string;
-  new_block: string;
-  old_block: string;
+  head: string;
+  update: string;
+  similarity: number;
 }
 
 interface UnmergeCodeBlock {
@@ -653,7 +654,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           // 更新 Preview Panel 数据
           const previewData = blocks.map(block => ({
             path: block.file_path,
-            content: `<<<<<<< SEARCH\n${block.old_block}\n=======\n${block.new_block}\n>>>>>>> REPLACE`
+            content: `<<<<<<< SEARCH(${block.similarity})\n${block.head}\n=======\n${block.update}\n>>>>>>> REPLACE`
           }));
 
           // 发送到 App 组件
