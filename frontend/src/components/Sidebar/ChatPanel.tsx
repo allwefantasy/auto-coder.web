@@ -1202,28 +1202,33 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                   unCheckedChildren="Chat"
                   className="bg-gray-600"
                 />
-                <button
-                  className="p-1.5 bg-gray-600 text-gray-200 rounded hover:bg-gray-700 hover:text-white transition-colors"
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/event/clear', {
-                        method: 'POST'
-                      });
-                      if (!response.ok) {
-                        throw new Error('Failed to clear events');
+                <Tooltip title="Clear event queue to resolve any stuck operations" placement="top">
+                  <button
+                    className="px-3 py-1.5 bg-gray-600 text-gray-200 rounded-lg hover:bg-gray-700 
+                    hover:text-white transition-all duration-200 flex items-center gap-2 
+                    shadow-sm hover:shadow-md transform hover:-translate-y-0.5
+                    border border-gray-500 hover:border-gray-400"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/event/clear', {
+                          method: 'POST'
+                        });
+                        if (!response.ok) {
+                          throw new Error('Failed to clear events');
+                        }
+                        AntdMessage.success('Event queue cleared successfully');
+                      } catch (error) {
+                        console.error('Error clearing events:', error);
+                        AntdMessage.error('Failed to clear event queue');
                       }
-                      AntdMessage.success('Event queue cleared successfully');
-                    } catch (error) {
-                      console.error('Error clearing events:', error);
-                      AntdMessage.error('Failed to clear event queue');
-                    }
-                  }}
-                  title="Clear event queue"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>                  
-                </button>
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span className="text-sm">Clear Queue</span>
+                  </button>
+                </Tooltip>
                 
               </div>
             </div>
