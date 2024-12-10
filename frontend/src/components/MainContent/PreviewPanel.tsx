@@ -70,8 +70,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                         index === activeFileIndex ? 'bg-gray-700 text-white' : 'text-gray-300'
                       }`}
                       onClick={() => setActiveFileIndex(index)}
+                      title={file.path}
                     >
-                      {file.path}
+                      {file.path.split('/').pop()}
                     </button>
                   ))}
                 </div>
