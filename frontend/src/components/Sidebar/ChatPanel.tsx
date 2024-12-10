@@ -131,6 +131,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const [shouldSendMessage, setShouldSendMessage] = useState(false);
   const [pendingRevert, setPendingRevert] = useState<boolean>(false);
 
+  // 添加新的 useEffect 用于滚动到最新消息
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   useEffect(() => {
     if (shouldSendMessage) {
       handleSendMessage();
