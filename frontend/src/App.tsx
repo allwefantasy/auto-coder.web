@@ -290,22 +290,6 @@ const App: React.FC = () => {
             backgroundColor: 'rgba(0, 0, 0, 0.6)',
           },
         }}
-        styles={{
-          content: {
-            backgroundColor: '#1f2937',
-            padding: '20px',
-          },
-          header: {
-            backgroundColor: '#1f2937',
-            borderBottom: '1px solid #374151',
-          },
-          body: {
-            backgroundColor: '#1f2937',
-          },
-          mask: {
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          },
-        }}
       >
         <div className="my-4">
           <Input
