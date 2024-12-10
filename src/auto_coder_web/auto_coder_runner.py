@@ -335,6 +335,11 @@ class AutoCoderRunner:
         if not request_id:
             raise ValueError("request_id is required")
         return queue_communicate.get_event(request_id)
+    
+    def clear_events(self):
+        queue_communicate.request_queues.clear()
+        queue_communicate.response_queues.clear()
+        return {"message": "Event queue cleared successfully"}
 
     def response_event(self, request_id: str, event: CommunicateEvent, response: str):
         if not request_id:
@@ -346,7 +351,7 @@ class AutoCoderRunner:
 
     async def get_result(self, request_id: str) -> Dict[str, Any]:
         result = request_queue.get_request(request_id)
-        return result
+        return result    
 
     async def coding(self, query: str) -> Dict[str, str]:
         self.memory["conversation"].append({"role": "user", "content": query})
