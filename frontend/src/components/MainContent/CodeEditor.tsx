@@ -7,8 +7,33 @@ import Editor from '@monaco-editor/react';
 import { FolderOutlined, FileOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 
-const CodeEditor: React.FC = () => {
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+interface CodeEditorProps {
+  selectedFile?: string | null;
+}
+
+const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) => {
+  const [selectedFile, setSelectedFile] = useState<string | null>(initialFile || null);
+
+  useEffect(() => {
+    if (initialFile) {
+      setSelectedFile(initialFile);
+      // 加载文件内容
+      const loadFile = async () => {
+        try {
+          const response = await fetch(`/api/file/${initialFile}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch file content');
+          }
+          const data = await response.json();
+          setCode(data.content);
+        } catch (error) {
+          console.error('Error fetching file content:', error);
+          setCode('// Error loading file content');
+        }
+      };
+      loadFile();
+    }
+  }, [initialFile]);
   const [code, setCode] = useState<string>('// Select a file to edit');
   const [treeData, setTreeData] = useState<DataNode[]>([]);
   const [filteredTreeData, setFilteredTreeData] = useState<DataNode[]>([]);

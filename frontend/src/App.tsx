@@ -43,6 +43,7 @@ const App: React.FC = () => {
     setSelectedFile(path);
     setIsFileSearchOpen(false);
     setSearchTerm('');
+    setActivePanel('code');
   }, []);
 
   // Add global hotkey
@@ -193,7 +194,7 @@ const App: React.FC = () => {
           {/* Upper Section - Dynamic Content */}
           <div className="flex-1 overflow-hidden">
             <div className={`h-full ${activePanel === 'code' ? 'block' : 'hidden'}`}>
-              <CodeEditor />
+              <CodeEditor selectedFile={selectedFile} />
             </div>
             <div className={`h-full ${activePanel === 'filegroup' ? 'block' : 'hidden'}`}>
               <FileGroupPanel />
