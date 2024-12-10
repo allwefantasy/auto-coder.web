@@ -1194,45 +1194,46 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             />
           </div>
           <div className="flex items-center justify-between mt-2 gap-2">
-            <div className="flex items-center gap-2 mb-2">
-              <Tooltip title="Clear event queue to resolve any stuck operations" placement="top">
-                <button
-                  className="p-2 bg-gray-600 text-gray-200 rounded-md hover:bg-gray-700 
-                  transition-colors flex items-center gap-1"
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/event/clear', {
-                        method: 'POST'
-                      });
-                      if (!response.ok) {
-                        throw new Error('Failed to clear events');
-                      }
-                      AntdMessage.success('Event queue cleared successfully');
-                    } catch (error) {
-                      console.error('Error clearing events:', error);
-                      AntdMessage.error('Failed to clear event queue');
-                    }
-                  }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  <span className="text-xs">Clear</span>
-                </button>
-              </Tooltip>
-            </div>
             <div className="flex items-center gap-2">
               <div className="text-xs text-gray-400">
                 Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter to send
               </div>
-              <Switch
-                size="small"
-                checked={isWriteMode}
-                onChange={setIsWriteMode}
-                checkedChildren="Write"
-                unCheckedChildren="Chat"
-                className="bg-gray-600"
-              />
+              <div className="flex items-center gap-2">
+                <Switch
+                  size="small"
+                  checked={isWriteMode}
+                  onChange={setIsWriteMode}
+                  checkedChildren="Write"
+                  unCheckedChildren="Chat"
+                  className="bg-gray-600"
+                />
+                <Tooltip title="Clear event queue to resolve any stuck operations" placement="top">
+                  <button
+                    className="p-2 bg-gray-600 text-gray-200 rounded-md hover:bg-gray-700 
+                    transition-colors flex items-center gap-1"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/event/clear', {
+                          method: 'POST'
+                        });
+                        if (!response.ok) {
+                          throw new Error('Failed to clear events');
+                        }
+                        AntdMessage.success('Event queue cleared successfully');
+                      } catch (error) {
+                        console.error('Error clearing events:', error);
+                        AntdMessage.error('Failed to clear event queue');
+                      }
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span className="text-xs">Clear</span>
+                  </button>
+                </Tooltip>
+                
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <button
