@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Modal, Input, List } from 'antd';
 import { Editor } from '@monaco-editor/react';
@@ -22,6 +22,8 @@ const App: React.FC = () => {
   const [isFileSearchOpen, setIsFileSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{name: string, path: string, display: string}>>([]);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null); // State for selected file
+  const searchInputRef = useRef<any>(null);
 
   const handleFileSearch = useCallback(async (term: string) => {
     if (!term) {
@@ -45,12 +47,15 @@ const App: React.FC = () => {
 
   // Add global hotkey
   useHotkeys(
-    'cmd+p, ctrl+p',
+    ['meta+p', 'ctrl+p'],
     (event) => {
       event.preventDefault();
       setIsFileSearchOpen(true);
     },
-    { enableOnFormTags: true }
+    { 
+      enableOnFormTags: true,
+      preventDefault: true
+    }
   );
 
   useEffect(() => {
@@ -63,6 +68,16 @@ const App: React.FC = () => {
       })
       .catch(error => console.error('Error fetching project path:', error));
   }, []); // Renamed useEffect hook to include a name
+
+  useEffect(() => {
+    if (isFileSearchOpen && searchInputRef.current) {
+      // Small delay to ensure modal is fully rendered
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isFileSearchOpen]);
 
   return (
     <div className="h-screen flex bg-gray-900">
@@ -247,9 +262,7 @@ const App: React.FC = () => {
           </div>
         </div>
         </Split>
-      </div>
-
-      {/* File Search Modal */}
+        {/* File Search Modal */}
       <Modal
         title="Search Files"
         open={isFileSearchOpen}
@@ -260,9 +273,27 @@ const App: React.FC = () => {
         }}
         footer={null}
         width={600}
+        className="dark-theme-modal"
+        styles={{
+          content: {
+            backgroundColor: '#1f2937',
+            padding: '20px',
+          },
+          header: {
+            backgroundColor: '#1f2937',
+            borderBottom: '1px solid #374151',
+          },
+          body: {
+            backgroundColor: '#1f2937',
+          },
+          mask: {
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          },
+        }}
       >
         <div className="my-4">
           <Input
+            ref={searchInputRef}
             autoFocus
             placeholder="Enter file name to search..."
             value={searchTerm}
@@ -277,13 +308,20 @@ const App: React.FC = () => {
                 setSearchResults([]);
               }
             }}
+            className="dark-theme-input bg-gray-800 text-gray-200 border-gray-700"
+            style={{
+              backgroundColor: '#1f2937',
+              borderColor: '#374151',
+              color: '#e5e7eb',
+            }}
           />
         </div>
         <List
           dataSource={searchResults}
+          className="dark-theme-list max-h-96 overflow-y-auto"
           renderItem={(item) => (
             <List.Item
-              className="cursor-pointer hover:bg-gray-700"
+              className="cursor-pointer hover:bg-gray-700 text-gray-200 border-gray-700"
               onClick={() => openFileInEditor(item.path)}
             >
               <div className="flex flex-col">
@@ -291,10 +329,12 @@ const App: React.FC = () => {
                 <span className="text-gray-400 text-sm">{item.path}</span>
               </div>
             </List.Item>
-          )}
-          className="max-h-96 overflow-y-auto"
+          )}          
         />
       </Modal>
+      </div>
+
+      
   );
 };
 
