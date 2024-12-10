@@ -325,17 +325,21 @@ const FileGroupPanel: React.FC = () => {
                         title: 'Path',
                         dataIndex: 'path',
                         key: 'path',
-                        render: (path) => (
-                          <span
-                            className="text-gray-300 cursor-pointer"
-                            onDoubleClick={(e) => {
-                              e.stopPropagation();
-                              handleFileSelect(path);
-                            }}
-                          >
-                            {path}
-                          </span>
-                        )
+                        render: (path) => {
+                          const fileName = path.split('/').pop(); // 获取路径的最后一部分
+                          return (
+                            <span
+                              className="text-gray-300 cursor-pointer"
+                              title={path} // 鼠标悬停时显示完整路径
+                              onDoubleClick={(e) => {
+                                e.stopPropagation();
+                                handleFileSelect(path);
+                              }}
+                            >
+                              {fileName}
+                            </span>
+                          );
+                        }
                       },
                       {
                         title: 'Action',
