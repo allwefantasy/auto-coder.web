@@ -1313,7 +1313,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         </div>
       </div>
     </div>
-    </div>
+    
   );
 };
 
