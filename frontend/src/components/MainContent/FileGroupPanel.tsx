@@ -405,10 +405,15 @@ const FileGroupPanel: React.FC = () => {
                     });
 
                     // Create a flat tree structure for matching files
-                    const flattenedTree = matchingFiles.map(file => ({
-                      ...file,
-                      title: file.key, // Show full path as title
-                    }));
+                    const flattenedTree = matchingFiles.map(file => {
+                      const fullPath = file.key.toString();
+                      const fileName = fullPath.split('/').pop() || fullPath;
+                      return {
+                        ...file,
+                        title: fileName, // Show only filename in tree
+                        key: fullPath,   // Keep full path as key for selection
+                      };
+                    });
 
                     setFilteredTreeData(flattenedTree as DataNode[]);
                   }}
