@@ -77,6 +77,43 @@ html, body {
   color: #9CA3AF !important;
 }
 
+/* Dark theme modal styles */
+.dark-theme-modal .ant-modal-title {
+  color: #e5e7eb !important;
+}
+
+.dark-theme-modal .ant-modal-close {
+  color: #9CA3AF !important;
+}
+
+.dark-theme-modal .ant-modal-close:hover {
+  color: #e5e7eb !important;
+}
+
+.dark-theme-list .ant-list-item {
+  border-color: #374151 !important;
+}
+
+.dark-theme-list .ant-list-item:hover {
+  background-color: #374151 !important;
+}
+
+.dark-theme-input {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+
+.dark-theme-input::placeholder {
+  color: #9CA3AF !important;
+}
+
+.dark-theme-input:hover,
+.dark-theme-input:focus {
+  border-color: #6366F1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
 /* Split pane styles */
 .split {
   display: flex;
