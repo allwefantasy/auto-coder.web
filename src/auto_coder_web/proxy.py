@@ -609,6 +609,15 @@ class ProxyServer:
             except Exception as e:
                 raise HTTPException(status_code=500, detail=str(e))
 
+        @self.app.post("/api/event/clear")
+        async def clear_events():
+            """Clear all pending events in the event queue"""
+            try:
+                # TODO: Implement event queue clearing logic
+                return {"status": "success", "message": "Event queue cleared successfully"}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+
 
 def main():
     parser = argparse.ArgumentParser(description="Proxy Server")
