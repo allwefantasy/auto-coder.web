@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { Modal, Input, List } from 'antd';
 import { Editor } from '@monaco-editor/react';
 import ChatPanel from './components/Sidebar/ChatPanel';
 import CodeEditor from './components/MainContent/CodeEditor';
@@ -17,6 +19,39 @@ const App: React.FC = () => {
   const [projectName, setProjectName] = useState<string>('');
   const [previewFiles, setPreviewFiles] = useState<{ path: string, content: string }[]>([]);
   const [requestId, setRequestId] = useState<string>('');
+  const [isFileSearchOpen, setIsFileSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{name: string, path: string, display: string}>>([]);
+
+  const handleFileSearch = useCallback(async (term: string) => {
+    if (!term) {
+      setSearchResults([]);
+      return;
+    }
+    try {
+      const response = await fetch(`/api/completions/files?name=${encodeURIComponent(term)}`);
+      const data = await response.json();
+      setSearchResults(data.completions);
+    } catch (error) {
+      console.error('Error fetching file completions:', error);
+    }
+  }, []);
+
+  const openFileInEditor = useCallback((path: string) => {
+    setSelectedFile(path);
+    setIsFileSearchOpen(false);
+    setSearchTerm('');
+  }, []);
+
+  // Add global hotkey
+  useHotkeys(
+    'cmd+p, ctrl+p',
+    (event) => {
+      event.preventDefault();
+      setIsFileSearchOpen(true);
+    },
+    { enableOnFormTags: true }
+  );
 
   useEffect(() => {
     fetch('/api/project-path')
@@ -213,7 +248,53 @@ const App: React.FC = () => {
         </div>
         </Split>
       </div>
-   
+
+      {/* File Search Modal */}
+      <Modal
+        title="Search Files"
+        open={isFileSearchOpen}
+        onCancel={() => {
+          setIsFileSearchOpen(false);
+          setSearchTerm('');
+          setSearchResults([]);
+        }}
+        footer={null}
+        width={600}
+      >
+        <div className="my-4">
+          <Input
+            autoFocus
+            placeholder="Enter file name to search..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              handleFileSearch(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setIsFileSearchOpen(false);
+                setSearchTerm('');
+                setSearchResults([]);
+              }
+            }}
+          />
+        </div>
+        <List
+          dataSource={searchResults}
+          renderItem={(item) => (
+            <List.Item
+              className="cursor-pointer hover:bg-gray-700"
+              onClick={() => openFileInEditor(item.path)}
+            >
+              <div className="flex flex-col">
+                <span className="text-white">{item.display}</span>
+                <span className="text-gray-400 text-sm">{item.path}</span>
+              </div>
+            </List.Item>
+          )}
+          className="max-h-96 overflow-y-auto"
+        />
+      </Modal>
   );
 };
 
