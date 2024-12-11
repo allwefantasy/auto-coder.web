@@ -667,6 +667,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           setActivePanel('preview');
         }
 
+        if (eventData.event_type === 'code_generate_start') {
+          await response_event("proceed");
+          addBotMessage(getMessage('codeGenerateStart'));
+        }
+
+        if (eventData.event_type === 'code_generate_end') {
+          await response_event("proceed");
+          addBotMessage(getMessage('codeGenerateComplete'));
+        }
+
         if (eventData.event_type === "code_rag_search_start") {
           await response_event("proceed");
           addBotMessage(getMessage('ragSearchStart'));

@@ -160,7 +160,15 @@ export const messages: { [key: string]: Message } = {
   ragSearchComplete: {
     en: "RAG search complete",
     zh: "RAG搜索完成"
-  }
+  },
+  codeGenerateStart: {
+    en: "Starting code generation...",
+    zh: "开始代码生成..."
+  },
+  codeGenerateComplete: {
+    en: "Code generation complete",
+    zh: "代码生成完成"
+  },
 };
 
 // 当前语言设置

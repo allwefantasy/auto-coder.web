@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Terminal from './Terminal';
 import Split from 'react-split';
 import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
