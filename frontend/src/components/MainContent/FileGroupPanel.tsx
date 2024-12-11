@@ -42,6 +42,8 @@ const FileGroupPanel: React.FC = () => {
   const [newGroupDesc, setNewGroupDesc] = useState('');
   const [editingDesc, setEditingDesc] = useState(false);
   const [currentDesc, setCurrentDesc] = useState('');
+  const [isExternalFileModalVisible, setIsExternalFileModalVisible] = useState(false);
+  const [externalFilePath, setExternalFilePath] = useState('');
 
   // Helper function to get all file paths from tree data
   const getAllFilePaths = (nodes: DataNode[]): string[] => {
@@ -315,7 +317,17 @@ const FileGroupPanel: React.FC = () => {
                 )}
               </div>
                 <div>
-                  <h4 className="text-white font-medium mb-2">Files ({selectedGroup.files.length})</h4>
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-white font-medium">Files ({selectedGroup.files.length})</h4>
+                    <Button
+                      type="primary"
+                      size="small"
+                      icon={<PlusOutlined />}
+                      onClick={() => setIsExternalFileModalVisible(true)}
+                    >
+                      Add External File
+                    </Button>
+                  </div>
                   <Table
                     dataSource={selectedGroup.files.map(file => ({ path: file }))}
                     rowKey="path"
@@ -478,6 +490,53 @@ const FileGroupPanel: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* External File Modal */}
+      <Modal
+        title="Add External File"
+        open={isExternalFileModalVisible}
+        onOk={async () => {
+          if (!selectedGroup || !externalFilePath.trim()) return;
+          
+          try {
+            await fetch(`/api/file-groups/${selectedGroup.name}/files`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ files: [externalFilePath.trim()] }),
+            });
+            
+            message.success('External file added successfully');
+            setIsExternalFileModalVisible(false);
+            setExternalFilePath('');
+            fetchFileGroups();
+            
+            // Refresh selected group data
+            const updatedGroups = await (await fetch('/api/file-groups')).json();
+            const updatedGroup = updatedGroups.groups.find((g: FileGroup) => g.name === selectedGroup.name);
+            if (updatedGroup) {
+              setSelectedGroup(updatedGroup);
+            }
+          } catch (error) {
+            message.error('Failed to add external file');
+          }
+        }}
+        onCancel={() => {
+          setIsExternalFileModalVisible(false);
+          setExternalFilePath('');
+        }}
+        okButtonProps={{ disabled: !externalFilePath.trim() }}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">File Path or URL</label>
+            <Input
+              value={externalFilePath}
+              onChange={(e) => setExternalFilePath(e.target.value)}
+              placeholder="Enter full file path or URL (e.g., /absolute/path/to/file or https://example.com/file)"
+            />
+          </div>
+        </div>
+      </Modal>
 
       {/* New Group Modal */}
       <Modal
