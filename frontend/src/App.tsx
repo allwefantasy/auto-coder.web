@@ -6,6 +6,7 @@ import ChatPanel from './components/Sidebar/ChatPanel';
 import CodeEditor from './components/MainContent/CodeEditor';
 import FileGroupPanel from './components/MainContent/FileGroupPanel';
 import SettingsPanel from './components/MainContent/SettingsPanel';
+import HistoryPanel from './components/MainContent/HistoryPanel';
 import TerminalManager from './components/Terminal/TerminalManager';
 import OutputPanel from './components/Terminal/OutputPanel';
 import PreviewPanel from './components/MainContent/PreviewPanel';
@@ -13,7 +14,7 @@ import Split from 'react-split';
 import './App.css';
 
 const App: React.FC = () => {
-  const [activePanel, setActivePanel] = useState<'code' | 'filegroup' | 'preview' | 'clipboard' | 'settings'>('code');
+  const [activePanel, setActivePanel] = useState<'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings'>('code');
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [clipboardContent, setClipboardContent] = useState<string>('');
   const [projectName, setProjectName] = useState<string>('');
@@ -176,6 +177,19 @@ const App: React.FC = () => {
               </button>
               <button
                 className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 
+                  ${activePanel === 'history'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
+                    : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
+                  } flex items-center space-x-2`}
+                onClick={() => setActivePanel('history')}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>开发历史</span>
+              </button>
+              <button
+                className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 
                   ${activePanel === 'settings'
                     ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
                     : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
@@ -219,6 +233,9 @@ const App: React.FC = () => {
             </div>
             <div className={`h-full ${activePanel === 'preview' ? 'block' : 'hidden'}`}>
               <PreviewPanel files={previewFiles} />
+            </div>
+            <div className={`h-full ${activePanel === 'history' ? 'block' : 'hidden'}`}>
+              <HistoryPanel />
             </div>
             <div className={`h-full ${activePanel === 'settings' ? 'block' : 'hidden'}`}>
               <SettingsPanel />
