@@ -958,8 +958,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       {/* Input Area with integrated settings */}
       <div className="bg-gray-800 border-t border-gray-700">
         {/* Configuration and Groups Section */}
-        <div className="px-4 pt-2">
-          <div className="space-y-2">
+        <div className="px-2 pt-1">
+          <div className="space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-gray-300 text-sm font-semibold">Settings & Groups</span>
               <Switch
@@ -969,13 +969,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                 className="ml-2"
               />
             </div>
-            <div className="text-gray-400 text-xs">
-              Press {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize input area
+            <div className="text-gray-400 text-[10px]">
+              {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize
             </div>
           </div>
 
           {showConfig && (
-            <div className="space-y-2 mb-2">
+            <div className="space-y-1 mb-1">
               <div className="flex items-center justify-between">
                 <Tooltip title="Enable to let human act as the model">
                   <span className="text-gray-300 text-xs">Human As Model</span>
@@ -1133,9 +1133,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             </div>
           )}
 
-          {/* File Groups Select - Now outside of showConfig condition */}
-          <div className="px-4">
-            <div className="h-[1px] bg-gray-700/50 my-3"></div>
+          {/* File Groups Select */}
+          <div className="px-2">
+            <div className="h-[1px] bg-gray-700/50 my-1"></div>
           <Select
             mode="multiple"
             style={{ width: '100%' }}
