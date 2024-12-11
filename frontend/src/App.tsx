@@ -117,6 +117,10 @@ const App: React.FC = () => {
         dragInterval={1}
         cursor="row-resize"
         style={{ display: 'flex', flexDirection: 'column' }}
+        onDragEnd={() => {
+          // 触发resize事件以更新Terminal大小
+          window.dispatchEvent(new Event('resize'));
+        }}
       >
         <div className="flex flex-col overflow-hidden">
           {/* Panel Switch Buttons */}

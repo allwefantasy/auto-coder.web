@@ -13,6 +13,16 @@ const TerminalManager: React.FC = () => {
   const [terminals, setTerminals] = useState<TerminalTab[]>([
     { id: '1', name: 'Terminal 1' }
   ]);
+  
+  // 在组件挂载和分栏大小变化时触发resize事件
+  useEffect(() => {
+    const handleResize = () => {
+      window.dispatchEvent(new Event('resize'));
+    };
+    handleResize(); // 初始化时触发一次
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [activeTerminal, setActiveTerminal] = useState<string>('1');
   const [isSettingsVisible, setIsSettingsVisible] = useState<boolean>(false);
 
