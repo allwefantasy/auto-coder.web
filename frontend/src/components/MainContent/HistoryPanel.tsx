@@ -204,6 +204,7 @@ const HistoryPanel: React.FC = () => {
                 </div>
             </Modal>
         </div>
+        </div>
     );
 };
 
