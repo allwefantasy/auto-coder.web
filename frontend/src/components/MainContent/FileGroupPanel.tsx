@@ -495,6 +495,23 @@ const FileGroupPanel: React.FC = () => {
       <Modal
         title="Add External File"
         open={isExternalFileModalVisible}
+        className="dark-theme-modal"
+        styles={{
+          content: {
+            backgroundColor: '#1f2937',
+            padding: '20px',
+          },
+          header: {
+            backgroundColor: '#1f2937',
+            borderBottom: '1px solid #374151',
+          },
+          body: {
+            backgroundColor: '#1f2937',
+          },
+          mask: {
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          },
+        }}
         onOk={async () => {
           if (!selectedGroup || !externalFilePath.trim()) return;
           
@@ -528,11 +545,17 @@ const FileGroupPanel: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">File Path or URL</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">File Path or URL</label>
             <Input
               value={externalFilePath}
               onChange={(e) => setExternalFilePath(e.target.value)}
               placeholder="Enter full file path or URL (e.g., /absolute/path/to/file or https://example.com/file)"
+              className="dark-theme-input"
+              style={{
+                backgroundColor: '#1f2937',
+                borderColor: '#374151',
+                color: '#e5e7eb',
+              }}
             />
           </div>
         </div>
