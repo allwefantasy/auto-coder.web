@@ -9,7 +9,7 @@ interface TerminalTab {
   name: string;
 }
 
-const TerminalManager: React.FC = () => {
+
   const [terminals, setTerminals] = useState<TerminalTab[]>([
     { id: '1', name: 'Terminal 1' }
   ]);
@@ -152,8 +152,6 @@ const TerminalManager: React.FC = () => {
           </div>
         </div>
       </Modal>
-    </Split>
-  );
-};
+
 
 export default TerminalManager;

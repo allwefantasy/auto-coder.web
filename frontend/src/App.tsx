@@ -278,8 +278,7 @@ const App: React.FC = () => {
             </div>
 
           </div>
-        </div>
-        </Split>
+
         {/* File Search Modal */}
       <Modal
         title="Search Files"
