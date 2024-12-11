@@ -22,6 +22,9 @@ const HistoryPanel: React.FC = () => {
     const [diffModalVisible, setDiffModalVisible] = useState<boolean>(false);
     const [currentDiff, setCurrentDiff] = useState<{ diff: string, file_changes?: Array<{ path: string, change_type: string }> }>({ diff: '' });
 
+    // 添加滚动状态
+    const [scrolled, setScrolled] = useState(false);
+
     const showDiff = async (response: string | undefined) => {
         if (!response) return;
 
@@ -75,8 +78,8 @@ const HistoryPanel: React.FC = () => {
     }, []);
 
     return (
-        <div className="flex flex-col h-full p-4 bg-gray-900">
-            <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col h-full bg-gray-900 overflow-hidden">
+            <div className="flex justify-between items-center p-4 bg-gray-800 border-b border-gray-700 sticky top-0 z-10 shadow-md">
                 <div className="text-white text-lg font-medium">开发历史</div>
                 <Space>
                     <Button
@@ -94,12 +97,13 @@ const HistoryPanel: React.FC = () => {
                 </Space>
             </div>
 
-            <List
-                dataSource={queries}
-                renderItem={(item) => (
-                    <List.Item>
-                        <Card
-                            style={{ width: '100%' }}
+            <div className="flex-1 overflow-y-auto p-4">
+                <List
+                    dataSource={queries}
+                    renderItem={(item) => (
+                        <List.Item className="border-b border-gray-700 last:border-b-0">
+                            <Card
+                                className="w-full bg-gray-800 border-gray-700"
                             title={
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
@@ -126,10 +130,11 @@ const HistoryPanel: React.FC = () => {
                             <pre style={{
                                 whiteSpace: 'pre-wrap',
                                 wordWrap: 'break-word',
-                                backgroundColor: '#1a1a1a',
+                                backgroundColor: '#1f2937',
                                 padding: '12px',
                                 borderRadius: '4px',
-                                color: '#fff'
+                                color: '#e5e7eb',
+                                border: '1px solid #374151'
                             }}>
                                 {item.query}
                             </pre>
@@ -144,6 +149,23 @@ const HistoryPanel: React.FC = () => {
                 onCancel={() => setDiffModalVisible(false)}
                 width={800}
                 footer={null}
+                className="dark-theme-modal"
+                styles={{
+                    content: {
+                        backgroundColor: '#1f2937',
+                        padding: '20px',
+                    },
+                    header: {
+                        backgroundColor: '#1f2937',
+                        borderBottom: '1px solid #374151',
+                    },
+                    body: {
+                        backgroundColor: '#1f2937',
+                    },
+                    mask: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    },
+                }}
             >
                 <div>
                     {currentDiff.file_changes && currentDiff.file_changes.length > 0 && (
