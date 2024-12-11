@@ -244,7 +244,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Lower Section - Tool Panels */}
-        <div className="border-t border-gray-700 flex flex-col overflow-hidden">
+        <div className="border-t border-gray-700 flex flex-col overflow-hidden h-full">
           {/* Tool Panel Navigation */}
           <div className="bg-[#1f1f1f] border-b border-gray-700 px-2">
             <div className="flex items-center gap-1">

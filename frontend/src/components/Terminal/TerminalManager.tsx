@@ -10,6 +10,11 @@ interface TerminalTab {
 }
 
 const TerminalManager: React.FC = () => {
+  // Add CSS classes for height inheritance
+  const splitStyles = {
+    height: '100%',
+    display: 'flex',
+  };
   const [terminals, setTerminals] = useState<TerminalTab[]>([
     { id: '1', name: 'Terminal 1' }
   ]);
@@ -40,11 +45,12 @@ const TerminalManager: React.FC = () => {
 
   return (
     <Split
-      className="flex h-full"
+      className="flex"
       sizes={[80, 20]}
       minSize={[400, 150]}
       gutterSize={4}
       cursor="col-resize"
+      style={splitStyles}
     >
       {/* Left Panel - Terminal Management */}
       {/* Left Panel - Active Terminal */}
