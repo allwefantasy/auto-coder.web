@@ -80,7 +80,7 @@ const HistoryPanel: React.FC = () => {
     return (
         <div className="flex flex-col h-full bg-gray-900 overflow-hidden">
             <div className="flex justify-between items-center p-4 bg-gray-800 border-b border-gray-700 sticky top-0 z-10 shadow-md">
-                <div className="text-white text-lg font-medium">开发历史</div>
+                <div className="text-white text-lg font-medium" style={{ color: '#ffffff' }}>开发历史</div>
                 <Space>
                     <Button
                         icon={isAscending ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
@@ -110,7 +110,7 @@ const HistoryPanel: React.FC = () => {
                                         <MessageOutlined style={{ marginRight: '8px' }} />
                                         {`${item.file_number}_chat_action.yml`}
                                         {item.timestamp && (
-                                            <Text type="secondary" style={{ marginLeft: '10px', fontSize: '12px' }}>
+                                            <Text style={{ marginLeft: '10px', fontSize: '12px', color: '#d9d9d9' }}>
                                                 {item.timestamp}
                                             </Text>
                                         )}
@@ -133,7 +133,7 @@ const HistoryPanel: React.FC = () => {
                                 backgroundColor: '#1f2937',
                                 padding: '12px',
                                 borderRadius: '4px',
-                                color: '#e5e7eb',
+                                color: '#ffffff',
                                 border: '1px solid #374151'
                             }}>
                                 {item.query}
@@ -176,14 +176,14 @@ const HistoryPanel: React.FC = () => {
                             borderRadius: '4px'
                         }}>
                             {currentDiff.file_changes.map((change, index) => (
-                                <Tag
-                                    key={index}
-                                    color={change.change_type === 'added' ? 'green' : 'blue'}
-                                    style={{ marginBottom: '8px', marginRight: '8px' }}
-                                >
-                                    <Space>
-                                        {change.change_type === 'added' ? <span>+</span> : <span>M</span>}
-                                        <Text className="text-white">{change.path}</Text>
+                        <Tag
+                            key={index}
+                            color={change.change_type === 'added' ? '#52c41a' : '#1890ff'}
+                            style={{ marginBottom: '8px', marginRight: '8px', color: '#ffffff' }}
+                        >
+                            <Space>
+                                {change.change_type === 'added' ? <span className="text-white">+</span> : <span className="text-white">M</span>}
+                                <Text style={{ color: '#ffffff' }}>{change.path}</Text>
                                     </Space>
                                 </Tag>
                             ))}
