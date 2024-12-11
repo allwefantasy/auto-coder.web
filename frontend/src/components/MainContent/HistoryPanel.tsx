@@ -78,9 +78,8 @@ const HistoryPanel: React.FC = () => {
     }, []);
 
     return (
-        <div className="flex flex-col h-full bg-gray-900 overflow-hidden">
-            <div className="flex justify-between items-center p-4 bg-gray-800 border-b border-gray-700 sticky top-0 z-10 shadow-md">
-                <div className="text-white text-lg font-medium" style={{ color: '#ffffff' }}>开发历史</div>
+        <div className="flex flex-col h-full bg-[#111827] overflow-hidden">
+            <div className="flex justify-between items-center p-4 bg-[#1F2937] border-b border-[#374151] sticky top-0 z-10 shadow-md">
                 <Space>
                     <Button
                         icon={isAscending ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
@@ -101,109 +100,113 @@ const HistoryPanel: React.FC = () => {
                 <List
                     dataSource={queries}
                     renderItem={(item) => (
-                        <List.Item className="border-b border-gray-700 last:border-b-0">
+                        <List.Item className="border-b border-[#374151] last:border-b-0">
                             <Card
-                                className="w-full bg-gray-800 border-gray-700"
-                            title={
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div>
-                                        <MessageOutlined style={{ marginRight: '8px' }} />
-                                        {`${item.file_number}_chat_action.yml`}
-                                        {item.timestamp && (
-                                            <Text style={{ marginLeft: '10px', fontSize: '12px', color: '#d9d9d9' }}>
-                                                {item.timestamp}
+                                className="w-full bg-[#1F2937] border-[#374151] hover:bg-[#2D3748] transition-colors duration-200"
+                                title={
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div>
+                                            <MessageOutlined style={{ marginRight: '8px', color: '#9CA3AF' }} />
+                                            <Text style={{ color: '#E5E7EB' }}>
+                                                {`${item.file_number}_chat_action.yml`}
                                             </Text>
+
+                                            {item.timestamp && (
+                                                <Text style={{ marginLeft: '10px', fontSize: '12px', color: '#9CA3AF' }}>
+                                                    {item.timestamp}
+                                                </Text>
+                                            )}
+                                        </div>
+                                        {item.response && (
+                                            <Button
+                                                icon={<CodeOutlined />}
+                                                type="link"
+                                                style={{ color: '#60A5FA' }}
+                                                onClick={() => showDiff(item.response)}
+                                            >
+                                                查看变更
+                                            </Button>
                                         )}
                                     </div>
-                                    {item.response && (
-                                        <Button
-                                            icon={<CodeOutlined />}
-                                            type="link"
-                                            onClick={() => showDiff(item.response)}
-                                        >
-                                            查看变更
-                                        </Button>
-                                    )}
-                                </div>
-                            }
-                        >
-                            <pre style={{
-                                whiteSpace: 'pre-wrap',
-                                wordWrap: 'break-word',
-                                backgroundColor: '#1f2937',
+                                }
+                            >
+                                <pre style={{
+                                    whiteSpace: 'pre-wrap',
+                                    wordWrap: 'break-word',
+                                    backgroundColor: '#111827',
+                                    padding: '12px',
+                                    borderRadius: '4px',
+                                    color: '#E5E7EB',
+                                    border: '1px solid #374151'
+                                }}>
+                                    {item.query}
+                                </pre>
+                            </Card>
+                        </List.Item>
+                    )}
+                />
+
+                <Modal
+                    title="Commit Diff"
+                    open={diffModalVisible}
+                    onCancel={() => setDiffModalVisible(false)}
+                    width={800}
+                    footer={null}
+                    className="dark-theme-modal"
+                    styles={{
+                        content: {
+                            backgroundColor: '#1f2937',
+                            padding: '20px',
+                        },
+                        header: {
+                            backgroundColor: '#1f2937',
+                            borderBottom: '1px solid #374151',
+                        },
+                        body: {
+                            backgroundColor: '#1f2937',
+                        },
+                        mask: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                        },
+                    }}
+                >
+                    <div>
+                        {currentDiff.file_changes && currentDiff.file_changes.length > 0 && (
+                            <div style={{
+                                marginBottom: '16px',
+                                padding: '8px',
+                                background: '#1a1a1a',
+                                borderRadius: '4px'
+                            }}>
+                                {currentDiff.file_changes.map((change, index) => (
+                                    <Tag
+                                        key={index}
+                                        color={change.change_type === 'added' ? '#52c41a' : '#1890ff'}
+                                        style={{ marginBottom: '8px', marginRight: '8px', color: '#ffffff' }}
+                                    >
+                                        <Space>
+                                            {change.change_type === 'added' ? <span className="text-white">+</span> : <span className="text-white">M</span>}
+                                            <Text style={{ color: '#ffffff' }}>{change.path}</Text>
+                                        </Space>
+                                    </Tag>
+                                ))}
+                            </div>
+                        )}
+                        <SyntaxHighlighter
+                            language="diff"
+                            style={vscDarkPlus}
+                            customStyle={{
                                 padding: '12px',
                                 borderRadius: '4px',
-                                color: '#ffffff',
-                                border: '1px solid #374151'
-                            }}>
-                                {item.query}
-                            </pre>
-                        </Card>
-                    </List.Item>
-                )}
-            />
-
-            <Modal
-                title="Commit Diff"
-                open={diffModalVisible}
-                onCancel={() => setDiffModalVisible(false)}
-                width={800}
-                footer={null}
-                className="dark-theme-modal"
-                styles={{
-                    content: {
-                        backgroundColor: '#1f2937',
-                        padding: '20px',
-                    },
-                    header: {
-                        backgroundColor: '#1f2937',
-                        borderBottom: '1px solid #374151',
-                    },
-                    body: {
-                        backgroundColor: '#1f2937',
-                    },
-                    mask: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                    },
-                }}
-            >
-                <div>
-                    {currentDiff.file_changes && currentDiff.file_changes.length > 0 && (
-                        <div style={{
-                            marginBottom: '16px',
-                            padding: '8px',
-                            background: '#1a1a1a',
-                            borderRadius: '4px'
-                        }}>
-                            {currentDiff.file_changes.map((change, index) => (
-                        <Tag
-                            key={index}
-                            color={change.change_type === 'added' ? '#52c41a' : '#1890ff'}
-                            style={{ marginBottom: '8px', marginRight: '8px', color: '#ffffff' }}
+                                overflow: 'auto',
+                                maxHeight: '500px'
+                            }}
                         >
-                            <Space>
-                                {change.change_type === 'added' ? <span className="text-white">+</span> : <span className="text-white">M</span>}
-                                <Text style={{ color: '#ffffff' }}>{change.path}</Text>
-                                    </Space>
-                                </Tag>
-                            ))}
-                        </div>
-                    )}
-                    <SyntaxHighlighter
-                        language="diff"
-                        style={vscDarkPlus}
-                        customStyle={{
-                            padding: '12px',
-                            borderRadius: '4px',
-                            overflow: 'auto',
-                            maxHeight: '500px'
-                        }}
-                    >
-                        {currentDiff.diff}
-                    </SyntaxHighlighter>
-                </div>
-            </Modal>
-        </div>
+                            {currentDiff.diff}
+                        </SyntaxHighlighter>
+                    </div>
+                </Modal>
+            </div>
         </div>
     );
 };
