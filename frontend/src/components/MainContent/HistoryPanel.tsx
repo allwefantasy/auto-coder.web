@@ -137,10 +137,7 @@ const HistoryPanel: React.FC = () => {
                                     padding: '12px',
                                     borderRadius: '4px',
                                     color: '#E5E7EB',
-                                    border: '1px solid #374151',
-                                    maxWidth: '100%',
-                                    width: '100%',
-                                    overflow: 'auto'
+                                    border: '1px solid #374151'
                                 }}>
                                     {item.query}
                                 </pre>
