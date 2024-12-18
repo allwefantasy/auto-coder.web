@@ -130,17 +130,20 @@ const HistoryPanel: React.FC = () => {
                                     </div>
                                 }
                             >
-                                <pre style={{
-                                    whiteSpace: 'pre-wrap',
-                                    wordWrap: 'break-word',
+                                <div style={{
                                     backgroundColor: '#111827',
                                     padding: '12px',
                                     borderRadius: '4px',
                                     color: '#E5E7EB',
-                                    border: '1px solid #374151'
+                                    border: '1px solid #374151',
+                                    maxWidth: '100%',
+                                    fontSize: '14px',
+                                    lineHeight: '1.6',
+                                    whiteSpace: 'normal',
+                                    wordBreak: 'break-word'
                                 }}>
                                     {item.query}
-                                </pre>
+                                </div>
                             </Card>
                         </List.Item>
                     )}
