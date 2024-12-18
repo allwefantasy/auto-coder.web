@@ -46,7 +46,8 @@ const Terminal: React.FC = () => {
     }, 0);
 
     // Initialize WebSocket connection with heartbeat
-    const ws = new WebSocket('ws://localhost:8007/ws/terminal');
+    const host = window.location.host
+    const ws = new WebSocket(`ws://${host}/ws/terminal`);
     websocketRef.current = ws;
 
     ws.onopen = () => {
@@ -77,8 +78,8 @@ const Terminal: React.FC = () => {
         
         if (websocketRef.current?.readyState === WebSocket.CLOSED) {
           xterm.writeln('\r\nConnection lost. Attempting to reconnect...');
-          
-          const newWs = new WebSocket('ws://localhost:8007/ws/terminal');
+          const host = window.location.host
+          const newWs = new WebSocket(`ws://${host}/ws/terminal`);
           websocketRef.current = newWs;
           
           // Reattach all event handlers
@@ -147,7 +148,8 @@ const Terminal: React.FC = () => {
         // Try to reconnect after a delay
         reconnectTimeoutRef.current = setTimeout(() => {
           if (websocketRef.current?.readyState === WebSocket.CLOSED) {
-            const newWs = new WebSocket('ws://localhost:8007/ws/terminal');
+            const host = window.location.host
+            const newWs = new WebSocket(`ws://${host}/ws/terminal`);
             websocketRef.current = newWs;
             // Reattach all event handlers
             newWs.onopen = ws.onopen;
