@@ -585,6 +585,14 @@ class ProxyServer:
                 request_id, request.event, request.response)
             return {"message": "success"}
 
+        @self.app.post("/api/commit")
+        async def commit():
+            try:
+                result = self.auto_coder_runner.commit()
+                return result
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+
         @self.app.get("/api/output/{request_id}")
         async def get_terminal_logs(request_id: str):
             return self.auto_coder_runner.get_logs(request_id)

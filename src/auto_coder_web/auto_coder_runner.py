@@ -315,6 +315,80 @@ class AutoCoderRunner:
             self.save_memory()
             return {"message": f"Deleted configuration: {key}"}
 
+    def convert_yaml_to_config(self, yaml_file: str):
+        """Convert YAML file to AutoCoderArgs configuration"""
+        from autocoder.auto_coder import AutoCoderArgs, load_include_files, Template
+        args = AutoCoderArgs()
+        with open(yaml_file, "r") as f:
+            config = yaml.safe_load(f)
+            config = load_include_files(config, yaml_file)
+            for key, value in config.items():
+                if key != "file":  # 排除 --file 参数本身
+                    # key: ENV {{VARIABLE_NAME}}
+                    if isinstance(value, str) and value.startswith("ENV"):
+                        template = Template(value.removeprefix("ENV").strip())
+                        value = template.render(os.environ)
+                    setattr(args, key, value)
+        return args
+
+    def commit(self):
+        """Commit changes using git"""
+        try:
+            def prepare_commit_yaml():
+                auto_coder_main(["next", "chat_action"])
+
+            prepare_commit_yaml()
+
+            latest_yaml_file = get_last_yaml_file("actions")
+            
+            if latest_yaml_file:        
+                try:
+                    execute_file = os.path.join("actions", latest_yaml_file)
+                    yaml_config = {
+                        "include_file": ["./base/base.yml"],
+                        "auto_merge": self.memory.get("conf", {}).get("auto_merge", "editblock"),
+                        "human_as_model": self.memory.get("conf", {}).get("human_as_model", "false") == "true",
+                        "skip_build_index": self.memory.get("conf", {}).get("skip_build_index", "true") == "true",
+                        "skip_confirm": self.memory.get("conf", {}).get("skip_confirm", "true") == "true",
+                        "silence": self.memory.get("conf", {}).get("silence", "true") == "true",
+                        "include_project_structure": self.memory.get("conf", {}).get("include_project_structure", "true") == "true",
+                    }
+
+                    conf = self.memory.get("conf", {})
+                    for key, value in conf.items():
+                        converted_value = self.convert_config_value(key, value)
+                        if converted_value is not None:
+                            yaml_config[key] = converted_value
+
+                    yaml_config["urls"] = self.memory["current_files"]["files"] + self.get_llm_friendly_package_docs(
+                        return_paths=True
+                    )
+                    args = self.convert_yaml_to_config(execute_file)
+                    llm = byzerllm.ByzerLLM.from_default_model(args.code_model or args.model)
+                    uncommitted_changes = git_utils.get_uncommitted_changes(".")            
+                    commit_message = git_utils.generate_commit_message.with_llm(
+                        llm).run(uncommitted_changes)
+                    
+                    yaml_config["query"] = commit_message
+                    yaml_content = self.convert_yaml_config_to_str(yaml_config=yaml_config)            
+                    with open(execute_file, "w") as f:
+                        f.write(yaml_content) 
+                                
+                    file_content = open(execute_file).read()
+                    md5 = hashlib.md5(file_content.encode('utf-8')).hexdigest()            
+                    file_name = os.path.basename(execute_file)             
+                    commit_result = git_utils.commit_changes(".", f"auto_coder_{file_name}_{md5}")            
+                    
+                    return {"status": True, "message": "Changes committed successfully", "commit_info": commit_result}
+                except Exception as e:
+                    if execute_file:
+                        os.remove(execute_file)
+                    return {"status": False, "message": f"Failed to commit: {str(e)}"}
+            else:
+                return {"status": False, "message": "No changes to commit"}
+        except Exception as e:
+            return {"status": False, "message": f"Failed to commit: {str(e)}"}
+
     def get_config(self) -> Dict[str, str]:
         """Get current configuration
 
