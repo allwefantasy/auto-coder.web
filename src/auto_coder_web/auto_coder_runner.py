@@ -10,6 +10,7 @@ import sys
 import io
 import subprocess
 import byzerllm
+import hashlib
 from contextlib import contextmanager
 from byzerllm.utils.langutil import asyncfy_with_semaphore
 from autocoder.common import AutoCoderArgs
@@ -29,6 +30,7 @@ from autocoder.utils.queue_communicate import (
     CommunicateEventType,
 )
 from autocoder.utils.log_capture import LogCapture
+from autocoder.common import git_utils
 from threading import Thread
 from byzerllm.utils import format_str_jinja2
 from autocoder.index.symbols_utils import (
