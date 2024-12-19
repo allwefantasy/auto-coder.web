@@ -21,6 +21,8 @@ const HistoryPanel: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [diffModalVisible, setDiffModalVisible] = useState<boolean>(false);
     const [currentDiff, setCurrentDiff] = useState<{ diff: string, file_changes?: Array<{ path: string, change_type: string }> }>({ diff: '' });
+    const [contextModalVisible, setContextModalVisible] = useState<boolean>(false);
+    const [currentUrls, setCurrentUrls] = useState<string[]>([]);
 
     // 添加滚动状态
     const [scrolled, setScrolled] = useState(false);
@@ -117,16 +119,31 @@ const HistoryPanel: React.FC = () => {
                                                 </Text>
                                             )}
                                         </div>
-                                        {item.response && (
-                                            <Button
-                                                icon={<CodeOutlined />}
-                                                type="link"
-                                                style={{ color: '#60A5FA' }}
-                                                onClick={() => showDiff(item.response)}
-                                            >
-                                                查看变更
-                                            </Button>
-                                        )}
+                                        <div className="flex space-x-2">
+                                            {item.urls && item.urls.length > 0 && (
+                                                <Button
+                                                    icon={<MessageOutlined />}
+                                                    type="link"
+                                                    style={{ color: '#60A5FA' }}
+                                                    onClick={() => {
+                                                        setCurrentUrls(item.urls || []);
+                                                        setContextModalVisible(true);
+                                                    }}
+                                                >
+                                                    查看上下文
+                                                </Button>
+                                            )}
+                                            {item.response && (
+                                                <Button
+                                                    icon={<CodeOutlined />}
+                                                    type="link"
+                                                    style={{ color: '#60A5FA' }}
+                                                    onClick={() => showDiff(item.response)}
+                                                >
+                                                    查看变更
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                 }
                             >
@@ -208,6 +225,46 @@ const HistoryPanel: React.FC = () => {
                             {currentDiff.diff}
                         </SyntaxHighlighter>
                     </div>
+                </Modal>
+
+                {/* Context Files Modal */}
+                <Modal
+                    title="上下文文件列表"
+                    open={contextModalVisible}
+                    onCancel={() => setContextModalVisible(false)}
+                    width={600}
+                    footer={null}
+                    className="dark-theme-modal"
+                    styles={{
+                        content: {
+                            backgroundColor: '#1f2937',
+                            padding: '20px',
+                        },
+                        header: {
+                            backgroundColor: '#1f2937',
+                            borderBottom: '1px solid #374151',
+                        },
+                        body: {
+                            backgroundColor: '#1f2937',
+                        },
+                        mask: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                        },
+                    }}
+                >
+                    <List
+                        dataSource={currentUrls}
+                        className="dark-theme-list max-h-96 overflow-y-auto"
+                        renderItem={(url) => (
+                            <List.Item
+                                className="text-gray-200 border-gray-700"
+                            >
+                                <div className="flex items-center w-full">
+                                    <Text style={{ color: '#E5E7EB' }}>{url}</Text>
+                                </div>
+                            </List.Item>
+                        )}
+                    />
                 </Modal>
             </div>
         </div>
