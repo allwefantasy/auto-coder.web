@@ -25,6 +25,6 @@ src/auto_coder_web/web/static/css/main.10e5dd19.css
 src/auto_coder_web/web/static/css/main.10e5dd19.css.map
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js.map
-src/auto_coder_web/web/static/js/main.74620d2e.js
-src/auto_coder_web/web/static/js/main.74620d2e.js.LICENSE.txt
-src/auto_coder_web/web/static/js/main.74620d2e.js.map
+src/auto_coder_web/web/static/js/main.34adf43b.js
+src/auto_coder_web/web/static/js/main.34adf43b.js.LICENSE.txt
+src/auto_coder_web/web/static/js/main.34adf43b.js.map
