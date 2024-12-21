@@ -41,6 +41,7 @@ const FileGroupPanel: React.FC = () => {
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
   const [isAutoGroupModalVisible, setIsAutoGroupModalVisible] = useState(false);
+  const [isAutoGroupLoading, setIsAutoGroupLoading] = useState(false);
   const [fileSizeLimit, setFileSizeLimit] = useState<number>(100);
   const [groupNumLimit, setGroupNumLimit] = useState<number>(10);
   const [skipDiff, setSkipDiff] = useState<boolean>(false);
@@ -611,6 +612,7 @@ const FileGroupPanel: React.FC = () => {
         title="Auto Create Groups"
         open={isAutoGroupModalVisible}
         onOk={async () => {
+          setIsAutoGroupLoading(true);
           try {
             const response = await fetch('/api/file-groups/auto', {
               method: 'POST',
@@ -636,9 +638,18 @@ const FileGroupPanel: React.FC = () => {
             setIsAutoGroupModalVisible(false);
           } catch (error) {
             message.error('Failed to create groups automatically');
+          } finally {
+            setIsAutoGroupLoading(false);
           }
         }}
-        onCancel={() => setIsAutoGroupModalVisible(false)}
+        onCancel={() => {
+          if (!isAutoGroupLoading) {
+            setIsAutoGroupModalVisible(false);
+          }
+        }}
+        confirmLoading={isAutoGroupLoading}
+        okButtonProps={{ loading: isAutoGroupLoading }}
+        cancelButtonProps={{ disabled: isAutoGroupLoading }}
         className="dark-theme-modal"
         styles={{
           content: {
