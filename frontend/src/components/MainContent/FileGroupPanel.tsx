@@ -613,29 +613,30 @@ const FileGroupPanel: React.FC = () => {
         open={isAutoGroupModalVisible}
         onOk={async () => {
           setIsAutoGroupLoading(true);
-          try {
-            const response = await fetch('/api/file-groups/auto', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                file_size_limit: fileSizeLimit,
-                group_num_limit: groupNumLimit,
-                skip_diff: skipDiff 
-              }),
-            });
+            try {
+              const response = await fetch('/api/file-groups/auto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  file_size_limit: fileSizeLimit,
+                  group_num_limit: groupNumLimit,
+                  skip_diff: skipDiff 
+                }),
+              });
 
-            if (!response.ok) throw new Error('Failed to auto create groups');
-            
-            const data = await response.json();
-            if (data.groups && Array.isArray(data.groups)) {
-              setGroupResults(data.groups.map((group: any) => ({
-                ...group,
-                selected: true
-              })));
-              setIsGroupResultsModalVisible(true);
-            }
+              if (!response.ok) throw new Error('Failed to auto create groups');
+              
+              const data = await response.json();
+              if (data.groups && Array.isArray(data.groups)) {
+                setGroupResults(data.groups.map((group: any) => ({
+                  ...group,
+                  selected: true
+                })));
+                setIsGroupResultsModalVisible(true);
+              }
 
-            setIsAutoGroupModalVisible(false);
+              await fetchFileGroups();
+              setIsAutoGroupModalVisible(false);
           } catch (error) {
             message.error('Failed to create groups automatically');
           } finally {
@@ -709,23 +710,23 @@ const FileGroupPanel: React.FC = () => {
         title="Select Groups to Create"
         open={isGroupResultsModalVisible}
         onOk={async () => {
-          try {
-            const selectedGroups = groupResults.filter(group => group.selected);
-            
-            for (const group of selectedGroups) {
-              await fetch('/api/file-groups', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  name: group.name,
-                  description: group.description
-                }),
-              });
-            }
+            try {
+              const selectedGroups = groupResults.filter(group => group.selected);
+              
+              for (const group of selectedGroups) {
+                await fetch('/api/file-groups', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ 
+                    name: group.name,
+                    description: group.description
+                  }),
+                });
+              }
 
-            message.success('Selected groups created successfully');
-            setIsGroupResultsModalVisible(false);
-            fetchFileGroups();
+              await fetchFileGroups();
+              message.success('Selected groups created successfully');
+              setIsGroupResultsModalVisible(false);
           } catch (error) {
             message.error('Failed to create selected groups');
           }
