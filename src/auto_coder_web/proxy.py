@@ -18,6 +18,7 @@ import sys
 from .file_group import FileGroupManager
 from .file_manager import get_directory_tree
 from .auto_coder_runner import AutoCoderRunner
+from autocoder.agent.auto_filegroup import AutoFileGroup
 
 from rich.console import Console
 from prompt_toolkit.shortcuts import radiolist_dialog
@@ -356,6 +357,40 @@ class ProxyServer:
             description = data.get("description", "")
             group = await self.file_group_manager.create_group(name, description)
             return group
+
+        @self.app.post("/api/file-groups/auto")
+        async def auto_create_groups(request: Request):
+            try:
+                data = await request.json()
+                file_size_limit = data.get("file_size_limit", 100)
+                skip_diff = data.get("skip_diff", False)
+
+                # Create AutoFileGroup instance
+                auto_grouper = AutoFileGroup(
+                    self.auto_coder_runner.llm,
+                    self.project_path,
+                    skip_diff=skip_diff,
+                    file_size_limit=file_size_limit
+                )
+
+                # Get groups
+                groups = auto_grouper.group_files()
+
+                # Create groups using file_group_manager
+                for group in groups:
+                    await self.file_group_manager.create_group(
+                        name=group.name,
+                        description=group.description
+                    )
+                    # Add files to the group
+                    await self.file_group_manager.add_files_to_group(
+                        group.name,
+                        group.urls
+                    )
+
+                return {"status": "success", "message": f"Created {len(groups)} groups"}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.get("/api/os")
         async def get_os():

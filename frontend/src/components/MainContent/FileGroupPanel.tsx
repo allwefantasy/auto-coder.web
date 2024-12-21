@@ -40,6 +40,9 @@ const FileGroupPanel: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
+  const [isAutoGroupModalVisible, setIsAutoGroupModalVisible] = useState(false);
+  const [fileSizeLimit, setFileSizeLimit] = useState<number>(100);
+  const [skipDiff, setSkipDiff] = useState<boolean>(false);
   const [editingDesc, setEditingDesc] = useState(false);
   const [currentDesc, setCurrentDesc] = useState('');
   const [isExternalFileModalVisible, setIsExternalFileModalVisible] = useState(false);
@@ -205,11 +208,19 @@ const FileGroupPanel: React.FC = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <h2 className="text-white text-lg font-semibold">File Groups</h2>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setIsModalVisible(true)}
-            />
+            <div className="flex gap-2">
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setIsModalVisible(true)}
+              />
+              <Button
+                type="primary"
+                onClick={() => setIsAutoGroupModalVisible(true)}
+              >
+                Auto Group
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -586,6 +597,73 @@ const FileGroupPanel: React.FC = () => {
               placeholder="Enter group description"
               rows={4}
             />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Auto Group Modal */}
+      <Modal
+        title="Auto Create Groups"
+        open={isAutoGroupModalVisible}
+        onOk={async () => {
+          try {
+            const response = await fetch('/api/file-groups/auto', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                file_size_limit: fileSizeLimit,
+                skip_diff: skipDiff 
+              }),
+            });
+
+            if (!response.ok) throw new Error('Failed to auto create groups');
+
+            message.success('Groups created successfully');
+            setIsAutoGroupModalVisible(false);
+            fetchFileGroups();
+          } catch (error) {
+            message.error('Failed to create groups automatically');
+          }
+        }}
+        onCancel={() => setIsAutoGroupModalVisible(false)}
+        className="dark-theme-modal"
+        styles={{
+          content: {
+            backgroundColor: '#1f2937',
+            padding: '20px',
+          },
+          header: {
+            backgroundColor: '#1f2937',
+            borderBottom: '1px solid #374151',
+          },
+          body: {
+            backgroundColor: '#1f2937',
+          },
+          mask: {
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          },
+        }}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Number of Latest Files to Process
+            </label>
+            <Input
+              type="number"
+              value={fileSizeLimit}
+              onChange={(e) => setFileSizeLimit(parseInt(e.target.value) || 100)}
+              placeholder="Default: 100"
+              className="dark-theme-input"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={skipDiff}
+              onChange={setSkipDiff}
+              className="bg-gray-600"
+            />
+            <span className="text-gray-200">Skip Git Diff Information</span>
           </div>
         </div>
       </Modal>
