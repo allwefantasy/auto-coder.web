@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Tree, Input, Button, Modal, message, Table, Switch } from 'antd';
-import { DeleteOutlined, PlusOutlined, SearchOutlined, CheckOutlined } from '@ant-design/icons';
+import { Tree, Input, Button, Modal, message, Table, Switch, Checkbox } from 'antd';
+import { DeleteOutlined, PlusOutlined, SearchOutlined, CheckOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import type { DataNode, EventDataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
 import { getLanguageByFileName } from '../../utils/fileUtils';
@@ -43,6 +43,8 @@ const FileGroupPanel: React.FC = () => {
   const [isAutoGroupModalVisible, setIsAutoGroupModalVisible] = useState(false);
   const [fileSizeLimit, setFileSizeLimit] = useState<number>(100);
   const [skipDiff, setSkipDiff] = useState<boolean>(false);
+  const [groupResults, setGroupResults] = useState<Array<{name: string; description: string; selected: boolean}>>([]);
+  const [isGroupResultsModalVisible, setIsGroupResultsModalVisible] = useState(false);
   const [editingDesc, setEditingDesc] = useState(false);
   const [currentDesc, setCurrentDesc] = useState('');
   const [isExternalFileModalVisible, setIsExternalFileModalVisible] = useState(false);
@@ -216,7 +218,9 @@ const FileGroupPanel: React.FC = () => {
               />
               <Button
                 type="primary"
+                icon={<ThunderboltOutlined />}
                 onClick={() => setIsAutoGroupModalVisible(true)}
+                className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 border-none shadow-md hover:shadow-lg transition-all duration-300"
               >
                 Auto Group
               </Button>
@@ -617,10 +621,17 @@ const FileGroupPanel: React.FC = () => {
             });
 
             if (!response.ok) throw new Error('Failed to auto create groups');
+            
+            const data = await response.json();
+            if (data.groups && Array.isArray(data.groups)) {
+              setGroupResults(data.groups.map((group: any) => ({
+                ...group,
+                selected: true
+              })));
+              setIsGroupResultsModalVisible(true);
+            }
 
-            message.success('Groups created successfully');
             setIsAutoGroupModalVisible(false);
-            fetchFileGroups();
           } catch (error) {
             message.error('Failed to create groups automatically');
           }
@@ -665,6 +676,77 @@ const FileGroupPanel: React.FC = () => {
             />
             <span className="text-gray-200">Skip Git Diff Information</span>
           </div>
+        </div>
+      </Modal>
+
+      {/* Group Results Selection Modal */}
+      <Modal
+        title="Select Groups to Create"
+        open={isGroupResultsModalVisible}
+        onOk={async () => {
+          try {
+            const selectedGroups = groupResults.filter(group => group.selected);
+            
+            for (const group of selectedGroups) {
+              await fetch('/api/file-groups', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  name: group.name,
+                  description: group.description
+                }),
+              });
+            }
+
+            message.success('Selected groups created successfully');
+            setIsGroupResultsModalVisible(false);
+            fetchFileGroups();
+          } catch (error) {
+            message.error('Failed to create selected groups');
+          }
+        }}
+        onCancel={() => {
+          setIsGroupResultsModalVisible(false);
+          setGroupResults([]);
+        }}
+        width={800}
+        className="dark-theme-modal"
+        styles={{
+          content: {
+            backgroundColor: '#1f2937',
+            padding: '20px',
+          },
+          header: {
+            backgroundColor: '#1f2937',
+            borderBottom: '1px solid #374151',
+          },
+          body: {
+            backgroundColor: '#1f2937',
+          },
+          mask: {
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          },
+        }}
+      >
+        <div className="space-y-4">
+          {groupResults.map((group, index) => (
+            <div key={index} className="p-4 bg-gray-800 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  checked={group.selected}
+                  onChange={(e) => {
+                    const newResults = [...groupResults];
+                    newResults[index].selected = e.target.checked;
+                    setGroupResults(newResults);
+                  }}
+                />
+                <div className="flex-1">
+                  <h3 className="text-white font-medium text-lg">{group.name}</h3>
+                  <p className="text-gray-400 text-sm mt-1">{group.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </Modal>
     </div>
