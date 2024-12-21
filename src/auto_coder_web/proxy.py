@@ -36,6 +36,7 @@ import yaml
 import git
 import hashlib
 from datetime import datetime
+from autocoder.utils import operate_config_api
 
 
 class EventGetRequest(BaseModel):
@@ -359,7 +360,7 @@ class ProxyServer:
             return group
 
         @self.app.post("/api/file-groups/auto")
-        async def auto_create_groups(request: Request):
+        async def auto_create_groups(request: Request):            
             try:
                 data = await request.json()
                 file_size_limit = data.get("file_size_limit", 100)
@@ -367,7 +368,7 @@ class ProxyServer:
 
                 # Create AutoFileGroup instance
                 auto_grouper = AutoFileGroup(
-                    self.auto_coder_runner.llm,
+                    operate_config_api.get_llm(self.auto_coder_runner.memory),
                     self.project_path,
                     skip_diff=skip_diff,
                     file_size_limit=file_size_limit
