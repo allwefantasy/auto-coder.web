@@ -42,6 +42,7 @@ const FileGroupPanel: React.FC = () => {
   const [newGroupDesc, setNewGroupDesc] = useState('');
   const [isAutoGroupModalVisible, setIsAutoGroupModalVisible] = useState(false);
   const [fileSizeLimit, setFileSizeLimit] = useState<number>(100);
+  const [groupNumLimit, setGroupNumLimit] = useState<number>(10);
   const [skipDiff, setSkipDiff] = useState<boolean>(false);
   const [groupResults, setGroupResults] = useState<Array<{name: string; description: string; selected: boolean}>>([]);
   const [isGroupResultsModalVisible, setIsGroupResultsModalVisible] = useState(false);
@@ -616,6 +617,7 @@ const FileGroupPanel: React.FC = () => {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
                 file_size_limit: fileSizeLimit,
+                group_num_limit: groupNumLimit,
                 skip_diff: skipDiff 
               }),
             });
@@ -665,6 +667,18 @@ const FileGroupPanel: React.FC = () => {
               value={fileSizeLimit}
               onChange={(e) => setFileSizeLimit(parseInt(e.target.value) || 100)}
               placeholder="Default: 100"
+              className="dark-theme-input"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Maximum Number of Groups
+            </label>
+            <Input
+              type="number"
+              value={groupNumLimit}
+              onChange={(e) => setGroupNumLimit(parseInt(e.target.value) || 10)}
+              placeholder="Default: 10"
               className="dark-theme-input"
             />
           </div>
