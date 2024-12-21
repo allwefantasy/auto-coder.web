@@ -365,13 +365,15 @@ class ProxyServer:
                 data = await request.json()
                 file_size_limit = data.get("file_size_limit", 100)
                 skip_diff = data.get("skip_diff", False)
+                group_num_limit = data.get("group_num_limit", 10)
 
                 # Create AutoFileGroup instance
                 auto_grouper = AutoFileGroup(
                     operate_config_api.get_llm(self.auto_coder_runner.memory),
                     self.project_path,
                     skip_diff=skip_diff,
-                    file_size_limit=file_size_limit
+                    file_size_limit=file_size_limit,
+                    group_num_limit=group_num_limit
                 )
 
                 # Get groups
