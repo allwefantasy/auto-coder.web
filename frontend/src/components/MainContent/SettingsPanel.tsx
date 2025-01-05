@@ -129,41 +129,6 @@ const SettingsPanel: React.FC = () => {
                 onChange={(e) => updateConfig('rag_url', e.target.value)}
                 placeholder={getMessage('ragUrlPlaceholder')}
                   className="custom-input"
-                  style={{
-                    backgroundColor: '#1f2937',
-                    borderColor: '#374151',
-                    color: '#e5e7eb',
-                  }}
-                  style={{
-                    backgroundColor: '#1f2937',
-                    borderColor: '#374151',
-                    color: '#e5e7eb',
-                  }}
-                  style={{
-                    backgroundColor: '#1f2937',
-                    borderColor: '#374151',
-                    color: '#e5e7eb',
-                  }}
-                  style={{
-                    backgroundColor: '#1f2937',
-                    borderColor: '#374151',
-                    color: '#e5e7eb',
-                  }}
-                  style={{
-                    backgroundColor: '#1f2937',
-                    borderColor: '#374151',
-                    color: '#e5e7eb',
-                  }}
-                  style={{
-                    backgroundColor: '#1f2937',
-                    borderColor: '#374151',
-                    color: '#e5e7eb',
-                  }}
-                  style={{
-                    backgroundColor: '#1f2937',
-                    borderColor: '#374151',
-                    color: '#e5e7eb',
-                  }}
                 />
               </div>
 
