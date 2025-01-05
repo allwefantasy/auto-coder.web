@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { debounce } from 'lodash';
+import React, { useState, useEffect } from 'react';
 import { Switch, Input, message, Card, Select } from 'antd';
 import { Editor } from '@monaco-editor/react';
 import { getMessage, setLanguage, getCurrentLanguage } from '../Sidebar/lang';
@@ -70,40 +69,25 @@ const SettingsPanel: React.FC = () => {
       });
   }, []);
 
-  // Debounced version of updateConfig for RAG fields
-  const debouncedUpdateConfig = useCallback(
-    debounce(async (key: string, value: string | boolean) => {
-      try {
-        const response = await fetch('/api/conf', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ [key]: String(value) })
-        });
+  const updateConfig = async (key: string, value: string | boolean) => {
+    try {
+      const response = await fetch('/api/conf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ [key]: String(value) })
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to update configuration');
-        }
-
-        setConfig(prev => ({ ...prev, [key]: value }));
-        message.success(getMessage('settingsUpdateSuccess'));
-      } catch (error) {
-        console.error('Error updating config:', error);
-        message.error(getMessage('settingsUpdateError'));
+      if (!response.ok) {
+        throw new Error('Failed to update configuration');
       }
-    }, 500), // 500ms debounce
-    []
-  );
 
-  const updateConfig = (key: string, value: string | boolean) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
-    // Only debounce RAG related fields
-    if (key.startsWith('rag_')) {
-      debouncedUpdateConfig(key, value);
-    } else {
-      debouncedUpdateConfig.cancel();
-      debouncedUpdateConfig(key, value);
+      setConfig(prev => ({ ...prev, [key]: value }));
+      message.success(getMessage('settingsUpdateSuccess'));
+    } catch (error) {
+      console.error('Error updating config:', error);
+      message.error(getMessage('settingsUpdateError'));
     }
   };
 
@@ -142,10 +126,7 @@ const SettingsPanel: React.FC = () => {
               <label className="block text-gray-300 mb-2">{getMessage('ragUrlInput')}</label>
               <Input
                 value={config.rag_url}
-                onChange={(e) => {
-                  setConfig(prev => ({ ...prev, rag_url: e.target.value }));
-                  debouncedUpdateConfig('rag_url', e.target.value);
-                }}
+                onChange={(e) => updateConfig('rag_url', e.target.value)}
                 placeholder={getMessage('ragUrlPlaceholder')}
                   className="custom-input"
                 />
@@ -155,10 +136,7 @@ const SettingsPanel: React.FC = () => {
               <label className="block text-gray-300 mb-2">{getMessage('ragTypeInput')}</label>
               <Input
                 value={config.rag_type}
-                onChange={(e) => {
-                  setConfig(prev => ({ ...prev, rag_type: e.target.value }));
-                  debouncedUpdateConfig('rag_type', e.target.value);
-                }}
+                onChange={(e) => updateConfig('rag_type', e.target.value)}
                 placeholder={getMessage('ragTypePlaceholder')}
                   className="custom-input"
                 />
@@ -168,10 +146,7 @@ const SettingsPanel: React.FC = () => {
               <label className="block text-gray-300 mb-2">{getMessage('ragTokenInput')}</label>
               <Input.Password
                 value={config.rag_token}
-                onChange={(e) => {
-                  setConfig(prev => ({ ...prev, rag_token: e.target.value }));
-                  debouncedUpdateConfig('rag_token', e.target.value);
-                }}
+                onChange={(e) => updateConfig('rag_token', e.target.value)}
                 placeholder={getMessage('ragTokenPlaceholder')}
                   className="custom-input"
                 />
