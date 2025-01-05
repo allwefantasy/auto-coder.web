@@ -126,30 +126,33 @@ const SettingsPanel: React.FC = () => {
               <label className="block text-gray-300 mb-2">{getMessage('ragUrlInput')}</label>
               <Input
                 value={config.rag_url}
-                onChange={(e) => updateConfig('rag_url', e.target.value)}
+                onChange={(e) => setConfig(prev => ({ ...prev, rag_url: e.target.value }))}
+                onBlur={(e) => updateConfig('rag_url', e.target.value)}
                 placeholder={getMessage('ragUrlPlaceholder')}
-                  className="custom-input"
-                />
+                className="custom-input"
+              />
               </div>
 
               <div>
               <label className="block text-gray-300 mb-2">{getMessage('ragTypeInput')}</label>
               <Input
                 value={config.rag_type}
-                onChange={(e) => updateConfig('rag_type', e.target.value)}
+                onChange={(e) => setConfig(prev => ({ ...prev, rag_type: e.target.value }))}
+                onBlur={(e) => updateConfig('rag_type', e.target.value)}
                 placeholder={getMessage('ragTypePlaceholder')}
-                  className="custom-input"
-                />
+                className="custom-input"
+              />
               </div>
 
               <div>
               <label className="block text-gray-300 mb-2">{getMessage('ragTokenInput')}</label>
               <Input.Password
                 value={config.rag_token}
-                onChange={(e) => updateConfig('rag_token', e.target.value)}
+                onChange={(e) => setConfig(prev => ({ ...prev, rag_token: e.target.value }))}
+                onBlur={(e) => updateConfig('rag_token', e.target.value)}
                 placeholder={getMessage('ragTokenPlaceholder')}
-                  className="custom-input"
-                />
+                className="custom-input"
+              />
               </div>
             </div>
           )}
