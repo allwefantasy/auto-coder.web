@@ -128,9 +128,8 @@ const SettingsPanel: React.FC = () => {
                 value={config.rag_url}
                 onChange={(e) => updateConfig('rag_url', e.target.value)}
                 placeholder={getMessage('ragUrlPlaceholder')}
-                className="custom-input"
-                style={{ color: '#e5e7eb' }}
-              />
+                  className="custom-input"
+                />
               </div>
 
               <div>
@@ -139,9 +138,8 @@ const SettingsPanel: React.FC = () => {
                 value={config.rag_type}
                 onChange={(e) => updateConfig('rag_type', e.target.value)}
                 placeholder={getMessage('ragTypePlaceholder')}
-                className="custom-input"
-                style={{ color: '#e5e7eb' }}
-              />
+                  className="custom-input"
+                />
               </div>
 
               <div>
@@ -150,9 +148,8 @@ const SettingsPanel: React.FC = () => {
                 value={config.rag_token}
                 onChange={(e) => updateConfig('rag_token', e.target.value)}
                 placeholder={getMessage('ragTokenPlaceholder')}
-                className="custom-input"
-                style={{ color: '#e5e7eb' }}
-              />
+                  className="custom-input"
+                />
               </div>
             </div>
           )}
@@ -208,7 +205,6 @@ const SettingsPanel: React.FC = () => {
                     onChange={(e) => updateConfig('index_filter_workers', e.target.value)}
                     placeholder={getMessage('indexFilterWorkersPlaceholder')}
                     className="custom-input"
-                    style={{ color: '#e5e7eb' }}
                   />
                 </div>
 
@@ -220,7 +216,6 @@ const SettingsPanel: React.FC = () => {
                     onChange={(e) => updateConfig('index_filter_file_num', e.target.value)}
                     placeholder={getMessage('indexFilterFileNumPlaceholder')}
                     className="custom-input"
-                    style={{ color: '#e5e7eb' }}
                   />
                 </div>
 
@@ -232,7 +227,6 @@ const SettingsPanel: React.FC = () => {
                     onChange={(e) => updateConfig('index_build_workers', e.target.value)}
                     placeholder={getMessage('indexBuildWorkersPlaceholder')}
                     className="custom-input"
-                    style={{ color: '#e5e7eb' }}
                   />
                 </div>
               </div>
