@@ -4,100 +4,24 @@ import { Select, Switch, message as AntdMessage, Tooltip } from 'antd';
 import { UndoOutlined } from '@ant-design/icons';
 import { Editor } from '@monaco-editor/react';
 import { getMessage } from './lang';
+import {
+  FileGroup,
+  CodeBlock,
+  UnmergeCodeBlock,
+  ConfigKey,
+  ConfigState,
+  CodingEvent,
+  INDEX_EVENT_TYPES,
+  EventResponse,
+  ResponseData,
+  PollResult,
+  Message,
+  ChatPanelProps,
+  CompletionItem,
+  CompletionData
+} from './types';
 
 const CONFIRMATION_WORDS = ['confirm', '确认'] as const;
-
-interface FileGroup {
-  id: string;
-  name: string;
-  files: string[];
-}
-
-interface CodeBlock {
-  file_path: string;
-  head: string;
-  update: string;
-  similarity: number;
-}
-
-interface UnmergeCodeBlock {
-  file_path: string;
-  head: string;
-  update: string;
-  similarity: number;
-}
-
-interface ConfigKey {
-  key: string;
-  type: string;
-  description: string;
-  default: any;
-}
-
-interface ConfigState {
-  human_as_model: boolean;
-  skip_build_index: boolean;
-  project_type: string;
-  extra_conf: { [key: string]: string };
-  available_keys: ConfigKey[];
-}
-
-interface CodingEvent {
-  event_type: string;
-  data: string;
-}
-
-const INDEX_EVENT_TYPES = {
-  BUILD_START: 'code_index_build_start',
-  BUILD_END: 'code_index_build_end',
-  FILTER_START: 'code_index_filter_start',
-  FILTER_END: 'code_index_filter_end',
-  FILTER_FILE_SELECTED: 'code_index_filter_file_selected'
-} as const;
-
-interface EventResponse {
-  request_id: string;
-  event: CodingEvent;
-}
-
-interface ResponseData {
-  result: {
-    value: string[] | string;
-  };
-  status: 'running' | 'completed' | 'failed';
-}
-
-interface PollResult {
-  text: string;
-  status: 'running' | 'completed' | 'failed';
-}
-
-interface Message {
-  id: string;
-  role: 'user' | 'bot';
-  content: string;
-  status?: 'sending' | 'sent' | 'error';
-  timestamp: number;
-}
-
-interface ChatPanelProps {
-  setPreviewFiles: (files: { path: string; content: string }[]) => void;
-  setActivePanel: (panel: 'code' | 'filegroup' | 'preview' | 'clipboard') => void;
-  setClipboardContent: (content: string) => void;
-  clipboardContent: string;
-  setRequestId: (requestId: string) => void;
-}
-
-interface CompletionItem {
-  name: string;
-  path: string;
-  display: string;
-  location?: string;
-}
-
-interface CompletionData {
-  completions: Array<CompletionItem>;
-}
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, setActivePanel, setClipboardContent, clipboardContent }) => {
   const handleNewChat = () => {
