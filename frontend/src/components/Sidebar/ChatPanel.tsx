@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { pollEvents } from './event_utils';
 import { Markdown } from './Markdown';
 import { Select, Switch, message as AntdMessage, Tooltip } from 'antd';
 import { UndoOutlined } from '@ant-design/icons';
@@ -456,184 +457,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   };
 
 
-  const pollEvents = async (requestId: string) => {
-    let final_status = 'completed';
-    let content = '';
-    while (true) {
-      try {
-        const response = await fetch('/api/event/get', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ request_id: requestId })
-        });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch events');
-        }
-
-        const eventData: CodingEvent = await response.json();
-
-        if (!eventData) {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1s before polling again
-          continue;
-        }
-
-        console.log('Received event:', eventData);
-
-        const response_event = async (response: string) => {
-          console.log('Response event:', response);
-          await fetch('/api/event/response', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              request_id: requestId,
-              event: eventData,
-              response: response
-            })
-          });
-        };
-
-        // Handle specific event types
-        if (eventData.event_type === 'code_start') {
-          await response_event("proceed");
-        }
-
-        if (eventData.event_type === 'code_end') {
-          await response_event("proceed");
-          break;
-        }
-
-        if (eventData.event_type === 'code_error') {
-          await response_event("proceed");
-          final_status = 'failed';
-          content = eventData.data;
-          break;
-        }
-
-        if (eventData.event_type === 'code_error') {
-          await response_event("proceed");
-          final_status = 'failed';
-          content = eventData.data;
-          break;
-        }
-
-        // Handle index build events
-        if (eventData.event_type === INDEX_EVENT_TYPES.BUILD_START) {
-          await response_event("proceed");
-          addBotMessage(getMessage('indexBuildStart'));
-        }
-
-        if (eventData.event_type === INDEX_EVENT_TYPES.BUILD_END) {
-          await response_event("proceed");
-          addBotMessage(getMessage('indexBuildComplete'));
-        }
-
-        // Handle index filter events
-        if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_START) {
-          await response_event("proceed");
-          addBotMessage(getMessage('filterStart'));
-        }
-
-        if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_END) {
-          await response_event("proceed");
-          addBotMessage(getMessage('filterComplete'));
-        }
-
-        if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_FILE_SELECTED) {
-          await response_event("proceed");
-          try {
-            const fileData = JSON.parse(eventData.data) as [string, string][];
-            const selectedFiles = fileData.map(([file, reason]) => file).join(', ');
-            addBotMessage(getMessage('fileSelected', { file: selectedFiles }));
-          } catch (e) {
-            console.error('Failed to parse file selection data:', e);
-          }
-        }
-
-        if (eventData.event_type === 'code_unmerge_result') {
-          await response_event("proceed");
-          const blocks = JSON.parse(eventData.data) as UnmergeCodeBlock[];
-          console.log('Received unmerged code blocks:', blocks);
-
-          // 更新 Preview Panel 数据
-          const previewData = blocks.map(block => ({
-            path: block.file_path,
-            content: `<<<<<<< SEARCH(${block.similarity})\n${block.head}\n=======\n${block.update}\n>>>>>>> REPLACE`
-          }));
-
-          // 发送到 App 组件
-          setPreviewFiles(previewData);
-          setActivePanel('preview');
-          final_status = 'failed';
-          content = "Code block merge failed";
-          break;
-
-        }
-
-
-        if (eventData.event_type === 'code_merge_result') {
-          await response_event("proceed");
-          const blocks = JSON.parse(eventData.data) as CodeBlock[];
-          console.log('Received code blocks:', blocks);
-
-          // 更新 Preview Panel 数据
-          const previewData = blocks.map(block => ({
-            path: block.file_path,
-            content: `<<<<<<< SEARCH(${block.similarity})\n${block.head}\n=======\n${block.update}\n>>>>>>> REPLACE`
-          }));
-
-          // 发送到 App 组件
-          setPreviewFiles(previewData);
-          setActivePanel('preview');
-        }
-
-        if (eventData.event_type === 'code_generate_start') {
-          await response_event("proceed");
-          addBotMessage(getMessage('codeGenerateStart'));
-        }
-
-        if (eventData.event_type === 'code_generate_end') {
-          await response_event("proceed");
-          addBotMessage(getMessage('codeGenerateComplete'));
-        }
-
-        if (eventData.event_type === "code_rag_search_start") {
-          await response_event("proceed");
-          addBotMessage(getMessage('ragSearchStart'));
-        }
-
-        if (eventData.event_type === "code_rag_search_end") {
-          await response_event("proceed");
-          addBotMessage(getMessage('ragSearchComplete'));
-        }
-
-        if (eventData.event_type === 'code_human_as_model') {
-          const result = JSON.parse(eventData.data)
-          setActivePanel('clipboard');
-          setClipboardContent(result.instruction);
-          setPendingResponseEvent({
-            requestId: requestId,
-            eventData: eventData
-          });
-          addBotMessage(getMessage('copyInstructions'));
-          setSendLoading(false)
-        }
-      } catch (error) {
-        final_status = 'failed';
-        content = 'Error polling events: ' + error;
-        console.error('Error polling events:', error);
-        break;
-      }
-
-      // Add a small delay between polls
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-    return { final_status, content };
-  };
 
 
   const handleRevert = async () => {
@@ -795,7 +619,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         updateMessageStatus(messageId, 'sent');
         if (isWriteMode) {
           // Start polling for events
-          const { final_status, content } = await pollEvents(data.request_id);
+          const { final_status, content } = await pollEvents(
+            data.request_id,
+            addBotMessage,
+            setPreviewFiles,
+            setActivePanel,
+            setClipboardContent,
+            setPendingResponseEvent,
+            setSendLoading
+          );
           if (final_status === 'completed') {
             addBotMessage(getMessage('codeModificationComplete'));
             setRequestId("");
