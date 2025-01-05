@@ -585,23 +585,52 @@ const FileGroupPanel: React.FC = () => {
         onOk={handleCreateGroup}
         onCancel={() => setIsModalVisible(false)}
         okButtonProps={{ disabled: !newGroupName.trim() }}
+        className="dark-theme-modal"
+        styles={{
+          content: {
+            backgroundColor: '#1f2937',
+            padding: '20px',
+          },
+          header: {
+            backgroundColor: '#1f2937',
+            borderBottom: '1px solid #374151',
+          },
+          body: {
+            backgroundColor: '#1f2937',
+          },
+          mask: {
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          },
+        }}
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Group Name</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">Group Name</label>
             <Input
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
               placeholder="Enter group name"
+              className="dark-theme-input"
+              style={{
+                backgroundColor: '#1f2937',
+                borderColor: '#374151',
+                color: '#e5e7eb',
+              }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">Description</label>
             <Input.TextArea
               value={newGroupDesc}
               onChange={(e) => setNewGroupDesc(e.target.value)}
               placeholder="Enter group description"
               rows={4}
+              className="dark-theme-input"
+              style={{
+                backgroundColor: '#1f2937',
+                borderColor: '#374151',
+                color: '#e5e7eb',
+              }}
             />
           </div>
         </div>
