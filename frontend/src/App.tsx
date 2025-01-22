@@ -64,15 +64,19 @@ const App: React.FC = () => {
   );
 
   useEffect(() => {
-    fetch('/api/project-path')
-      .then(response => response.json())
-      .then(data => {
-        const path = data.project_path;
-        const name = path ? path.split('/').pop() : '';
-        setProjectName(name);
-      })
-      .catch(error => console.error('Error fetching project path:', error));
-  }, []); // Renamed useEffect hook to include a name
+    // 初始化语言设置
+    initLanguage().then(() => {
+      // 其他初始化逻辑
+      fetch('/api/project-path')
+        .then(response => response.json())
+        .then(data => {
+          const path = data.project_path;
+          const name = path ? path.split('/').pop() : '';
+          setProjectName(name);
+        })
+        .catch(error => console.error('Error fetching project path:', error));
+    });
+  }, []);
 
   useEffect(() => {
     if (isFileSearchOpen && searchInputRef.current) {

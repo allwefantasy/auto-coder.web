@@ -314,6 +314,7 @@ class ProxyServer:
     def setup_routes(self):
         
         self.app.include_router(todo_router.router)
+        self.app.include_router(settings_router.router)
 
         @self.app.on_event("shutdown")
         async def shutdown_event():

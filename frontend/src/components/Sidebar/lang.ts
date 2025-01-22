@@ -270,9 +270,32 @@ export const messages: { [key: string]: Message } = {
 // 当前语言设置
 let currentLanguage: 'en' | 'zh' = 'zh';
 
+// 初始化语言设置
+export const initLanguage = async () => {
+  try {
+    const response = await fetch('/api/settings/language');
+    const data = await response.json();
+    currentLanguage = data.language || 'zh';
+  } catch (error) {
+    console.error('Failed to load language settings:', error);
+    currentLanguage = 'zh';
+  }
+};
+
 // 设置语言
-export const setLanguage = (lang: 'en' | 'zh') => {
-  currentLanguage = lang;
+export const setLanguage = async (lang: 'en' | 'zh') => {
+  try {
+    await fetch('/api/settings/language', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(lang)
+    });
+    currentLanguage = lang;
+  } catch (error) {
+    console.error('Failed to save language settings:', error);
+  }
 };
 
 // 获取当前语言
