@@ -120,8 +120,7 @@ const TodoPanel: React.FC = () => {
             {columns.map(column => (
               <Droppable 
                 droppableId={column.id} 
-                key={column.id}
-                mode="virtual"
+                key={column.id}                
               >
               {(provided, snapshot) => (
                 <div
@@ -219,6 +218,7 @@ const TodoPanel: React.FC = () => {
           options={priorityOptions}
         />
       </Modal>
+      </ErrorBoundary> 
     </div>
   );
 };
