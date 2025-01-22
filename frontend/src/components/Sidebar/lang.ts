@@ -85,10 +85,6 @@ export const messages: { [key: string]: Message } = {
     en: "Failed to update configuration",
     zh: "配置更新失败"
   },
-  language: {
-    en: "Language",
-    zh: "语言"
-  },
   indexBuildStart: {
     en: "Build incremental index...",
     zh: "增量索引..."
