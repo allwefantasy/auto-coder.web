@@ -2,18 +2,18 @@ import os
 import json
 import uuid
 import logging
+import asyncio
+import aiofiles
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 from pathlib import Path
-from filelock import FileLock
 
 router = APIRouter()
 
 # 配置存储路径
 TODO_FILE = Path(".auto-coder/auto-coder.web/todos.json")
-TODO_LOCK_FILE = Path(".auto-coder/auto-coder.web/todos.json.lock")
 
 # 确保目录存在
 TODO_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -43,34 +43,33 @@ class ReorderTodoRequest(BaseModel):
     destination_index: int
     todo_id: str
 
-def load_todos() -> List[TodoItem]:
-    """加载所有待办事项"""
-    if not TODO_FILE.exists():
+async def load_todos() -> List[TodoItem]:
+    """异步加载所有待办事项"""
+    if not await asyncio.to_thread(lambda: TODO_FILE.exists()):
         return []
     
-    with FileLock(TODO_LOCK_FILE):
-        try:
-            with open(TODO_FILE, "r") as f:
-                return [TodoItem(**item) for item in json.load(f)]
-        except json.JSONDecodeError:
-            logger.error("Failed to parse todos.json, returning empty list")
-            return []
+    try:
+        async with aiofiles.open(TODO_FILE, mode='r') as f:
+            content = await f.read()
+            return [TodoItem(**item) for item in json.loads(content)]
+    except (json.JSONDecodeError, FileNotFoundError):
+        logger.error("Failed to parse todos.json, returning empty list")
+        return []
 
-def save_todos(todos: List[TodoItem]):
-    """保存待办事项"""
-    with FileLock(TODO_LOCK_FILE):
-        with open(TODO_FILE, "w") as f:
-            json.dump([todo.dict() for todo in todos], f, indent=2)
+async def save_todos(todos: List[TodoItem]):
+    """异步保存待办事项"""
+    async with aiofiles.open(TODO_FILE, mode='w') as f:
+        await f.write(json.dumps([todo.dict() for todo in todos], indent=2))
 
 @router.get("/api/todos", response_model=List[TodoItem])
 async def get_all_todos():
     """获取所有待办事项"""
-    return load_todos()
+    return await load_todos()
 
 @router.post("/api/todos", response_model=TodoItem)
 async def create_todo(request: CreateTodoRequest):
     """创建新待办事项"""
-    todos = load_todos()
+    todos = await load_todos()
     
     new_todo = TodoItem(
         id=str(uuid.uuid4()),
@@ -83,13 +82,13 @@ async def create_todo(request: CreateTodoRequest):
     )
     
     todos.append(new_todo)
-    save_todos(todos)
+    await save_todos(todos)
     return new_todo
 
 @router.put("/api/todos/{todo_id}", response_model=TodoItem)
 async def update_todo(todo_id: str, update_data: dict):
     """更新待办事项"""
-    todos = load_todos()
+    todos = await load_todos()
     
     for index, todo in enumerate(todos):
         if todo.id == todo_id:
@@ -97,7 +96,7 @@ async def update_todo(todo_id: str, update_data: dict):
             updated_data.update(update_data)
             updated_data["updated_at"] = datetime.now().isoformat()
             todos[index] = TodoItem(**updated_data)
-            save_todos(todos)
+            await save_todos(todos)
             return todos[index]
     
     raise HTTPException(status_code=404, detail="Todo not found")
@@ -105,19 +104,19 @@ async def update_todo(todo_id: str, update_data: dict):
 @router.delete("/api/todos/{todo_id}")
 async def delete_todo(todo_id: str):
     """删除待办事项"""
-    todos = load_todos()
+    todos = await load_todos()
     new_todos = [todo for todo in todos if todo.id != todo_id]
     
     if len(new_todos) == len(todos):
         raise HTTPException(status_code=404, detail="Todo not found")
     
-    save_todos(new_todos)
+    await save_todos(new_todos)
     return {"status": "success"}
 
 @router.post("/api/todos/reorder")
 async def reorder_todos(request: ReorderTodoRequest):
     """处理拖放排序"""
-    todos = load_todos()
+    todos = await load_todos()
     
     # 找到移动的待办事项
     moved_todo = next((t for t in todos if t.id == request.todo_id), None)
@@ -133,14 +132,14 @@ async def reorder_todos(request: ReorderTodoRequest):
     
     # 插入新位置
     todos.insert(
-        get_insert_index(todos, request.destination_status, request.destination_index),
+        await get_insert_index(todos, request.destination_status, request.destination_index),
         moved_todo
     )
     
-    save_todos(todos)
+    await save_todos(todos)
     return {"status": "success"}
 
-def get_insert_index(todos: List[TodoItem], status: str, destination_index: int) -> int:
+async def get_insert_index(todos: List[TodoItem], status: str, destination_index: int) -> int:
     """计算插入位置的绝对索引"""
     status_todos = [i for i, t in enumerate(todos) if t.status == status]
     if not status_todos:
