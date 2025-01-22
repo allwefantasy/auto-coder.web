@@ -15,7 +15,7 @@ import Split from 'react-split';
 import './App.css';
 
 const App: React.FC = () => {
-  const [activePanel, setActivePanel] = useState<'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings' | 'todo'>('code');
+  const [activePanel, setActivePanel] = useState<'todo' | 'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings'>('todo');
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [clipboardContent, setClipboardContent] = useState<string>('');
   const [projectName, setProjectName] = useState<string>('');
