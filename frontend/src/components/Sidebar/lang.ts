@@ -169,6 +169,54 @@ export const messages: { [key: string]: Message } = {
     en: "Code generation complete",
     zh: "代码生成完成"
   },
+  priorityP0: {
+    en: "P0 - Urgent",
+    zh: "P0 - 紧急"
+  },
+  priorityP1: {
+    en: "P1 - High",
+    zh: "P1 - 高"
+  },
+  priorityP2: {
+    en: "P2 - Medium",
+    zh: "P2 - 中"
+  },
+  priorityP3: {
+    en: "P3 - Low",
+    zh: "P3 - 低"
+  },
+  statusPending: {
+    en: "Pending",
+    zh: "待评估"
+  },
+  statusDeveloping: {
+    en: "Developing",
+    zh: "进行中"
+  },
+  statusTesting: {
+    en: "Testing",
+    zh: "测试中"
+  },
+  statusDone: {
+    en: "Done",
+    zh: "已完成"
+  },
+  loading: {
+    en: "Loading...",
+    zh: "加载中..."
+  },
+  createNewTask: {
+    en: "Create New Task",
+    zh: "新建需求"
+  },
+  taskTitlePlaceholder: {
+    en: "Task Title",
+    zh: "需求标题"
+  },
+  priorityPlaceholder: {
+    en: "Priority",
+    zh: "优先级"
+  },
 };
 
 // 当前语言设置

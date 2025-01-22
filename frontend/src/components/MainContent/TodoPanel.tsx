@@ -3,6 +3,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautif
 import { Button, Input, Select, Tag, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { ErrorBoundary } from 'react-error-boundary';
+import { getMessage } from '../Sidebar/lang';
 import './TodoPanel.css';
 
 type ColumnId = 'pending' | 'developing' | 'testing' | 'done';
@@ -26,12 +27,12 @@ const priorityColors = {
   P3: 'gray'
 };
 
-const priorityOptions = [
-  { value: 'P0', label: 'P0 - 紧急' },
-  { value: 'P1', label: 'P1 - 高' },
-  { value: 'P2', label: 'P2 - 中' },
-  { value: 'P3', label: 'P3 - 低' },
-];
+  const priorityOptions = [
+    { value: 'P0', label: getMessage('priorityP0') },
+    { value: 'P1', label: getMessage('priorityP1') },
+    { value: 'P2', label: getMessage('priorityP2') },
+    { value: 'P3', label: getMessage('priorityP3') },
+  ];
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -65,10 +66,10 @@ const TodoPanel: React.FC = () => {
   }, []);
 
   const columns = [
-    { id: 'pending', title: '待评估' },
-    { id: 'developing', title: '进行中' },
-    { id: 'testing', title: '测试中' },
-    { id: 'done', title: '已完成' },
+    { id: 'pending', title: getMessage('statusPending') },
+    { id: 'developing', title: getMessage('statusDeveloping') },
+    { id: 'testing', title: getMessage('statusTesting') },
+    { id: 'done', title: getMessage('statusDone') },
   ];
 
   const onDragEnd = async (result: DropResult) => {
@@ -167,14 +168,14 @@ const TodoPanel: React.FC = () => {
         </div>
       )}
       <div className="todo-header mb-4">
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={() => setIsModalVisible(true)}
-          className="bg-blue-600 hover:bg-blue-700 border-none text-sm"
-        >
-          新建需求
-        </Button>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />}
+              onClick={() => setIsModalVisible(true)}
+              className="bg-blue-600 hover:bg-blue-700 border-none text-sm"
+            >
+              {getMessage('createNewTask')}
+            </Button>
       </div>
 
       <ErrorBoundary
@@ -186,8 +187,8 @@ const TodoPanel: React.FC = () => {
       >
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="todo-board flex gap-4 h-[calc(100%-80px)]">
-            {isLoading ? (
-              <div className="text-gray-400 text-center p-4">加载中...</div>
+              {isLoading ? (
+              <div className="text-gray-400 text-center p-4">{getMessage('loading')}</div>
             ) : (
               columns.map(column => (
                 <Droppable 
@@ -256,8 +257,8 @@ const TodoPanel: React.FC = () => {
         </div>
       </DragDropContext>
 
-      <Modal
-        title="新建需求"
+        <Modal
+        title={getMessage('createNewTask')}
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         onOk={handleCreateTodo}
@@ -277,14 +278,14 @@ const TodoPanel: React.FC = () => {
         }}
       >
         <Input
-          placeholder="需求标题"
+          placeholder={getMessage('taskTitlePlaceholder')}
           className="custom-input bg-gray-800 border-gray-700 text-gray-200 mb-3"
           value={newTodo.title}
           onChange={(e) => setNewTodo({...newTodo, title: e.target.value})}
         />
         <Select
           className="custom-select w-full"
-          placeholder="优先级"
+          placeholder={getMessage('priorityPlaceholder')}
           value={newTodo.priority}
           onChange={(value) => setNewTodo({...newTodo, priority: value})}
           options={priorityOptions}
