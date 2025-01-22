@@ -59,7 +59,7 @@ async def load_todos() -> List[TodoItem]:
 async def save_todos(todos: List[TodoItem]):
     """异步保存待办事项"""
     async with aiofiles.open(TODO_FILE, mode='w') as f:
-        await f.write(json.dumps([todo.dict() for todo in todos], indent=2))
+        await f.write(json.dumps([todo.dict() for todo in todos], indent=2,ensure_ascii=False))
 
 @router.get("/api/todos", response_model=List[TodoItem])
 async def get_all_todos():
