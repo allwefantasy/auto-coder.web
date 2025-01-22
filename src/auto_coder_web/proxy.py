@@ -16,6 +16,7 @@ import pathlib
 import time
 import sys
 from .file_group import FileGroupManager
+from .routers import todo_router
 from .file_manager import get_directory_tree
 from .auto_coder_runner import AutoCoderRunner
 from autocoder.agent.auto_filegroup import AutoFileGroup
@@ -287,6 +288,7 @@ class ProxyServer:
         self.setup_static_files()
 
         self.setup_routes()
+        self.app.include_router(todo_router.router)
         self.client = httpx.AsyncClient()
         self.project_path = project_path
         self.auto_coder_runner = AutoCoderRunner(project_path)

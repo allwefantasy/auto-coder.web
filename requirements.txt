@@ -6,3 +6,4 @@ websockets
 pywinpty; sys_platform == 'win32'
 pyyaml 
 gitpython
+filelock>=3.13.1
