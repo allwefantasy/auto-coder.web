@@ -32,8 +32,25 @@ const SettingsPanel: React.FC = () => {
     index_filter_file_num: '10',
     index_build_workers: '100',
     available_keys: [],
-    language: getCurrentLanguage()
+    language: 'zh'
   });
+
+  // 获取当前语言设置
+  useEffect(() => {
+    const fetchLanguage = async () => {
+      try {
+        const response = await fetch('/api/settings/language');
+        if (!response.ok) {
+          throw new Error('Failed to fetch language settings');
+        }
+        const data = await response.json();
+        setConfig(prev => ({ ...prev, language: data.language || 'zh' }));
+      } catch (error) {
+        console.error('Error fetching language settings:', error);
+      }
+    };
+    fetchLanguage();
+  }, []);
 
   useEffect(() => {
     // 获取初始配置
@@ -99,17 +116,34 @@ const SettingsPanel: React.FC = () => {
         <div className="space-y-6">
           <div>
             <label className="block text-gray-300 mb-2">Language / 语言</label>
-            <Select
-              value={config.language}
-              onChange={(value) => {
-                setConfig(prev => ({ ...prev, language: value }));
-                setLanguage(value as 'en' | 'zh');
-              }}
-              className="custom-select w-full"
-            >
-              <Select.Option value="en">English</Select.Option>
-              <Select.Option value="zh">中文</Select.Option>
-            </Select>
+              <Select
+                value={config.language}
+                onChange={async (value) => {
+                  try {
+                    const response = await fetch('/api/settings/language', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(value)
+                    });
+                    
+                    if (!response.ok) {
+                      throw new Error('Failed to update language settings');
+                    }
+                    
+                    setConfig(prev => ({ ...prev, language: value }));
+                    setLanguage(value as 'en' | 'zh');
+                  } catch (error) {
+                    console.error('Error updating language settings:', error);
+                    message.error('Failed to update language settings');
+                  }
+                }}
+                className="custom-select w-full"
+              >
+                <Select.Option value="en">English</Select.Option>
+                <Select.Option value="zh">中文</Select.Option>
+              </Select>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-300">{getMessage('ragToggle')}</span>
