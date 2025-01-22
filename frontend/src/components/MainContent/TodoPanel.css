@@ -1,0 +1,56 @@
+.todo-container {
+  height: 100%;
+  padding: 16px;
+  background-color: #1a1a1a;
+}
+
+.todo-header {
+  margin-bottom: 24px;
+}
+
+.todo-board {
+  display: flex;
+  gap: 16px;
+  height: calc(100% - 64px);
+}
+
+.todo-column {
+  flex: 1;
+  background-color: #2d2d2d;
+  padding: 16px;
+  border-radius: 8px;
+  min-width: 280px;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.todo-card {
+  background-color: #3d3d3d;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  cursor: move;
+}
+
+.todo-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.todo-title {
+  color: #e5e7eb;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.todo-due-date {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.todo-tags {
+  display: flex;
+  gap: 4px;
+}
