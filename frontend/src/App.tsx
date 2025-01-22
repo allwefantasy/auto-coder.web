@@ -10,6 +10,7 @@ import HistoryPanel from './components/MainContent/HistoryPanel';
 import TerminalManager from './components/Terminal/TerminalManager';
 import OutputPanel from './components/Terminal/OutputPanel';
 import PreviewPanel from './components/MainContent/PreviewPanel';
+import TodoPanel from './components/MainContent/TodoPanel';
 import Split from 'react-split';
 import './App.css';
 
