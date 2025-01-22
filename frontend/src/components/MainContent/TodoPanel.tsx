@@ -121,6 +121,7 @@ const TodoPanel: React.FC = () => {
           todo_id: result.draggableId
         })
       });
+
     } catch (error) {
       console.error('Failed to reorder todos:', error);
       // Revert to original state on error
@@ -250,7 +251,7 @@ const TodoPanel: React.FC = () => {
                 </div>
               )}
             </Droppable>
-          ))}
+          )))}          
         </div>
       </DragDropContext>
 
