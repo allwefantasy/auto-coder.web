@@ -257,6 +257,66 @@ export const messages: { [key: string]: Message } = {
     en: "Create New Task",
     zh: "新建需求"
   },
+  newChat: {
+    en: "New Chat",
+    zh: "新建聊天"
+  },
+  settingsAndGroups: {
+    en: "Settings & Groups",
+    zh: "设置与分组"
+  },
+  humanAsModel: {
+    en: "Human As Model",
+    zh: "人工模型"
+  },
+  humanAsModelTooltip: {
+    en: "Enable to let human act as the model",
+    zh: "启用人工模型"
+  },
+  skipBuildIndex: {
+    en: "Skip Build Index",
+    zh: "跳过构建索引"
+  },
+  skipBuildIndexTooltip: {
+    en: "Skip building index for better performance",
+    zh: "跳过构建索引以提高性能"
+  },
+  projectType: {
+    en: "Project Type",
+    zh: "项目类型"
+  },
+  projectTypeTooltip: {
+    en: "Filter files by extensions (e.g. .py,.ts)",
+    zh: "按文件扩展名过滤（例如 .py,.ts）"
+  },
+  customConfig: {
+    en: "Custom Configuration",
+    zh: "自定义配置"
+  },
+  addConfig: {
+    en: "Add Config",
+    zh: "添加配置"
+  },
+  clearEvents: {
+    en: "Clear Events",
+    zh: "清除事件"
+  },
+  clearEventsTooltip: {
+    en: "Clear event queue to resolve any stuck operations",
+    zh: "清除事件队列以解决卡住的操作"
+  },
+  undoTooltip: {
+    en: "Undo last modification",
+    zh: "撤销上次修改"
+  },
+  sending: {
+    en: "Sending...",
+    zh: "发送中..."
+  },
+  send: {
+    en: "Send",
+    zh: "发送"
+  },
   taskTitlePlaceholder: {
     en: "Task Title",
     zh: "需求标题"

@@ -837,7 +837,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         <button
           onClick={handleNewChat}
           className="absolute top-2 left-2 z-10 p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-colors"
-          title="New Chat"
+              title={getMessage('newChat')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-2 w-2" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -885,7 +885,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         <div className="px-2 pt-1">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-gray-300 text-sm font-semibold">Settings & Groups</span>
+                  <span className="text-gray-300 text-sm font-semibold">{getMessage('settingsAndGroups')}</span>
               <Switch
                 size="small"
                 checked={showConfig}
@@ -901,8 +901,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           {showConfig && (
             <div className="space-y-1 mb-1">
               <div className="flex items-center justify-between">
-                <Tooltip title="Enable to let human act as the model">
-                  <span className="text-gray-300 text-xs">Human As Model</span>
+                <Tooltip title={getMessage('humanAsModelTooltip')}>
+                  <span className="text-gray-300 text-xs">{getMessage('humanAsModel')}</span>
                 </Tooltip>
                 <Switch
                   size="small"
@@ -912,8 +912,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
               </div>
 
               <div className="flex items-center justify-between">
-                <Tooltip title="Skip building index for better performance">
-                  <span className="text-gray-300 text-xs">Skip Build Index</span>
+                <Tooltip title={getMessage('skipBuildIndexTooltip')}>
+                  <span className="text-gray-300 text-xs">{getMessage('skipBuildIndex')}</span>
                 </Tooltip>
                 <Switch
                   size="small"
@@ -923,8 +923,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
               </div>
 
               <div className="flex items-center justify-between">
-                <Tooltip title="Filter files by extensions (e.g. .py,.ts)">
-                  <span className="text-gray-300 text-xs">Project Type</span>
+                <Tooltip title={getMessage('projectTypeTooltip')}>
+                  <span className="text-gray-300 text-xs">{getMessage('projectType')}</span>
                 </Tooltip>
                 <Select
                   mode="tags"
@@ -948,7 +948,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
               <div className="space-y-2 mt-2">
                 {/* Heading */}
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-300 text-xs font-medium">Custom Configuration</span>
+                  <span className="text-gray-300 text-xs font-medium">{getMessage('customConfig')}</span>
                   <button
                     onClick={() => {
                       const newExtraConf = { ...config.extra_conf };
@@ -960,7 +960,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                     }}
                     className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                   >
-                    Add Config
+                    {getMessage('addConfig')}
                   </button>
                 </div>
 
@@ -1159,7 +1159,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             <div className="flex items-center justify-between">
               {/* Left Side - Utility Actions */}
               <div className="flex items-center space-x-2">
-                <Tooltip title="Clear event queue to resolve any stuck operations" placement="top">
+                <Tooltip title={getMessage('clearEventsTooltip')} placement="top">
                   <button
                     className="px-3 py-1.5 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 
                     transition-all duration-200 flex items-center space-x-1.5 group shadow-sm
@@ -1187,14 +1187,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    <span className="text-xs font-medium">Clear Events</span>
+                    <span className="text-xs font-medium">{getMessage('clearEvents')}</span>
                   </button>
                 </Tooltip>
               </div>
 
               {/* Right Side - Primary Actions */}
               <div className="flex items-center space-x-2">
-                <Tooltip title="Undo last modification" placement="top">
+                <Tooltip title={getMessage('undoTooltip')} placement="top">
                   <button
                     className="p-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600
                       transition-all duration-200 border border-gray-600/50 hover:border-gray-500
@@ -1224,11 +1224,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span>Sending...</span>
+                        <span>{getMessage('sending')}</span>
                       </>
                     ) : (
                       <>
-                        <span>Send</span>
+                        <span>{getMessage('send')}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" 
                              className="h-4 w-4 transform rotate-45 group-hover:translate-x-0.5" 
                              fill="none" 
