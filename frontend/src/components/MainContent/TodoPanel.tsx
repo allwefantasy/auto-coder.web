@@ -58,12 +58,33 @@ const TodoPanel: React.FC = () => {
 
     setTodos(prev => {
       const newTodos = [...prev];
-      const [movedItem] = newTodos.splice(source.index, 1);
       
-      // 更新状态
+      // Find the actual todo item that was dragged
+      const sourceColumnTodos = newTodos.filter(t => t.status === source.droppableId);
+      const [movedItem] = sourceColumnTodos.splice(source.index, 1);
+      const sourceIndex = newTodos.findIndex(t => t.id === movedItem.id);
+      
+      // Remove it from its original position
+      newTodos.splice(sourceIndex, 1);
+      
+      // Update its status
       movedItem.status = destination.droppableId as ColumnId;
       
-      newTodos.splice(destination.index, 0, movedItem);
+      // Find where to insert in the destination column
+      const destinationColumnTodos = newTodos.filter(t => t.status === destination.droppableId);
+      const allBeforeDestination = destinationColumnTodos.slice(0, destination.index);
+      const insertIndex = newTodos.findIndex(t => 
+        t.status === destination.droppableId && 
+        !allBeforeDestination.includes(t)
+      );
+      
+      // Insert at the correct position
+      if (insertIndex === -1) {
+        newTodos.push(movedItem);
+      } else {
+        newTodos.splice(insertIndex, 0, movedItem);
+      }
+      
       return newTodos;
     });
   };
@@ -114,7 +135,7 @@ const TodoPanel: React.FC = () => {
                     .filter(todo => todo.status === column.id)
                     .map((todo, index) => (
                       <Draggable key={todo.id} draggableId={todo.id} index={index}>
-                        {(provided) => (
+                        {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
