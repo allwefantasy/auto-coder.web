@@ -205,6 +205,54 @@ export const messages: { [key: string]: Message } = {
     en: "Loading...",
     zh: "加载中..."
   },
+  appTitle: {
+    en: "Auto-Coder",
+    zh: "自动编码器"
+  },
+  currentProject: {
+    en: "Current Project:",
+    zh: "当前项目:"
+  },
+  noProjectSelected: {
+    en: "No Project Selected",
+    zh: "未选择项目"
+  },
+  todos: {
+    en: "Todos",
+    zh: "待办事项"
+  },
+  devHistory: {
+    en: "Dev History",
+    zh: "开发历史"
+  },
+  codeViewer: {
+    en: "Code Viewer",
+    zh: "代码查看器"
+  },
+  fileGroups: {
+    en: "File Groups",
+    zh: "文件分组"
+  },
+  previewChanges: {
+    en: "Preview Changes",
+    zh: "预览更改"
+  },
+  clipboard: {
+    en: "Clipboard",
+    zh: "剪贴板"
+  },
+  settings: {
+    en: "Settings",
+    zh: "设置"
+  },
+  searchFiles: {
+    en: "Search Files",
+    zh: "搜索文件"
+  },
+  searchFilesPlaceholder: {
+    en: "Enter file name to search...",
+    zh: "输入文件名进行搜索..."
+  },
   createNewTask: {
     en: "Create New Task",
     zh: "新建需求"
