@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button, Input, Select, Tag, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { ErrorBoundary } from 'react-error-boundary';
 import './TodoPanel.css';
 
 type ColumnId = 'pending' | 'developing' | 'testing' | 'done';
@@ -30,6 +31,8 @@ const priorityOptions = [
   { value: 'P3', label: 'P3 - 低' },
 ];
 
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
 const TodoPanel: React.FC = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -42,57 +45,46 @@ const TodoPanel: React.FC = () => {
     { id: 'done', title: '已完成' },
   ];
 
-  const onDragEnd = (result: any) => {
+  const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
 
-    // 如果没有放到有效区域则直接返回
     if (!destination) return;
 
-    // 如果拖拽到同一个列表的相同位置则直接返回
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
+    setTodos(prevTodos => {
+      const newTodos = [...prevTodos];
+      const draggedItem = newTodos.find(t => t.id === result.draggableId)!;
 
-    setTodos(prev => {
-      const newTodos = [...prev];
-      
-      // Find the actual todo item that was dragged
-      const sourceColumnTodos = newTodos.filter(t => t.status === source.droppableId);
-      const [movedItem] = sourceColumnTodos.splice(source.index, 1);
-      const sourceIndex = newTodos.findIndex(t => t.id === movedItem.id);
-      
-      // Remove it from its original position
-      newTodos.splice(sourceIndex, 1);
-      
-      // Update its status
-      movedItem.status = destination.droppableId as ColumnId;
-      
-      // Find where to insert in the destination column
-      const destinationColumnTodos = newTodos.filter(t => t.status === destination.droppableId);
-      const allBeforeDestination = destinationColumnTodos.slice(0, destination.index);
-      const insertIndex = newTodos.findIndex(t => 
-        t.status === destination.droppableId && 
-        !allBeforeDestination.includes(t)
-      );
-      
-      // Insert at the correct position
-      if (insertIndex === -1) {
-        newTodos.push(movedItem);
-      } else {
-        newTodos.splice(insertIndex, 0, movedItem);
+      if (source.droppableId !== destination.droppableId) {
+        const sourceItems = newTodos.filter(t => t.status === source.droppableId);
+        sourceItems.splice(source.index, 1);
+        
+        draggedItem.status = destination.droppableId as ColumnId;
+        const destItems = newTodos.filter(t => t.status === destination.droppableId);
+        destItems.splice(destination.index, 0, draggedItem);
+        
+        return [
+          ...newTodos.filter(t => t.status !== source.droppableId),
+          ...sourceItems,
+          ...destItems
+        ];
       }
-      
-      return newTodos;
+
+      const items = newTodos.filter(t => t.status === source.droppableId);
+      const [removed] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, removed);
+
+      return newTodos.map(t => 
+        t.status === source.droppableId 
+          ? items.find(i => i.id === t.id) || t 
+          : t
+      );
     });
   };
 
   const handleCreateTodo = () => {
     if (!newTodo.title) return;
     setTodos([...todos, {
-      id: `todo-${Date.now()}`,
+      id: generateId(),
       title: newTodo.title,
       status: 'pending',
       priority: 'P2',
@@ -104,7 +96,7 @@ const TodoPanel: React.FC = () => {
   };
 
   return (
-    <div className="todo-container h-full bg-gray-900 p-4">
+      <div className="todo-container h-full bg-gray-900 p-4" data-testid="todo-panel">
       <div className="todo-header mb-4">
         <Button 
           type="primary" 
@@ -116,10 +108,21 @@ const TodoPanel: React.FC = () => {
         </Button>
       </div>
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="todo-board flex gap-4 h-[calc(100%-80px)]">
-          {columns.map(column => (
-            <Droppable droppableId={column.id} key={column.id}>
+      <ErrorBoundary
+        fallbackRender={({ error }) => (
+          <div className="text-red-500 p-4">
+            Droppable Error: {error.message}
+          </div>
+        )}
+      >
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="todo-board flex gap-4 h-[calc(100%-80px)]">
+            {columns.map(column => (
+              <Droppable 
+                droppableId={column.id} 
+                key={column.id}
+                mode="virtual"
+              >
               {(provided, snapshot) => (
                 <div
                   {...provided.droppableProps}
