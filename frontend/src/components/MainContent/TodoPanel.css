@@ -1,56 +1,79 @@
 .todo-container {
-  height: 100%;
-  padding: 16px;
-  background-color: #1a1a1a;
-}
-
-.todo-header {
-  margin-bottom: 24px;
-}
-
-.todo-board {
-  display: flex;
-  gap: 16px;
-  height: calc(100% - 64px);
+  background-color: transparent;
 }
 
 .todo-column {
-  flex: 1;
-  background-color: #2d2d2d;
-  padding: 16px;
-  border-radius: 8px;
-  min-width: 280px;
-  max-height: 100%;
-  overflow-y: auto;
+  background-color: #1a1a1a;
+  border: 1px solid #2d2d2d;
+  transition: all 0.2s ease;
+}
+
+.todo-column:hover {
+  border-color: #3d3d3d;
 }
 
 .todo-card {
-  background-color: #3d3d3d;
-  padding: 12px;
-  margin-bottom: 12px;
-  border-radius: 4px;
+  background-color: #2d2d2d;
+  border: 1px solid #374151;
+  transition: all 0.2s ease;
   cursor: move;
 }
 
-.todo-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+.todo-card:hover {
+  background-color: #374151;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .todo-title {
   color: #e5e7eb;
   font-size: 14px;
-  margin-bottom: 8px;
+  line-height: 1.4;
 }
 
 .todo-due-date {
   color: #9ca3af;
   font-size: 12px;
+  margin-top: 4px;
 }
 
 .todo-tags {
   display: flex;
   gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* 适配Antd组件 */
+.ant-modal-title {
+  color: #e5e7eb !important;
+}
+
+.ant-modal-close {
+  color: #9ca3af !important;
+}
+
+.ant-modal-close:hover {
+  color: #e5e7eb !important;
+}
+
+.custom-input {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+
+.custom-input:hover,
+.custom-input:focus {
+  border-color: #6366F1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+.custom-select .ant-select-selector {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+
+.custom-select .ant-select-arrow {
+  color: #9ca3af !important;
 }

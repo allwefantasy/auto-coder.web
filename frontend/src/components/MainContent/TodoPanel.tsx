@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { Button, Input, Select, Tag, Avatar, Modal } from 'antd';
+import { Button, Input, Select, Tag, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import './TodoPanel.css';
 
@@ -13,6 +13,20 @@ interface TodoItem {
   owner?: string;
   dueDate?: Date;
 }
+
+const priorityColors = {
+  P0: 'red',
+  P1: 'orange',
+  P2: 'blue',
+  P3: 'gray'
+};
+
+const priorityOptions = [
+  { value: 'P0', label: 'P0 - 紧急' },
+  { value: 'P1', label: 'P1 - 高' },
+  { value: 'P2', label: 'P2 - 中' },
+  { value: 'P3', label: 'P3 - 低' },
+];
 
 const TodoPanel: React.FC = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
@@ -52,28 +66,29 @@ const TodoPanel: React.FC = () => {
   };
 
   return (
-    <div className="todo-container">
-      <div className="todo-header">
+    <div className="todo-container h-full bg-gray-900 p-4">
+      <div className="todo-header mb-4">
         <Button 
           type="primary" 
           icon={<PlusOutlined />}
           onClick={() => setIsModalVisible(true)}
+          className="bg-blue-600 hover:bg-blue-700 border-none text-sm"
         >
           新建需求
         </Button>
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="todo-board">
+        <div className="todo-board flex gap-4 h-[calc(100%-80px)]">
           {columns.map(column => (
             <Droppable droppableId={column.id} key={column.id}>
               {(provided) => (
                 <div 
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="todo-column"
+                  className="todo-column flex-1 bg-gray-800 rounded-lg p-4 border border-gray-700"
                 >
-                  <h3>{column.title}</h3>
+                  <h3 className="text-gray-300 mb-3 font-medium">{column.title}</h3>
                   {todos
                     .filter(todo => todo.status === column.id)
                     .map((todo, index) => (
@@ -83,22 +98,29 @@ const TodoPanel: React.FC = () => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="todo-card"
+                            className="todo-card bg-gray-700 p-3 mb-3 rounded border border-gray-600 hover:border-blue-500 transition-colors group"
                           >
-                            <div className="todo-card-header">
-                              <Tag color={todo.priority === 'P0' ? 'red' : 
-                                todo.priority === 'P1' ? 'orange' : 'blue'}>
+                            <div className="todo-card-header flex items-center justify-between mb-2">
+                              <Tag 
+                                color={priorityColors[todo.priority]} 
+                                className="border-none text-xs px-2 rounded-full"
+                              >
                                 {todo.priority}
                               </Tag>
-                              <div className="todo-tags">
+                              <div className="todo-tags flex gap-1">
                                 {todo.tags.map(tag => (
-                                  <Tag key={tag}>{tag}</Tag>
+                                  <Tag 
+                                    key={tag} 
+                                    className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
+                                  >
+                                    {tag}
+                                  </Tag>
                                 ))}
                               </div>
                             </div>
-                            <div className="todo-title">{todo.title}</div>
+                            <div className="todo-title text-gray-200 text-sm mb-1">{todo.title}</div>
                             {todo.dueDate && (
-                              <div className="todo-due-date">
+                              <div className="todo-due-date text-gray-400 text-xs">
                                 截止: {new Date(todo.dueDate).toLocaleDateString()}
                               </div>
                             )}
@@ -116,26 +138,36 @@ const TodoPanel: React.FC = () => {
 
       <Modal
         title="新建需求"
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         onOk={handleCreateTodo}
+        className="dark-theme-modal"
+        styles={{
+          content: {
+            backgroundColor: '#1f2937',
+            padding: '20px',
+          },
+          header: {
+            backgroundColor: '#1f2937',
+            borderBottom: '1px solid #374151',
+          },
+          body: {
+            backgroundColor: '#1f2937',
+          }
+        }}
       >
         <Input
           placeholder="需求标题"
+          className="custom-input bg-gray-800 border-gray-700 text-gray-200 mb-3"
           value={newTodo.title}
           onChange={(e) => setNewTodo({...newTodo, title: e.target.value})}
         />
         <Select
+          className="custom-select w-full"
           placeholder="优先级"
-          style={{ width: '100%', marginTop: 16 }}
           value={newTodo.priority}
           onChange={(value) => setNewTodo({...newTodo, priority: value})}
-          options={[
-            { value: 'P0', label: 'P0 - 紧急' },
-            { value: 'P1', label: 'P1 - 高' },
-            { value: 'P2', label: 'P2 - 中' },
-            { value: 'P3', label: 'P3 - 低' },
-          ]}
+          options={priorityOptions}
         />
       </Modal>
     </div>
