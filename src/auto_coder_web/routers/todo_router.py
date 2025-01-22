@@ -13,7 +13,7 @@ from pathlib import Path
 router = APIRouter()
 
 # 配置存储路径
-TODO_FILE = Path(".auto-coder/auto-coder.web/todos.json")
+TODO_FILE = Path(".auto-coder/auto-coder.web/todos/todos.json")
 
 # 确保目录存在
 TODO_FILE.parent.mkdir(parents=True, exist_ok=True)

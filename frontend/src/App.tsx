@@ -11,8 +11,10 @@ import TerminalManager from './components/Terminal/TerminalManager';
 import OutputPanel from './components/Terminal/OutputPanel';
 import PreviewPanel from './components/MainContent/PreviewPanel';
 import TodoPanel from './components/MainContent/TodoPanel';
+import { getMessage } from './components/Sidebar/lang';
 import Split from 'react-split';
 import './App.css';
+
 
 const App: React.FC = () => {
   const [activePanel, setActivePanel] = useState<'todo' | 'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings'>('todo');
