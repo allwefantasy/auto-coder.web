@@ -11,7 +11,7 @@ import TerminalManager from './components/Terminal/TerminalManager';
 import OutputPanel from './components/Terminal/OutputPanel';
 import PreviewPanel from './components/MainContent/PreviewPanel';
 import TodoPanel from './components/MainContent/TodoPanel';
-import { getMessage } from './components/Sidebar/lang';
+import { getMessage,initLanguage } from './components/Sidebar/lang';
 import Split from 'react-split';
 import './App.css';
 

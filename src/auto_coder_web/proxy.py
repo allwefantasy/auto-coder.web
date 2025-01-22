@@ -16,7 +16,6 @@ import pathlib
 import time
 import sys
 from .file_group import FileGroupManager
-from .routers import todo_router
 from .file_manager import get_directory_tree
 from .auto_coder_runner import AutoCoderRunner
 from autocoder.agent.auto_filegroup import AutoFileGroup
@@ -38,6 +37,8 @@ import git
 import hashlib
 from datetime import datetime
 from autocoder.utils import operate_config_api
+from .routers import todo_router
+from .routers import settings_router
 
 
 class EventGetRequest(BaseModel):

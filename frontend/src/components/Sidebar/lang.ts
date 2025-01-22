@@ -207,7 +207,7 @@ export const messages: { [key: string]: Message } = {
   },
   appTitle: {
     en: "Auto-Coder",
-    zh: "自动编码器"
+    zh: "Auto-Coder"
   },
   currentProject: {
     en: "Current Project:",
