@@ -4,10 +4,12 @@ import { Button, Input, Select, Tag, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import './TodoPanel.css';
 
+type ColumnId = 'pending' | 'developing' | 'testing' | 'done';
+
 interface TodoItem {
   id: string;
   title: string;
-  status: 'pending' | 'developing' | 'testing' | 'done';
+  status: ColumnId;
   priority: 'P0' | 'P1' | 'P2' | 'P3';
   tags: string[];
   owner?: string;
@@ -42,13 +44,28 @@ const TodoPanel: React.FC = () => {
 
   const onDragEnd = (result: any) => {
     const { source, destination } = result;
+
+    // 如果没有放到有效区域则直接返回
     if (!destination) return;
 
-    const items = Array.from(todos);
-    const [reorderedItem] = items.splice(source.index, 1);
-    items.splice(destination.index, 0, reorderedItem);
+    // 如果拖拽到同一个列表的相同位置则直接返回
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
+    }
 
-    setTodos(items);
+    setTodos(prev => {
+      const newTodos = [...prev];
+      const [movedItem] = newTodos.splice(source.index, 1);
+      
+      // 更新状态
+      movedItem.status = destination.droppableId as ColumnId;
+      
+      newTodos.splice(destination.index, 0, movedItem);
+      return newTodos;
+    });
   };
 
   const handleCreateTodo = () => {
@@ -82,11 +99,15 @@ const TodoPanel: React.FC = () => {
         <div className="todo-board flex gap-4 h-[calc(100%-80px)]">
           {columns.map(column => (
             <Droppable droppableId={column.id} key={column.id}>
-              {(provided) => (
-                <div 
+              {(provided, snapshot) => (
+                <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="todo-column flex-1 bg-gray-800 rounded-lg p-4 border border-gray-700"
+                  className={`todo-column flex-1 bg-gray-800 rounded-lg p-4 border ${
+                    snapshot.isDraggingOver 
+                      ? 'border-blue-500' 
+                      : 'border-gray-700'
+                  }`}
                 >
                   <h3 className="text-gray-300 mb-3 font-medium">{column.title}</h3>
                   {todos
@@ -98,7 +119,11 @@ const TodoPanel: React.FC = () => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="todo-card bg-gray-700 p-3 mb-3 rounded border border-gray-600 hover:border-blue-500 transition-colors group"
+                            className={`todo-card bg-gray-700 p-3 mb-3 rounded border ${
+                              snapshot.isDragging
+                                ? 'border-blue-500 shadow-lg'
+                                : 'border-gray-600'
+                            } transition-all duration-150`}
                           >
                             <div className="todo-card-header flex items-center justify-between mb-2">
                               <Tag 

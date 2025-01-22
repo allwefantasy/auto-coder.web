@@ -12,6 +12,10 @@
   border-color: #3d3d3d;
 }
 
+.todo-column.is-dragging-over {
+  border-color: #3b82f6;
+}
+
 .todo-card {
   background-color: #2d2d2d;
   border: 1px solid #374151;
@@ -23,6 +27,12 @@
   background-color: #374151;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.todo-card.is-dragging {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+  transform: scale(1.02);
 }
 
 .todo-title {
