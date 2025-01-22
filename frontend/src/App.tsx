@@ -127,6 +127,19 @@ const App: React.FC = () => {
           {/* Panel Switch Buttons */}
           <div className="bg-gray-800 p-2 border-b border-gray-700">
             <div className="flex space-x-2">
+            <button
+                className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 
+                  ${activePanel === 'todo'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
+                    : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
+                  } flex items-center space-x-2`}
+                onClick={() => setActivePanel('todo')}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span>Todos</span>
+              </button>
               <button
                 className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 
                   ${activePanel === 'code'
@@ -207,19 +220,7 @@ const App: React.FC = () => {
                 </svg>
                 <span>Settings</span>
               </button>
-              <button
-                className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 
-                  ${activePanel === 'todo'
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
-                    : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
-                  } flex items-center space-x-2`}
-                onClick={() => setActivePanel('todo')}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-                <span>Todos</span>
-              </button>
+              
             </div>
           </div>
 
