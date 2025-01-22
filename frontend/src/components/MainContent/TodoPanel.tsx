@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button, Input, Select, Tag, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
@@ -14,7 +14,9 @@ interface TodoItem {
   priority: 'P0' | 'P1' | 'P2' | 'P3';
   tags: string[];
   owner?: string;
-  dueDate?: Date;
+  dueDate?: string;  // Changed to string to match backend
+  created_at: string;
+  updated_at: string;
 }
 
 const priorityColors = {
@@ -37,6 +39,30 @@ const TodoPanel: React.FC = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newTodo, setNewTodo] = useState<Partial<TodoItem>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load initial data
+  useEffect(() => {
+    const fetchTodos = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch('/api/todos');
+        if (!response.ok) {
+          throw new Error('Failed to fetch todos');
+        }
+        const data = await response.json();
+        setTodos(data);
+      } catch (error) {
+        console.error('Failed to fetch todos:', error);
+        setError('Failed to load todos. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTodos();
+  }, []);
 
   const columns = [
     { id: 'pending', title: '待评估' },
@@ -45,11 +71,13 @@ const TodoPanel: React.FC = () => {
     { id: 'done', title: '已完成' },
   ];
 
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
 
     if (!destination) return;
 
+    // Optimistic update
+    const originalTodos = [...todos];
     setTodos(prevTodos => {
       const newTodos = [...prevTodos];
       const draggedItem = newTodos.find(t => t.id === result.draggableId)!;
@@ -79,24 +107,63 @@ const TodoPanel: React.FC = () => {
           : t
       );
     });
+
+    // Sync with backend
+    try {
+      await fetch('/api/todos/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source_status: source.droppableId,
+          source_index: source.index,
+          destination_status: destination.droppableId,
+          destination_index: destination.index,
+          todo_id: result.draggableId
+        })
+      });
+    } catch (error) {
+      console.error('Failed to reorder todos:', error);
+      // Revert to original state on error
+      setTodos(originalTodos);
+      setError('Failed to save changes. Please try again.');
+    }
   };
 
-  const handleCreateTodo = () => {
+  const handleCreateTodo = async () => {
     if (!newTodo.title) return;
-    setTodos([...todos, {
-      id: generateId(),
-      title: newTodo.title,
-      status: 'pending',
-      priority: 'P2',
-      tags: [],
-      ...newTodo
-    } as TodoItem]);
-    setIsModalVisible(false);
-    setNewTodo({});
+    
+    try {
+      const response = await fetch('/api/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newTodo.title,
+          priority: newTodo.priority || 'P2',
+          tags: newTodo.tags || []
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create todo');
+      }
+      
+      const createdTodo = await response.json();
+      setTodos(prev => [...prev, createdTodo]);
+      setIsModalVisible(false);
+      setNewTodo({});
+    } catch (error) {
+      console.error('Failed to create todo:', error);
+      setError('Failed to create new todo. Please try again.');
+    }
   };
 
   return (
       <div className="todo-container h-full bg-gray-900 p-4" data-testid="todo-panel">
+      {error && (
+        <div className="text-red-500 p-4 border border-red-700 bg-red-900 rounded mb-4">
+          {error}
+        </div>
+      )}
       <div className="todo-header mb-4">
         <Button 
           type="primary" 
@@ -117,11 +184,14 @@ const TodoPanel: React.FC = () => {
       >
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="todo-board flex gap-4 h-[calc(100%-80px)]">
-            {columns.map(column => (
-              <Droppable 
-                droppableId={column.id} 
-                key={column.id}                
-              >
+            {isLoading ? (
+              <div className="text-gray-400 text-center p-4">加载中...</div>
+            ) : (
+              columns.map(column => (
+                <Droppable 
+                  droppableId={column.id} 
+                  key={column.id}                
+                >
               {(provided, snapshot) => (
                 <div
                   {...provided.droppableProps}
