@@ -288,7 +288,7 @@ class ProxyServer:
         self.setup_static_files()
 
         self.setup_routes()
-        self.app.include_router(todo_router.router)
+        
         self.client = httpx.AsyncClient()
         self.project_path = project_path
         self.auto_coder_runner = AutoCoderRunner(project_path)
@@ -312,6 +312,9 @@ class ProxyServer:
             "/static", StaticFiles(directory=self.static_dir), name="static")
 
     def setup_routes(self):
+        
+        self.app.include_router(todo_router.router)
+
         @self.app.on_event("shutdown")
         async def shutdown_event():
             await self.client.aclose()
