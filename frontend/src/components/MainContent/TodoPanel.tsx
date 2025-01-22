@@ -80,23 +80,24 @@ const TodoPanel: React.FC = () => {
     const originalTodos = [...todos];
     setTodos(prevTodos => {
       const newTodos = [...prevTodos];
-      const draggedItem = newTodos.find(t => t.id === result.draggableId)!;
 
       if (source.droppableId !== destination.droppableId) {
-        const sourceItems = newTodos.filter(t => t.status === source.droppableId);
-        sourceItems.splice(source.index, 1);
-        
-        draggedItem.status = destination.droppableId as ColumnId;
-        const destItems = newTodos.filter(t => t.status === destination.droppableId);
-        destItems.splice(destination.index, 0, draggedItem);
-        
-        return [
-          ...newTodos.filter(t => t.status !== source.droppableId),
-          ...sourceItems,
-          ...destItems
-        ];
+        // 跨列拖拽处理
+        return newTodos.map(todo => {
+          if (todo.id === result.draggableId) {
+            // 更新被拖拽项的状态
+            return { ...todo, status: destination.droppableId as ColumnId };
+          }
+          return todo;
+        }).sort((a, b) => {
+          // 保持原有排序，仅将被拖拽项插入到目标位置
+          if (a.id === result.draggableId) return 0;
+          if (b.id === result.draggableId) return 1;
+          return 0;
+        });
       }
 
+      // 同列内拖拽处理
       const items = newTodos.filter(t => t.status === source.droppableId);
       const [removed] = items.splice(source.index, 1);
       items.splice(destination.index, 0, removed);

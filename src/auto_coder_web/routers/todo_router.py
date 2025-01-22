@@ -145,6 +145,12 @@ async def get_insert_index(todos: List[TodoItem], status: str, destination_index
     if not status_todos:
         return len(todos)
     
-    if destination_index >= len(status_todos):
-        return status_todos[-1] + 1
-    return status_todos[destination_index]
+    # 确保目标索引在有效范围内
+    destination_index = min(max(destination_index, 0), len(status_todos))
+    
+    # 如果目标列没有项目，直接插入到最后
+    if not status_todos:
+        return len(todos)
+    
+    # 返回目标列中对应位置的索引
+    return status_todos[destination_index] if destination_index < len(status_todos) else status_todos[-1] + 1
