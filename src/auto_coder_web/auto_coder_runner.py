@@ -39,6 +39,7 @@ from autocoder.index.symbols_utils import (
     SymbolsInfo,
     SymbolType,
 )
+from autocoder.utils.llms import get_single_llm
 
 
 class SymbolItem(BaseModel):
@@ -48,7 +49,7 @@ class SymbolItem(BaseModel):
 
 
 class AutoCoderRunner:
-    def __init__(self, project_path: str):
+    def __init__(self, project_path: str, product_mode: str = "pro"):
         self.project_path = project_path
         self.base_persist_dir = os.path.join(
             project_path, ".auto-coder", "plugins", "chat-auto-coder")
@@ -61,6 +62,8 @@ class AutoCoderRunner:
             "exclude_dirs": [],
         }
         self.load_memory()
+        # Configure product mode
+        self.configure("product_mode", product_mode)
 
     @contextmanager
     def redirect_stdout(self):
@@ -366,7 +369,9 @@ class AutoCoderRunner:
                         return_paths=True
                     )
                     args = self.convert_yaml_to_config(execute_file)
-                    llm = byzerllm.ByzerLLM.from_default_model(args.code_model or args.model)
+                    product_mode = conf.get("product_mode", "pro")
+                    target_model = args.code_model or args.model
+                    llm = get_single_llm(target_model, product_mode)
                     uncommitted_changes = git_utils.get_uncommitted_changes(".")            
                     commit_message = git_utils.generate_commit_message.with_llm(
                         llm).run(uncommitted_changes)

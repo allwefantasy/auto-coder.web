@@ -6,19 +6,26 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 import httpx
 import uuid
-from typing import Optional, Dict, List, Any
 import os
-import argparse
 import aiofiles
-import pkg_resources
-import asyncio
-import pathlib
-import time
-import sys
 from .file_group import FileGroupManager
 from .file_manager import get_directory_tree
 from .auto_coder_runner import AutoCoderRunner
 from autocoder.agent.auto_filegroup import AutoFileGroup
+from .types import (
+    EventGetRequest,
+    EventResponseRequest,
+    CompletionItem,
+    CompletionResponse,
+    ChatList,
+    HistoryQuery,
+    ValidationResponse,
+    QueryWithFileNumber,
+    ValidationResponseWithFileNumbers,
+    FileContentResponse,
+    FileChange,
+    CommitDiffResponse,
+)
 
 from rich.console import Console
 from prompt_toolkit.shortcuts import radiolist_dialog
@@ -27,7 +34,6 @@ import subprocess
 from prompt_toolkit import prompt
 from pydantic import BaseModel
 from autocoder.utils.log_capture import LogCapture
-from typing import Optional, Dict, List, Any
 from .terminal import terminal_manager
 from autocoder.common import AutoCoderArgs
 import json
@@ -40,67 +46,6 @@ from autocoder.utils import operate_config_api
 from .routers import todo_router
 from .routers import settings_router
 
-
-class EventGetRequest(BaseModel):
-    request_id: str
-
-
-class EventResponseRequest(BaseModel):
-    request_id: str
-    event: Dict[str, str]
-    response: str
-
-
-class CompletionItem(BaseModel):
-    name: str
-    path: str
-    display: str
-    location: Optional[str] = None
-
-
-class CompletionResponse(BaseModel):
-    completions: List[CompletionItem]
-
-
-class ChatList(BaseModel):
-    name: str
-    messages: List[Dict[str, Any]]
-
-class HistoryQuery(BaseModel):
-    query: str
-    timestamp: Optional[str] = None
-
-class ValidationResponse(BaseModel):
-    success: bool
-    message: str = ""
-    queries: List[HistoryQuery] = []
-
-class QueryWithFileNumber(BaseModel):
-    query: str
-    timestamp: Optional[str] = None
-    file_number: int  
-    response: Optional[str] = None  
-    urls: Optional[List[str]] = None 
-
-class ValidationResponseWithFileNumbers(BaseModel):
-    success: bool
-    message: str = ""
-    queries: List[QueryWithFileNumber] = []
-
-class FileContentResponse(BaseModel):
-    success: bool
-    message: str = ""
-    content: Optional[str] = None
-
-class FileChange(BaseModel):
-    path: str  
-    change_type: str   # "added" 或 "modified"
-
-class CommitDiffResponse(BaseModel):
-    success: bool
-    message: str = ""
-    diff: Optional[str] = None
-    file_changes: Optional[List[FileChange]] = None
 
 def check_environment():
     """Check and initialize the required environment"""
@@ -118,10 +63,8 @@ def check_environment():
                 console.print(f"✗ {message}", style="red")
             else:
                 console.print(f"  {message}")
-
-        first_time = False
-        if not os.path.exists("actions") or not os.path.exists(".auto-coder"):
-            first_time = True
+        
+        if not os.path.exists("actions") or not os.path.exists(".auto-coder"):            
             print_status("Project not initialized", "warning")
             init_choice = input(
                 "  Do you want to initialize the project? (y/n): ").strip().lower()
@@ -275,15 +218,104 @@ def check_environment():
     return True
 
 
+def check_environment_lite():
+    """Check and initialize the required environment for lite mode"""
+    console = Console()
+    console.print("\n[blue]Initializing the environment (Lite Mode)...[/blue]")
+
+    def check_project():
+        """Check if the current directory is initialized as an auto-coder project"""
+        def print_status(message, status):
+            if status == "success":
+                console.print(f"✓ {message}", style="green")
+            elif status == "warning":
+                console.print(f"! {message}", style="yellow")
+            elif status == "error":
+                console.print(f"✗ {message}", style="red")
+            else:
+                console.print(f"  {message}")
+
+        first_time = False
+        if not os.path.exists("actions") or not os.path.exists(".auto-coder"):
+            first_time = True
+            print_status("Project not initialized", "warning")
+            init_choice = input(
+                "  Do you want to initialize the project? (y/n): ").strip().lower()
+            if init_choice == "y":
+                try:
+                    if not os.path.exists("actions"):
+                        os.makedirs("actions", exist_ok=True)
+                        print_status("Created actions directory", "success")
+
+                    if not os.path.exists(".auto-coder"):
+                        os.makedirs(".auto-coder", exist_ok=True)
+                        print_status(
+                            "Created .auto-coder directory", "success")
+
+                    subprocess.run(
+                        ["auto-coder", "init", "--source_dir", "."], check=True)
+                    print_status("Project initialized successfully", "success")
+                except subprocess.CalledProcessError:
+                    print_status("Failed to initialize project", "error")
+                    print_status(
+                        "Please try to initialize manually: auto-coder init --source_dir .", "warning")
+                    return False
+            else:
+                print_status("Exiting due to no initialization", "warning")
+                return False
+
+        print_status("Project initialization check complete", "success")
+        return True
+
+    if not check_project():
+        return False
+
+    def print_status(message, status):
+        if status == "success":
+            console.print(f"✓ {message}", style="green")
+        elif status == "warning":
+            console.print(f"! {message}", style="yellow")
+        elif status == "error":
+            console.print(f"✗ {message}", style="red")
+        else:
+            console.print(f"  {message}")
+
+    # Setup deepseek api key
+    api_key_dir = os.path.expanduser("~/.auto-coder/keys")
+    api_key_file = os.path.join(api_key_dir, "api.deepseek.com")
+    
+    if not os.path.exists(api_key_file):
+        print_status("API key not found", "warning")
+        api_key = prompt(HTML("<b>Please enter your API key: </b>"))
+        
+        # Create directory if it doesn't exist
+        os.makedirs(api_key_dir, exist_ok=True)
+        
+        # Save the API key
+        with open(api_key_file, "w") as f:
+            f.write(api_key)
+        
+        print_status(f"API key saved successfully: {api_key_file}", "success")
+
+    print_status("Environment initialization complete", "success")
+    return True
+
+
 class ProxyServer:
-    def __init__(self, project_path: str, quick: bool = False):
+    def __init__(self, project_path: str, quick: bool = False, product_mode: str = "pro"):
         self.app = FastAPI()
 
         if not quick:
-            # Check the environment if not in quick mode
-            if not check_environment():
-                print(
-                    "\033[31mEnvironment check failed. Some features may not work properly.\033[0m")
+            # Check the environment based on product mode
+            if product_mode == "lite":
+                if not check_environment_lite():
+                    print(
+                        "\033[31mEnvironment check failed. Some features may not work properly.\033[0m")
+            else:
+                if not check_environment():
+                    print(
+                        "\033[31mEnvironment check failed. Some features may not work properly.\033[0m")
+                        
         self.setup_middleware()
 
         self.setup_static_files()
@@ -292,7 +324,7 @@ class ProxyServer:
         
         self.client = httpx.AsyncClient()
         self.project_path = project_path
-        self.auto_coder_runner = AutoCoderRunner(project_path)
+        self.auto_coder_runner = AutoCoderRunner(project_path, product_mode=product_mode)
         self.file_group_manager = FileGroupManager(self.auto_coder_runner)
 
     def setup_middleware(self):
@@ -888,6 +920,17 @@ class ProxyServer:
 
 
 def main():
+    from autocoder.rag.variable_holder import VariableHolder
+    from tokenizers import Tokenizer
+    try:
+        tokenizer_path = pkg_resources.resource_filename(
+            "autocoder", "data/tokenizer.json"
+        )
+        VariableHolder.TOKENIZER_PATH = tokenizer_path
+        VariableHolder.TOKENIZER_MODEL = Tokenizer.from_file(tokenizer_path)
+    except FileNotFoundError:
+        tokenizer_path = None
+
     parser = argparse.ArgumentParser(description="Proxy Server")
     parser.add_argument(
         "--port",
@@ -906,9 +949,31 @@ def main():
         action="store_true",
         help="Skip environment check",
     )
+    parser.add_argument(
+        "--product_mode",
+        type=str,
+        default="pro",
+        help="The mode of the auto-coder.chat, lite/pro default is pro",
+    )
+    parser.add_argument(
+        "--lite",
+        action="store_true",
+        help="Run in lite mode (equivalent to --product_mode lite)",
+    )
+    parser.add_argument(
+        "--pro",
+        action="store_true",
+        help="Run in pro mode (equivalent to --product_mode pro)",
+    )
     args = parser.parse_args()
 
-    proxy_server = ProxyServer(quick=args.quick, project_path=os.getcwd())
+    # Handle lite/pro flags
+    if args.lite:
+        args.product_mode = "lite"
+    elif args.pro:
+        args.product_mode = "pro"
+
+    proxy_server = ProxyServer(quick=args.quick, project_path=os.getcwd(), product_mode=args.product_mode)
     uvicorn.run(proxy_server.app, host=args.host, port=args.port)
 
 
