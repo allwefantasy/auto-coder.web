@@ -7,7 +7,13 @@ import uvicorn
 import httpx
 import uuid
 import os
+import argparse
 import aiofiles
+import pkg_resources
+import asyncio
+import pathlib
+import time
+import sys
 from .file_group import FileGroupManager
 from .file_manager import get_directory_tree
 from .auto_coder_runner import AutoCoderRunner
@@ -45,7 +51,6 @@ from datetime import datetime
 from autocoder.utils import operate_config_api
 from .routers import todo_router
 from .routers import settings_router
-import pkg_resources
 
 
 def check_environment():
