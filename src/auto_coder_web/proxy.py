@@ -45,6 +45,7 @@ from datetime import datetime
 from autocoder.utils import operate_config_api
 from .routers import todo_router
 from .routers import settings_router
+import pkg_resources
 
 
 def check_environment():
