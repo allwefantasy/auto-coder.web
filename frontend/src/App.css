@@ -140,6 +140,11 @@ html, body {
   color: #E5E7EB !important;
 }
 
+.custom-input::placeholder {
+  color: #9CA3AF !important;
+  opacity: 1 !important;
+}
+
 .custom-input:hover,
 .custom-input:focus {
   border-color: #6366F1 !important;
