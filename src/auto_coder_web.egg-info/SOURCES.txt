@@ -7,6 +7,7 @@ src/auto_coder_web/file_manager.py
 src/auto_coder_web/json_file_storage.py
 src/auto_coder_web/proxy.py
 src/auto_coder_web/terminal.py
+src/auto_coder_web/types.py
 src/auto_coder_web/version.py
 src/auto_coder_web.egg-info/PKG-INFO
 src/auto_coder_web.egg-info/SOURCES.txt
@@ -14,6 +15,9 @@ src/auto_coder_web.egg-info/dependency_links.txt
 src/auto_coder_web.egg-info/entry_points.txt
 src/auto_coder_web.egg-info/requires.txt
 src/auto_coder_web.egg-info/top_level.txt
+src/auto_coder_web/routers/__init__.py
+src/auto_coder_web/routers/settings_router.py
+src/auto_coder_web/routers/todo_router.py
 src/auto_coder_web/web/asset-manifest.json
 src/auto_coder_web/web/favicon.ico
 src/auto_coder_web/web/index.html

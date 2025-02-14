@@ -5,6 +5,7 @@ sse-starlette
 websockets
 pyyaml
 gitpython
+filelock>=3.13.1
 
 [:sys_platform == "win32"]
 pywinpty

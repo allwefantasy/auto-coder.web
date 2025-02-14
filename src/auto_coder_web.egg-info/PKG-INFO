@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: auto_coder_web
-Version: 0.1.14
+Version: 0.1.15
 Summary: auto-coder.web: A Python Project
 Author: allwefantasy
 Classifier: Programming Language :: Python :: 3.9
@@ -15,6 +15,7 @@ Requires-Dist: websockets
 Requires-Dist: pywinpty; sys_platform == "win32"
 Requires-Dist: pyyaml
 Requires-Dist: gitpython
+Requires-Dist: filelock>=3.13.1
 
 # auto-coder.web
 

@@ -322,7 +322,7 @@ class AutoCoderRunner:
 
     def convert_yaml_to_config(self, yaml_file: str):
         """Convert YAML file to AutoCoderArgs configuration"""
-        from autocoder.auto_coder import AutoCoderArgs, load_include_files, Template
+        from autocoder.commmon import AutoCoderArgs, load_include_files, Template
         args = AutoCoderArgs()
         with open(yaml_file, "r") as f:
             config = yaml.safe_load(f)
