@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Markdown } from './Markdown';
 import { Select, Switch, message as AntdMessage, Tooltip } from 'antd';
 import { UndoOutlined } from '@ant-design/icons';
-import { Editor } from '@monaco-editor/react';
+import EditorComponent from './EditorComponent';
 import { getMessage } from './lang';
+import { pollEvents, pollStreamResult, runBothPolls } from './polling';
 import {
   FileGroup,
   CodeBlock,
@@ -249,74 +250,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
-
-    // Add keyboard shortcut for maximize/minimize
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, () => {
-      setIsMaximized(prev => !prev);
-    });
-
-    // Add keyboard shortcut for submission
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      setShouldSendMessage(true);
-    });
-
-    // 注册自动补全提供者
-    monaco.languages.registerCompletionItemProvider('markdown', {
-      triggerCharacters: ['@'],
-      provideCompletionItems: async (model: any, position: any) => {
-        // 获取当前行的文本内容
-        const textUntilPosition = model.getValueInRange({
-          startLineNumber: position.lineNumber,
-          startColumn: 1,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column
-        });
-
-        // 获取当前词和前缀
-        const word = model.getWordUntilPosition(position);
-        const prefix = textUntilPosition.charAt(word.startColumn - 2); // 获取触发字符
-        const double_prefix = textUntilPosition.charAt(word.startColumn - 3); // 获取触发字符
-
-        //获取当前词
-        const wordText = word.word;
-
-        console.log('prefix:', prefix, 'word:', wordText);
-
-        if (prefix === "@" && double_prefix === "@") {
-          // 符号补全
-          const query = wordText;
-          const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
-          const data = await response.json();
-          return {
-            suggestions: data.completions.map((item: CompletionItem) => ({
-              label: item.display,
-              kind: monaco.languages.CompletionItemKind.Function,
-              insertText: item.path,
-              detail: "",
-              documentation: `Location: ${item.path}`,
-            })),
-            incomplete: true
-          };
-        } else if (prefix === "@") {
-          // 文件补全
-          const query = wordText;
-          const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
-          const data = await response.json();
-          return {
-            suggestions: data.completions.map((item: CompletionItem) => ({
-              label: item.display,
-              kind: monaco.languages.CompletionItemKind.File,
-              insertText: item.path,
-              detail: "",
-              documentation: `Location: ${item.location}`,
-            })),
-            incomplete: true
-          };
-        }
-
-        return { suggestions: [] };
-      },
-    });
   };
 
   const addUserMessage = (content: string) => {
@@ -354,96 +287,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     return newMessage.id;
   };
 
-  const pollStreamResult = async (requestId: string, onUpdate: (text: string) => void): Promise<PollResult> => {
-    let result = '';
-    let status: 'running' | 'completed' | 'failed' = 'running';
 
-    while (status === 'running') {
-      try {
-        const response = await fetch(`/api/result/${requestId}`);
-        if (!response.ok) {
-          status = 'failed';
-          break;
-        }
-
-        const data: ResponseData = await response.json();
-        status = data.status;
-
-        if (config.human_as_model && !isWriteMode) {
-          if ('value' in data.result && Array.isArray(data.result.value)) {
-            const newText = data.result.value.join('');
-            if (newText !== result) {
-              result += newText;
-            }
-          }
-          if (status === 'completed') {
-            setActivePanel('clipboard');
-            setClipboardContent(result);
-            onUpdate(getMessage("humanAsModelInstructions"));
-            break;
-          }
-
-          if (status === 'running') {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-          continue;
-        }
-
-        if ('value' in data.result && Array.isArray(data.result.value)) {
-          const newText = data.result.value.join('');
-          if (newText !== result) {
-            result = newText;
-            onUpdate(result);
-          }
-        } else if ('value' in data.result && typeof data.result.value === 'string') {
-          if (data.result.value !== result) {
-            result = data.result.value;
-            onUpdate(result);
-          }
-        }
-
-        if (status === 'completed') {
-          break;
-        }
-
-        if (status === 'running') {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      } catch (error) {
-        console.error('Error polling result:', error);
-        status = 'failed';
-      }
-    }
-
-    return { text: result, status };
-  };
-
-  const runBothPolls = async (requestId: string, onUpdate: (text: string) => void) => {
-    try {
-      const [eventsResult, streamResult] = await Promise.all([
-        pollEvents(requestId),
-        pollStreamResult(requestId, onUpdate)
-      ]);
-
-      // 合并两个结果的状态
-      const finalStatus = eventsResult.final_status === 'completed' && streamResult.status === 'completed'
-        ? 'completed'
-        : 'failed';
-
-      return {
-        status: finalStatus,
-        content: streamResult.text,
-        eventsContent: eventsResult.content
-      };
-    } catch (error) {
-      console.error('Error in runBothPolls:', error);
-      return {
-        status: 'failed',
-        content: 'Error running polls: ' + error,
-        eventsContent: ''
-      };
-    }
-  };
 
   const updateMessageStatus = (messageId: string, status: 'sending' | 'sent' | 'error') => {
     setMessages(prev =>
@@ -453,186 +297,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           : msg
       )
     );
-  };
-
-
-  const pollEvents = async (requestId: string) => {
-    let final_status = 'completed';
-    let content = '';
-    while (true) {
-      try {
-        const response = await fetch('/api/event/get', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ request_id: requestId })
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch events');
-        }
-
-        const eventData: CodingEvent = await response.json();
-
-        if (!eventData) {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1s before polling again
-          continue;
-        }
-
-        console.log('Received event:', eventData);
-
-        const response_event = async (response: string) => {
-          console.log('Response event:', response);
-          await fetch('/api/event/response', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              request_id: requestId,
-              event: eventData,
-              response: response
-            })
-          });
-        };
-
-        // Handle specific event types
-        if (eventData.event_type === 'code_start') {
-          await response_event("proceed");
-        }
-
-        if (eventData.event_type === 'code_end') {
-          await response_event("proceed");
-          break;
-        }
-
-        if (eventData.event_type === 'code_error') {
-          await response_event("proceed");
-          final_status = 'failed';
-          content = eventData.data;
-          break;
-        }
-
-        if (eventData.event_type === 'code_error') {
-          await response_event("proceed");
-          final_status = 'failed';
-          content = eventData.data;
-          break;
-        }
-
-        // Handle index build events
-        if (eventData.event_type === INDEX_EVENT_TYPES.BUILD_START) {
-          await response_event("proceed");
-          addBotMessage(getMessage('indexBuildStart'));
-        }
-
-        if (eventData.event_type === INDEX_EVENT_TYPES.BUILD_END) {
-          await response_event("proceed");
-          addBotMessage(getMessage('indexBuildComplete'));
-        }
-
-        // Handle index filter events
-        if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_START) {
-          await response_event("proceed");
-          addBotMessage(getMessage('filterStart'));
-        }
-
-        if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_END) {
-          await response_event("proceed");
-          addBotMessage(getMessage('filterComplete'));
-        }
-
-        if (eventData.event_type === INDEX_EVENT_TYPES.FILTER_FILE_SELECTED) {
-          await response_event("proceed");
-          try {
-            const fileData = JSON.parse(eventData.data) as [string, string][];
-            const selectedFiles = fileData.map(([file, reason]) => file).join(', ');
-            addBotMessage(getMessage('fileSelected', { file: selectedFiles }));
-          } catch (e) {
-            console.error('Failed to parse file selection data:', e);
-          }
-        }
-
-        if (eventData.event_type === 'code_unmerge_result') {
-          await response_event("proceed");
-          const blocks = JSON.parse(eventData.data) as UnmergeCodeBlock[];
-          console.log('Received unmerged code blocks:', blocks);
-
-          // 更新 Preview Panel 数据
-          const previewData = blocks.map(block => ({
-            path: block.file_path,
-            content: `<<<<<<< SEARCH(${block.similarity})\n${block.head}\n=======\n${block.update}\n>>>>>>> REPLACE`
-          }));
-
-          // 发送到 App 组件
-          setPreviewFiles(previewData);
-          setActivePanel('preview');
-          final_status = 'failed';
-          content = "Code block merge failed";
-          break;
-
-        }
-
-
-        if (eventData.event_type === 'code_merge_result') {
-          await response_event("proceed");
-          const blocks = JSON.parse(eventData.data) as CodeBlock[];
-          console.log('Received code blocks:', blocks);
-
-          // 更新 Preview Panel 数据
-          const previewData = blocks.map(block => ({
-            path: block.file_path,
-            content: `<<<<<<< SEARCH(${block.similarity})\n${block.head}\n=======\n${block.update}\n>>>>>>> REPLACE`
-          }));
-
-          // 发送到 App 组件
-          setPreviewFiles(previewData);
-          setActivePanel('preview');
-        }
-
-        if (eventData.event_type === 'code_generate_start') {
-          await response_event("proceed");
-          addBotMessage(getMessage('codeGenerateStart'));
-        }
-
-        if (eventData.event_type === 'code_generate_end') {
-          await response_event("proceed");
-          addBotMessage(getMessage('codeGenerateComplete'));
-        }
-
-        if (eventData.event_type === "code_rag_search_start") {
-          await response_event("proceed");
-          addBotMessage(getMessage('ragSearchStart'));
-        }
-
-        if (eventData.event_type === "code_rag_search_end") {
-          await response_event("proceed");
-          addBotMessage(getMessage('ragSearchComplete'));
-        }
-
-        if (eventData.event_type === 'code_human_as_model') {
-          const result = JSON.parse(eventData.data)
-          setActivePanel('clipboard');
-          setClipboardContent(result.instruction);
-          setPendingResponseEvent({
-            requestId: requestId,
-            eventData: eventData
-          });
-          addBotMessage(getMessage('copyInstructions'));
-          setSendLoading(false)
-        }
-      } catch (error) {
-        final_status = 'failed';
-        content = 'Error polling events: ' + error;
-        console.error('Error polling events:', error);
-        break;
-      }
-
-      // Add a small delay between polls
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-    return { final_status, content };
   };
 
 
@@ -795,7 +459,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         updateMessageStatus(messageId, 'sent');
         if (isWriteMode) {
           // Start polling for events
-          const { final_status, content } = await pollEvents(data.request_id);
+          const { final_status, content } = await pollEvents(data.request_id, {
+            addBotMessage,
+            setPreviewFiles,
+            setActivePanel,
+            setClipboardContent,
+            setPendingResponseEvent
+          });
           if (final_status === 'completed') {
             addBotMessage(getMessage('codeModificationComplete'));
             setRequestId("");
@@ -805,14 +475,28 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           }
         } else {
           const messageBotId = addBotMessage("");
-          await pollStreamResult(data.request_id, (newText) => {
-            if (newText === "") {
-              newText = "typing...";
+          const { text } = await pollStreamResult(
+            data.request_id,
+            (newText) => {
+              if (newText === "") {
+                newText = "typing...";
+              }
+              setMessages(prev => prev.map(msg =>
+                msg.id === messageBotId ? { ...msg, content: newText } : msg
+              ));
+            },
+            config,
+            isWriteMode,
+            {
+              setActivePanel,
+              setClipboardContent
             }
+          );
+          if (text) {
             setMessages(prev => prev.map(msg =>
-              msg.id === messageBotId ? { ...msg, content: newText } : msg
+              msg.id === messageBotId ? { ...msg, content: text } : msg
             ));
-          });
+          }
         }
 
       }
@@ -1097,36 +781,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
         {/* Message Input */}
         <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''}`}>
-          <div className={`flex-1 ${isMaximized ? 'h-full' : 'min-h-[180px]'} border border-gray-700 rounded-lg overflow-hidden`}>
-            <Editor
-              height={isMaximized ? "100vh" : "180px"}
-              defaultLanguage="markdown"
-              theme="vs-dark"
-              onMount={handleEditorDidMount}
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                wordWrap: 'on',
-                lineNumbers: 'off',
-                folding: false,
-                contextmenu: false,
-                fontFamily: 'monospace',
-                fontSize: 14,
-                lineHeight: 1.5,
-                padding: { top: 8, bottom: 8 },
-                suggestOnTriggerCharacters: true,
-                quickSuggestions: true,
-                acceptSuggestionOnEnter: 'smart',
-                overviewRulerLanes: 0,
-                overviewRulerBorder: false,
-                fixedOverflowWidgets: true,
-                suggest: {
-                  insertMode: 'replace',
-                  snippetsPreventQuickSuggestions: false,
-                }
-              }}
-            />
-          </div>
+          <EditorComponent
+            isMaximized={isMaximized}
+            onEditorDidMount={handleEditorDidMount}
+            onShouldSendMessage={() => setShouldSendMessage(true)}
+            onToggleMaximize={() => setIsMaximized(prev => !prev)}
+          />
           <div className="flex flex-col mt-2 gap-2">
             {/* Bottom Actions Container */}
           <div className="space-y-3 bg-gray-850 p-3 rounded-lg shadow-inner border border-gray-700/50">
