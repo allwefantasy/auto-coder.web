@@ -582,6 +582,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         handleRevert={handleRevert}
         handleSendMessage={handleSendMessage}
         sendLoading={sendLoading}
+        setConfig={setConfig}
       />
     </div>
     

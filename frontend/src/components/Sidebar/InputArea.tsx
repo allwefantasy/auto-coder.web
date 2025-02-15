@@ -12,10 +12,11 @@ interface InputAreaProps {
   updateConfig: (key: string, value: boolean | string) => void;
   fileGroups: FileGroup[];
   selectedGroups: string[];
+  setConfig: React.Dispatch<React.SetStateAction<ConfigState>>;
   setSelectedGroups: (values: string[]) => void;
   fetchFileGroups: () => void;
   isMaximized: boolean;
-  setIsMaximized: (value: boolean) => void;
+  setIsMaximized: React.Dispatch<React.SetStateAction<boolean>>;
   handleEditorDidMount: (editor: any, monaco: any) => void;
   setShouldSendMessage: (value: boolean) => void;
   isWriteMode: boolean;
@@ -42,7 +43,8 @@ const InputArea: React.FC<InputAreaProps> = ({
   setIsWriteMode,
   handleRevert,
   handleSendMessage,
-  sendLoading
+  sendLoading,
+  setConfig
 }) => {
   return (
     <div className="bg-gray-800 border-t border-gray-700">
@@ -118,7 +120,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                   onClick={() => {
                     const newExtraConf = { ...config.extra_conf };
                     newExtraConf[`custom_key_${Object.keys(config.extra_conf).length}`] = '';
-                    setConfig(prev => ({
+                    setConfig((prev: ConfigState): ConfigState => ({
                       ...prev,
                       extra_conf: newExtraConf
                     }));
@@ -144,7 +146,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                         const newExtraConf = { ...config.extra_conf };
                         delete newExtraConf[key];
                         newExtraConf[newKey] = value;
-                        setConfig(prev => ({
+                        setConfig((prev: ConfigState): ConfigState => ({
                           ...prev,
                           extra_conf: newExtraConf
                         }));
@@ -172,7 +174,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                       onChange={(e) => {
                         const newExtraConf = { ...config.extra_conf };
                         newExtraConf[key] = e.target.value;
-                        setConfig(prev => ({
+                        setConfig((prev: ConfigState): ConfigState => ({
                           ...prev,
                           extra_conf: newExtraConf
                         }));
@@ -198,7 +200,7 @@ const InputArea: React.FC<InputAreaProps> = ({
 
                           const newExtraConf = { ...config.extra_conf };
                           delete newExtraConf[key];
-                          setConfig(prev => ({
+                          setConfig((prev: ConfigState): ConfigState => ({
                             ...prev,
                             extra_conf: newExtraConf
                           }));
@@ -266,7 +268,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           isMaximized={isMaximized}
           onEditorDidMount={handleEditorDidMount}
           onShouldSendMessage={() => setShouldSendMessage(true)}
-          onToggleMaximize={() => setIsMaximized(prev => !prev)}
+          onToggleMaximize={() => setIsMaximized((prev: boolean): boolean => !prev)}
         />
         <div className="flex flex-col mt-2 gap-2">
           {/* Bottom Actions Container */}
