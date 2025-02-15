@@ -263,7 +263,7 @@ const InputArea: React.FC<InputAreaProps> = ({
       </div>
 
       {/* Message Input */}
-      <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''}`}>
+      <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}>
         <EditorComponent
           isMaximized={isMaximized}
           onEditorDidMount={handleEditorDidMount}
