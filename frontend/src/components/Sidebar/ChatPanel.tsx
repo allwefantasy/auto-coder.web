@@ -1,26 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ChatMessages from './ChatMessages';
-import { Select, Switch, message as AntdMessage, Tooltip } from 'antd';
+import { message as AntdMessage } from 'antd';
 import InputArea from './InputArea';
-import { UndoOutlined } from '@ant-design/icons';
-import EditorComponent from './EditorComponent';
 import { getMessage } from './lang';
-import { pollEvents, pollStreamResult, runBothPolls } from './polling';
+import { pollEvents, pollStreamResult } from './polling';
 import {
   FileGroup,
-  CodeBlock,
-  UnmergeCodeBlock,
-  ConfigKey,
   ConfigState,
-  CodingEvent,
-  INDEX_EVENT_TYPES,
-  EventResponse,
-  ResponseData,
-  PollResult,
+  CodingEvent,  
   Message,
   ChatPanelProps,
-  CompletionItem,
-  CompletionData
 } from './types';
 
 const CONFIRMATION_WORDS = ['confirm', '确认'] as const;
