@@ -504,15 +504,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
-      <div className="flex-1 overflow-y-auto">
+    <div className="flex flex-col h-full">
+      <div>
         <ChatMessages
           messages={messages}
           messagesEndRef={messagesEndRef}
           handleNewChat={handleNewChat}
         />
       </div>
-      <div className="flex-shrink-0">
+      <div>
         <InputArea
           showConfig={showConfig}
           setShowConfig={setShowConfig}
