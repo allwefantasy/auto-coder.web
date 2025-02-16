@@ -7,7 +7,7 @@ import { pollEvents, pollStreamResult } from './polling';
 import {
   FileGroup,
   ConfigState,
-  CodingEvent,  
+  CodingEvent,
   Message,
   ChatPanelProps,
 } from './types';
@@ -215,11 +215,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   } | null>(null);
 
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
-  
+
   const fetchFileGroups = useCallback(async () => {
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTime;
-    
+
     if (timeSinceLastFetch >= 30000) { // 30 seconds
       try {
         const response = await fetch('/api/file-groups');
@@ -505,34 +505,37 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
   return (
     <div className="flex flex-col h-full">
-      <ChatMessages 
-        messages={messages}
-        messagesEndRef={messagesEndRef}
-        handleNewChat={handleNewChat}
-      />
-
-      <InputArea
-        showConfig={showConfig}
-        setShowConfig={setShowConfig}
-        config={config}
-        updateConfig={updateConfig}
-        fileGroups={fileGroups}
-        selectedGroups={selectedGroups}
-        setSelectedGroups={setSelectedGroups}
-        fetchFileGroups={fetchFileGroups}
-        isMaximized={isMaximized}
-        setIsMaximized={setIsMaximized}
-        handleEditorDidMount={handleEditorDidMount}
-        setShouldSendMessage={setShouldSendMessage}
-        isWriteMode={isWriteMode}
-        setIsWriteMode={setIsWriteMode}
-        handleRevert={handleRevert}
-        handleSendMessage={handleSendMessage}
-        sendLoading={sendLoading}
-        setConfig={setConfig}
-      />
+      <div>
+        <ChatMessages
+          messages={messages}
+          messagesEndRef={messagesEndRef}
+          handleNewChat={handleNewChat}
+        />
+      </div>
+      <div>
+        <InputArea
+          showConfig={showConfig}
+          setShowConfig={setShowConfig}
+          config={config}
+          updateConfig={updateConfig}
+          fileGroups={fileGroups}
+          selectedGroups={selectedGroups}
+          setSelectedGroups={setSelectedGroups}
+          fetchFileGroups={fetchFileGroups}
+          isMaximized={isMaximized}
+          setIsMaximized={setIsMaximized}
+          handleEditorDidMount={handleEditorDidMount}
+          setShouldSendMessage={setShouldSendMessage}
+          isWriteMode={isWriteMode}
+          setIsWriteMode={setIsWriteMode}
+          handleRevert={handleRevert}
+          handleSendMessage={handleSendMessage}
+          sendLoading={sendLoading}
+          setConfig={setConfig}
+        />
+      </div>
     </div>
-    
+
   );
 };
 

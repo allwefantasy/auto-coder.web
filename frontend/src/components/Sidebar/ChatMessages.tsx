@@ -15,7 +15,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   handleNewChat
 }) => {
   return (
-    <div className="flex-1 overflow-y-auto p-4 bg-gray-900 relative scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+    <div className="flex-1 p-4 bg-gray-900 relative">
       {/* New Chat Button */}
       <button
         onClick={handleNewChat}
