@@ -15,7 +15,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   handleNewChat
 }) => {
   return (
-    <div className="flex-1 p-4 bg-gray-900 relative">
+    <div className="flex-1 p-4 bg-gray-900 relative min-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
       {/* New Chat Button */}
       <button
         onClick={handleNewChat}
@@ -30,7 +30,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         {messages.map((message) => (
           <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-[80%] rounded-lg p-2 relative group text-2xs ${message.role === 'user'
+              className={`max-w-[min(80%,600px)] rounded-lg p-2 relative group text-2xs ${message.role === 'user'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-800 text-gray-300'
                 }`}
