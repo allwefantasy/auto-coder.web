@@ -20,6 +20,9 @@ docker tag base:latest allwefantasy/auto-coder:latest
 
 # 标记应用镜像
 docker tag auto-coder-web:latest allwefantasy/auto-coder-web:latest
+
+# 标记byzer-storage镜像
+docker tag byzer-storage:latest allwefantasy/byzer-storage:latest
 ```
 
 
@@ -33,6 +36,9 @@ docker push allwefantasy/auto-coder:latest
 
 # 推送应用镜像
 docker push allwefantasy/auto-coder-web:latest
+
+# 推送byzer-storage镜像
+docker push allwefantasy/byzer-storage:latest
 ```
 
 ## 4. 验证
@@ -59,4 +65,18 @@ docker run  \
   -v <你的项目>:/app/work \
   -v <你的日志目录>:/app/logs \
   auto-coder-web
+```
+
+### 使用 byzer-storage 镜像
+
+```bash
+# 拉取镜像
+docker pull allwefantasy/byzer-storage:latest
+
+# 运行容器
+docker run  \
+  --name byzer-storage \
+  -p 9000:9000 \
+  -v <你的数据目录>:/data \
+  allwefantasy/byzer-storage
 ```
