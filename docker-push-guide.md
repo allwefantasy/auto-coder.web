@@ -36,5 +36,17 @@ docker build -f docker/base/Dockerfile -t byzer-storage:latest .
 
 The image is configured with:
 - Python 3.10.11 in a conda environment named 'py310'
-- PIP configured to use Tsinghua mirror
+- PIP configured to use Tsinghua mirror for faster package downloads in China
 - auto-coder and python-multipart packages pre-installed
+
+### Dockerfile Details
+
+The Dockerfile (`docker/base/Dockerfile`) contains the following configuration:
+
+1. Uses Ubuntu 22.04 as the base image
+2. Installs essential packages: wget and git
+3. Installs Miniconda and adds it to PATH
+4. Creates a Python 3.10.11 environment named 'py310'
+5. Configures pip to use Tsinghua mirror
+6. Installs the latest version of auto-coder
+7. Installs python-multipart for handling multipart form data
