@@ -7,6 +7,9 @@ mkdir -p /app/tools
 # 启动Ray
 ray start --head --dashboard-host 0.0.0.0 --disable-usage-stats > /app/logs/ray.log 2>&1
 
+# 启动ByzerLLM存储服务
+byzerllm storage start
+
 # 启动ByzerLLM服务
 # byzerllm deploy --pretrained_model_type saas/openai \
 # --cpus_per_worker 0.001 \

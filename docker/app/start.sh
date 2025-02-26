@@ -10,6 +10,7 @@ mkdir -p /app/tools
 pip install williamtoolbox
 pip install -U auto_coder_web
 ray start --head --dashboard-host 0.0.0.0 --disable-usage-stats > /app/logs/ray.log 2>&1
+byzerllm storage start
 
 # byzerllm deploy --pretrained_model_type saas/openai \
 # --cpus_per_worker 0.001 \
