@@ -21,6 +21,7 @@
 ```bash
 cd docker/base
 docker build -t auto-coder-base .
+docker tag auto-coder-base:latest allwefantasy/auto-coder-base:latest
 ```
 
 基础镜像特性：
@@ -37,6 +38,7 @@ docker build -t auto-coder-base .
 ```bash
 cd ../byzer-storage
 docker build -t byzer-storage .
+docker tag byzer-storage:latest allwefantasy/byzer-storage:latest
 ```
 
 存储镜像特性：
@@ -51,6 +53,7 @@ docker build -t byzer-storage .
 ```bash
 cd ../app
 docker build -t auto-coder-app .
+docker tag auto-coder-app:latest allwefantasy/auto-coder-app:latest
 ```
 
 ### 4. 构建本地应用镜像
@@ -60,6 +63,7 @@ docker build -t auto-coder-app .
 ```bash
 cd ../local-app
 docker build -t local-auto-coder-app .
+docker tag local-auto-coder-app:latest allwefantasy/local-auto-coder-app:latest
 ```
 
 本地应用镜像特性：

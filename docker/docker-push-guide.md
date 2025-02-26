@@ -10,27 +10,8 @@ docker login
 ```
 系统会提示输入用户名和密码
 
-## 2. 重新标记镜像
 
-需要将本地镜像按照 Docker Hub 的命名规范重新标记：
-
-```bash
-# 标记基础镜像
-docker tag auto-coder-base:latest allwefantasy/auto-coder-base:latest
-
-# 标记byzer-storage镜像
-docker tag byzer-storage:latest allwefantasy/byzer-storage:latest
-
-# 标记应用镜像
-docker tag auto-coder-app:latest allwefantasy/auto-coder-app:latest
-
-# 标记本地应用镜像（预装依赖）
-docker tag local-auto-coder-app:latest allwefantasy/local-auto-coder-app:latest
-
-```
-
-
-## 3. 推送镜像
+## 2. 推送镜像
 
 推送镜像到 Docker Hub：
 
@@ -48,22 +29,22 @@ docker push allwefantasy/auto-coder-app:latest
 docker push allwefantasy/local-auto-coder-app:latest
 ```
 
-## 4. 验证
+## 3. 验证
 
 1. 登录 [Docker Hub](https://hub.docker.com) 网站
 2. 在你的仓库列表中应该能看到刚推送的镜像
 
-## 5. 使用推送后的镜像
+## 4. 使用推送后的镜像
 
 其他用户可以通过以下命令拉取和使用你的镜像：
 
 ```bash
 # 拉取镜像
-docker pull allwefantasy/auto-coder-web:latest
+docker pull allwefantasy/auto-coder-app:latest
 
 # 运行容器
 docker run  \
-  --name auto-coder-web \
+  --name auto-coder-app \
   -e BASE_URL=https://api.deepseek.com/v1 \
   -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
   -e MODEL=deepseek-chat \
@@ -78,7 +59,7 @@ docker run  \
 
 ```bash
 # 拉取镜像
-docker pull allwefantasy/local-auto-coder:latest
+docker pull allwefantasy/local-auto-coder-app:latest
 
 # 运行容器
 docker run  \
@@ -90,19 +71,5 @@ docker run  \
   -p 8265:8265 \
   -v <你的项目>:/app/work \
   -v <你的日志目录>:/app/logs \
-  allwefantasy/local-auto-coder
-```
-
-### 使用 byzer-storage 镜像
-
-```bash
-# 拉取镜像
-docker pull allwefantasy/byzer-storage:latest
-
-# 运行容器
-docker run  \
-  --name byzer-storage \
-  -p 9000:9000 \
-  -v <你的数据目录>:/data \
-  allwefantasy/byzer-storage
+  allwefantasy/local-auto-coder-app
 ```
