@@ -5,16 +5,16 @@ mkdir -p /app/logs
 mkdir -p /app/tools
 
 # 启动Ray
-ray start --head > /app/logs/ray.log 2>&1
+ray start --head --dashboard-host 0.0.0.0 --disable-usage-stats > /app/logs/ray.log 2>&1
 
 # 启动ByzerLLM服务
-byzerllm deploy --pretrained_model_type saas/openai \
---cpus_per_worker 0.001 \
---gpus_per_worker 0 \
---num_workers 1 \
---worker_concurrency 1000 \
---infer_params saas.base_url="${BASE_URL:-https://api.deepseek.com/v1}" saas.api_key="${API_KEY}" saas.model="${MODEL:-deepseek-chat}" \
---model deepseek_chat 2>&1 | tee /app/logs/byzerllm.log &
+# byzerllm deploy --pretrained_model_type saas/openai \
+# --cpus_per_worker 0.001 \
+# --gpus_per_worker 0 \
+# --num_workers 1 \
+# --worker_concurrency 1000 \
+# --infer_params saas.base_url="${BASE_URL:-https://api.deepseek.com/v1}" saas.api_key="${API_KEY}" saas.model="${MODEL:-deepseek-chat}" \
+# --model deepseek_chat 2>&1 | tee /app/logs/byzerllm.log &
 
 # 启动william.toolbox服务
 cd /app/tools
