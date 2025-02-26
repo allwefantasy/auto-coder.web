@@ -11,6 +11,7 @@ BUILD_STORAGE=false
 BUILD_APP=false
 BUILD_LOCAL=false
 PUSH_IMAGES=false
+NO_CACHE=false
  
 # 输出彩色文本的函数
 print_green() {
@@ -40,6 +41,7 @@ show_help() {
     echo "  -p, --push                推送镜像到 Docker Hub (默认不推送)"
     echo "  -c, --clean               无需确认，直接清理容器和镜像"
     echo "  -n, --no-clean            不清理容器和镜像"
+    echo "  --no-cache                构建镜像时不使用缓存"
     echo ""
     echo "版本号参数:"
     echo "  默认版本号为 'latest'"
@@ -52,6 +54,7 @@ show_help() {
     echo "  $0 -b base,storage        仅构建基础镜像和存储镜像, 不推送"
     echo "  $0 -b app,local -p v1.0.0 仅构建应用镜像和本地应用镜像, 版本为v1.0.0, 并推送"
     echo "  $0 -c -p                  构建所有镜像，自动清理旧容器和镜像，并推送"
+    echo "  $0 --no-cache             构建所有镜像，不使用缓存"
     exit 0
 }
 
@@ -154,6 +157,10 @@ while [[ $# -gt 0 ]]; do
             NO_CLEAN=true
             shift
             ;;
+        --no-cache)
+            NO_CACHE=true
+            shift
+            ;;
         *)
             # 如果参数不是以'-'开头，假设是版本号
             if [[ ! "$1" == -* ]]; then
@@ -174,6 +181,13 @@ if $BUILD_ALL; then
     BUILD_STORAGE=true
     BUILD_APP=true
     BUILD_LOCAL=true
+fi
+
+# 设置构建选项
+BUILD_OPTS=""
+if $NO_CACHE; then
+    BUILD_OPTS="$BUILD_OPTS --no-cache"
+    print_yellow "已启用无缓存构建模式"
 fi
 
 # 检查Docker是否已登录
@@ -222,6 +236,9 @@ fi
 # 记录开始时间
 start_time=$(date +%s)
 print_blue "开始构建过程，版本: $VERSION"
+if $NO_CACHE; then
+    print_blue "构建模式: 不使用缓存"
+fi
 if $PUSH_IMAGES; then
     print_blue "构建完成后将推送镜像到 Docker Hub"
 else
@@ -241,7 +258,7 @@ cd "$(dirname "$0")"  # 确保在docker目录中
 if $BUILD_BASE; then
     print_yellow "1. 构建基础镜像 (auto-coder-base)..."
     cd base
-    docker build -t auto-coder-base .
+    docker build $BUILD_OPTS -t auto-coder-base .
     docker tag auto-coder-base:latest $DOCKER_USERNAME/auto-coder-base:$VERSION
     print_green "基础镜像构建完成"
     cd ..
@@ -251,7 +268,7 @@ fi
 if $BUILD_STORAGE; then
     print_yellow "2. 构建存储镜像 (byzer-storage)..."
     cd byzer-storage
-    docker build -t byzer-storage .
+    docker build $BUILD_OPTS -t byzer-storage .
     docker tag byzer-storage:latest $DOCKER_USERNAME/byzer-storage:$VERSION
     print_green "存储镜像构建完成"
     cd ..
@@ -261,7 +278,7 @@ fi
 if $BUILD_APP; then
     print_yellow "3. 构建应用镜像 (auto-coder-app)..."
     cd app
-    docker build -t auto-coder-app .
+    docker build $BUILD_OPTS -t auto-coder-app .
     docker tag auto-coder-app:latest $DOCKER_USERNAME/auto-coder-app:$VERSION
     print_green "应用镜像构建完成"
     cd ..
@@ -271,7 +288,7 @@ fi
 if $BUILD_LOCAL; then
     print_yellow "4. 构建本地应用镜像 (local-auto-coder-app)..."
     cd local-app
-    docker build -t local-auto-coder-app .
+    docker build $BUILD_OPTS -t local-auto-coder-app .
     docker tag local-auto-coder-app:latest $DOCKER_USERNAME/local-auto-coder-app:$VERSION
     print_green "本地应用镜像构建完成"
     cd ..
@@ -350,6 +367,9 @@ if $PUSH_IMAGES; then
     print_green "操作: 构建并推送镜像"
 else
     print_green "操作: 仅构建镜像"
+fi
+if $NO_CACHE; then
+    print_green "构建模式: 无缓存"
 fi
 print_green "总用时: ${minutes}分${seconds}秒"
 print_green "==================================="
