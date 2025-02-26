@@ -88,10 +88,7 @@ logs/
 
 ```bash
 docker run  \
-  --name auto-coder-app \
-  -e BASE_URL=https://api.deepseek.com/v1 \
-  -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
-  -e MODEL=deepseek-chat \
+  --name auto-coder-app \  
   -p 8006:8006 \
   -p 8007:8007 \
   -p 8265:8265 \
@@ -108,10 +105,7 @@ docker run  \
 
 ```bash
 docker run  \
-  --name local-auto-coder-app \
-  -e BASE_URL=https://api.deepseek.com/v1 \
-  -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
-  -e MODEL=deepseek-chat \
+  --name local-auto-coder-app \  
   -p 8006:8006 \
   -p 8007:8007 \
   -p 8265:8265 \
