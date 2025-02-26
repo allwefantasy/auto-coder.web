@@ -19,7 +19,7 @@ RUN conda create -n py310 python=3.10.11 -y
 SHELL ["conda", "run", "-n", "py310", "/bin/bash", "-c"]
 
 # 设置pip镜像
-RUN pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+# RUN pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
 # 安装auto-coder
 RUN pip install -U auto-coder
