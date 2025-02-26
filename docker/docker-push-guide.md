@@ -21,6 +21,9 @@ docker tag base:latest allwefantasy/auto-coder:latest
 # 标记应用镜像
 docker tag auto-coder-web:latest allwefantasy/auto-coder-web:latest
 
+# 标记本地应用镜像（预装依赖）
+docker tag local-auto-coder:latest allwefantasy/local-auto-coder:latest
+
 # 标记byzer-storage镜像
 docker tag byzer-storage:latest allwefantasy/byzer-storage:latest
 ```
@@ -36,6 +39,9 @@ docker push allwefantasy/auto-coder:latest
 
 # 推送应用镜像
 docker push allwefantasy/auto-coder-web:latest
+
+# 推送本地应用镜像（预装依赖）
+docker push allwefantasy/local-auto-coder:latest
 
 # 推送byzer-storage镜像
 docker push allwefantasy/byzer-storage:latest
@@ -65,6 +71,25 @@ docker run  \
   -v <你的项目>:/app/work \
   -v <你的日志目录>:/app/logs \
   auto-coder-web
+```
+
+### 使用预装依赖的本地应用镜像
+
+```bash
+# 拉取镜像
+docker pull allwefantasy/local-auto-coder:latest
+
+# 运行容器
+docker run  \
+  --name local-auto-coder \
+  -e BASE_URL=https://api.deepseek.com/v1 \
+  -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
+  -e MODEL=deepseek-chat \
+  -p 8007:8007 \  
+  -p 8265:8265 \
+  -v <你的项目>:/app/work \
+  -v <你的日志目录>:/app/logs \
+  allwefantasy/local-auto-coder
 ```
 
 ### 使用 byzer-storage 镜像
