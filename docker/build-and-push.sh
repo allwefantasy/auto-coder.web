@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 # 构建和推送 Docker 镜像的自动化脚本
 
 # 默认设置
