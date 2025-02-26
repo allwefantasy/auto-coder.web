@@ -88,7 +88,7 @@ logs/
 
 ```bash
 docker run  \
-  --name allwefantasy/auto-coder-app \
+  --name auto-coder-app \
   -e BASE_URL=https://api.deepseek.com/v1 \
   -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
   -e MODEL=deepseek-chat \
@@ -97,7 +97,7 @@ docker run  \
   -p 8265:8265 \
   -v <你的项目>:/app/work \
   -v <你的日志目录>:/app/logs \
-  auto-coder-app
+  allwefantasy/auto-coder-app
 ```
 
 ### 3. 运行本地应用容器
@@ -108,7 +108,7 @@ docker run  \
 
 ```bash
 docker run  \
-  --name allwefantasy/local-auto-coder-app \
+  --name local-auto-coder-app \
   -e BASE_URL=https://api.deepseek.com/v1 \
   -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
   -e MODEL=deepseek-chat \
@@ -117,6 +117,7 @@ docker run  \
   -p 8265:8265 \
   -v <你的项目>:/app/work \
   -v <你的日志目录>:/app/logs \
-  local-auto-coder-app
+  allwefantasy/local-auto-coder-app
 ```
+
 
