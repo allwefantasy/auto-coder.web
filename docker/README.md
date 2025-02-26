@@ -84,13 +84,11 @@ logs/
 
 ### 2. 运行标准应用容器
 
-> 如果你使用已经构建好的公开镜像可以将后续示例命令中的最后的 auto-coder-app 替换成 allwefantasy/auto-coder-app
-
 使用以下命令运行标准应用容器：
 
 ```bash
 docker run  \
-  --name auto-coder-app \
+  --name allwefantasy/auto-coder-app \
   -e BASE_URL=https://api.deepseek.com/v1 \
   -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
   -e MODEL=deepseek-chat \
@@ -110,7 +108,7 @@ docker run  \
 
 ```bash
 docker run  \
-  --name local-auto-coder-app \
+  --name allwefantasy/local-auto-coder-app \
   -e BASE_URL=https://api.deepseek.com/v1 \
   -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
   -e MODEL=deepseek-chat \
@@ -122,16 +120,3 @@ docker run  \
   local-auto-coder-app
 ```
 
-### 4. 运行存储服务容器
-
-> 如果你使用已经构建好的公开镜像可以将后续示例命令中的最后的 byzer-storage 替换成 allwefantasy/byzer-storage
-
-使用以下命令运行存储服务容器：
-
-```bash
-docker run  \
-  --name byzer-storage \
-  -p 9000:9000 \
-  -v <你的数据目录>:/data \
-  byzer-storage
-```
