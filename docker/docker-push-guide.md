@@ -16,16 +16,17 @@ docker login
 
 ```bash
 # 标记基础镜像
-docker tag base:latest allwefantasy/auto-coder:latest
-
-# 标记应用镜像
-docker tag auto-coder-web:latest allwefantasy/auto-coder-web:latest
-
-# 标记本地应用镜像（预装依赖）
-docker tag local-auto-coder:latest allwefantasy/local-auto-coder:latest
+docker tag auto-coder-base:latest allwefantasy/auto-coder-base:latest
 
 # 标记byzer-storage镜像
 docker tag byzer-storage:latest allwefantasy/byzer-storage:latest
+
+# 标记应用镜像
+docker tag auto-coder-app:latest allwefantasy/auto-coder-app:latest
+
+# 标记本地应用镜像（预装依赖）
+docker tag local-auto-coder-app:latest allwefantasy/local-auto-coder-app:latest
+
 ```
 
 
@@ -35,16 +36,16 @@ docker tag byzer-storage:latest allwefantasy/byzer-storage:latest
 
 ```bash
 # 推送基础镜像
-docker push allwefantasy/auto-coder:latest
-
-# 推送应用镜像
-docker push allwefantasy/auto-coder-web:latest
-
-# 推送本地应用镜像（预装依赖）
-docker push allwefantasy/local-auto-coder:latest
+docker push allwefantasy/auto-coder-base:latest
 
 # 推送byzer-storage镜像
 docker push allwefantasy/byzer-storage:latest
+
+# 推送应用镜像
+docker push allwefantasy/auto-coder-app:latest
+
+# 推送本地应用镜像（预装依赖）
+docker push allwefantasy/local-auto-coder-app:latest
 ```
 
 ## 4. 验证

@@ -1,4 +1,4 @@
-FROM allwefantasy/auto-coder:latest
+FROM allwefantasy/byzer-storage:latest
 
 WORKDIR /app
 

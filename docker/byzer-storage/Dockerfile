@@ -1,4 +1,4 @@
-FROM auto-coder-base:latest
+FROM allwefantasy/auto-coder-base:latest
 
 # 安装JDK21
 RUN apt-get update && apt-get install -y \
