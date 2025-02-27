@@ -9,7 +9,7 @@ SHELL ["conda", "run", "-n", "py310", "/bin/bash", "-c"]
 RUN mkdir -p /app/work /app/logs /app/tools
 
 # 在构建阶段安装依赖包
-RUN conda run -n py310 pip install williamtoolbox && \
+RUN conda run -n py310 pip install -U williamtoolbox && \
     conda run -n py310 pip install -U auto_coder_web
 
 # 设置工作目录和日志目录
