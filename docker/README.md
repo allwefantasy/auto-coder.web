@@ -1,15 +1,17 @@
 # 构建和使用指南
 
+current version: v0.1.275
+
 全量构建
 
 ```bash
-./build-and-push.sh -b base,storage,app,local --no-cache -p v0.1.274
+./build-and-push.sh -b base,storage,app,local --no-cache -p v0.1.276
 ```
 
 增量构建:
 
 ```
-./build-and-push.sh -b app,local --no-cache -p v0.1.274
+./build-and-push.sh -b app,local --no-cache -p v0.1.276
 ```
 
 
