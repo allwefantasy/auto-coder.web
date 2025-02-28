@@ -1,6 +1,28 @@
 import React from 'react';
-import { Editor } from '@monaco-editor/react';
+import { Editor, loader } from '@monaco-editor/react';
 import { CompletionItem } from './types';
+// 导入 monaco 编辑器类型
+import * as monaco from 'monaco-editor';
+
+// 移除冲突的类型声明，使用 monaco-editor 包提供的类型
+// declare global {
+//   interface Window {
+//     MonacoEnvironment: {
+//       getWorkerUrl: (moduleId: string, label: string) => string;
+//     };
+//   }
+// }
+
+loader.config({
+  paths: {
+    vs: '/monaco-editor/min/vs'
+  },
+  'vs/nls': {
+    availableLanguages: {
+      '*': 'zh-cn'
+    }
+  }
+});
 
 interface EditorComponentProps {
   isMaximized: boolean;
@@ -109,6 +131,17 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         onChange={onChange}
         theme="vs-dark"
         onMount={handleEditorDidMount}
+        // 禁用自动检测和加载远程资源
+        loading={<div className="flex items-center justify-center h-full">加载编辑器中...</div>}
+        // 确保使用本地资源
+        beforeMount={(monaco) => {
+          // 设置 Monaco 环境，使用本地 worker
+          window.MonacoEnvironment = {
+            getWorkerUrl: (workerId: string, label: string): string => {
+              return `/monaco-editor/min/vs/base/worker/workerMain.js`;
+            }
+          };
+        }}
         options={{
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
