@@ -14,7 +14,8 @@ current version: v0.1.275
 增量构建:
 
 ```
-./build-and-push.sh -b app,local --no-cache -p v0.1.276
+./build-and-push.sh -b app --no-cache -p v0.1.276
+./build-and-push.sh -b local --no-cache -p v0.1.276
 ```
 
 

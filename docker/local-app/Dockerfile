@@ -1,4 +1,4 @@
-FROM allwefantasy/byzer-storage:v0.1.276
+FROM allwefantasy/byzer-storage:latest
 
 WORKDIR /app
 
