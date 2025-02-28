@@ -5,7 +5,10 @@ current version: v0.1.275
 全量构建
 
 ```bash
-./build-and-push.sh -b base,storage,app,local --no-cache -p v0.1.276
+./build-and-push.sh -b base --no-cache -p v0.1.276
+./build-and-push.sh -b storage --no-cache -p v0.1.276
+./build-and-push.sh -b app --no-cache -p v0.1.276
+./build-and-push.sh -b local --no-cache -p v0.1.276
 ```
 
 增量构建:
