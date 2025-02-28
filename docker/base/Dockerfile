@@ -29,6 +29,9 @@ RUN apt-get update && apt-get install -y ca-certificates gnupg && \
     apt-get update && apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
+# 验证 NodeJS 安装
+RUN node -v && npm -v
+
 # 安装auto-coder
 RUN pip install -U auto-coder
 RUN pip install python-multipart
