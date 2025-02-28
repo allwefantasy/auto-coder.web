@@ -154,6 +154,7 @@ if [[ "$USE_CLEAN" == "false" ]]; then
     BUILD_OPTS="$BUILD_OPTS --no-clean"
     print_yellow "将跳过清理步骤"
 else
+    BUILD_OPTS="$BUILD_OPTS --clean"
     print_yellow "将在构建前执行清理"
 fi
 
