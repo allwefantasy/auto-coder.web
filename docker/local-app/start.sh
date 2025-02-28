@@ -30,4 +30,4 @@ cd /app/work
 tail -f /app/logs/*.log &
 
 # 启动主应用
-exec auto-coder.web --quick --port 8007 2>&1 | tee /app/logs/auto-coder-web.log 
+exec auto-coder.web --quick --lite --port 8007 2>&1 | tee /app/logs/auto-coder-web.log 
