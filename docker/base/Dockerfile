@@ -2,9 +2,19 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# 安装基础软件包和NodeJS
 RUN apt-get update && apt-get install -y \
-    wget git \
+    wget git curl vim \
     && rm -rf /var/lib/apt/lists/*
+
+# 安装NodeJS
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm@latest && \
+    rm -rf /var/lib/apt/lists/*
+
+# 验证安装
+RUN node --version && npm --version
 
 # 安装Miniconda
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
