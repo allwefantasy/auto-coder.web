@@ -86,10 +86,41 @@ cleanup_containers() {
 cleanup_images() {
     print_blue "正在检查并清理相关镜像..."
     
-    # 定义要清理的镜像列表
-    images=("auto-coder-base" "byzer-storage" "auto-coder-app" "local-auto-coder-app")
+    # 定义组件和镜像的映射关系
+    declare -A component_to_image
+    component_to_image["base"]="auto-coder-base"
+    component_to_image["storage"]="byzer-storage"
+    component_to_image["app"]="auto-coder-app"
+    component_to_image["local"]="local-auto-coder-app"
     
-    for image in "${images[@]}"; do
+    # 用于存储要清理的镜像列表
+    images_to_clean=()
+    
+    if $BUILD_ALL; then
+        # 如果构建所有组件，则清理所有镜像
+        images_to_clean=("auto-coder-base" "byzer-storage" "auto-coder-app" "local-auto-coder-app")
+    else
+        # 否则，只清理选定的组件对应的镜像
+        if $BUILD_BASE; then
+            images_to_clean+=("auto-coder-base")
+        fi
+        if $BUILD_STORAGE; then
+            images_to_clean+=("byzer-storage")
+        fi
+        if $BUILD_APP; then
+            images_to_clean+=("auto-coder-app")
+        fi
+        if $BUILD_LOCAL; then
+            images_to_clean+=("local-auto-coder-app")
+        fi
+    fi
+    
+    print_yellow "将清理以下镜像:"
+    for image in "${images_to_clean[@]}"; do
+        print_yellow "- $image"
+    done
+    
+    for image in "${images_to_clean[@]}"; do
         # 检查本地标签镜像
         if docker images --format '{{.Repository}}' | grep -q "^${image}$"; then
             print_yellow "删除本地镜像: $image"
@@ -103,7 +134,7 @@ cleanup_images() {
         fi
     done
     
-    print_green "镜像清理完成"
+    print_green "选定的镜像清理完成"
 }
 
 # 解析命令行参数
@@ -217,6 +248,7 @@ fi
 # 处理清理选项
 if $AUTO_CLEAN; then
     # 自动清理，无需确认
+    print_blue "根据设置自动清理选定的容器和镜像..."
     cleanup_containers
     cleanup_images
 elif $NO_CLEAN; then
@@ -224,7 +256,17 @@ elif $NO_CLEAN; then
     print_yellow "按要求跳过清理步骤"
 else
     # 询问用户是否要清理现有容器和镜像
-    read -p "是否清理现有的容器和镜像? (y/n): " cleanup_confirmation
+    print_yellow "即将清理以下组件对应的镜像:"
+    if $BUILD_ALL; then
+        print_yellow "- 所有镜像 (base, storage, app, local)"
+    else
+        $BUILD_BASE && print_yellow "- 基础镜像 (auto-coder-base)"
+        $BUILD_STORAGE && print_yellow "- 存储镜像 (byzer-storage)"
+        $BUILD_APP && print_yellow "- 应用镜像 (auto-coder-app)"
+        $BUILD_LOCAL && print_yellow "- 本地应用镜像 (local-auto-coder-app)"
+    fi
+    
+    read -p "是否清理选定的容器和镜像? (y/n): " cleanup_confirmation
     if [[ "$cleanup_confirmation" =~ ^[Yy]$ ]]; then
         cleanup_containers
         cleanup_images

@@ -14,6 +14,32 @@
 
 此时可以跳过本步骤。
 
+### 0. 使用自动构建脚本（推荐）
+
+我们提供了一个自动构建脚本，可以一次性构建并推送所有组件，并包含自动重试功能：
+
+```bash
+# 进入 docker 目录
+cd docker
+
+# 构建所有组件（提示输入版本号）
+./build-with-retry.sh
+
+# 构建指定组件
+./build-with-retry.sh -c base,storage
+
+# 指定版本号构建
+./build-with-retry.sh -v v0.1.276
+
+# 使用缓存构建（加快构建速度）
+./build-with-retry.sh --use-cache
+
+# 查看帮助
+./build-with-retry.sh --help
+```
+
+如果你需要手动构建各个镜像，可以按照以下步骤操作：
+
 ### 1. 构建基础镜像
 
 基础镜像包含了 Ubuntu 22.04、Conda 环境（Python 3.10.11）和必要的基础包。

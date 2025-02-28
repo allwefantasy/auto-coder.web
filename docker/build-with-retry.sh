@@ -25,6 +25,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ALL_COMPONENTS=("base" "storage" "app" "local")
 components=("${ALL_COMPONENTS[@]}")
 VERSION=""
+USE_CACHE=false
+USE_CLEAN=true
+UPDATE_README=true
 
 # 显示帮助信息
 show_help() {
@@ -35,12 +38,17 @@ show_help() {
     echo "  -c, --components COMPS    指定要构建的组件，用逗号分隔"
     echo "                            可选值: base,storage,app,local"
     echo "                            例如: -c base,app 仅构建基础镜像和应用镜像"
+    echo "  --use-cache               使用缓存进行构建（默认不使用缓存）"
+    echo "  --clean                   构建前清理选定组件的容器和镜像（默认不清理）"
+    echo "  --no-update-readme        不更新 README.md 中的版本号（默认会更新）"
     echo ""
     echo "示例:"
-    echo "  $0                        构建所有组件，提示输入版本号"
-    echo "  $0 -v v0.1.276            构建所有组件，版本为 v0.1.276"
-    echo "  $0 -c base,storage        仅构建 base 和 storage 组件，提示输入版本号"
-    echo "  $0 -v v0.1.276 -c app,local  构建 app 和 local 组件，版本为 v0.1.276"
+    echo "  $0                        构建所有组件，提示输入版本号，不使用缓存，不清理"
+    echo "  $0 -v v0.1.276            构建所有组件，版本为 v0.1.276，不使用缓存，不清理"
+    echo "  $0 -c base,storage        仅构建 base 和 storage 组件，不使用缓存，不清理"
+    echo "  $0 --use-cache            构建所有组件，使用缓存，不清理"
+    echo "  $0 --clean                构建所有组件，不使用缓存，构建前清理选定组件的镜像"
+    echo "  $0 --no-update-readme     构建所有组件，不更新 README.md 版本号"
     exit 0
 }
 
@@ -87,6 +95,18 @@ while [[ $# -gt 0 ]]; do
             done
             shift 2
             ;;
+        --use-cache)
+            USE_CACHE=true
+            shift
+            ;;
+        --clean)
+            USE_CLEAN=false
+            shift
+            ;;
+        --no-update-readme)
+            UPDATE_README=false
+            shift
+            ;;
         *)
             print_red "错误: 未知选项 $1"
             echo "使用 -h 或 --help 查看帮助信息"
@@ -105,8 +125,39 @@ if [[ -z "$VERSION" ]]; then
     fi
 fi
 
+# 更新README中的版本号
+if [ "$UPDATE_README" = true ]; then
+    print_blue "正在更新 README.md 中的版本号..."
+    if [ -x "$SCRIPT_DIR/update-version.sh" ]; then
+        if "$SCRIPT_DIR/update-version.sh" -v "$VERSION"; then
+            print_green "README.md 版本号已更新为 $VERSION"
+        else
+            print_red "更新 README.md 版本号失败，但将继续构建过程"
+        fi
+    else
+        print_red "update-version.sh 脚本不存在或不可执行，无法更新 README.md 版本号"
+    fi
+fi
+
 print_blue "开始构建版本: $VERSION"
-print_yellow "将使用 --no-cache 选项进行构建，并推送到 Docker Hub"
+
+# 构建选项
+BUILD_OPTS=""
+if [[ "$USE_CACHE" == "false" ]]; then
+    BUILD_OPTS="$BUILD_OPTS --no-cache"
+    print_yellow "将使用无缓存模式进行构建"
+else
+    print_yellow "将使用缓存模式进行构建"
+fi
+
+if [[ "$USE_CLEAN" == "false" ]]; then
+    BUILD_OPTS="$BUILD_OPTS --no-clean"
+    print_yellow "将跳过清理步骤"
+else
+    print_yellow "将在构建前执行清理"
+fi
+
+BUILD_OPTS="$BUILD_OPTS -p $VERSION"
 
 # 显示要构建的组件
 print_yellow "将构建以下组件:"
@@ -123,7 +174,7 @@ for component in "${components[@]}"; do
     while [ $retry_count -lt $max_retries ] && [ "$success" = false ]; do
         print_yellow "正在构建 $component 组件 (尝试 $((retry_count+1))/$max_retries)..."
         
-        if $SCRIPT_DIR/build-and-push.sh -b "$component" --no-clean --no-cache -p "$VERSION"; then
+        if $SCRIPT_DIR/build-and-push.sh -b "$component" $BUILD_OPTS; then
             print_green "$component 组件构建成功！"
             success=true
         else
@@ -145,6 +196,23 @@ print_green "所有组件构建成功并已推送到 Docker Hub！"
 print_green "版本: $VERSION"
 print_green "====================================="
 
+# 显示使用示例
 print_blue "您可以使用以下命令运行容器:"
-print_yellow "本地应用镜像:"
-echo "docker run --name local-auto-coder-app -p 8006:8006 -p 8007:8007 -p 8265:8265 -v \$(pwd)/work:/app/work -v \$(pwd)/logs:/app/logs allwefantasy/local-auto-coder-app:$VERSION" 
+
+# 如果构建了本地应用镜像，显示其运行命令
+if [[ " ${components[*]} " =~ " local " ]] || [[ "${#components[@]}" -eq 4 ]]; then
+    print_yellow "本地应用镜像:"
+    echo "docker run --name local-auto-coder-app -p 8006:8006 -p 8007:8007 -p 8265:8265 -v \$(pwd)/work:/app/work -v \$(pwd)/logs:/app/logs allwefantasy/local-auto-coder-app:$VERSION"
+fi
+
+# 如果构建了应用镜像，显示其运行命令
+if [[ " ${components[*]} " =~ " app " ]] || [[ "${#components[@]}" -eq 4 ]]; then
+    print_yellow "应用镜像:"
+    echo "docker run --name auto-coder-app -p 8006:8006 -p 8007:8007 -p 8265:8265 -v \$(pwd)/work:/app/work -v \$(pwd)/logs:/app/logs allwefantasy/auto-coder-app:$VERSION"
+fi
+
+# 如果构建了存储镜像，显示其运行命令
+if [[ " ${components[*]} " =~ " storage " ]] || [[ "${#components[@]}" -eq 4 ]]; then
+    print_yellow "存储服务镜像:"
+    echo "docker run --name byzer-storage -p 9000:9000 -v \$(pwd)/data:/data allwefantasy/byzer-storage:$VERSION"
+fi 
