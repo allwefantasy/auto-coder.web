@@ -2,27 +2,6 @@ import React from 'react';
 import { Editor } from '@monaco-editor/react';
 import { CompletionItem } from './types';
 
-// 配置 Monaco 编辑器的加载方式
-import loader from '@monaco-editor/loader';
-
-// 设置 Monaco 编辑器的 CDN 或本地路径
-// 如果在 Docker 中，最好使用本地路径
-loader.config({
-  paths: {
-    // 使用打包在应用程序中的 Monaco 资源
-    vs: '/monaco-editor/min/vs'
-  }
-});
-
-// 添加 Monaco 环境类型声明
-declare global {
-  interface Window {
-    MonacoEnvironment?: {
-      getWorkerUrl: (moduleId: string, label: string) => string;
-    };
-  }
-}
-
 interface EditorComponentProps {
   isMaximized: boolean;
   onEditorDidMount: (editor: any, monaco: any) => void;
@@ -47,29 +26,6 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   onChange,
   onToggleMaximize
 }) => {
-  // 配置 Monaco 的全局环境，在组件渲染前设置
-  React.useEffect(() => {
-    // 配置 Monaco 环境，防止外部加载
-    window.MonacoEnvironment = {
-      getWorkerUrl: function (moduleId, label) {
-        // 使用 Monaco 编辑器内置的 Worker
-        if (label === 'json') {
-          return './json.worker.js';
-        }
-        if (label === 'css' || label === 'scss' || label === 'less') {
-          return './css.worker.js';
-        }
-        if (label === 'html' || label === 'handlebars' || label === 'razor') {
-          return './html.worker.js';
-        }
-        if (label === 'typescript' || label === 'javascript') {
-          return './ts.worker.js';
-        }
-        return './editor.worker.js';
-      }
-    };
-  }, []);
-
   const handleEditorDidMount = (editor: any, monaco: any) => {
     // 首先通知父组件编辑器已经挂载
     onEditorDidMount(editor, monaco);

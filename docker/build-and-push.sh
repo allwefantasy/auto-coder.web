@@ -2,18 +2,6 @@
 set -e
 # 构建和推送 Docker 镜像的自动化脚本
 
-## 以后一般只需要更新 app,local 即可
-## ./build-and-push.sh -b app,local --no-cache -p v0.1.273 
-
-#   docker run  \
-#   --name local-auto-coder-app \
-#   -p 8006:8006 \
-#   -p 8007:8007 \
-#   -p 8265:8265 \
-#   -v /home/william-pc/projects/workspace/wow/works:/app/work \
-#   -v /home/william-pc/projects/workspace/wow/logs:/app/logs \
-#   allwefantasy/local-auto-coder-app
-
 # 默认设置
 VERSION="latest"
 DOCKER_USERNAME="allwefantasy"
