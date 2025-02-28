@@ -347,8 +347,12 @@ class ProxyServer:
             "auto_coder_web", "web/index.html")
         self.resource_dir = os.path.dirname(self.index_html_path)
         self.static_dir = os.path.join(self.resource_dir, "static")
+        
         self.app.mount(
             "/static", StaticFiles(directory=self.static_dir), name="static")
+        
+        self.app.mount(
+            "/monaco-editor", StaticFiles(directory=os.path.join(self.resource_dir, "monaco-editor")), name="monaco-editor")
 
     def setup_routes(self):
         
