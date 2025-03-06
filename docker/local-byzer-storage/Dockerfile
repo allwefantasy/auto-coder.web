@@ -1,7 +1,7 @@
 FROM allwefantasy/auto-coder-base:latest
 
 # 定义Byzer Storage版本变量
-ARG BYZER_STORAGE_VERSION=0.2.0
+ARG BYZER_STORAGE_VERSION=0.2.1
 
 # 安装JDK21
 RUN apt-get update && apt-get install -y \
