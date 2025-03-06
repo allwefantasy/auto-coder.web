@@ -1,4 +1,4 @@
-FROM allwefantasy/byzer-storage:latest
+FROM allwefantasy/local-byzer-storage:latest
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN conda run -n py310 pip install -U auto-coder && \
 VOLUME ["/app/work", "/app/logs"]
 
 # 暴露需要的端口
-EXPOSE 8006 8007 8265
+EXPOSE 8006 8007 8265 33333
 
 # 启动服务的脚本
 COPY start.sh /app/

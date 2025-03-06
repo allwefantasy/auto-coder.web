@@ -89,7 +89,7 @@ cleanup_images() {
     # 定义组件和镜像的映射关系
     declare -A component_to_image
     component_to_image["base"]="auto-coder-base"
-    component_to_image["storage"]="byzer-storage"
+    component_to_image["storage"]="local-byzer-storage"
     component_to_image["app"]="auto-coder-app"
     component_to_image["local"]="local-auto-coder-app"
     
@@ -98,14 +98,14 @@ cleanup_images() {
     
     if $BUILD_ALL; then
         # 如果构建所有组件，则清理所有镜像
-        images_to_clean=("auto-coder-base" "byzer-storage" "auto-coder-app" "local-auto-coder-app")
+        images_to_clean=("auto-coder-base" "local-byzer-storage" "auto-coder-app" "local-auto-coder-app")
     else
         # 否则，只清理选定的组件对应的镜像
         if $BUILD_BASE; then
             images_to_clean+=("auto-coder-base")
         fi
         if $BUILD_STORAGE; then
-            images_to_clean+=("byzer-storage")
+            images_to_clean+=("local-byzer-storage")
         fi
         if $BUILD_APP; then
             images_to_clean+=("auto-coder-app")
@@ -261,7 +261,7 @@ else
         print_yellow "- 所有镜像 (base, storage, app, local)"
     else
         $BUILD_BASE && print_yellow "- 基础镜像 (auto-coder-base)"
-        $BUILD_STORAGE && print_yellow "- 存储镜像 (byzer-storage)"
+        $BUILD_STORAGE && print_yellow "- 存储镜像 (local-byzer-storage)"
         $BUILD_APP && print_yellow "- 应用镜像 (auto-coder-app)"
         $BUILD_LOCAL && print_yellow "- 本地应用镜像 (local-auto-coder-app)"
     fi
@@ -289,7 +289,7 @@ fi
 
 print_yellow "将构建以下镜像:"
 $BUILD_BASE && print_yellow "- 基础镜像 (auto-coder-base)"
-$BUILD_STORAGE && print_yellow "- 存储镜像 (byzer-storage)"
+$BUILD_STORAGE && print_yellow "- 存储镜像 (local-byzer-storage)"
 $BUILD_APP && print_yellow "- 应用镜像 (auto-coder-app)"
 $BUILD_LOCAL && print_yellow "- 本地应用镜像 (local-auto-coder-app)"
 
@@ -308,10 +308,10 @@ fi
 
 # 构建存储镜像
 if $BUILD_STORAGE; then
-    print_yellow "2. 构建存储镜像 (byzer-storage)..."
-    cd byzer-storage
-    docker build $BUILD_OPTS -t byzer-storage .
-    docker tag byzer-storage:latest $DOCKER_USERNAME/byzer-storage:$VERSION
+    print_yellow "2. 构建存储镜像 (local-byzer-storage)..."
+    cd local-byzer-storage
+    docker build $BUILD_OPTS -t local-byzer-storage .
+    docker tag local-byzer-storage:latest $DOCKER_USERNAME/local-byzer-storage:$VERSION
     print_green "存储镜像构建完成"
     cd ..
 fi
@@ -351,7 +351,7 @@ if $PUSH_IMAGES; then
     # 推送存储镜像
     if $BUILD_STORAGE; then
         print_yellow "2. 推送存储镜像..."
-        docker push $DOCKER_USERNAME/byzer-storage:$VERSION
+        docker push $DOCKER_USERNAME/local-byzer-storage:$VERSION
     fi
 
     # 推送应用镜像
@@ -376,8 +376,8 @@ if $PUSH_IMAGES; then
         fi
         
         if $BUILD_STORAGE; then
-            docker tag $DOCKER_USERNAME/byzer-storage:$VERSION $DOCKER_USERNAME/byzer-storage:latest
-            docker push $DOCKER_USERNAME/byzer-storage:latest
+            docker tag $DOCKER_USERNAME/local-byzer-storage:$VERSION $DOCKER_USERNAME/local-byzer-storage:latest
+            docker push $DOCKER_USERNAME/local-byzer-storage:latest
         fi
         
         if $BUILD_APP; then
@@ -434,5 +434,5 @@ fi
 
 if $BUILD_STORAGE; then
     print_yellow "存储服务镜像:"
-    echo "docker run --name byzer-storage -p 9000:9000 -v \$(pwd)/data:/data $DOCKER_USERNAME/byzer-storage:$VERSION"
+    echo "docker run --name local-byzer-storage -p 9000:9000 -v \$(pwd)/data:/data $DOCKER_USERNAME/local-byzer-storage:$VERSION"
 fi 

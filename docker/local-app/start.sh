@@ -8,7 +8,10 @@ mkdir -p /app/tools
 ray start --head --dashboard-host 0.0.0.0 --disable-usage-stats > /app/logs/ray.log 2>&1
 
 # 启动ByzerLLM存储服务
-byzerllm storage start
+# byzerllm storage start
+
+cd /app/byzer-storage-${BYZER_STORAGE_VERSION}-linux-x64
+./bin/service.sh start
 
 # 启动ByzerLLM服务
 # byzerllm deploy --pretrained_model_type saas/openai \

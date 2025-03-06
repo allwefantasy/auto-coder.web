@@ -226,9 +226,6 @@ docker pull allwefantasy/auto-coder-app:latest
 # 运行容器
 docker run  \
   --name auto-coder-app \
-  -e BASE_URL=https://api.deepseek.com/v1 \
-  -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
-  -e MODEL=deepseek-chat \
   -p 8007:8007 \  
   -p 8265:8265 \
   -v <你的项目>:/app/work \
@@ -245,9 +242,6 @@ docker pull allwefantasy/local-auto-coder-app:latest
 # 运行容器
 docker run  \
   --name local-auto-coder \
-  -e BASE_URL=https://api.deepseek.com/v1 \
-  -e API_KEY=$MODEL_DEEPSEEK_TOKEN \
-  -e MODEL=deepseek-chat \
   -p 8007:8007 \  
   -p 8265:8265 \
   -v <你的项目>:/app/work \

@@ -74,7 +74,7 @@ docker run  \
 -p 8265:8265 \
 -v /home/william-pc/projects/workspace/wow/work:/app/work \
 -v /home/william-pc/projects/workspace/wow/logs:/app/logs \
-allwefantasy/local-auto-coder-app:v0.1.276
+allwefantasy/local-auto-coder-app:v0.1.277
 ```
 
 ## 镜像依赖关系与更新流程
