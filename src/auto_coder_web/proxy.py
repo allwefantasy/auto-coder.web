@@ -326,11 +326,11 @@ class ProxyServer:
         self.setup_middleware()
 
         self.setup_static_files()
-
-        self.setup_routes()
-        
-        self.client = httpx.AsyncClient()
         self.project_path = project_path
+
+        self.setup_routes()        
+        self.client = httpx.AsyncClient()
+        
         self.auto_coder_runner = AutoCoderRunner(project_path, product_mode=product_mode)
         self.file_group_manager = FileGroupManager(self.auto_coder_runner)
 
