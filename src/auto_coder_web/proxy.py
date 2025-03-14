@@ -14,9 +14,9 @@ import asyncio
 import pathlib
 import time
 import sys
-from .file_group import FileGroupManager
-from .file_manager import get_directory_tree
-from .auto_coder_runner import AutoCoderRunner
+from auto_coder_web.file_group import FileGroupManager
+from auto_coder_web.file_manager import get_directory_tree
+from auto_coder_web.auto_coder_runner import AutoCoderRunner
 from autocoder.agent.auto_filegroup import AutoFileGroup
 from .types import (
     EventGetRequest,
@@ -51,6 +51,7 @@ from datetime import datetime
 from autocoder.utils import operate_config_api
 from .routers import todo_router
 from .routers import settings_router
+from .routers import auto_router
 
 
 def check_environment():
@@ -358,6 +359,10 @@ class ProxyServer:
         
         self.app.include_router(todo_router.router)
         self.app.include_router(settings_router.router)
+        self.app.include_router(auto_router.router)
+        
+        # Store project_path in app state for dependency injection
+        self.app.state.project_path = self.project_path
 
         @self.app.on_event("shutdown")
         async def shutdown_event():
