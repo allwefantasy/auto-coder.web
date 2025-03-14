@@ -8,9 +8,9 @@ from typing import Dict, Any
 from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
 from autocoder.events.event_manager_singleton import get_event_manager
 from autocoder.events import event_content as EventContentCreator
-
+from loguru import logger
 router = APIRouter()
-logger = logging.getLogger(__name__)
+
 
 class AutoCommandRequest(BaseModel):
     command: str
@@ -39,7 +39,7 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
             EventContentCreator.create_completion(200,"completed",result).to_dict()
         )
         
-        return result
+        return "success"
     except Exception as e:
         logger.error(f"Error executing auto command: {str(e)}")
         get_event_manager().write_result(

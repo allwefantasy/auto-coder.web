@@ -1,3 +1,4 @@
+from typing import Dict,Any
 from autocoder.auto_coder_runner import (
     auto_command,
     load_memory,
@@ -35,7 +36,7 @@ from autocoder.auto_coder_runner import (
 )
 
 class AutoCoderRunnerWrapper:
-    def __init__(self, project_path: str, product_mode: str = "pro"):
+    def __init__(self, project_path: str, product_mode: str = "lite"):
         pass
 
 
