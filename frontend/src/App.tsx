@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Modal, Input, List } from 'antd';
+import { Modal, Input, List, Switch } from 'antd';
 import { Editor } from '@monaco-editor/react';
 import ChatPanel from './components/Sidebar/ChatPanel';
 import CodeEditor from './components/MainContent/CodeEditor';
@@ -11,6 +11,7 @@ import TerminalManager from './components/Terminal/TerminalManager';
 import OutputPanel from './components/Terminal/OutputPanel';
 import PreviewPanel from './components/MainContent/PreviewPanel';
 import TodoPanel from './components/MainContent/TodoPanel';
+import AutoModePage from './components/AutoMode';
 import { getMessage,initLanguage } from './components/Sidebar/lang';
 import Split from 'react-split';
 import './App.css';
@@ -27,6 +28,7 @@ const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{name: string, path: string, display: string}>>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null); // State for selected file
+  const [isExpertMode, setIsExpertMode] = useState(false); // Toggle between expert and auto mode, default to auto mode
   const searchInputRef = useRef<any>(null);
 
   const handleFileSearch = useCallback(async (term: string) => {
@@ -88,15 +90,42 @@ const App: React.FC = () => {
     }
   }, [isFileSearchOpen]);
 
+  // Toggle between expert and auto modes
+  const toggleMode = () => {
+    setIsExpertMode(!isExpertMode);
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-900">
-      <Split 
-        className="flex-1 flex"
-        sizes={[30, 70]}
-        minSize={[200, 400]}
-        gutterSize={4}
-        snapOffset={30}
-      >
+      {/* Mode Toggle */}
+      <div className="bg-gray-800 p-2 border-b border-gray-700 flex justify-end items-center space-x-2">
+        <span className="text-gray-400 text-sm">{getMessage('autoMode')}</span>
+        <Switch 
+          checked={isExpertMode} 
+          onChange={toggleMode} 
+          size="small"
+          className="bg-gray-600"
+        />
+        <span className="text-gray-400 text-sm">{getMessage('expertMode')}</span>
+      </div>
+
+      {/* Auto Mode Interface */}
+      {!isExpertMode && (
+        <AutoModePage 
+          projectName={projectName} 
+          onSwitchToExpertMode={() => setIsExpertMode(true)} 
+        />
+      )}
+
+      {/* Expert Mode Interface */}
+      {isExpertMode && (
+        <Split 
+          className="flex-1 flex"
+          sizes={[30, 70]}
+          minSize={[200, 400]}
+          gutterSize={4}
+          snapOffset={30}
+        >
       {/* Left Sidebar - Chat */}
       <div className="border-r border-gray-700 flex flex-col">
 
@@ -341,6 +370,7 @@ const App: React.FC = () => {
         </Split>
       </div>
       </Split>
+      )}
       {/* File Search Modal */}
       <Modal
         title={getMessage('searchFiles')}

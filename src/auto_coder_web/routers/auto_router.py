@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from typing import Dict, Any
 from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
 from autocoder.events.event_manager_singleton import get_event_manager
+from autocoder.events import event_content as EventContentCreator
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -33,11 +34,17 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
         wrapper = AutoCoderRunnerWrapper(project_path)
         
         # 调用auto_command_wrapper方法
-        result = wrapper.auto_command_wrapper(request.command)
+        result = wrapper.auto_command_wrapper(request.command)        
+        get_event_manager().write_result(
+            EventContentCreator.create_completion(200,"completed",result).to_dict()
+        )
         
         return result
     except Exception as e:
         logger.error(f"Error executing auto command: {str(e)}")
+        get_event_manager().write_result(
+            EventContentCreator.create_error(500,"error",str(e)).to_dict()
+        )
         raise HTTPException(status_code=500, detail=f"Failed to execute auto command: {str(e)}")
 
 @router.get("/api/auto-command/events")

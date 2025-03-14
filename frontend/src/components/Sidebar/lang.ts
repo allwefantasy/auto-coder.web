@@ -325,6 +325,30 @@ export const messages: { [key: string]: Message } = {
     en: "Priority",
     zh: "优先级"
   },
+  autoMode: {
+    en: "Auto",
+    zh: "自动模式"
+  },
+  expertMode: {
+    en: "Expert",
+    zh: "专家模式"
+  },
+  searchIn: {
+    en: "Search in",
+    zh: "搜索"
+  },
+  yourProject: {
+    en: "your project",
+    zh: "你的项目"
+  },
+  autoModeDescription: {
+    en: "Ask anything about your code or what you want to build",
+    zh: "询问任何关于你的代码或者你想构建的内容"
+  },
+  tryExamples: {
+    en: "Try examples",
+    zh: "尝试示例"
+  },
 };
 
 // 当前语言设置
