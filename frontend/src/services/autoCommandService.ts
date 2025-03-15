@@ -16,9 +16,33 @@ export interface StreamContent extends BaseEventContent {
 
 // Result content interface
 export interface ResultContent extends BaseEventContent {
-  content: string | any;
+  content: string | ResultTokenStatContent | ResultCommandPrepareStatContent | ResultCommandExecuteStatContent | any;
   content_type: string;
   metadata?: Record<string, any>;
+}
+
+// Token statistics content
+export interface ResultTokenStatContent {
+  model_name: string;
+  elapsed_time: number;
+  first_token_time: number;
+  input_tokens: number;
+  output_tokens: number;
+  input_cost: number;
+  output_cost: number;
+  speed: number;
+}
+
+// Command preparation statistics content
+export interface ResultCommandPrepareStatContent {
+  command: string;
+  parameters: Record<string, any>;
+}
+
+// Command execution statistics content
+export interface ResultCommandExecuteStatContent {
+  command: string;
+  content: string;
 }
 
 // Ask user content interface
@@ -261,16 +285,86 @@ class AutoCommandService extends EventEmitter {
   private handleResultEvent(event: AutoCommandEvent, messageId: string) {
     const content = event.content as ResultContent;
     
+    let messageContent: string;
+    let contentType = content.content_type;
+    let metadata = content.metadata || {};
+    
+    // Determine the type of content and format accordingly
+    if (typeof content.content === 'string') {
+      messageContent = content.content;
+    } else if (this.isTokenStatContent(content.content)) {
+      // Handle ResultTokenStatContent
+      contentType = 'token_stat';
+      messageContent = JSON.stringify(content.content);
+      // Add the token stat data to metadata for display
+      metadata = {
+        ...metadata,
+        model_name: content.content.model_name,
+        elapsed_time: content.content.elapsed_time,
+        first_token_time: content.content.first_token_time,
+        input_tokens: content.content.input_tokens,
+        output_tokens: content.content.output_tokens,
+        input_cost: content.content.input_cost,
+        output_cost: content.content.output_cost,
+        speed: content.content.speed
+      };
+    } else if (this.isCommandPrepareStatContent(content.content)) {
+      // Handle ResultCommandPrepareStatContent
+      contentType = 'command_prepare_stat';
+      messageContent = `Command: ${content.content.command}`;
+      // Add parameters to metadata for display
+      metadata = {
+        ...metadata,
+        command: content.content.command,
+        parameters: content.content.parameters
+      };
+    } else if (this.isCommandExecuteStatContent(content.content)) {
+      // Handle ResultCommandExecuteStatContent
+      contentType = 'command_execute_stat';
+      messageContent = content.content.content;
+      // Add command to metadata for display
+      metadata = {
+        ...metadata,
+        command: content.content.command
+      };
+    } else {
+      // Default for any other object type
+      messageContent = JSON.stringify(content.content);
+    }
+    
     const message: Message = {
       id: messageId,
       type: event.event_type,
-      content: typeof content.content === 'string' ? content.content : JSON.stringify(content.content),
-      contentType: content.content_type,
-      metadata: content.metadata,
+      content: messageContent,
+      contentType: contentType,
+      metadata: metadata,
       eventId: event.event_id,
     };
     
     this.emit('message', message);
+  }
+  
+  // Type guard for ResultTokenStatContent
+  private isTokenStatContent(content: any): content is ResultTokenStatContent {
+    return content && 
+      typeof content.model_name === 'string' && 
+      typeof content.elapsed_time === 'number' &&
+      typeof content.input_tokens === 'number' &&
+      typeof content.output_tokens === 'number';
+  }
+  
+  // Type guard for ResultCommandPrepareStatContent
+  private isCommandPrepareStatContent(content: any): content is ResultCommandPrepareStatContent {
+    return content && 
+      typeof content.command === 'string' && 
+      typeof content.parameters === 'object';
+  }
+  
+  // Type guard for ResultCommandExecuteStatContent
+  private isCommandExecuteStatContent(content: any): content is ResultCommandExecuteStatContent {
+    return content && 
+      typeof content.command === 'string' && 
+      typeof content.content === 'string';
   }
 
   private handleAskUserEvent(event: AutoCommandEvent, messageId: string) {

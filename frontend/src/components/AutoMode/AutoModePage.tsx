@@ -157,6 +157,88 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       );
     }
     
+    // For token statistics content
+    if (message.contentType === 'token_stat') {
+      return (
+        <div className="font-mono text-sm">
+          <div className="text-indigo-400 font-semibold mb-1">Model Performance Statistics</div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+            {message.metadata && (
+              <>
+                <div className="text-gray-400">Model:</div>
+                <div className="text-white">{message.metadata.model_name}</div>
+                
+                <div className="text-gray-400">Total Time:</div>
+                <div className="text-white">{message.metadata.elapsed_time.toFixed(2)}s</div>
+                
+                <div className="text-gray-400">First Token Time:</div>
+                <div className="text-white">{message.metadata.first_token_time.toFixed(2)}s</div>
+                
+                <div className="text-gray-400">Input Tokens:</div>
+                <div className="text-white">{message.metadata.input_tokens}</div>
+                
+                <div className="text-gray-400">Output Tokens:</div>
+                <div className="text-white">{message.metadata.output_tokens}</div>
+                
+                <div className="text-gray-400">Input Cost:</div>
+                <div className="text-white">${message.metadata.input_cost.toFixed(6)}</div>
+                
+                <div className="text-gray-400">Output Cost:</div>
+                <div className="text-white">${message.metadata.output_cost.toFixed(6)}</div>
+                
+                <div className="text-gray-400">Speed:</div>
+                <div className="text-white">{message.metadata.speed.toFixed(2)} tokens/sec</div>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    // For command preparation statistics content
+    if (message.contentType === 'command_prepare_stat') {
+      return (
+        <div className="font-mono text-sm">
+          <div className="text-indigo-400 font-semibold mb-1">Command Preparation</div>
+          <div className="mb-2">
+            <span className="text-gray-400">Command: </span>
+            <span className="text-white font-semibold">{message.metadata?.command}</span>
+          </div>
+          {message.metadata?.parameters && Object.keys(message.metadata.parameters).length > 0 && (
+            <div>
+              <div className="text-gray-400 mb-1">Parameters:</div>
+              <div className="bg-gray-800 p-2 rounded">
+                {Object.entries(message.metadata.parameters).map(([key, value]) => (
+                  <div key={key} className="grid grid-cols-[120px_1fr] gap-2 mb-1">
+                    <span className="text-indigo-300">{key}:</span>
+                    <span className="text-white break-all">
+                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // For command execution statistics content
+    if (message.contentType === 'command_execute_stat') {
+      return (
+        <div className="font-mono text-sm">
+          <div className="text-indigo-400 font-semibold mb-1">Command Execution</div>
+          <div className="mb-2">
+            <span className="text-gray-400">Command: </span>
+            <span className="text-white font-semibold">{message.metadata?.command}</span>
+          </div>
+          <div className="bg-gray-800 p-2 rounded whitespace-pre-wrap overflow-auto max-h-[300px]">
+            {message.content}
+          </div>
+        </div>
+      );
+    }
+    
     // For thinking or streaming content
     if (message.isThinking || message.isStreaming) {
       return (
