@@ -3,6 +3,11 @@ import os
 import json
 import asyncio
 import time
+import uuid
+import sys
+import io
+from contextlib import contextmanager
+from threading import Thread
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -47,26 +52,37 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
     执行auto_command命令
 
     通过AutoCoderRunnerWrapper调用auto_command_wrapper方法，执行指定的命令
+    在单独的线程中运行，并返回一个唯一的UUID
     """
-    try:
-        # 创建AutoCoderRunnerWrapper实例，使用从应用上下文获取的项目路径
-        wrapper = AutoCoderRunnerWrapper(project_path)
+    # 生成唯一的UUID
+    command_id = str(uuid.uuid4())
+    
+    # 定义在线程中运行的函数
+    def run_command_in_thread():
+        try:
+            # 创建AutoCoderRunnerWrapper实例，使用从应用上下文获取的项目路径
+            wrapper = AutoCoderRunnerWrapper(project_path)
 
-        # 调用auto_command_wrapper方法
-        result = wrapper.auto_command_wrapper(request.command)
-        get_event_manager().write_completion(
-            EventContentCreator.create_completion(
-                "200", "completed", result).to_dict()
-        )
-
-        return "success"
-    except Exception as e:
-        logger.error(f"Error executing auto command: {str(e)}")
-        get_event_manager().write_error(
-            EventContentCreator.create_error("500", "error", str(e)).to_dict()
-        )
-        raise HTTPException(status_code="500",
-                            detail=f"Failed to execute auto command: {str(e)}")
+            # 调用auto_command_wrapper方法
+            result = wrapper.auto_command_wrapper(request.command)
+            get_event_manager().write_completion(
+                EventContentCreator.create_completion(
+                    "200", "completed", result).to_dict()
+            )
+            logger.info(f"Command {command_id} completed successfully")
+        except Exception as e:
+            logger.error(f"Error executing auto command {command_id}: {str(e)}")
+            get_event_manager().write_error(
+                EventContentCreator.create_error("500", "error", str(e)).to_dict()
+            )
+    
+    # 创建并启动线程
+    thread = Thread(target=run_command_in_thread)
+    thread.daemon = True  # 设置为守护线程，这样当主程序退出时，线程也会退出
+    thread.start()
+    
+    logger.info(f"Started command {command_id} in background thread")
+    return {"command_id": command_id}
 
 
 @router.get("/api/auto-command/events")
