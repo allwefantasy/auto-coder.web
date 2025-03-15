@@ -80,37 +80,35 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         // For token statistics content
         if (message.contentType === 'token_stat') {
             return (
-                <div className="font-mono text-sm">
-                    <div className="text-indigo-400 font-semibold mb-1">{getMessage('modelPerformanceStats')}</div>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        {message.metadata && (
-                            <>
-                                <div className="text-gray-400">{getMessage('modelName')}:</div>
-                                <div className="text-white">{message.metadata.model_name}</div>
-
-                                <div className="text-gray-400">{getMessage('totalTime')}:</div>
-                                <div className="text-white">{message.metadata.elapsed_time.toFixed(2)}s</div>
-
-                                <div className="text-gray-400">{getMessage('firstTokenTime')}:</div>
-                                <div className="text-white">{message.metadata.first_token_time.toFixed(2)}s</div>
-
-                                <div className="text-gray-400">{getMessage('inputTokens')}:</div>
-                                <div className="text-white">{message.metadata.input_tokens}</div>
-
-                                <div className="text-gray-400">{getMessage('outputTokens')}:</div>
-                                <div className="text-white">{message.metadata.output_tokens}</div>
-
-                                <div className="text-gray-400">{getMessage('inputCost')}:</div>
-                                <div className="text-white">${message.metadata.input_cost.toFixed(6)}</div>
-
-                                <div className="text-gray-400">{getMessage('outputCost')}:</div>
-                                <div className="text-white">${message.metadata.output_cost.toFixed(6)}</div>
-
-                                <div className="text-gray-400">{getMessage('tokenSpeed')}:</div>
-                                <div className="text-white">{message.metadata.speed.toFixed(2)} tokens/sec</div>
-                            </>
-                        )}
-                    </div>
+                <div className="font-mono text-xs text-gray-400 flex flex-row items-center gap-2">
+                    {message.metadata && (
+                        <>
+                            <div className="flex items-center">
+                                <span>Tokens: </span>
+                                <span className="text-green-500 ml-1">↑ {message.metadata.input_tokens}</span>
+                                <span className="text-red-500 ml-1">↓ {message.metadata.output_tokens}</span>
+                            </div>
+                            <div className="flex items-center">
+                                <span>Cache: </span>
+                                <span className="text-white ml-1">⊕ {message.metadata.cache_hit || 0}</span>
+                                <span className="text-white ml-1">→ {message.metadata.cache_miss || 0}</span>
+                            </div>
+                            <div className="flex items-center">
+                                <span>Context Window: </span>
+                                <span className="text-white ml-1">{message.metadata.context_window || 0}k</span>
+                                <div className="w-64 h-2 bg-gray-700 rounded ml-1">
+                                    <div 
+                                        className="h-full bg-blue-500 rounded" 
+                                        style={{ width: `${Math.min(100, (message.metadata.context_window || 0) / (message.metadata.max_context_window || 100) * 100)}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                            <div className="flex items-center">
+                                <span>API Cost: </span>
+                                <span className="text-white ml-1">${(message.metadata.input_cost + message.metadata.output_cost).toFixed(5)}</span>
+                            </div>
+                        </>
+                    )}
                 </div>
             );
         }
@@ -139,6 +137,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                             </div>
                         </div>
                     )}
+                    {JSON.stringify(message)}
                 </div>
             );
         }
@@ -291,7 +290,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <span>{getMessage('codeGenerateComplete')}</span>
+                        <span>{getMessage('jobCompleted')}</span>
                     </div>
                     <div className="bg-gray-800/50 p-3 rounded-md">
                         <p className="text-white mb-2">{message.content}</p>

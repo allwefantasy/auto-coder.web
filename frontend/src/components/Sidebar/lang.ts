@@ -414,6 +414,10 @@ export const messages: { [key: string]: Message } = {
     en: "Completion Time",
     zh: "完成时间"
   },
+  jobCompleted: {
+    en: "Job Completed",
+    zh: "任务完成"
+  }
 };
 
 // 当前语言设置

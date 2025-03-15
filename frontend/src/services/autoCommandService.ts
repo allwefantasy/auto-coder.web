@@ -333,11 +333,20 @@ class AutoCommandService extends EventEmitter {
     } else if (this.isCommandPrepareStatContent(content.content)) {
       // Handle ResultCommandPrepareStatContent
       contentType = 'command_prepare_stat';
-      messageContent = `Command: ${content.content.command}`;      
+      messageContent = `Command: ${content.content.command}`; 
+      metadata = {
+        ...metadata,
+        command: content.content.command,
+        parameters: content.content.parameters
+      };
     } else if (this.isCommandExecuteStatContent(content.content)) {
       // Handle ResultCommandExecuteStatContent
       contentType = 'command_execute_stat';
-      messageContent = content.content.content;      
+      messageContent = content.content.content;   
+      metadata = {
+        ...metadata,
+        command: content.content.command        
+      };
     } else if (this.isContextUsedContent(content.content)) {
       // Handle ResultContextUsedContent
       contentType = 'context_used';
