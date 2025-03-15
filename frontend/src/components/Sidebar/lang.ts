@@ -349,6 +349,71 @@ export const messages: { [key: string]: Message } = {
     en: "Try examples",
     zh: "尝试示例"
   },
+  // Message list component keys
+  modelPerformanceStats: {
+    en: "Model Consumption Statistics",
+    zh: "模型消费统计"
+  },
+  modelName: {
+    en: "Model",
+    zh: "模型"
+  },
+  totalTime: {
+    en: "Total Time",
+    zh: "总时间"
+  },
+  firstTokenTime: {
+    en: "First Token Time",
+    zh: "首个令牌时间"
+  },
+  inputTokens: {
+    en: "Input Tokens",
+    zh: "输入令牌数"
+  },
+  outputTokens: {
+    en: "Output Tokens",
+    zh: "输出令牌数"
+  },
+  inputCost: {
+    en: "Input Cost",
+    zh: "输入成本"
+  },
+  outputCost: {
+    en: "Output Cost",
+    zh: "输出成本"
+  },
+  tokenSpeed: {
+    en: "Speed",
+    zh: "速度"
+  },
+  commandPreparation: {
+    en: "Command Preparation",
+    zh: "命令准备"
+  },
+  command: {
+    en: "Command",
+    zh: "命令"
+  },
+  parameters: {
+    en: "Parameters",
+    zh: "参数"
+  },
+  commandExecution: {
+    en: "Command Execution",
+    zh: "命令执行"
+  },
+  contextUsed: {
+    en: "Context Used",
+    zh: "使用的上下文"
+  },
+  filesReferenced: {
+    en: "Files Referenced",
+    zh: "引用的文件"
+  },
+  completionTime: {
+    en: "Completion Time",
+    zh: "完成时间"
+  },
 };
 
 // 当前语言设置

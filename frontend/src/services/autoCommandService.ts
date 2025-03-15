@@ -309,7 +309,7 @@ class AutoCommandService extends EventEmitter {
     
     let messageContent: string;
     let contentType = content.content_type;
-    let metadata = content.metadata || {};
+    let metadata = {...content.metadata, ...event.metadata};
     
     // Determine the type of content and format accordingly
     if (typeof content.content === 'string') {
@@ -353,7 +353,7 @@ class AutoCommandService extends EventEmitter {
       content: messageContent,
       contentType: contentType,
       metadata: metadata,
-      eventId: event.event_id,
+      eventId: event.event_id,      
     };
     
     this.emit('message', message);
