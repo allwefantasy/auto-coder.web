@@ -1,6 +1,7 @@
 import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ReactMarkdown from 'react-markdown';
 
 interface MessageProps {
   id: string;
@@ -42,12 +43,34 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
     
     // For markdown content
     if (message.contentType === 'markdown') {
-      // In a real implementation, you would use a markdown renderer here
       return (
         <div className="prose prose-invert prose-sm max-w-none">
-          <pre className="whitespace-pre-wrap font-sans text-sm text-gray-200 break-words">
+          <ReactMarkdown
+            className="text-gray-200 break-words"
+            components={{
+              code: ({ className, children, ...props }: any) => {
+                const match = /language-(\w+)/.exec(className || '');
+                const inline = !match;
+                return !inline ? (
+                  <SyntaxHighlighter
+                    language={match ? match[1] : ''}
+                    style={vscDarkPlus}
+                    PreTag="div"
+                    wrapLines={true}
+                    wrapLongLines={true}
+                  >
+                    {String(children).replace(/\n$/, '')}
+                  </SyntaxHighlighter>
+                ) : (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                );
+              }
+            }}
+          >
             {message.content}
-          </pre>
+          </ReactMarkdown>
         </div>
       );
     }
@@ -127,9 +150,34 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             <span className="text-gray-400">Command: </span>
             <span className="text-white font-semibold">{message.metadata?.command}</span>
           </div>
-          <div className="bg-gray-800 p-2 rounded whitespace-pre-wrap overflow-auto max-h-[300px]">
+          <div className="prose prose-invert prose-sm max-w-none">
+          <ReactMarkdown
+            className="text-gray-200 break-words"
+            components={{
+              code: ({ className, children, ...props }: any) => {
+                const match = /language-(\w+)/.exec(className || '');
+                const inline = !match;
+                return !inline ? (
+                  <SyntaxHighlighter
+                    language={match ? match[1] : ''}
+                    style={vscDarkPlus}
+                    PreTag="div"
+                    wrapLines={true}
+                    wrapLongLines={true}
+                  >
+                    {String(children).replace(/\n$/, '')}
+                  </SyntaxHighlighter>
+                ) : (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                );
+              }
+            }}
+          >
             {message.content}
-          </div>
+          </ReactMarkdown>
+        </div>
         </div>
       );
     }
