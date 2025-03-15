@@ -432,6 +432,12 @@ class AutoCommandService extends EventEmitter {
       type: event.event_type,
       content: content.success_message,
       eventId: event.event_id,
+      metadata: {
+        success_code: content.success_code,
+        completion_time: content.completion_time,
+        details: content.details,
+        result: content.result
+      }
     };
     
     this.emit('message', message);

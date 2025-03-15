@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getMessage } from '../Sidebar/lang';
 import { autoCommandService, Message as ServiceMessage } from '../../services/autoCommandService';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import MessageList from './MessageList';
 
 interface AutoModePageProps {
   projectName: string;
@@ -134,143 +133,6 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       }]);
     }
   };
-  
-  // Function to render message content based on content type
-  const renderMessageContent = (message: Message) => {
-    // For code content
-    if (message.contentType === 'code' && message.language) {
-      return (
-        <div className="rounded-md overflow-hidden">
-          <SyntaxHighlighter 
-            language={message.language} 
-            style={vscDarkPlus}
-            customStyle={{ margin: 0, padding: '1rem', borderRadius: '0.375rem' }}
-          >
-            {message.content}
-          </SyntaxHighlighter>
-        </div>
-      );
-    }
-    
-    // For markdown content
-    if (message.contentType === 'markdown') {
-      // In a real implementation, you would use a markdown renderer here
-      return (
-        <div className="prose prose-invert prose-sm max-w-none">
-          <pre className="whitespace-pre-wrap font-sans text-sm text-gray-200 break-words">
-            {message.content}
-          </pre>
-        </div>
-      );
-    }
-    
-    // For token statistics content
-    if (message.contentType === 'token_stat') {
-      return (
-        <div className="font-mono text-sm">
-          <div className="text-indigo-400 font-semibold mb-1">Model Performance Statistics</div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-            {message.metadata && (
-              <>
-                <div className="text-gray-400">Model:</div>
-                <div className="text-white">{message.metadata.model_name}</div>
-                
-                <div className="text-gray-400">Total Time:</div>
-                <div className="text-white">{message.metadata.elapsed_time.toFixed(2)}s</div>
-                
-                <div className="text-gray-400">First Token Time:</div>
-                <div className="text-white">{message.metadata.first_token_time.toFixed(2)}s</div>
-                
-                <div className="text-gray-400">Input Tokens:</div>
-                <div className="text-white">{message.metadata.input_tokens}</div>
-                
-                <div className="text-gray-400">Output Tokens:</div>
-                <div className="text-white">{message.metadata.output_tokens}</div>
-                
-                <div className="text-gray-400">Input Cost:</div>
-                <div className="text-white">${message.metadata.input_cost.toFixed(6)}</div>
-                
-                <div className="text-gray-400">Output Cost:</div>
-                <div className="text-white">${message.metadata.output_cost.toFixed(6)}</div>
-                
-                <div className="text-gray-400">Speed:</div>
-                <div className="text-white">{message.metadata.speed.toFixed(2)} tokens/sec</div>
-              </>
-            )}
-          </div>
-        </div>
-      );
-    }
-    
-    // For command preparation statistics content
-    if (message.contentType === 'command_prepare_stat') {
-      return (
-        <div className="font-mono text-sm">
-          <div className="text-indigo-400 font-semibold mb-1">Command Preparation</div>
-          <div className="mb-2">
-            <span className="text-gray-400">Command: </span>
-            <span className="text-white font-semibold">{message.metadata?.command}</span>
-          </div>
-          {message.metadata?.parameters && Object.keys(message.metadata.parameters).length > 0 && (
-            <div>
-              <div className="text-gray-400 mb-1">Parameters:</div>
-              <div className="bg-gray-800 p-2 rounded">
-                {Object.entries(message.metadata.parameters).map(([key, value]) => (
-                  <div key={key} className="grid grid-cols-[120px_1fr] gap-2 mb-1">
-                    <span className="text-indigo-300">{key}:</span>
-                    <span className="text-white break-all">
-                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-    
-    // For command execution statistics content
-    if (message.contentType === 'command_execute_stat') {
-      return (
-        <div className="font-mono text-sm">
-          <div className="text-indigo-400 font-semibold mb-1">Command Execution</div>
-          <div className="mb-2">
-            <span className="text-gray-400">Command: </span>
-            <span className="text-white font-semibold">{message.metadata?.command}</span>
-          </div>
-          <div className="bg-gray-800 p-2 rounded whitespace-pre-wrap overflow-auto max-h-[300px]">
-            {message.content}
-          </div>
-        </div>
-      );
-    }
-    
-    // For thinking or streaming content
-    if (message.isThinking || message.isStreaming) {
-      return (
-        <div className="flex items-center">
-          <span className={`${message.isThinking ? 'italic text-gray-400' : 'text-gray-200'} mr-2`}>
-            {message.content}
-          </span>
-          {(message.isThinking || message.isStreaming) && (
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-            </div>
-          )}
-        </div>
-      );
-    }
-    
-    // Default text content
-    return (
-      <pre className="whitespace-pre-wrap font-sans text-sm text-gray-200 break-words">
-        {message.content}
-      </pre>
-    );
-  };
 
   // Function to handle auto mode search submission
   const handleAutoSearch = async (e: React.FormEvent) => {
@@ -288,6 +150,8 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         const result = await autoCommandService.executeCommand(autoSearchTerm);
         // Store the event file ID for later use in user responses
         setCurrentEventFileId(result.event_file_id);
+        // 清空输入框
+        setAutoSearchTerm('');
       } catch (error) {
         console.error('Error executing command:', error);
         setMessages(prev => [...prev, {
@@ -328,53 +192,10 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         {/* Messages Area */}
         {messages.length > 0 && (
           <div className="flex-1 overflow-y-auto mb-6 bg-gray-800 rounded-lg p-4">
-            {messages.map((message, index) => (
-              <div 
-                key={message.id || index} 
-                className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}
-              >
-                {!message.isUser && (
-                  <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center mr-2 flex-shrink-0">
-                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                    </svg>
-                  </div>
-                )}
-                <div 
-                  className={`max-w-[80%] ${message.isUser ? 'bg-indigo-600' : 
-                    message.type === 'ERROR' ? 'bg-red-900/80' : 
-                    message.isThinking || message.isStreaming ? 'bg-gray-700/50' : 'bg-gray-700'} 
-                    rounded-2xl px-4 py-3 ${message.isUser ? 'rounded-tr-none' : 'rounded-tl-none'}`}
-                >
-                  {/* Message content based on content type */}
-                  {renderMessageContent(message)}
-                  
-                  {/* Options for ASK_USER type */}
-                  {message.type === 'ASK_USER' && message.options && message.options.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {message.options.map((option, i) => (
-                        <button
-                          key={i}
-                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded-full text-sm text-white transition-colors"
-                          onClick={() => handleUserResponse(option, message.eventId)}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  
-                 
-                </div>
-                {message.isUser && (
-                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center ml-2 flex-shrink-0">
-                    <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            ))}
+            <MessageList 
+              messages={messages} 
+              onUserResponse={handleUserResponse}
+            />
             <div ref={messagesEndRef} />
           </div>
         )}
