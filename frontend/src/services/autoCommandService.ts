@@ -93,6 +93,7 @@ export interface Message {
   metadata?: Record<string, any>;
   isUser?: boolean;
   isThinking?: boolean;
+  isStreaming?: boolean;
   options?: string[];
   language?: string;
   responseRequired?: boolean;
@@ -106,6 +107,7 @@ class AutoCommandService extends EventEmitter {
   private lastEventType: string | null = null;
   private messageId = 0;
   private currentStreamMessageId: string | null = null;
+  private isStreamingActive: boolean = false;
 
   constructor() {
     super();
@@ -171,6 +173,12 @@ class AutoCommandService extends EventEmitter {
     } else {
       // Non-STREAM event - always create a new message ID
       messageId = `msg-${this.messageId++}`;
+      
+      // If previous event was a STREAM, finalize any pending stream messages
+      if (this.lastEventType === 'STREAM' && this.currentStreamMessageId) {
+        this.finalizeStreamMessage(this.currentStreamMessageId);
+      }
+      
       // Reset the current stream message ID since we're no longer in a STREAM sequence
       this.currentStreamMessageId = null;
     }
@@ -203,6 +211,7 @@ class AutoCommandService extends EventEmitter {
 
   private handleStreamEvent(event: AutoCommandEvent, messageId: string) {
     const content = event.content as StreamContent;
+    this.isStreamingActive = true;
     
     // Check if we have an existing stream message with this ID
     let existingMessage = this.streamEvents.get(messageId);
@@ -211,11 +220,14 @@ class AutoCommandService extends EventEmitter {
       // Update existing message
       existingMessage.content += content.content;
       existingMessage.isThinking = content.is_thinking;
+      existingMessage.isStreaming = true;
       
       // If the state is complete, remove from streamEvents and emit the final message
       if (content.state === 'complete') {
+        existingMessage.isStreaming = false;
         this.streamEvents.delete(messageId);
         this.emit('message', existingMessage);
+        this.isStreamingActive = false;
       } else {
         // Otherwise, update the map and emit the updated message
         this.streamEvents.set(messageId, existingMessage);
@@ -229,6 +241,7 @@ class AutoCommandService extends EventEmitter {
         content: content.content,
         contentType: content.content_type,
         isThinking: content.is_thinking,
+        isStreaming: true,
         eventId: event.event_id,
         language: (content as CodeContent).language, // Will be undefined if not CodeContent
       };
@@ -236,6 +249,9 @@ class AutoCommandService extends EventEmitter {
       // If not complete, add to streamEvents
       if (content.state !== 'complete') {
         this.streamEvents.set(messageId, message);
+      } else {
+        message.isStreaming = false;
+        this.isStreamingActive = false;
       }
       
       this.emit('message', message);
@@ -314,14 +330,30 @@ class AutoCommandService extends EventEmitter {
     this.emit('message', message);
   }
 
+  // Helper method to finalize a stream message
+  private finalizeStreamMessage(messageId: string) {
+    const message = this.streamEvents.get(messageId);
+    if (message) {
+      message.isStreaming = false;
+      message.isThinking = false;
+      this.streamEvents.delete(messageId);
+      this.emit('message', message);
+    }
+  }
+
   closeEventStream() {
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
     }
+    // Finalize any pending stream messages
+    Array.from(this.streamEvents.keys()).forEach(messageId => {
+      this.finalizeStreamMessage(messageId);
+    });
     this.streamEvents.clear();
     this.lastEventType = null;
     this.currentStreamMessageId = null;
+    this.isStreamingActive = false;
   }
 }
 

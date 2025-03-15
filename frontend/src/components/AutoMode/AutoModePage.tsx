@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { getMessage } from '../Sidebar/lang';
 import { autoCommandService, Message as ServiceMessage } from '../../services/autoCommandService';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -19,8 +20,11 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [activeDialog, setActiveDialog] = useState<Message | null>(null);
+  const [customResponse, setCustomResponse] = useState('');
   const autoSearchInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const customResponseInputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -141,16 +145,20 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       );
     }
     
-    // For thinking content
-    if (message.isThinking) {
+    // For thinking or streaming content
+    if (message.isThinking || message.isStreaming) {
       return (
         <div className="flex items-center">
-          <span className="italic text-gray-400 mr-2">{message.content}</span>
-          <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-          </div>
+          <span className={`${message.isThinking ? 'italic text-gray-400' : 'text-gray-200'} mr-2`}>
+            {message.content}
+          </span>
+          {(message.isThinking || message.isStreaming) && (
+            <div className="flex space-x-1">
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          )}
         </div>
       );
     }
@@ -222,7 +230,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                 <div 
                   className={`max-w-[80%] ${message.isUser ? 'bg-indigo-600' : 
                     message.type === 'ERROR' ? 'bg-red-900/80' : 
-                    message.isThinking ? 'bg-gray-700/50' : 'bg-gray-700'} 
+                    message.isThinking || message.isStreaming ? 'bg-gray-700/50' : 'bg-gray-700'} 
                     rounded-2xl px-4 py-3 ${message.isUser ? 'rounded-tr-none' : 'rounded-tl-none'}`}
                 >
                   {/* Message content based on content type */}
@@ -240,6 +248,24 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                           {option}
                         </button>
                       ))}
+                      <button
+                        className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 rounded-full text-sm text-white transition-colors"
+                        onClick={() => setActiveDialog(message)}
+                      >
+                        Custom Response
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Prompt for ASK_USER type without options */}
+                  {message.type === 'ASK_USER' && (!message.options || message.options.length === 0) && (
+                    <div className="mt-3">
+                      <button
+                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded-full text-sm text-white transition-colors"
+                        onClick={() => setActiveDialog(message)}
+                      >
+                        Respond
+                      </button>
                     </div>
                   )}
                   
@@ -328,6 +354,87 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
           </div>
         </div>
       </div>
+
+      {/* Dialog for Custom Response */}
+      <Transition.Root show={activeDialog !== null} as={React.Fragment}>
+        <Dialog 
+          as="div" 
+          className="fixed z-10 inset-0 overflow-y-auto" 
+          onClose={() => setActiveDialog(null)}
+          initialFocus={customResponseInputRef}
+        >
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <Transition.Child
+              as={React.Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <Dialog.Overlay className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" />
+            </Transition.Child>
+
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <Transition.Child
+              as={React.Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+              <div className="inline-block align-bottom bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                  <div className="mt-3 text-center sm:mt-5">
+                    <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-white">
+                      {activeDialog?.content}
+                    </Dialog.Title>
+                    <div className="mt-4">
+                      <textarea
+                        ref={customResponseInputRef}
+                        className="w-full px-3 py-2 text-base text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        rows={4}
+                        value={customResponse}
+                        onChange={(e) => setCustomResponse(e.target.value)}
+                        placeholder="Type your response here..."
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                  <button
+                    type="button"
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm"
+                    onClick={() => {
+                      if (activeDialog?.eventId) {
+                        handleUserResponse(customResponse, activeDialog.eventId);
+                        setCustomResponse('');
+                        setActiveDialog(null);
+                      }
+                    }}
+                  >
+                    Submit
+                  </button>
+                  <button
+                    type="button"
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-700 text-base font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                    onClick={() => {
+                      setCustomResponse('');
+                      setActiveDialog(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </Transition.Child>
+          </div>
+        </Dialog>
+      </Transition.Root>
     </div>
   );
 };

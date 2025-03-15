@@ -1,3 +1,8 @@
+from autocoder.run_context import get_run_context,RunMode
+
+# Set run mode to web
+get_run_context().set_mode(RunMode.WEB)
+
 from fastapi import FastAPI, Request, HTTPException, Response, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import WebSocket
@@ -52,6 +57,7 @@ from autocoder.utils import operate_config_api
 from .routers import todo_router
 from .routers import settings_router
 from .routers import auto_router
+
 
 
 def check_environment():

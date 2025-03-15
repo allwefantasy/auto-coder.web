@@ -91,8 +91,7 @@ async def poll_auto_command_events(project_path: str = Depends(get_project_path)
         event_manager = get_event_manager()           
         while True:                                 
             try:                
-                events = await asyncio.to_thread(event_manager.read_events, block=False)
-                logger.info(f"READ Events")
+                events = await asyncio.to_thread(event_manager.read_events, block=False)                
                 
                 if not events:
                     await asyncio.sleep(0.1)  # 减少休眠时间，更频繁地检查
