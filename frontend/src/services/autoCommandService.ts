@@ -137,9 +137,9 @@ class AutoCommandService extends EventEmitter {
     super();
   }
 
+  private eventFileId: string | null = null;
+
   async executeCommand(command: string): Promise<void> {
-    // Start listening for events
-    this.startEventStream();
     try {
       const response = await fetch('/api/auto-command', {
         method: 'POST',
@@ -153,6 +153,12 @@ class AutoCommandService extends EventEmitter {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
+      const data = await response.json();
+      this.eventFileId = data.event_file_id;
+      
+      // Start listening for events after we have the event_file_id
+      this.startEventStream();
+      
     } catch (error) {
       console.error('Error executing command:', error);
       throw error;
@@ -163,7 +169,12 @@ class AutoCommandService extends EventEmitter {
     // Close existing connection if any
     this.closeEventStream();
 
-    this.eventSource = new EventSource('/api/auto-command/events');
+    if (!this.eventFileId) {
+      console.error('No event file ID available');
+      return;
+    }
+
+    this.eventSource = new EventSource(`/api/auto-command/events?event_file_id=${this.eventFileId}`);
 
     this.eventSource.onmessage = (event) => {
       try {
@@ -448,6 +459,35 @@ class AutoCommandService extends EventEmitter {
     this.lastEventType = null;
     this.currentStreamMessageId = null;
     this.isStreamingActive = false;
+    // Don't reset eventFileId here as it might be needed for user responses
+  }
+
+  async sendUserResponse(eventId: string, response: string): Promise<void> {
+    if (!this.eventFileId) {
+      throw new Error('No event file ID available');
+    }
+    
+    try {
+      const apiResponse = await fetch('/api/auto-command/response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          event_id: eventId, 
+          event_file_id: this.eventFileId,
+          response 
+        }),
+      });
+
+      if (!apiResponse.ok) {
+        throw new Error(`HTTP error! status: ${apiResponse.status}`);
+      }
+      
+    } catch (error) {
+      console.error('Error sending user response:', error);
+      throw error;
+    }
   }
 }
 

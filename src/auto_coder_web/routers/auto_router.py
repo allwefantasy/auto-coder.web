@@ -84,9 +84,9 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
 
 
 @router.get("/api/auto-command/events")
-async def poll_auto_command_events(poll_request: EventPollRequest,project_path: str = Depends(get_project_path)):
+async def poll_auto_command_events(event_file_id: str, project_path: str = Depends(get_project_path)):
     async def event_stream():
-        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{poll_request.event_file_id}.json")
+        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{event_file_id}.json")
         event_manager = get_event_manager(event_file)           
         while True:                                 
             try:                

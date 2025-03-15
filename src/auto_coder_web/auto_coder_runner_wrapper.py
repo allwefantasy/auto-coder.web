@@ -40,5 +40,5 @@ class AutoCoderRunnerWrapper:
         pass
 
 
-    def auto_command_wrapper(self, command: str) -> Dict[str, str]:
-        return auto_command(None,command)
+    def auto_command_wrapper(self, command: str, params: Dict[str, Any]) -> Dict[str, str]:
+        return auto_command(command,params)
