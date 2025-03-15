@@ -2,6 +2,7 @@ README.md
 setup.py
 src/auto_coder_web/__init__.py
 src/auto_coder_web/auto_coder_runner.py
+src/auto_coder_web/auto_coder_runner_wrapper.py
 src/auto_coder_web/file_group.py
 src/auto_coder_web/file_manager.py
 src/auto_coder_web/json_file_storage.py
@@ -16,6 +17,7 @@ src/auto_coder_web.egg-info/entry_points.txt
 src/auto_coder_web.egg-info/requires.txt
 src/auto_coder_web.egg-info/top_level.txt
 src/auto_coder_web/routers/__init__.py
+src/auto_coder_web/routers/auto_router.py
 src/auto_coder_web/routers/settings_router.py
 src/auto_coder_web/routers/todo_router.py
 src/auto_coder_web/web/asset-manifest.json

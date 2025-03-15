@@ -41,4 +41,4 @@ class AutoCoderRunnerWrapper:
 
 
     def auto_command_wrapper(self, command: str) -> Dict[str, str]:
-        return auto_command(command)
+        return auto_command(None,command)
