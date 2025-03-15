@@ -130,7 +130,7 @@ export interface Message {
   language?: string;
   responseRequired?: boolean;
   eventId?: string;
-  responseTo?: string;
+  responseTo?: string;  
 }
 
 class AutoCommandService extends EventEmitter {

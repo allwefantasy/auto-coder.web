@@ -12,7 +12,7 @@ interface MessageProps {
   isUser?: boolean;
   isThinking?: boolean;
   isStreaming?: boolean;
-  metadata?: any;
+  metadata?: Record<string, any>;
   options?: string[];
   eventId?: string;
   responseRequired?: boolean;
