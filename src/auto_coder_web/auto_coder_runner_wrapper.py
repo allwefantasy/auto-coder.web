@@ -42,3 +42,9 @@ class AutoCoderRunnerWrapper:
 
     def auto_command_wrapper(self, command: str, params: Dict[str, Any]) -> Dict[str, str]:
         return auto_command(command,params)
+    
+    def configure_wrapper(self,conf: str, skip_print=False ):
+        return configure(conf, skip_print)
+        
+    
+    

@@ -55,9 +55,11 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
     # 定义在线程中运行的函数
     def run_command_in_thread():
         event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{event_file_id}.jsonl")
+
         try:
             # 创建AutoCoderRunnerWrapper实例，使用从应用上下文获取的项目路径
             wrapper = AutoCoderRunnerWrapper(project_path)
+            wrapper.configure_wrapper(f"event_file:{event_file}")
 
             # 调用auto_command_wrapper方法
             result = wrapper.auto_command_wrapper(request.command, {
