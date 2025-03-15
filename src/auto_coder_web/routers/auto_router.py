@@ -54,7 +54,7 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
     
     # 定义在线程中运行的函数
     def run_command_in_thread():
-        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{event_file_id}.json")
+        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{event_file_id}.jsonl")
         try:
             # 创建AutoCoderRunnerWrapper实例，使用从应用上下文获取的项目路径
             wrapper = AutoCoderRunnerWrapper(project_path)
@@ -86,7 +86,7 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
 @router.get("/api/auto-command/events")
 async def poll_auto_command_events(event_file_id: str, project_path: str = Depends(get_project_path)):
     async def event_stream():
-        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{event_file_id}.json")
+        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{event_file_id}.jsonl")
         event_manager = get_event_manager(event_file)           
         while True:                                 
             try:                
@@ -147,7 +147,7 @@ async def response_user(request: UserResponseRequest, project_path: str = Depend
     """
     try:
         # 获取事件管理器
-        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{request.event_file_id}.json")
+        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{request.event_file_id}.jsonl")
         event_manager = get_event_manager(event_file)
 
         # 调用respond_to_user方法发送用户响应
