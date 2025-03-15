@@ -103,8 +103,7 @@ async def poll_auto_command_events(project_path: str = Depends(get_project_path)
                     # Convert event to JSON string
                     event_json = event.to_json()
                     # Format as SSE
-                    yield f"data: {event_json}\n\n"
-                    logger.info(f"Event: {event_json}")
+                    yield f"data: {event_json}\n\n"                    
                     
                 # 防止current_event为None导致的错误
                 if current_event is not None:
