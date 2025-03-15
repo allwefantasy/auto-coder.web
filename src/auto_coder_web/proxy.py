@@ -973,8 +973,8 @@ def main():
     parser.add_argument(
         "--product_mode",
         type=str,
-        default="pro",
-        help="The mode of the auto-coder.chat, lite/pro default is pro",
+        default="lite",
+        help="The mode of the auto-coder.chat, lite/pro default is lite",
     )
     parser.add_argument(
         "--lite",

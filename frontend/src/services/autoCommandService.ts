@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 
 // Base event interface
 export interface BaseEventContent {
-  timestamp: number;
+  timestamp: number;  
 }
 
 // Stream content interface
@@ -16,7 +16,7 @@ export interface StreamContent extends BaseEventContent {
 
 // Result content interface
 export interface ResultContent extends BaseEventContent {
-  content: string | ResultTokenStatContent | ResultCommandPrepareStatContent | ResultCommandExecuteStatContent | any;
+  content: string | ResultTokenStatContent | ResultCommandPrepareStatContent | ResultCommandExecuteStatContent | ResultContextUsedContent | any;
   content_type: string;
   metadata?: Record<string, any>;
 }
@@ -43,6 +43,13 @@ export interface ResultCommandPrepareStatContent {
 export interface ResultCommandExecuteStatContent {
   command: string;
   content: string;
+}
+
+// Context used content
+export interface ResultContextUsedContent {
+  files: string[];
+  title: string;
+  description: string;
 }
 
 // Ask user content interface
@@ -106,6 +113,7 @@ export interface AutoCommandEvent {
   timestamp: number;
   content: EventContent;
   response_to?: string;
+  metadata?: Record<string, any>;
 }
 
 // Message interface for emitting to components
@@ -281,6 +289,7 @@ class AutoCommandService extends EventEmitter {
         isStreaming: true,
         eventId: event.event_id,
         language: (content as CodeContent).language, // Will be undefined if not CodeContent
+        metadata: event.metadata
       };
       
       // If not complete, add to streamEvents
@@ -340,6 +349,16 @@ class AutoCommandService extends EventEmitter {
         ...metadata,
         command: content.content.command
       };
+    } else if (this.isContextUsedContent(content.content)) {
+      // Handle ResultContextUsedContent
+      contentType = 'context_used';
+      messageContent = content.content.description;
+      // Add context data to metadata for display
+      metadata = {
+        ...metadata,
+        title: content.content.title,
+        files: content.content.files
+      };
     } else {
       // Default for any other object type
       messageContent = JSON.stringify(content.content);
@@ -378,6 +397,13 @@ class AutoCommandService extends EventEmitter {
     return content && 
       typeof content.command === 'string' && 
       typeof content.content === 'string';
+  }
+  
+  private isContextUsedContent(content: any): content is ResultContextUsedContent {
+    return content && 
+      Array.isArray(content.files) && 
+      typeof content.title === 'string' && 
+      typeof content.description === 'string';
   }
 
   private handleAskUserEvent(event: AutoCommandEvent, messageId: string) {
