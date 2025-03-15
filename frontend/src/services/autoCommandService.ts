@@ -139,7 +139,7 @@ class AutoCommandService extends EventEmitter {
 
   private eventFileId: string | null = null;
 
-  async executeCommand(command: string): Promise<void> {
+  async executeCommand(command: string): Promise<{event_file_id: string}> {
     try {
       const response = await fetch('/api/auto-command', {
         method: 'POST',
@@ -158,6 +158,8 @@ class AutoCommandService extends EventEmitter {
       
       // Start listening for events after we have the event_file_id
       this.startEventStream();
+      
+      return { event_file_id: data.event_file_id };
       
     } catch (error) {
       console.error('Error executing command:', error);

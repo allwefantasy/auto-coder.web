@@ -20,6 +20,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [isProcessing, setIsProcessing] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<Message | null>(null);
+  const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null);
   const autoSearchInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -85,6 +86,11 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       return;
     }
     
+    if (!currentEventFileId) {
+      console.error('Cannot respond to event: No event file ID available');
+      return;
+    }
+    
     // Close the active ASK_USER dialog if it matches the event ID
     if (activeAskUserMessage?.eventId === eventId) {
       setActiveAskUserMessage(null);
@@ -108,6 +114,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         },
         body: JSON.stringify({
           event_id: eventId,
+          event_file_id: currentEventFileId,
           response: response
         })
       });
@@ -277,7 +284,10 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
           content: autoSearchTerm,
           isUser: true
         }]);
-        await autoCommandService.executeCommand(autoSearchTerm);
+        // Execute the command and get the event file ID
+        const result = await autoCommandService.executeCommand(autoSearchTerm);
+        // Store the event file ID for later use in user responses
+        setCurrentEventFileId(result.event_file_id);
       } catch (error) {
         console.error('Error executing command:', error);
         setMessages(prev => [...prev, {
@@ -354,17 +364,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                     </div>
                   )}
                   
-                  {/* Metadata display */}
-                  {message.metadata && (
-                    <div className="mt-2 text-xs text-gray-400 border-t border-gray-600 pt-2">
-                      {Object.entries(message.metadata).map(([key, value]) => (
-                        <div key={key} className="flex gap-1">
-                          <span className="font-medium">{key}:</span>
-                          <span>{typeof value === 'object' ? JSON.stringify(value) : value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                 
                 </div>
                 {message.isUser && (
                   <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center ml-2 flex-shrink-0">
@@ -518,7 +518,7 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
           
           {/* Custom response input */}
           <form onSubmit={handleSubmit} className="mt-4">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-0">
               <input
                 type="text"
                 className="flex-1 bg-gray-700 border border-gray-600 rounded-l-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -529,7 +529,7 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
               />
               <button
                 type="submit"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-r-md transition-colors"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-r-md transition-colors border-l-0 border border-indigo-600"
                 disabled={!customResponse.trim()}
               >
                 Send
