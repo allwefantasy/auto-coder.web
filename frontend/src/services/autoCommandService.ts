@@ -323,8 +323,11 @@ class AutoCommandService extends EventEmitter {
 
     this.emit('message', message);
 
-    // 发出错误任务完成事件
-    this.emit('taskComplete', true);
+    // 添加延迟，确保消息状态已更新后再触发任务完成事件
+    setTimeout(() => {
+      // 发出错误任务完成事件
+      this.emit('taskComplete', true);
+    }, 300); // 300毫秒延迟，足够React状态更新
   }
 
   private handleCompletionEvent(event: AutoCommandEvent, messageId: string) {
@@ -345,8 +348,11 @@ class AutoCommandService extends EventEmitter {
 
     this.emit('message', message);
 
-    // 发出任务完成事件
-    this.emit('taskComplete', false);
+    // 添加延迟，确保消息状态已更新后再触发任务完成事件
+    setTimeout(() => {
+      // 发出任务完成事件
+      this.emit('taskComplete', false);
+    }, 1000); // 1000毫秒延迟，足够React状态更新
   }
 
   // Helper method to finalize a stream message
