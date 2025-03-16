@@ -1,5 +1,6 @@
 import React from 'react';
 import type { MessageProps } from '../MessageList';
+import { getMessage } from '../../Sidebar/lang';
 
 interface TokenStatMessageProps {
     message: MessageProps;
@@ -11,17 +12,17 @@ const TokenStatMessage: React.FC<TokenStatMessageProps> = ({ message }) => {
             {message.metadata && (
                 <>
                     <div className="flex items-center">
-                        <span>Tokens: </span>
+                        <span>{getMessage('tokens')}: </span>
                         <span className="text-green-500 ml-1">↑ {message.metadata.input_tokens}</span>
                         <span className="text-red-500 ml-1">↓ {message.metadata.output_tokens}</span>
                     </div>
                     <div className="flex items-center">
-                        <span>Cache: </span>
+                        <span>{getMessage('cache')}: </span>
                         <span className="text-white ml-1">⊕ {message.metadata.cache_hit || 0}</span>
                         <span className="text-white ml-1">→ {message.metadata.cache_miss || 0}</span>
                     </div>
                     <div className="flex items-center">
-                        <span>Context Window: </span>
+                        <span>{getMessage('contextWindow')}: </span>
                         <span className="text-white ml-1">{message.metadata.context_window || 0}k</span>
                         <div className="w-64 h-2 bg-gray-700 rounded ml-1">
                             <div 
@@ -31,7 +32,7 @@ const TokenStatMessage: React.FC<TokenStatMessageProps> = ({ message }) => {
                         </div>
                     </div>
                     <div className="flex items-center">
-                        <span>API Cost: </span>
+                        <span>{getMessage('apiCost')}: </span>
                         <span className="text-white ml-1">${(message.metadata.input_cost + message.metadata.output_cost).toFixed(5)}</span>
                     </div>
                 </>

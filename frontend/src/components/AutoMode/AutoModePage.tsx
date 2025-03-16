@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getMessage } from '../Sidebar/lang';
 import { autoCommandService, Message as ServiceMessage } from '../../services/autoCommandService';
-import MessageList from './MessageList';
+import { ChatPanel } from './index';
 
 interface AutoModePageProps {
   projectName: string;
@@ -14,28 +14,33 @@ interface Message extends ServiceMessage {
 }
 
 const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpertMode }) => {
-  const [autoSearchTerm, setAutoSearchTerm] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [activeAskUserMessage, setActiveAskUserMessage] = useState<Message | null>(null);
-  const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null);
-  const autoSearchInputRef = useRef<HTMLInputElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // 状态管理
+  const [autoSearchTerm, setAutoSearchTerm] = useState(''); // 搜索/命令输入框的状态
+  const [messages, setMessages] = useState<Message[]>([]); // 存储所有消息的数组
+  const [isProcessing, setIsProcessing] = useState(false); // 命令处理中状态标志
+  const [isStreaming, setIsStreaming] = useState(false); // 流式响应状态标志
+  const [activeAskUserMessage, setActiveAskUserMessage] = useState<Message | null>(null); // 当前活动的用户询问消息
+  const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null); // 当前事件文件ID
+  
+  // DOM 引用
+  const autoSearchInputRef = useRef<HTMLInputElement>(null); // 搜索输入框引用
+  const messagesEndRef = useRef<HTMLDivElement>(null); // 消息列表底部引用，用于自动滚动
 
+  // 滚动到消息列表底部的辅助函数
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // 组件挂载后的初始化效果
   useEffect(() => {
-    // Focus the search input when the component mounts
+    // 聚焦搜索输入框
     if (autoSearchInputRef.current) {
       autoSearchInputRef.current.focus();
     }
 
-    // Set up event listeners
+    // 设置消息事件监听器
     autoCommandService.on('message', (message: ServiceMessage) => {
-      // Check if this is an ASK_USER type message and set it as active
+      // 处理用户询问类型的消息
       if (message.type === 'ASK_USER') {
         const askUserMessage: Message = {
           ...message,
@@ -45,40 +50,43 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         setActiveAskUserMessage(askUserMessage);
       }
       
+      // 更新消息列表
       setMessages(prev => {
-        // Create a new message with id and timestamp
+        // 创建带有ID和时间戳的新消息
         const newMessage: Message = {
           ...message,
           id: message.id || `msg-${Date.now()}`,
           timestamp: Date.now()
         };
 
-        // Check if this is an update to an existing message
-        // The autoCommandService now handles consecutive STREAM events with the same ID
+        // 检查是否是对现有消息的更新
+        // autoCommandService 现在处理具有相同ID的连续流事件
         const existingIndex = prev.findIndex(m => m.id === newMessage.id);
         if (existingIndex >= 0) {
-          // Update existing message
+          // 更新现有消息
           const updatedMessages = [...prev];
           updatedMessages[existingIndex] = newMessage;
           return updatedMessages;
         }
 
-        // Add as a new message
+        // 添加为新消息
         return [...prev, newMessage];
       });
     });
 
+    // 组件卸载时清理
     return () => {
       autoCommandService.closeEventStream();
       autoCommandService.removeAllListeners();
     };
   }, []);
 
+  // 当消息列表更新时滚动到底部
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Function to handle user response to ASK_USER events
+  // 处理用户对ASK_USER事件的响应
   const handleUserResponse = async (response: string, eventId?: string) => {
     if (!eventId) {
       console.error('Cannot respond to event: No event ID provided');
@@ -90,12 +98,12 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       return;
     }
     
-    // Close the active ASK_USER dialog if it matches the event ID
+    // 如果匹配事件ID，关闭活动的ASK_USER对话框
     if (activeAskUserMessage?.eventId === eventId) {
       setActiveAskUserMessage(null);
     }
     
-    // Add user response to messages
+    // 将用户响应添加到消息列表
     setMessages(prev => [...prev, {
       id: 'user-response-' + Date.now(),
       type: 'USER_RESPONSE',
@@ -105,7 +113,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     }]);
     
     try {
-      // Send the response back to the server
+      // 将响应发送回服务器
       const result = await fetch('/api/auto-command/response', {
         method: 'POST',
         headers: {
@@ -134,21 +142,22 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     }
   };
 
-  // Function to handle auto mode search submission
+  // 处理自动模式搜索提交
   const handleAutoSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (autoSearchTerm.trim()) {
       try {
         setIsProcessing(true);
+        // 添加用户消息到消息列表
         setMessages([{
           id: 'user-' + Date.now(),
           type: 'USER',
           content: autoSearchTerm,
           isUser: true
         }]);
-        // Execute the command and get the event file ID
+        // 执行命令并获取事件文件ID
         const result = await autoCommandService.executeCommand(autoSearchTerm);
-        // Store the event file ID for later use in user responses
+        // 存储事件文件ID以便后续用户响应使用
         setCurrentEventFileId(result.event_file_id);
         // 清空输入框
         setAutoSearchTerm('');
@@ -166,8 +175,9 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   };
 
   return (
+    // 页面主容器 - 全高、灰黑背景的弹性容器
     <div className="flex-1 flex flex-col h-screen bg-gray-900">
-      {/* ASK_USER Dialog */}
+      {/* 用户询问对话框 - 当需要用户输入时显示的模态框 */}
       {activeAskUserMessage && (
         <AskUserDialog 
           message={activeAskUserMessage} 
@@ -176,7 +186,9 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         />
       )}
       
+      {/* 主内容区域 - 居中、最大宽度限制、垂直弹性布局 */}
       <div className={`w-full max-w-4xl mx-auto px-4 py-6 flex flex-col ${messages.length === 0 ? 'justify-center' : ''} h-full`}>
+        {/* 标题区域 - 显示应用名称和当前项目 */}
         <div className="flex flex-col items-center justify-center mb-6 space-y-2">
           <div className="flex items-center">
             <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -189,18 +201,20 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
           </div>
         </div>
         
-        {/* Messages Area */}
+        {/* 消息区域 - 带滚动功能的主聊天界面，包含ChatPanel组件 */}
         {messages.length > 0 && (
           <div className="flex-1 overflow-y-auto mb-6 bg-gray-800 rounded-lg p-4">
-            <MessageList 
+            <ChatPanel 
               messages={messages} 
+              currentTask={projectName || getMessage('noProjectSelected')}
               onUserResponse={handleUserResponse}
             />
+            {/* 消息列表底部引用点，用于自动滚动 */}
             <div ref={messagesEndRef} />
           </div>
         )}
 
-        {/* Command Input */}
+        {/* 命令输入区域 - 底部的搜索/命令输入框 */}
         <form onSubmit={handleAutoSearch} className="w-full">
           <div className="relative">
             <input
@@ -212,17 +226,20 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
               onChange={(e) => setAutoSearchTerm(e.target.value)}
               disabled={isProcessing}
             />
+            {/* 提交按钮 - 位于输入框右侧的搜索图标 */}
             <button
               type="submit"
               className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-colors ${isProcessing ? 'bg-gray-600 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
               disabled={isProcessing}
             >
               {isProcessing ? (
+                // 处理中状态显示旋转加载图标
                 <svg className="w-5 h-5 text-white animate-spin" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               ) : (
+                // 正常状态显示搜索图标
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -231,7 +248,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
           </div>
         </form>
 
-        {/* Example Commands */}
+        {/* 示例命令区域 - 提供快速使用的示例命令按钮 */}
         <div className="text-center text-gray-400 mt-4">
           <p className="mb-2">{getMessage('autoModeDescription')}</p>
           <p>{getMessage('tryExamples')}:</p>
@@ -264,7 +281,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   );
 };
 
-// AskUserDialog component for displaying ASK_USER events as a modal dialog
+// 用户询问对话框组件 - 显示需要用户交互的模态框
 interface AskUserDialogProps {
   message: Message;
   onResponse: (response: string, eventId?: string) => Promise<void>;
@@ -272,12 +289,13 @@ interface AskUserDialogProps {
 }
 
 const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onClose }) => {
-  const [customResponse, setCustomResponse] = useState('');
-  const hasOptions = message.options && message.options.length > 0;
+  const [customResponse, setCustomResponse] = useState(''); // 存储用户自定义输入的响应
+  const hasOptions = message.options && message.options.length > 0; // 检查是否有预定义选项
   
-  // Handle click outside to close if not required
+  // 对话框引用，用于检测点击外部区域
   const dialogRef = useRef<HTMLDivElement>(null);
   
+  // 处理点击对话框外部关闭对话框的逻辑
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dialogRef.current && !dialogRef.current.contains(event.target as Node) && !message.responseRequired) {
@@ -291,7 +309,7 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
     };
   }, [message.responseRequired, onClose]);
   
-  // Handle custom response submission
+  // 处理自定义响应提交
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (customResponse.trim()) {
@@ -300,11 +318,14 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
   };
   
   return (
+    // 模态对话框背景 - 覆盖整个屏幕，半透明黑色
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      {/* 对话框内容容器 */}
       <div 
         ref={dialogRef}
         className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 border border-gray-700"
       >
+        {/* 对话框标题和关闭按钮 */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold text-white">User Input Required</h3>
           {!message.responseRequired && (
@@ -319,10 +340,12 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
           )}
         </div>
         
+        {/* 对话框主体内容 */}
         <div className="mb-6">
+          {/* 消息内容 */}
           <p className="text-gray-200 mb-4">{message.content}</p>
           
-          {/* Options buttons */}
+          {/* 选项按钮区域 - 当有预定义选项时显示 */}
           {hasOptions && (
             <div className="flex flex-wrap gap-2 mb-4">
               {message.options!.map((option, index) => (
@@ -337,7 +360,7 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
             </div>
           )}
           
-          {/* Custom response input */}
+          {/* 自定义响应输入框 */}
           <form onSubmit={handleSubmit} className="mt-4">
             <div className="flex items-center space-x-0">
               <input
@@ -359,6 +382,7 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
           </form>
         </div>
         
+        {/* 必须响应提示 - 当需要响应才能继续时显示 */}
         {message.responseRequired && (
           <div className="text-sm text-amber-400 flex items-center">
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

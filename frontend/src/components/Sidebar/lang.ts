@@ -417,6 +417,27 @@ export const messages: { [key: string]: Message } = {
   jobCompleted: {
     en: "Job Completed",
     zh: "任务完成"
+  },
+  // Chat panel component keys
+  tokens: {
+    en: "Tokens",
+    zh: "令牌数"
+  },
+  cache: {
+    en: "Cache",
+    zh: "缓存"
+  },
+  contextWindow: {
+    en: "Context Window",
+    zh: "上下文窗口"
+  },
+  apiCost: {
+    en: "API Cost",
+    zh: "API成本"
+  },
+  noActiveTask: {
+    en: "No active task",
+    zh: "没有活动任务"
   }
 };
 
