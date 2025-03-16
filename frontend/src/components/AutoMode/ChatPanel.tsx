@@ -114,6 +114,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <h2 className="text-white font-medium truncate">{currentTask || getMessage('noActiveTask')}</h2>
+            {currentTask && (
+              <button 
+                className="ml-2 px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors"
+                onClick={() => alert(getMessage('viewChangeComingSoon'))}
+                title={getMessage('viewChange')}
+              >
+                {getMessage('viewChange')}
+              </button>
+            )}
           </div>
           
           {/* Token统计信息 */}

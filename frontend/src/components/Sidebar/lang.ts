@@ -447,6 +447,14 @@ export const messages: { [key: string]: Message } = {
     en: "Relevant Context",
     zh: "相关上下文"
   },
+  viewChange: {
+    en: "Commits",
+    zh: "Commits"
+  },
+  viewChangeComingSoon: {
+    en: "View this change feature coming soon",
+    zh: "查看此次变更功能即将上线"
+  },
   completionTime: {
     en: "Completion Time",
     zh: "完成时间"
