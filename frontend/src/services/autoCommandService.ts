@@ -223,6 +223,10 @@ class AutoCommandService extends EventEmitter {
       // Handle ResultContextUsedContent
       contentType = 'context_used';
       messageContent = content.content.description;
+      metadata = {
+        ...metadata,
+        files: content.content.files,        
+      };
     } else {
       // Default for any other object type
       messageContent = JSON.stringify(content.content);
