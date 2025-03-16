@@ -116,7 +116,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
             <h2 className="text-white font-medium truncate">{currentTask || getMessage('noActiveTask')}</h2>
             {currentTask && (
               <button 
-                className="ml-2 px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors"
+                className="ml-4 px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors"
                 onClick={() => alert(getMessage('viewChangeComingSoon'))}
                 title={getMessage('viewChange')}
               >
