@@ -1,6 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
 import { Editor, loader } from '@monaco-editor/react';
-import * as monaco from 'monaco-editor';
+import { Message as ServiceMessage } from '../../services/autoCommandService';
 
 // 定义 CompletionItem 类型用于自动完成
 interface CompletionItem {
@@ -15,27 +15,9 @@ interface HistoryCommand {
   query: string;
   status: string;
   timestamp: number;
-  messages: Array<{
-    id: string;
-    type: string;
-    content: string;
-    contentType?: string;
-    isUser?: boolean;
-    timestamp?: number;
-    metadata?: any;
-  }>;
+  messages: Array<ServiceMessage>;
   event_file_id?: string;
-  stats?: {
-    input_tokens?: number;
-    output_tokens?: number;
-    total_cost?: number;
-    context_window_usage?: number;
-    max_context_window?: number;
-    cache_hits?: number;
-    cache_misses?: number;
-  };
-  // 向后兼容字段
-  message_count?: number;
+  stats?: string;  
 }
 
 // 配置 Monaco Editor loader
@@ -350,18 +332,8 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
                             {new Date(task.timestamp).toLocaleString()}
                           </span>
                           <span className="text-gray-400 ml-2">
-                            {(task.message_count || task.messages?.length || 0)} 条消息
-                          </span>
-                          {task.stats && (
-                            <span className="text-gray-400 ml-2">
-                              {`${task.stats?.input_tokens || 0}/${task.stats?.output_tokens || 0} tokens`}
-                            </span>
-                          )}
-                          {task.stats && task.stats.total_cost && task.stats.total_cost > 0 && (
-                            <span className="text-green-400 ml-2">
-                              ${task.stats.total_cost.toFixed(5)}
-                            </span>
-                          )}
+                            {(task.messages?.length || 0)} 条消息
+                          </span>                          
                         </div>
                       </button>
                     </li>
