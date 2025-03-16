@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getMessage } from '../Sidebar/lang';
-import { Message as ServiceMessage } from './types';
+import { Message as ServiceMessage, HistoryCommand } from './types';
 import { ChatPanel } from './index';
 import InputPanel from './InputPanel';
 import { autoCommandService } from '../../services/autoCommandService';
@@ -30,7 +30,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const saveTaskHistory = useCallback(async (isError: boolean = false, query: string, eventFileId: string | null) => {        
     if (!query || !eventFileId) return;
     console.log(messages)
-    
+      
     try {
       await fetch('/api/auto-command/save-history', {
         method: 'POST',
@@ -40,14 +40,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         body: JSON.stringify({
           query: query,
           event_file_id: eventFileId,
-          messages: messages.map(msg => ({
-            id: msg.id,
-            type: msg.type,
-            content: msg.content,
-            contentType: msg.contentType,
-            isUser: msg.isUser,
-            timestamp: msg.timestamp,
-          })),
+          messages: messages,
           status: isError ? 'error' : 'completed',
           timestamp: Date.now()
         })
@@ -214,6 +207,46 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     }
   };
 
+  // 恢复历史任务状态
+  const restoreHistoryTask = (task: HistoryCommand) => {
+    // 设置查询
+    setAutoSearchTerm(task.query);
+    // 更新最后提交的查询
+    setLastSubmittedQuery(task.query);
+    
+    // 恢复消息历史
+    if (task.messages && task.messages.length > 0) {
+      // 转换消息格式以匹配当前需要的格式
+      const formattedMessages: Message[] = task.messages.map((msg: Partial<Message>) => ({
+        id: msg.id || `restored-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        type: msg.type || 'TEXT', // 确保有type
+        content: msg.content || '',
+        contentType: msg.contentType || 'text',
+        isUser: Boolean(msg.isUser),
+        isThinking: Boolean(msg.isThinking),
+        isStreaming: Boolean(msg.isStreaming),
+        timestamp: msg.timestamp || Date.now(),
+        eventId: msg.eventId,
+        options: msg.options,
+        responseRequired: Boolean(msg.responseRequired),
+        responseTo: msg.responseTo
+      }));
+      
+      // 更新消息列表
+      setMessages(formattedMessages);
+    }
+    
+    // 恢复事件文件ID
+    if (task.event_file_id) {
+      setCurrentEventFileId(task.event_file_id);
+    }
+    
+    // 确保消息区域可见
+    setIsMessageAreaVisible(true);
+    
+    console.log('Restored history task:', task);
+  };
+
   return (
     // 页面主容器 - 全高、灰黑背景的弹性容器
     <div className="flex-1 flex flex-col h-screen bg-gray-900">
@@ -280,6 +313,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
           autoSearchTerm={autoSearchTerm}
           setAutoSearchTerm={setAutoSearchTerm}
           onSubmit={handleAutoSearch}
+          onSelectHistoryTask={restoreHistoryTask}
         />
 
         {/* 示例命令区域 - 提供快速使用的示例命令按钮 */}

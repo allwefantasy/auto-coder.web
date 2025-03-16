@@ -57,8 +57,7 @@ class AutoCommandService extends EventEmitter {
 
     this.eventSource.onmessage = (event) => {
       try {
-        const eventData: AutoCommandEvent = JSON.parse(event.data);
-        console.log('eventData', eventData);
+        const eventData: AutoCommandEvent = JSON.parse(event.data);        
         this.handleEvent(eventData);
       } catch (error) {
         console.error('Error parsing event data:', error);

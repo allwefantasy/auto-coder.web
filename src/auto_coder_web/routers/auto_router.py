@@ -191,15 +191,7 @@ async def save_task_history(request: TaskHistoryRequest, project_path: str = Dep
     try:
         task_dir = ensure_task_dir(project_path)
         task_file = os.path.join(task_dir, f"{request.event_file_id}.json")
-        
-        # 准备要保存的数据
-        task_data = {
-            "query": request.query,
-            "event_file_id": request.event_file_id,
-            "messages": request.messages,
-            "status": request.status,
-            "timestamp": request.timestamp
-        }
+        task_data = request.model_dump()
         
         # 写入文件
         with open(task_file, 'w', encoding='utf-8') as f:

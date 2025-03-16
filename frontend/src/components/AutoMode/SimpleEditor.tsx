@@ -34,6 +34,8 @@ export interface SimpleEditorProps {
   disabled?: boolean;
   /** 切换到扩展编辑器的回调 */
   onToggleExpand?: () => void;
+  /** 选择历史任务的回调 */
+  onSelectHistoryTask?: (task: HistoryCommand) => void;
 }
 
 /**
@@ -46,7 +48,8 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   onChange,
   onSubmit,
   disabled = false,
-  onToggleExpand
+  onToggleExpand,
+  onSelectHistoryTask
 }, ref) => {
   // 编辑器引用
   const editorRef = useRef<any>(null);
@@ -130,6 +133,10 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   const selectTaskHistory = (command: HistoryCommand) => {
     onChange(command.query);
     setShowHistory(false);
+    // 如果提供了历史任务选择回调，则调用它
+    if (onSelectHistoryTask) {
+      onSelectHistoryTask(command);
+    }
     // 聚焦编辑器
     if (editorRef.current) {
       editorRef.current.focus();
@@ -322,7 +329,15 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
                           </span>
                           <span className="text-gray-400 ml-2">
                             {(task.messages?.length || 0)} 条消息
-                          </span>                          
+                          </span>
+                          {task.event_file_id && (
+                            <span className="text-blue-400 ml-2 flex items-center">
+                              <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M13 9h5.5L13 3.5V9M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.11.89-2 2-2m9 16v-2H6v2h9m3-4v-2H6v2h12z" />
+                              </svg>
+                              可恢复
+                            </span>
+                          )}                          
                         </div>
                       </button>
                     </li>

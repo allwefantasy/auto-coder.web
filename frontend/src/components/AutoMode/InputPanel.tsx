@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { getMessage } from '../Sidebar/lang';
 import ExpandableEditor from './ExpandableEditor';
 import SimpleEditor from './SimpleEditor';
+import { HistoryCommand } from './types';
 
 interface InputPanelProps {
   projectName: string;
@@ -9,6 +10,7 @@ interface InputPanelProps {
   autoSearchTerm: string;
   setAutoSearchTerm: (term: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  onSelectHistoryTask?: (task: HistoryCommand) => void;
 }
 
 const InputPanel: React.FC<InputPanelProps> = ({
@@ -16,7 +18,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
   isProcessing,
   autoSearchTerm,
   setAutoSearchTerm,
-  onSubmit
+  onSubmit,
+  onSelectHistoryTask
 }) => {
   // 状态管理
   const [isExpandedEditor, setIsExpandedEditor] = useState(false);
@@ -144,6 +147,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
             disabled={isProcessing}
             placeholder={`${getMessage('searchIn')} ${projectName || getMessage('yourProject')}`}
             onToggleExpand={toggleExpandedEditor}
+            onSelectHistoryTask={onSelectHistoryTask}
           />
           
           {/* 按钮容器 - 使用flex布局调整位置 */}
