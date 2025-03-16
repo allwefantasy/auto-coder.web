@@ -26,11 +26,16 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null); // 当前事件文件ID
   const [isMessageAreaVisible, setIsMessageAreaVisible] = useState(true); // 消息区域显示状态
   
-  // 添加处理任务完成的函数
-  const saveTaskHistory = useCallback(async (isError: boolean = false, query: string, eventFileId: string | null) => {        
+  const messagesRef = useRef(messages);
+  
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+  
+  const saveTaskHistory = useCallback(async (isError: boolean = false, query: string, eventFileId: string | null) => {
     if (!query || !eventFileId) return;
-    console.log(messages)
-      
+    console.log(messagesRef.current); // 使用 ref 获取最新值
+    
     try {
       await fetch('/api/auto-command/save-history', {
         method: 'POST',
@@ -40,7 +45,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         body: JSON.stringify({
           query: query,
           event_file_id: eventFileId,
-          messages: messages,
+          messages: messagesRef.current,
           status: isError ? 'error' : 'completed',
           timestamp: Date.now()
         })
@@ -49,7 +54,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     } catch (error) {
       console.error('Failed to save task history:', error);
     }
-  }, [messages]);
+  }, []);
   
   // 组件挂载后的初始化效果
   useEffect(() => {
@@ -212,29 +217,9 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     // 设置查询
     setAutoSearchTerm(task.query);
     // 更新最后提交的查询
-    setLastSubmittedQuery(task.query);
-    
-    // 恢复消息历史
-    if (task.messages && task.messages.length > 0) {
-      // 转换消息格式以匹配当前需要的格式
-      const formattedMessages: Message[] = task.messages.map((msg: Partial<Message>) => ({
-        id: msg.id || `restored-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        type: msg.type || 'TEXT', // 确保有type
-        content: msg.content || '',
-        contentType: msg.contentType || 'text',
-        isUser: Boolean(msg.isUser),
-        isThinking: Boolean(msg.isThinking),
-        isStreaming: Boolean(msg.isStreaming),
-        timestamp: msg.timestamp || Date.now(),
-        eventId: msg.eventId,
-        options: msg.options,
-        responseRequired: Boolean(msg.responseRequired),
-        responseTo: msg.responseTo
-      }));
-      
-      // 更新消息列表
-      setMessages(formattedMessages);
-    }
+    setLastSubmittedQuery(task.query);          
+    // 更新消息列表
+    setMessages(task.messages);    
     
     // 恢复事件文件ID
     if (task.event_file_id) {
