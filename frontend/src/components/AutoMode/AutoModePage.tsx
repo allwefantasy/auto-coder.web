@@ -25,6 +25,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<Message | null>(null); // 当前活动的用户询问消息
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null); // 当前事件文件ID
   const [isMessageAreaVisible, setIsMessageAreaVisible] = useState(true); // 消息区域显示状态
+  const [isMessageAreaAdaptive, setIsMessageAreaAdaptive] = useState(true); // 消息区域自适应状态
   
   const messagesRef = useRef(messages);
   
@@ -263,7 +264,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         
         {/* 消息区域 - 带滚动功能的主聊天界面，包含ChatPanel组件 */}
         {messages.length > 0 && isMessageAreaVisible && (
-          <div className="relative flex-1 overflow-y-auto mb-6 bg-gray-800 rounded-lg p-4">
+          <div className={`relative flex-1 ${isMessageAreaAdaptive ? 'overflow-y-auto' : ''} mb-6 bg-gray-800 rounded-lg p-4`}>
             {/* 关闭按钮移至 ChatPanel 组件内 */}
             <ChatPanel 
               messages={messages} 
@@ -274,6 +275,8 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                 : (projectName || getMessage('noProjectSelected'))}
               onUserResponse={handleUserResponse}
               onClose={() => setIsMessageAreaVisible(false)}
+              onToggleAdaptive={() => setIsMessageAreaAdaptive(!isMessageAreaAdaptive)}
+              isMessageAreaAdaptive={isMessageAreaAdaptive}
             />
           </div>
         )}        
