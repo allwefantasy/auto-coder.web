@@ -452,15 +452,12 @@ class AutoCommandService extends EventEmitter {
   }
 
   private handleCompletionEvent(event: AutoCommandEvent, messageId: string) {
-    const content = event.content as CompletionContent;
-    
-    // Check if content is ResultSummaryContent
-    const isResultSummary = 'summary' in content;
+    const content = event.content as CompletionContent;        
     
     const message: Message = {
       id: messageId,
       type: event.event_type,
-      content: isResultSummary ? (content as unknown as ResultSummaryContent).summary : content.success_message,
+      content: content.success_message,
       eventId: event.event_id,
       metadata: {
         success_code: content.success_code,
