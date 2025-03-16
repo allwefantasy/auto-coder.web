@@ -28,6 +28,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   // 添加处理任务完成的函数
   const saveTaskHistory = useCallback(async (isError: boolean = false, query: string, eventFileId: string | null) => {        
     if (!query || !eventFileId) return;
+    console.log(messages)
     
     try {
       await fetch('/api/auto-command/save-history', {
@@ -256,7 +257,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
               onClose={() => setIsMessageAreaVisible(false)}
             />
           </div>
-        )}
+        )}        
 
         {/* 显示消息区域的按钮 - 当消息区域被隐藏时显示 */}
         {messages.length > 0 && !isMessageAreaVisible && (

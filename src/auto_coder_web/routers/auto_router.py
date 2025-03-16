@@ -221,13 +221,13 @@ async def get_task_history(project_path: str = Depends(get_project_path)):
     """
     获取任务历史列表
 
-    从本地文件系统读取所有保存的任务历史
+    从本地文件系统读取所有保存的任务历史，返回原始JSON文件内容
 
     Args:
         project_path: 项目路径
 
     Returns:
-        任务历史列表
+        任务历史列表，包含完整的原始数据
     """
     try:
         task_dir = ensure_task_dir(project_path)
@@ -240,17 +240,11 @@ async def get_task_history(project_path: str = Depends(get_project_path)):
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         task_data = json.load(f)
-                        # 添加文件名作为ID (不含扩展名)
+                        # 只添加文件名作为ID (不含扩展名)
                         task_id = os.path.splitext(filename)[0]
-                        task_summary = {
-                            "id": task_id,
-                            "query": task_data.get("query", ""),
-                            "status": task_data.get("status", "unknown"),
-                            "timestamp": task_data.get("timestamp", 0),
-                            # 可以选择性地包含简短的消息摘要
-                            "message_count": len(task_data.get("messages", []))
-                        }
-                        task_files.append(task_summary)
+                        # 返回完整的原始数据，只添加ID
+                        task_data["id"] = task_id
+                        task_files.append(task_data)
                 except Exception as e:
                     logger.error(f"Error reading task file {filename}: {str(e)}")
         
