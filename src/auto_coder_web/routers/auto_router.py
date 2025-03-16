@@ -1,11 +1,4 @@
-import logging
-import os
-import json
 import asyncio
-import time
-import uuid
-import sys
-import io
 from contextlib import contextmanager
 from threading import Thread
 from fastapi import APIRouter, HTTPException, Request, Depends
@@ -13,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
-from autocoder.events.event_manager_singleton import get_event_manager
+from autocoder.events.event_manager_singleton import get_event_manager,gengerate_event_file_path,get_event_file_path
 from autocoder.events import event_content as EventContentCreator
 from autocoder.events.event_types import EventType
 from byzerllm.utils.langutil import asyncfy_with_semaphore
@@ -48,14 +41,10 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
 
     通过AutoCoderRunnerWrapper调用auto_command_wrapper方法，执行指定的命令
     在单独的线程中运行，并返回一个唯一的UUID
-    """
-    # 生成唯一的UUID
-    event_file_id = str(uuid.uuid4())
-    
+    """ 
+    event_file,file_id = gengerate_event_file_path()       
     # 定义在线程中运行的函数
-    def run_command_in_thread():
-        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{event_file_id}.jsonl")
-
+    def run_command_in_thread():        
         try:
             # 创建AutoCoderRunnerWrapper实例，使用从应用上下文获取的项目路径
             wrapper = AutoCoderRunnerWrapper(project_path)
@@ -63,15 +52,15 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
 
             # 调用auto_command_wrapper方法
             result = wrapper.auto_command_wrapper(request.command, {
-                "event_file_id": event_file_id
+                "event_file_id": file_id
             })            
             get_event_manager(event_file).write_completion(
                 EventContentCreator.create_completion(
                     "200", "completed", result).to_dict()
             )
-            logger.info(f"Event file id: {event_file_id} completed successfully")
+            logger.info(f"Event file id: {file_id} completed successfully")
         except Exception as e:
-            logger.error(f"Error executing auto command {event_file_id}: {str(e)}")
+            logger.error(f"Error executing auto command {file_id}: {str(e)}")
             get_event_manager(event_file).write_error(
                 EventContentCreator.create_error("500", "error", str(e)).to_dict()
             )
@@ -81,14 +70,14 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
     thread.daemon = True  # 设置为守护线程，这样当主程序退出时，线程也会退出
     thread.start()
     
-    logger.info(f"Started command {event_file_id} in background thread")
-    return {"event_file_id": event_file_id}
+    logger.info(f"Started command {file_id} in background thread")
+    return {"event_file_id": file_id}
 
 
 @router.get("/api/auto-command/events")
 async def poll_auto_command_events(event_file_id: str, project_path: str = Depends(get_project_path)):
     async def event_stream():
-        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{event_file_id}.jsonl")
+        event_file = get_event_file_path(event_file_id,project_path)
         event_manager = get_event_manager(event_file)           
         while True:                                 
             try:                
@@ -149,7 +138,7 @@ async def response_user(request: UserResponseRequest, project_path: str = Depend
     """
     try:
         # 获取事件管理器
-        event_file = os.path.join(project_path,".auto-coder","auto-coder.web","events",f"{request.event_file_id}.jsonl")
+        event_file = get_event_file_path(file_id=request.event_file_id,project_path=project_path)
         event_manager = get_event_manager(event_file)
 
         # 调用respond_to_user方法发送用户响应
