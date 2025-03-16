@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getMessage } from '../Sidebar/lang';
 import { autoCommandService, Message as ServiceMessage } from '../../services/autoCommandService';
 import { ChatPanel } from './index';
@@ -26,8 +26,10 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [isMessageAreaVisible, setIsMessageAreaVisible] = useState(true); // 消息区域显示状态
   
   // 添加处理任务完成的函数
-  const saveTaskHistory = async (isError: boolean = false) => {
-    if (!lastSubmittedQuery || !currentEventFileId) return;
+  const saveTaskHistory = useCallback(async (isError: boolean = false, query: string, eventFileId: string | null) => {    
+    console.log('lastSubmittedQuery', query);
+    console.log('currentEventFileId', eventFileId);
+    if (!query || !eventFileId) return;
     
     try {
       await fetch('/api/auto-command/save-history', {
@@ -36,8 +38,8 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query: lastSubmittedQuery,
-          event_file_id: currentEventFileId,
+          query: query,
+          event_file_id: eventFileId,
           messages: messages.map(msg => ({
             id: msg.id,
             type: msg.type,
@@ -54,7 +56,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     } catch (error) {
       console.error('Failed to save task history:', error);
     }
-  };
+  }, [messages]);
   
   // 组件挂载后的初始化效果
   useEffect(() => {
@@ -95,17 +97,32 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       });
     });
 
-    // 监听任务完成事件
-    autoCommandService.on('taskComplete', (isError: boolean) => {
-      saveTaskHistory(isError);
-    });
-
     // 组件卸载时清理
     return () => {
       autoCommandService.closeEventStream();
       autoCommandService.removeAllListeners();
     };
   }, []);
+
+  // 单独处理任务完成事件，依赖于查询和事件文件ID
+  useEffect(() => {
+    // 先移除旧的监听器，避免重复监听
+    autoCommandService.removeAllListeners('taskComplete');
+    
+    // 添加新的监听器，闭包会捕获最新的状态值
+    autoCommandService.on('taskComplete', (isError: boolean) => {
+      if (lastSubmittedQuery && currentEventFileId) {
+        saveTaskHistory(isError, lastSubmittedQuery, currentEventFileId);
+      } else {
+        console.warn('Cannot save task history: missing query or event file ID');
+      }
+    });
+    
+    // 清理函数
+    return () => {
+      autoCommandService.removeAllListeners('taskComplete');
+    };
+  }, [lastSubmittedQuery, currentEventFileId, saveTaskHistory]);
 
   // 处理用户对ASK_USER事件的响应
   const handleUserResponse = async (response: string, eventId?: string) => {
