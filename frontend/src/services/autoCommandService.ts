@@ -95,6 +95,11 @@ export interface CompletionContent extends BaseEventContent {
   completion_time: number;
 }
 
+// Result summary content interface
+export interface ResultSummaryContent extends BaseEventContent {
+  summary: string;
+}
+
 // Union type for all content types
 export type EventContent = 
   | StreamContent 
@@ -104,7 +109,8 @@ export type EventContent =
   | CodeContent 
   | MarkdownContent 
   | ErrorContent 
-  | CompletionContent;
+  | CompletionContent
+  | ResultSummaryContent;
 
 // Main event interface
 export interface AutoCommandEvent {
@@ -445,10 +451,13 @@ class AutoCommandService extends EventEmitter {
   private handleCompletionEvent(event: AutoCommandEvent, messageId: string) {
     const content = event.content as CompletionContent;
     
+    // Check if content is ResultSummaryContent
+    const isResultSummary = 'summary' in content;
+    
     const message: Message = {
       id: messageId,
       type: event.event_type,
-      content: content.success_message,
+      content: isResultSummary ? (content as unknown as ResultSummaryContent).summary : content.success_message,
       eventId: event.event_id,
       metadata: {
         success_code: content.success_code,
