@@ -90,7 +90,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             {messages.map((message, index) => (
                 <div
                     key={message.id || index}
-                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}
+                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4 w-full`}
                 >
                     {!message.isUser && (
                         <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center mr-2 flex-shrink-0">
@@ -100,7 +100,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                         </div>
                     )}
                     <div
-                        className={`max-w-[80%] ${message.isUser ? 'bg-indigo-600' :
+                        className={`w-[80%] ${message.isUser ? 'bg-indigo-600' :
                             message.type === 'ERROR' ? 'bg-red-900/80' :
                                 message.isThinking || message.isStreaming ? 'bg-gray-700/50' : 'bg-gray-700'} 
               rounded-2xl px-4 py-3 ${message.isUser ? 'rounded-tr-none' : 'rounded-tl-none'}`}

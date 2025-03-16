@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
 import { Editor, loader } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
 
@@ -51,6 +51,76 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   // 编辑器引用
   const editorRef = useRef<any>(null);
   
+  // 历史命令状态
+  const [showHistory, setShowHistory] = useState(false);
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const historyRef = useRef<HTMLDivElement>(null);
+  
+  // 加载历史命令
+  useEffect(() => {
+    const loadCommandHistory = async () => {
+      try {
+        // 尝试从 localStorage 加载历史命令
+        const savedHistory = localStorage.getItem('commandHistory');
+        if (savedHistory) {
+          setCommandHistory(JSON.parse(savedHistory));
+        }
+      } catch (error) {
+        console.error('Failed to load command history', error);
+      }
+    };
+    
+    loadCommandHistory();
+  }, []);
+  
+  // 保存命令到历史
+  const saveCommandToHistory = (command: string) => {
+    if (command.trim() === '') return;
+    
+    setCommandHistory(prev => {
+      // 移除重复命令
+      const filtered = prev.filter(cmd => cmd !== command);
+      // 将新命令放在最前面，最多保存20条历史记录
+      const newHistory = [command, ...filtered].slice(0, 20);
+      // 保存到 localStorage
+      localStorage.setItem('commandHistory', JSON.stringify(newHistory));
+      return newHistory;
+    });
+  };
+  
+  // 选择历史命令
+  const selectHistoryCommand = (command: string) => {
+    onChange(command);
+    setShowHistory(false);
+    // 聚焦编辑器
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+  };
+  
+  // 监听点击外部关闭历史列表
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (historyRef.current && !historyRef.current.contains(event.target as Node)) {
+        setShowHistory(false);
+      }
+    };
+    
+    if (showHistory) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showHistory]);
+  
+  // 提交时保存命令到历史
+  const handleSubmitWithHistory = () => {
+    saveCommandToHistory(value);
+    onSubmit();
+  };
+  
   // 暴露方法给父组件
   useImperativeHandle(ref, () => ({
     focus: () => {
@@ -74,6 +144,9 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
     
     // 添加提交快捷键 (Ctrl/Cmd + Enter)
     editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.Enter, () => {
+      if (value.trim()) {
+        saveCommandToHistory(value);
+      }
       onSubmit();
     });
     
@@ -144,7 +217,75 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   };
 
   return (
-    <div className="w-full h-9 rounded-full overflow-hidden bg-gray-800 border border-gray-700 shadow-lg pl-10 pr-16">
+    <div className="w-full h-9 rounded-full overflow-hidden bg-gray-800 border border-gray-700 shadow-lg pl-16 pr-16">
+      {/* 机器人图标（保持现有样式） */}
+      <div className="absolute left-3.5 top-0 bottom-0 flex items-center z-10">
+        <svg className="w-4 h-4 text-purple-500 opacity-80" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5A2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5a2.5 2.5 0 0 0 2.5 2.5a2.5 2.5 0 0 0 2.5-2.5a2.5 2.5 0 0 0-2.5-2.5z" />
+        </svg>
+      </div>
+      
+      {/* 历史命令按钮 */}
+      <div className="absolute left-10 top-0 bottom-0 flex items-center z-10">
+        <button
+          type="button"
+          className="p-1 rounded-full text-gray-400 hover:text-gray-200 transition-colors focus:outline-none"
+          onClick={() => setShowHistory(!showHistory)}
+          title="命令历史"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" />
+          </svg>
+        </button>
+        
+        {/* 历史命令下拉列表 */}
+        {showHistory && (
+          <div
+            ref={historyRef} 
+            className="absolute left-0 top-full mt-2 w-72 max-h-80 overflow-y-auto bg-gray-800 border border-gray-700 rounded-md shadow-lg z-20"
+          >
+            <div className="py-1 border-b border-gray-700">
+              <div className="px-4 py-2 text-sm text-gray-300 font-semibold flex justify-between items-center">
+                <span>最近使用的命令</span>
+                {commandHistory.length > 0 && (
+                  <button
+                    type="button"
+                    className="text-xs text-red-400 hover:text-red-300 focus:outline-none"
+                    onClick={() => {
+                      if (window.confirm('确定要清空历史命令吗？')) {
+                        setCommandHistory([]);
+                        localStorage.removeItem('commandHistory');
+                      }
+                    }}
+                  >
+                    清空历史
+                  </button>
+                )}
+              </div>
+            </div>
+            {commandHistory.length > 0 ? (
+              <ul className="py-1">
+                {commandHistory.map((cmd, index) => (
+                  <li key={index}>
+                    <button
+                      type="button"
+                      className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 truncate"
+                      onClick={() => selectHistoryCommand(cmd)}
+                    >
+                      {cmd}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="px-4 py-3 text-sm text-gray-400 text-center">
+                没有历史命令
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      
       <Editor
         height="100%"
         defaultLanguage="markdown"
