@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { getMessage } from '../Sidebar/lang';
 import ExpandableEditor from './ExpandableEditor';
+import SimpleEditor from './SimpleEditor';
 
 interface InputPanelProps {
   projectName: string;
@@ -22,7 +23,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
   const [editorContent, setEditorContent] = useState('');
   
   // DOM 引用
-  const autoSearchInputRef = useRef<HTMLInputElement>(null);
+  const autoSearchInputRef = useRef<any>(null);
   const editorRef = useRef<any>(null);
 
   // 处理编辑器挂载
@@ -65,6 +66,13 @@ const InputPanel: React.FC<InputPanelProps> = ({
       setTimeout(() => {
         onSubmit(new Event('submit') as unknown as React.FormEvent);
       }, 0);
+    }
+  };
+
+  // 处理简单编辑器提交
+  const handleSimpleEditorSubmit = () => {
+    if (autoSearchTerm.trim() && !isProcessing) {
+      onSubmit(new Event('submit') as unknown as React.FormEvent);
     }
   };
 
@@ -116,39 +124,44 @@ const InputPanel: React.FC<InputPanelProps> = ({
         </div>
       )}
 
-      {/* 搜索表单 - 包含输入框和提交按钮 */}
+      {/* 聊天表单 - 使用 SimpleEditor 组件 */}
       <form onSubmit={onSubmit} className="w-full relative mb-6">
-        <input
-          ref={autoSearchInputRef}
-          type="text"
-          className="w-full py-4 px-6 pr-24 rounded-full bg-gray-800 border border-gray-700 text-white text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-lg"
-          placeholder={`${getMessage('searchIn')} ${projectName || getMessage('yourProject')}`}
-          value={autoSearchTerm}
-          onChange={(e) => setAutoSearchTerm(e.target.value)}
-          disabled={isProcessing}
-        />
-        {/* 扩展编辑器按钮 */}
-        <button
-          type="button"
-          className="absolute right-14 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-colors bg-gray-700 hover:bg-gray-600"
-          onClick={toggleExpandedEditor}
-          disabled={isProcessing}
-          title={getMessage('expandEditor')}
-        >
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-          </svg>
-        </button>
-        {/* 提交按钮 - 位于输入框右侧的搜索图标 */}
-        <button
-          type="submit"
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-          disabled={isProcessing || !autoSearchTerm.trim()}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
+        <div className="w-full relative">
+          {/* 使用 SimpleEditor 替换原有的输入框 */}
+          <SimpleEditor
+            ref={autoSearchInputRef}
+            value={autoSearchTerm}
+            onChange={setAutoSearchTerm}
+            onSubmit={handleSimpleEditorSubmit}
+            disabled={isProcessing}
+            placeholder={`${getMessage('searchIn')} ${projectName || getMessage('yourProject')}`}
+            onToggleExpand={toggleExpandedEditor}
+          />
+          
+          {/* 扩展编辑器按钮 */}
+          <button
+            type="button"
+            className="absolute right-14 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-colors bg-gray-700 hover:bg-gray-600 z-10"
+            onClick={toggleExpandedEditor}
+            disabled={isProcessing}
+            title={getMessage('expandEditor')}
+          >
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            </svg>
+          </button>
+          
+          {/* 提交按钮 - 位于输入框右侧的搜索图标 */}
+          <button
+            type="submit"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition-colors z-10"
+            disabled={isProcessing || !autoSearchTerm.trim()}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+        </div>
       </form>
     </>
   );

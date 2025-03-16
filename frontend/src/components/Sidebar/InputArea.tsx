@@ -264,12 +264,14 @@ const InputArea: React.FC<InputAreaProps> = ({
 
       {/* Message Input */}
       <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}>
-        <EditorComponent
-          isMaximized={isMaximized}
-          onEditorDidMount={handleEditorDidMount}
-          onShouldSendMessage={() => setShouldSendMessage(true)}
-          onToggleMaximize={() => setIsMaximized((prev: boolean): boolean => !prev)}
-        />
+        <div className="flex-1 min-h-[150px] h-full">
+          <EditorComponent
+            isMaximized={isMaximized}
+            onEditorDidMount={handleEditorDidMount}
+            onShouldSendMessage={() => setShouldSendMessage(true)}
+            onToggleMaximize={() => setIsMaximized((prev: boolean): boolean => !prev)}
+          />
+        </div>
         <div className="flex flex-col mt-2 gap-2">
           {/* Bottom Actions Container */}
           <div className="space-y-3 bg-gray-850 p-3 rounded-lg shadow-inner border border-gray-700/50">

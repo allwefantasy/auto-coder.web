@@ -123,7 +123,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   };
 
   return (
-    <div className={`flex-1 ${isMaximized ? 'h-full' : 'h-full'} border-0 rounded-lg overflow-hidden`}>
+    <div className={`flex-1 ${isMaximized ? 'h-full' : 'h-full'} border-0 rounded-lg overflow-hidden w-full`} style={{ height: isMaximized ? '100%' : '150px' }}>
       <Editor
         height="100%"
         defaultLanguage="markdown"

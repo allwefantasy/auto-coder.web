@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { Editor, loader } from '@monaco-editor/react';
-// 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
-// 导入 CompletionItem 类型
+
+// 定义 CompletionItem 类型用于自动完成
 interface CompletionItem {
   display: string;
   path: string;
   location?: string;
 }
 
-// Configure Monaco Editor loader
+// 配置 Monaco Editor loader
 loader.config({
   paths: {
     vs: '/monaco-editor/min/vs'
@@ -21,36 +21,71 @@ loader.config({
   }
 });
 
-interface ExpandableEditorProps {
-  /** Initial content of the editor */
-  initialContent: string;
-  /** Callback when editor content changes */
-  onContentChange: (content: string | undefined) => void;
-  /** Callback when editor is mounted */
-  onEditorReady: (editor: any, monaco: any) => void;
-  /** Callback when submit button is pressed */
+export interface SimpleEditorProps {
+  /** 输入框的当前值 */
+  value: string;
+  /** 输入框的占位符 */
+  placeholder?: string;
+  /** 当值变化时的回调 */
+  onChange: (value: string) => void;
+  /** 当按下提交快捷键时的回调 */
   onSubmit: () => void;
+  /** 是否禁用输入 */
+  disabled?: boolean;
+  /** 切换到扩展编辑器的回调 */
+  onToggleExpand?: () => void;
 }
 
 /**
- * ExpandableEditor component for AutoMode
- * A specialized editor for handling large text inputs in the AutoMode context
+ * 简单编辑器组件，支持 @ 和 @@ 自动完成功能
+ * 专为聊天输入框设计，轻量且高效
  */
-const ExpandableEditor: React.FC<ExpandableEditorProps> = ({
-  initialContent,
-  onContentChange,
-  onEditorReady,
-  onSubmit
-}) => {
-  // Handle editor mount
-  const handleEditorDidMount = (editor: any, monaco: any) => {
-    // Add keyboard shortcut for submission
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
+  value,
+  placeholder = '',
+  onChange,
+  onSubmit,
+  disabled = false,
+  onToggleExpand
+}, ref) => {
+  // 编辑器引用
+  const editorRef = useRef<any>(null);
+  
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      if (editorRef.current) {
+        editorRef.current.focus();
+      }
+    },
+    editor: editorRef.current
+  }));
+
+  // 编辑器挂载处理
+  const handleEditorDidMount = (editor: any, monacoInstance: any) => {
+    editorRef.current = editor;
+    
+    // 设置初始值和占位符
+    if (!value && placeholder) {
+      editor.updateOptions({
+        padding: { top: 12, bottom: 12 },
+      });
+    }
+    
+    // 添加提交快捷键 (Ctrl/Cmd + Enter)
+    editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.Enter, () => {
       onSubmit();
     });
     
+    // 添加切换扩展编辑器的快捷键 (可选) (Ctrl/Cmd + L)
+    if (onToggleExpand) {
+      editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyL, () => {
+        onToggleExpand();
+      });
+    }
+    
     // 注册自动完成提供者 - 支持 @文件 和 @@符号
-    monaco.languages.registerCompletionItemProvider('markdown', {
+    monacoInstance.languages.registerCompletionItemProvider('markdown', {
       triggerCharacters: ['@'],
       provideCompletionItems: async (model: any, position: any) => {
         // 获取当前行的文本内容
@@ -79,7 +114,7 @@ const ExpandableEditor: React.FC<ExpandableEditorProps> = ({
           return {
             suggestions: data.completions.map((item: CompletionItem) => ({
               label: item.display,
-              kind: monaco.languages.CompletionItemKind.Function,
+              kind: monacoInstance.languages.CompletionItemKind.Function,
               insertText: item.path,
               detail: "",
               documentation: `Location: ${item.path}`,
@@ -94,7 +129,7 @@ const ExpandableEditor: React.FC<ExpandableEditorProps> = ({
           return {
             suggestions: data.completions.map((item: CompletionItem) => ({
               label: item.display,
-              kind: monaco.languages.CompletionItemKind.File,
+              kind: monacoInstance.languages.CompletionItemKind.File,
               insertText: item.path,
               detail: "",
               documentation: `Location: ${item.location}`,
@@ -106,23 +141,20 @@ const ExpandableEditor: React.FC<ExpandableEditorProps> = ({
         return { suggestions: [] };
       },
     });
-    
-    // Notify parent component that editor is ready
-    onEditorReady(editor, monaco);
   };
 
   return (
-    <div className="h-full w-full">
+    <div className="w-full h-12 rounded-full overflow-hidden bg-gray-800 border border-gray-700 shadow-lg pl-6 pr-24">
       <Editor
         height="100%"
         defaultLanguage="markdown"
-        defaultValue={initialContent}
-        onChange={onContentChange}
+        value={value}
+        onChange={(newValue) => onChange(newValue || '')}
         theme="vs-dark"
         onMount={handleEditorDidMount}
-        loading={<div className="flex items-center justify-center h-full">加载编辑器中...</div>}
-        beforeMount={(monaco) => {
-          // Configure Monaco environment to use local worker
+        loading={null}
+        beforeMount={(monacoInstance) => {
+          // 配置 Monaco 环境，使用本地 worker
           window.MonacoEnvironment = {
             getWorkerUrl: (workerId: string, label: string): string => {
               return `/monaco-editor/min/vs/base/worker/workerMain.js`;
@@ -133,28 +165,39 @@ const ExpandableEditor: React.FC<ExpandableEditorProps> = ({
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
           wordWrap: 'on',
-          lineNumbers: 'on',
-          folding: true,
+          lineNumbers: 'off',
+          folding: false,
           fontSize: 14,
-          tabSize: 2,
+          lineHeight: 20,
           automaticLayout: true,
-          contextmenu: true,
-          scrollbar: {
-            verticalScrollbarSize: 12,
-            horizontalScrollbarSize: 12
-          },
+          contextmenu: false,
+          overviewRulerLanes: 0,
+          overviewRulerBorder: false,
+          hideCursorInOverviewRuler: true,
+          glyphMargin: false,
+          renderLineHighlight: 'none',
+          lineDecorationsWidth: 0,
+          lineNumbersMinChars: 0,
           suggestOnTriggerCharacters: true,
           quickSuggestions: true,
           acceptSuggestionOnEnter: 'smart',
           fixedOverflowWidgets: true,
+          padding: { top: 14, bottom: 14 },
+          scrollbar: {
+            vertical: 'hidden',
+            horizontal: 'hidden',
+            useShadows: false,
+            alwaysConsumeMouseWheel: false
+          },
           suggest: {
             insertMode: 'replace',
             snippetsPreventQuickSuggestions: false,
-          }
+          },
+          readOnly: disabled
         }}
       />
     </div>
   );
-};
+});
 
-export default ExpandableEditor;
+export default SimpleEditor; 
