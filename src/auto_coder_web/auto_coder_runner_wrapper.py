@@ -37,7 +37,8 @@ from autocoder.auto_coder_runner import (
 
 class AutoCoderRunnerWrapper:
     def __init__(self, project_path: str, product_mode: str = "lite"):
-        pass
+        load_memory()
+        load_tokenizer()
 
 
     def auto_command_wrapper(self, command: str, params: Dict[str, Any]) -> Dict[str, str]:
