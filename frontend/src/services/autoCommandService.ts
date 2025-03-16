@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { Message, AutoCommandEvent, StreamContent, ResultContent, AskUserContent, UserResponseContent, ErrorContent, CompletionContent, ResultTokenStatContent, ResultCommandPrepareStatContent, ResultCommandExecuteStatContent, ResultContextUsedContent, CodeContent, MarkdownContent } from '../components/AutoMode/types';
+import { Message, AutoCommandEvent, StreamContent, ResultContent, AskUserContent, UserResponseContent, ErrorContent, CompletionContent, ResultTokenStatContent, ResultCommandPrepareStatContent, ResultCommandExecuteStatContent, ResultContextUsedContent, CodeContent, MarkdownContent, ResultSummaryContent } from '../components/AutoMode/types';
 
 
 class AutoCommandService extends EventEmitter {
@@ -198,6 +198,10 @@ class AutoCommandService extends EventEmitter {
         output_cost: content.content.output_cost,
         speed: content.content.speed
       };
+    } else if (this.isSummaryContent(content.content)) {
+      // Handle ResultSummaryContent
+      contentType = 'summary';
+      messageContent = content.content.summary;
     } else if (this.isCommandPrepareStatContent(content.content)) {
       // Handle ResultCommandPrepareStatContent
       contentType = 'command_prepare_stat';
@@ -250,6 +254,12 @@ class AutoCommandService extends EventEmitter {
     return content &&
       typeof content.command === 'string' &&
       typeof content.parameters === 'object';
+  }
+
+  // Type guard for ResultSummaryContent
+  private isSummaryContent(content: any): content is ResultSummaryContent {
+    return content &&
+      typeof content.summary === 'string';
   }
 
   // Type guard for ResultCommandExecuteStatContent

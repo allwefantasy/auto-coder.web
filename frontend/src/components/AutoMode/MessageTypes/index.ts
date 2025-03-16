@@ -8,3 +8,4 @@ export { default as CompletionMessage } from './CompletionMessage';
 export { default as ThinkingMessage } from './ThinkingMessage';
 export { default as CommandSuggestionMessage } from './CommandSuggestionMessage';
 export { default as DefaultMessage } from './DefaultMessage';
+export { default as SummaryMessage } from './SummaryMessage';

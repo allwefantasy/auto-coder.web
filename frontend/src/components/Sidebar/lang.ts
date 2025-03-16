@@ -201,6 +201,10 @@ export const messages: { [key: string]: Message } = {
     en: "Done",
     zh: "已完成"
   },
+  summary: {
+    en: "Reply",
+    zh: "答案"
+  },
   loading: {
     en: "Loading...",
     zh: "加载中..."

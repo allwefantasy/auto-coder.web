@@ -14,11 +14,16 @@ export interface BaseEventContent {
   
   // Result content interface
   export interface ResultContent extends BaseEventContent {
-    content: string | ResultTokenStatContent | ResultCommandPrepareStatContent | ResultCommandExecuteStatContent | ResultContextUsedContent | any;
+    content: string | ResultSummaryContent | ResultTokenStatContent | ResultCommandPrepareStatContent | ResultCommandExecuteStatContent | ResultContextUsedContent | any;
     content_type: string;
     metadata?: Record<string, any>;
   }
   
+  // Result summary content interface
+  export interface ResultSummaryContent extends BaseEventContent {
+    summary: string;
+  }
+
   // Token statistics content
   export interface ResultTokenStatContent {
     model_name: string;
@@ -93,10 +98,7 @@ export interface BaseEventContent {
     completion_time: number;
   }
   
-  // Result summary content interface
-  export interface ResultSummaryContent extends BaseEventContent {
-    summary: string;
-  }
+  
   
   // Union type for all content types
   export type EventContent = 
@@ -107,8 +109,7 @@ export interface BaseEventContent {
     | CodeContent 
     | MarkdownContent 
     | ErrorContent 
-    | CompletionContent
-    | ResultSummaryContent;
+    | CompletionContent    
   
   // Main event interface
   export interface AutoCommandEvent {

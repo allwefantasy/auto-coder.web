@@ -10,7 +10,8 @@ import {
     CompletionMessage,
     ThinkingMessage,
     CommandSuggestionMessage,
-    DefaultMessage
+    DefaultMessage,
+    SummaryMessage
 } from './MessageTypes';
 
 export interface MessageProps {
@@ -44,6 +45,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         // For markdown content
         if (message.contentType === 'markdown' && message.metadata?.stream_out_type !== "command_suggestion") {
             return <MarkdownMessage message={message} />;
+        }
+
+        // For summary content
+        if (message.contentType === 'summary') {
+            return <SummaryMessage message={message} />;
         }
 
         // For token statistics content
