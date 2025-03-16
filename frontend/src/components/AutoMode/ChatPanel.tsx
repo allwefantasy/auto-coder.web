@@ -6,9 +6,10 @@ interface ChatPanelProps {
   messages: MessageProps[];
   currentTask: string;
   onUserResponse: (response: string, eventId?: string) => Promise<void>;
+  onClose?: () => void;
 }
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResponse }) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResponse, onClose }) => {
   // 计算累计的token使用和费用
   const [accumulatedStats, setAccumulatedStats] = useState({
     inputTokens: 0,
@@ -69,6 +70,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
 
   return (
     <div className="flex flex-col h-full relative">
+      {/* 关闭按钮 - 仅当提供了onClose回调时显示 */}
+      {onClose && (
+        <button 
+          className="absolute top-2 right-2 p-1 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white transition-colors focus:outline-none z-20"
+          onClick={onClose}
+          title={getMessage('close')}
+        >
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </button>
+      )}
+      
       {/* 固定在父容器顶部的状态栏 */}
       <div className="sticky top-0 z-10 bg-gray-800/90 backdrop-blur-sm border-b border-gray-700 shadow-md rounded-t-lg mb-4">
         <div className="px-4 py-3">

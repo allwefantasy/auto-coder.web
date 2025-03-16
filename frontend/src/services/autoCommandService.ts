@@ -446,6 +446,9 @@ class AutoCommandService extends EventEmitter {
     };
     
     this.emit('message', message);
+    
+    // 发出错误任务完成事件
+    this.emit('taskComplete', true);
   }
 
   private handleCompletionEvent(event: AutoCommandEvent, messageId: string) {
@@ -468,6 +471,9 @@ class AutoCommandService extends EventEmitter {
     };
     
     this.emit('message', message);
+    
+    // 发出任务完成事件
+    this.emit('taskComplete', false);
   }
 
   // Helper method to finalize a stream message

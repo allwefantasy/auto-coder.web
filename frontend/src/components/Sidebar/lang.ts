@@ -404,12 +404,12 @@ export const messages: { [key: string]: Message } = {
     zh: "速度"
   },
   commandPreparation: {
-    en: "Command Preparation",
-    zh: "命令准备"
+    en: "Tool Preparation",
+    zh: "准备工具"
   },
   command: {
-    en: "Command",
-    zh: "命令"
+    en: "Tool",
+    zh: "工具"
   },
   parameters: {
     en: "Parameters",
@@ -471,6 +471,14 @@ export const messages: { [key: string]: Message } = {
   processingComplete: {
     en: "Thinking Complete",
     zh: "思考完成"
+  },
+  close: {
+    en: "Close",
+    zh: "关闭"
+  },
+  showMessages: {
+    en: "Show Messages",
+    zh: "显示消息"
   }
 };
 

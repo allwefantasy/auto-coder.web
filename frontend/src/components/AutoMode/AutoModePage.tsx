@@ -23,6 +23,38 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [isStreaming, setIsStreaming] = useState(false); // 流式响应状态标志
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<Message | null>(null); // 当前活动的用户询问消息
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null); // 当前事件文件ID
+  const [isMessageAreaVisible, setIsMessageAreaVisible] = useState(true); // 消息区域显示状态
+  
+  // 添加处理任务完成的函数
+  const saveTaskHistory = async (isError: boolean = false) => {
+    if (!lastSubmittedQuery || !currentEventFileId) return;
+    
+    try {
+      await fetch('/api/auto-command/save-history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: lastSubmittedQuery,
+          event_file_id: currentEventFileId,
+          messages: messages.map(msg => ({
+            id: msg.id,
+            type: msg.type,
+            content: msg.content,
+            contentType: msg.contentType,
+            isUser: msg.isUser,
+            timestamp: msg.timestamp,
+          })),
+          status: isError ? 'error' : 'completed',
+          timestamp: Date.now()
+        })
+      });
+      console.log('Task history saved successfully');
+    } catch (error) {
+      console.error('Failed to save task history:', error);
+    }
+  };
   
   // 组件挂载后的初始化效果
   useEffect(() => {
@@ -61,6 +93,11 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         // 添加为新消息
         return [...prev, newMessage];
       });
+    });
+
+    // 监听任务完成事件
+    autoCommandService.on('taskComplete', (isError: boolean) => {
+      saveTaskHistory(isError);
     });
 
     // 组件卸载时清理
@@ -190,8 +227,9 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         </div>
         
         {/* 消息区域 - 带滚动功能的主聊天界面，包含ChatPanel组件 */}
-        {messages.length > 0 && (
-          <div className="flex-1 overflow-y-auto mb-6 bg-gray-800 rounded-lg p-4">
+        {messages.length > 0 && isMessageAreaVisible && (
+          <div className="relative flex-1 overflow-y-auto mb-6 bg-gray-800 rounded-lg p-4">
+            {/* 关闭按钮移至 ChatPanel 组件内 */}
             <ChatPanel 
               messages={messages} 
               currentTask={lastSubmittedQuery.length > 0 
@@ -200,8 +238,22 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                   : lastSubmittedQuery)
                 : (projectName || getMessage('noProjectSelected'))}
               onUserResponse={handleUserResponse}
+              onClose={() => setIsMessageAreaVisible(false)}
             />
           </div>
+        )}
+
+        {/* 显示消息区域的按钮 - 当消息区域被隐藏时显示 */}
+        {messages.length > 0 && !isMessageAreaVisible && (
+          <button
+            className="mb-6 py-2 px-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg flex items-center justify-center transition-colors"
+            onClick={() => setIsMessageAreaVisible(true)}
+          >
+            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+            </svg>
+            {getMessage('showMessages')}
+          </button>
         )}
 
         {/* 命令输入区域 - 使用独立的InputPanel组件 */}

@@ -9,6 +9,15 @@ interface CompletionItem {
   location?: string;
 }
 
+// 添加历史任务接口
+interface HistoryCommand {
+  id: string;
+  query: string;
+  status: string;
+  timestamp: number;
+  message_count: number;
+}
+
 // 配置 Monaco Editor loader
 loader.config({
   paths: {
@@ -54,6 +63,8 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   // 历史命令状态
   const [showHistory, setShowHistory] = useState(false);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const [taskHistory, setTaskHistory] = useState<HistoryCommand[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
   
   // 加载历史命令
@@ -65,6 +76,9 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
         if (savedHistory) {
           setCommandHistory(JSON.parse(savedHistory));
         }
+        
+        // 从服务器加载任务历史
+        await loadTaskHistory();
       } catch (error) {
         console.error('Failed to load command history', error);
       }
@@ -72,6 +86,29 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
     
     loadCommandHistory();
   }, []);
+  
+  // 加载任务历史
+  const loadTaskHistory = async () => {
+    try {
+      setIsLoadingHistory(true);
+      const response = await fetch('/api/auto-command/history');
+      if (response.ok) {
+        const data = await response.json();
+        setTaskHistory(data.tasks || []);
+      }
+    } catch (error) {
+      console.error('Failed to load task history from server', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+  
+  // 当历史弹窗打开时刷新数据
+  useEffect(() => {
+    if (showHistory) {
+      loadTaskHistory();
+    }
+  }, [showHistory]);
   
   // 保存命令到历史
   const saveCommandToHistory = (command: string) => {
@@ -91,6 +128,16 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   // 选择历史命令
   const selectHistoryCommand = (command: string) => {
     onChange(command);
+    setShowHistory(false);
+    // 聚焦编辑器
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+  };
+  
+  // 选择任务历史
+  const selectTaskHistory = (command: HistoryCommand) => {
+    onChange(command.query);
     setShowHistory(false);
     // 聚焦编辑器
     if (editorRef.current) {
@@ -242,9 +289,62 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
         {showHistory && (
           <div
             ref={historyRef} 
-            className="absolute left-0 top-full mt-2 w-72 max-h-80 overflow-y-auto bg-gray-800 border border-gray-700 rounded-md shadow-lg z-20"
+            className="absolute left-0 top-full mt-2 w-96 max-h-80 overflow-y-auto bg-gray-800 border border-gray-700 rounded-md shadow-lg z-20"
           >
             <div className="py-1 border-b border-gray-700">
+              <div className="px-4 py-2 text-sm text-gray-300 font-semibold flex justify-between items-center">
+                <span>历史任务</span>
+                {isLoadingHistory ? (
+                  <span className="text-xs text-gray-400">加载中...</span>
+                ) : (
+                  <button
+                    type="button"
+                    className="text-xs text-blue-400 hover:text-blue-300 focus:outline-none"
+                    onClick={loadTaskHistory}
+                  >
+                    刷新
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {/* 任务历史列表 */}
+            {taskHistory.length > 0 ? (
+              <div className="mb-4">
+                <ul className="py-1">
+                  {taskHistory.map((task) => (
+                    <li key={task.id} className="px-3 py-2 hover:bg-gray-700 cursor-pointer">
+                      <button
+                        type="button"
+                        className="w-full text-left flex flex-col"
+                        onClick={() => selectTaskHistory(task)}
+                      >
+                        <span className="text-sm text-gray-200 truncate">{task.query}</span>
+                        <div className="flex items-center text-xs mt-1">
+                          <span className={`px-1.5 py-0.5 rounded ${
+                            task.status === 'completed' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'
+                          }`}>
+                            {task.status === 'completed' ? '完成' : '错误'}
+                          </span>
+                          <span className="text-gray-400 ml-2">
+                            {new Date(task.timestamp).toLocaleString()}
+                          </span>
+                          <span className="text-gray-400 ml-2">
+                            {task.message_count} 条消息
+                          </span>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="px-4 py-3 text-sm text-gray-400 text-center">
+                {isLoadingHistory ? '加载历史任务...' : '没有历史任务'}
+              </div>
+            )}
+            
+            <div className="py-1 border-t border-gray-700">
               <div className="px-4 py-2 text-sm text-gray-300 font-semibold flex justify-between items-center">
                 <span>最近使用的命令</span>
                 {commandHistory.length > 0 && (
@@ -263,6 +363,8 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
                 )}
               </div>
             </div>
+            
+            {/* 本地命令历史列表 */}
             {commandHistory.length > 0 ? (
               <ul className="py-1">
                 {commandHistory.map((cmd, index) => (
@@ -279,7 +381,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
               </ul>
             ) : (
               <div className="px-4 py-3 text-sm text-gray-400 text-center">
-                没有历史命令
+                没有本地历史命令
               </div>
             )}
           </div>
