@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MessageList, { MessageProps } from './MessageList';
 import { getMessage } from '../Sidebar/lang';
 
@@ -19,6 +19,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
     cacheHits: 0,
     cacheMisses: 0
   });
+  
+  // 创建消息列表底部引用，用于自动滚动
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // 滚动到消息列表底部的辅助函数
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // 当messages变化时更新累计统计
   useEffect(() => {
@@ -52,6 +60,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
       cacheHits,
       cacheMisses
     });
+  }, [messages]);
+  
+  // 当消息列表更新时滚动到底部
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
 
   return (
@@ -103,6 +116,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
           messages={messages} 
           onUserResponse={onUserResponse} 
         />
+        {/* 消息列表底部引用点，用于自动滚动 */}
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );

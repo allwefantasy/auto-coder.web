@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { getMessage } from '../Sidebar/lang';
 import { autoCommandService, Message as ServiceMessage } from '../../services/autoCommandService';
 import { ChatPanel } from './index';
+import EditorComponent from '../Sidebar/EditorComponent';
 
 interface AutoModePageProps {
   projectName: string;
@@ -16,19 +17,60 @@ interface Message extends ServiceMessage {
 const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpertMode }) => {
   // 状态管理
   const [autoSearchTerm, setAutoSearchTerm] = useState(''); // 搜索/命令输入框的状态
+  const [lastSubmittedQuery, setLastSubmittedQuery] = useState(''); // 最后提交的查询
   const [messages, setMessages] = useState<Message[]>([]); // 存储所有消息的数组
   const [isProcessing, setIsProcessing] = useState(false); // 命令处理中状态标志
   const [isStreaming, setIsStreaming] = useState(false); // 流式响应状态标志
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<Message | null>(null); // 当前活动的用户询问消息
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null); // 当前事件文件ID
+  const [isExpandedEditor, setIsExpandedEditor] = useState(false); // 是否使用扩展编辑器模式
+  const [editorContent, setEditorContent] = useState(''); // 编辑器内容
   
   // DOM 引用
   const autoSearchInputRef = useRef<HTMLInputElement>(null); // 搜索输入框引用
-  const messagesEndRef = useRef<HTMLDivElement>(null); // 消息列表底部引用，用于自动滚动
+  const editorRef = useRef<any>(null); // 编辑器引用
 
-  // 滚动到消息列表底部的辅助函数
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // 处理编辑器挂载
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    editorRef.current = editor;
+    // 设置初始内容
+    if (autoSearchTerm) {
+      setEditorContent(autoSearchTerm);
+    }
+    
+    // 聚焦编辑器
+    editor.focus();
+  };
+
+  // 切换到扩展编辑器模式
+  const toggleExpandedEditor = () => {
+    setIsExpandedEditor(!isExpandedEditor);
+    // 如果切换到扩展模式，将当前输入框内容同步到编辑器
+    if (!isExpandedEditor) {
+      setEditorContent(autoSearchTerm);
+    } else {
+      // 如果从扩展模式切换回来，将编辑器内容同步到输入框
+      setAutoSearchTerm(editorContent);
+    }
+  };
+
+  // 处理编辑器内容变更
+  const handleEditorChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      setEditorContent(value);
+    }
+  };
+
+  // 从编辑器提交内容
+  const handleEditorSubmit = () => {
+    if (editorContent.trim()) {
+      setAutoSearchTerm(editorContent);
+      setIsExpandedEditor(false);
+      // 使用 setTimeout 确保状态更新后再提交
+      setTimeout(() => {
+        handleAutoSearch(new Event('submit') as unknown as React.FormEvent);
+      }, 0);
+    }
   };
 
   // 组件挂载后的初始化效果
@@ -80,11 +122,6 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       autoCommandService.removeAllListeners();
     };
   }, []);
-
-  // 当消息列表更新时滚动到底部
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // 处理用户对ASK_USER事件的响应
   const handleUserResponse = async (response: string, eventId?: string) => {
@@ -148,6 +185,8 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     if (autoSearchTerm.trim()) {
       try {
         setIsProcessing(true);
+        // 保存最后提交的查询
+        setLastSubmittedQuery(autoSearchTerm);
         // 添加用户消息到消息列表
         setMessages([{
           id: 'user-' + Date.now(),
@@ -186,6 +225,54 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         />
       )}
       
+      {/* 扩展编辑器模态框 */}
+      {isExpandedEditor && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl p-4 border border-gray-700 flex flex-col h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xl font-semibold text-white">{getMessage('expandedEditor')}</h3>
+              <button 
+                onClick={toggleExpandedEditor}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-hidden border border-gray-700 rounded-md mb-3">
+              <div className="h-full w-full">
+                <EditorComponent
+                  isMaximized={false}
+                  onEditorDidMount={handleEditorDidMount}
+                  onShouldSendMessage={handleEditorSubmit}
+                  defaultValue={autoSearchTerm}
+                  onChange={handleEditorChange}
+                  onToggleMaximize={() => {}}
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-5 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                onClick={toggleExpandedEditor}
+              >
+                {getMessage('cancel')}
+              </button>
+              <button
+                className="px-5 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleEditorSubmit}
+                disabled={!editorContent.trim()}
+              >
+                {getMessage('submit')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* 主内容区域 - 居中、最大宽度限制、垂直弹性布局 */}
       <div className={`w-full max-w-4xl mx-auto px-4 py-6 flex flex-col ${messages.length === 0 ? 'justify-center' : ''} h-full`}>
         {/* 标题区域 - 显示应用名称和当前项目 */}
@@ -197,7 +284,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
             <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-transparent bg-clip-text font-bold text-2xl">auto-coder.web</span>
           </div>
           <div className="text-gray-400 text-sm font-mono">
-            {projectName}
+            {getMessage('projectName')}:{projectName}
           </div>
         </div>
         
@@ -206,11 +293,13 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
           <div className="flex-1 overflow-y-auto mb-6 bg-gray-800 rounded-lg p-4">
             <ChatPanel 
               messages={messages} 
-              currentTask={projectName || getMessage('noProjectSelected')}
+              currentTask={lastSubmittedQuery.length > 0 
+                ? (lastSubmittedQuery.length > 20 
+                  ? `${lastSubmittedQuery.substring(0, 20)}...` 
+                  : lastSubmittedQuery)
+                : (projectName || getMessage('noProjectSelected'))}
               onUserResponse={handleUserResponse}
             />
-            {/* 消息列表底部引用点，用于自动滚动 */}
-            <div ref={messagesEndRef} />
           </div>
         )}
 
@@ -220,12 +309,24 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
             <input
               ref={autoSearchInputRef}
               type="text"
-              className="w-full py-4 px-6 pr-12 rounded-full bg-gray-800 border border-gray-700 text-white text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-lg"
+              className="w-full py-4 px-6 pr-24 rounded-full bg-gray-800 border border-gray-700 text-white text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-lg"
               placeholder={`${getMessage('searchIn')} ${projectName || getMessage('yourProject')}`}
               value={autoSearchTerm}
               onChange={(e) => setAutoSearchTerm(e.target.value)}
               disabled={isProcessing}
             />
+            {/* 扩展编辑器按钮 */}
+            <button
+              type="button"
+              className="absolute right-14 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-colors bg-gray-700 hover:bg-gray-600"
+              onClick={toggleExpandedEditor}
+              disabled={isProcessing}
+              title={getMessage('expandEditor')}
+            >
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+              </svg>
+            </button>
             {/* 提交按钮 - 位于输入框右侧的搜索图标 */}
             <button
               type="submit"

@@ -123,9 +123,9 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   };
 
   return (
-    <div className={`flex-1 ${isMaximized ? 'h-full' : 'min-h-[180px]'} border border-gray-700 rounded-lg overflow-hidden`}>
+    <div className={`flex-1 ${isMaximized ? 'h-full' : 'h-full'} border-0 rounded-lg overflow-hidden`}>
       <Editor
-        height={isMaximized ? "100vh" : "180px"}
+        height="100%"
         defaultLanguage="markdown"
         defaultValue={defaultValue}
         onChange={onChange}

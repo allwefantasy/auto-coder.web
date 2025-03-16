@@ -349,6 +349,23 @@ export const messages: { [key: string]: Message } = {
     en: "Try examples",
     zh: "尝试示例"
   },
+  // Expanded Editor
+  expandedEditor: {
+    en: "Expanded Editor",
+    zh: "扩展编辑器"
+  },
+  expandEditor: {
+    en: "Expand editor for large text input",
+    zh: "展开编辑器以输入大段文本"
+  },
+  cancel: {
+    en: "Cancel",
+    zh: "取消"
+  },
+  submit: {
+    en: "Submit",
+    zh: "提交"
+  },
   // Message list component keys
   modelPerformanceStats: {
     en: "Model Consumption Statistics",
@@ -438,6 +455,22 @@ export const messages: { [key: string]: Message } = {
   noActiveTask: {
     en: "No active task",
     zh: "没有活动任务"
+  },
+  projectName: {
+    en: "Current Project",
+    zh: "当前项目"
+  },
+  commandSuggestionTitle: {
+    en: "After thinking, we will call the following command:",
+    zh: "经过思考，我们会调用以下命令："
+  },
+  processingStatus: {
+    en: "Thinking...",
+    zh: "正在思考..."
+  },
+  processingComplete: {
+    en: "Thinking Complete",
+    zh: "思考完成"
   }
 };
 

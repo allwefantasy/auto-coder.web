@@ -75,7 +75,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         if (message.isThinking || message.isStreaming) {
             return <ThinkingMessage message={message} />;
         }
-
+        
+        // AutoCommand 模式下专有的信息，一般是用来思考和展示思考结果
         if (message.metadata?.stream_out_type === "command_suggestion") {
             return <CommandSuggestionMessage message={message} />;
         }
