@@ -30,6 +30,8 @@ interface ExpandableEditorProps {
   onEditorReady: (editor: any, monaco: any) => void;
   /** Callback when submit button is pressed */
   onSubmit: () => void;
+  /** Callback to toggle back to simple editor mode */
+  onToggleCollapse?: () => void;
 }
 
 /**
@@ -40,7 +42,8 @@ const ExpandableEditor: React.FC<ExpandableEditorProps> = ({
   initialContent,
   onContentChange,
   onEditorReady,
-  onSubmit
+  onSubmit,
+  onToggleCollapse
 }) => {
   // Handle editor mount
   const handleEditorDidMount = (editor: any, monaco: any) => {
@@ -48,6 +51,13 @@ const ExpandableEditor: React.FC<ExpandableEditorProps> = ({
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       onSubmit();
     });
+    
+    // Add keyboard shortcut for toggling back to simple editor
+    if (onToggleCollapse) {
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, () => {
+        onToggleCollapse();
+      });
+    }
     
     // 注册自动完成提供者 - 支持 @文件 和 @@符号
     monaco.languages.registerCompletionItemProvider('markdown', {

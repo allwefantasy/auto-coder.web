@@ -101,6 +101,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                   onContentChange={handleEditorChange}
                   onEditorReady={handleEditorDidMount}
                   onSubmit={handleEditorSubmit}
+                  onToggleCollapse={toggleExpandedEditor}
                 />
               </div>
             </div>

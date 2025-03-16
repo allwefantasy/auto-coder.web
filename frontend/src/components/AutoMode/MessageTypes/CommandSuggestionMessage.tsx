@@ -9,7 +9,7 @@ interface CommandSuggestionMessageProps {
 // 主组件，根据消息类型选择适当的子组件
 const CommandSuggestionMessage: React.FC<CommandSuggestionMessageProps> = ({ message }) => {
     // 检查消息是否为流式消息
-    const isStreamingMessage = message.isStreaming || message.metadata?.stream_out_type === "command_suggestion";
+    const isStreamingMessage = message.type === "STREAM" && message.metadata?.stream_out_type === "command_suggestion";
     
     // 检查流式消息是否已完成 - 根据isStreaming状态判断
     const isCompletedStream = isStreamingMessage && !message.isStreaming;
@@ -67,15 +67,14 @@ const StreamingCommandMessage: React.FC<{ message: MessageProps; isCompleted: bo
                         <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
-                    )}
-                </span>
-                
+                    )}                    
+                </span>                
                 <span>{message.isStreaming ? getMessage('processingStatus') : getMessage('processingComplete')}</span>
             </div>
             
             {/* 消息内容 */}
             <div className="bg-gray-800/50 p-3 rounded-md border border-gray-700 whitespace-pre-wrap">
-                {isCollapsed ? collapsedContent : messageContent}
+                {isCollapsed ? collapsedContent : messageContent}                
             </div>
         </div>
     );

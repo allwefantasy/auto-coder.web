@@ -24,6 +24,59 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<Message | null>(null); // 当前活动的用户询问消息
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null); // 当前事件文件ID
   
+  // 消息区域高度调整相关状态
+  const [messageAreaHeight, setMessageAreaHeight] = useState<number>(400); // 默认高度为400px
+  const resizeStartRef = useRef<{startY: number; startHeight: number} | null>(null);
+  
+  // 开始调整大小的处理函数
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // 记录起始鼠标位置和容器高度
+    resizeStartRef.current = {
+      startY: e.clientY,
+      startHeight: messageAreaHeight
+    };
+    
+    // 添加鼠标移动和鼠标释放事件监听
+    document.addEventListener('mousemove', handleResizeMove);
+    document.addEventListener('mouseup', handleResizeEnd);
+  };
+  
+  // 鼠标移动时调整高度
+  const handleResizeMove = (e: MouseEvent) => {
+    if (!resizeStartRef.current) return;
+    
+    // 计算鼠标移动的距离
+    const deltaY = e.clientY - resizeStartRef.current.startY;
+    
+    // 计算新的高度（增加向下拖动的距离）
+    const newHeight = resizeStartRef.current.startHeight + deltaY;
+    
+    // 限制最小和最大高度
+    const limitedHeight = Math.max(200, Math.min(newHeight, window.innerHeight * 0.8));
+    
+    // 更新高度状态
+    setMessageAreaHeight(limitedHeight);
+  };
+  
+  // 结束调整大小
+  const handleResizeEnd = () => {
+    // 清除起始位置引用
+    resizeStartRef.current = null;
+    
+    // 移除事件监听
+    document.removeEventListener('mousemove', handleResizeMove);
+    document.removeEventListener('mouseup', handleResizeEnd);
+  };
+  
+  // 组件卸载时清理事件监听
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleResizeMove);
+      document.removeEventListener('mouseup', handleResizeEnd);
+    };
+  }, []);
+
   // 组件挂载后的初始化效果
   useEffect(() => {
 
@@ -191,16 +244,47 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         
         {/* 消息区域 - 带滚动功能的主聊天界面，包含ChatPanel组件 */}
         {messages.length > 0 && (
-          <div className="flex-1 overflow-y-auto mb-6 bg-gray-800 rounded-lg p-4">
-            <ChatPanel 
-              messages={messages} 
-              currentTask={lastSubmittedQuery.length > 0 
-                ? (lastSubmittedQuery.length > 20 
-                  ? `${lastSubmittedQuery.substring(0, 20)}...` 
-                  : lastSubmittedQuery)
-                : (projectName || getMessage('noProjectSelected'))}
-              onUserResponse={handleUserResponse}
-            />
+          <div 
+            className="relative mb-6 bg-gray-800 rounded-lg"
+            style={{ 
+              height: `${messageAreaHeight}px`,
+              minHeight: '200px',
+              transition: resizeStartRef.current ? 'none' : 'height 0.1s ease'
+            }}
+          >
+            {/* 消息区域内容 */}
+            <div className="absolute inset-0 overflow-y-auto p-4">
+              <ChatPanel 
+                messages={messages} 
+                currentTask={lastSubmittedQuery.length > 0 
+                  ? (lastSubmittedQuery.length > 20 
+                    ? `${lastSubmittedQuery.substring(0, 20)}...` 
+                    : lastSubmittedQuery)
+                  : (projectName || getMessage('noProjectSelected'))}
+                onUserResponse={handleUserResponse}
+              />
+            </div>
+            
+            {/* 调整大小的手柄 */}
+            <div 
+              className="absolute bottom-0 right-0 w-6 h-6 cursor-ns-resize z-10 flex items-end justify-end"
+              onMouseDown={handleResizeStart}
+            >
+              <svg 
+                width="14" 
+                height="14" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                className="text-gray-400 hover:text-gray-300 transition-colors"
+              >
+                <path 
+                  d="M22 22L16 16M16 22L22 16M2 22L8 16M2 16L8 22" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                />
+              </svg>
+            </div>
           </div>
         )}
 

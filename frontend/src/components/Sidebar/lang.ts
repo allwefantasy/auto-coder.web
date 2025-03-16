@@ -416,8 +416,8 @@ export const messages: { [key: string]: Message } = {
     zh: "参数"
   },
   commandExecution: {
-    en: "Command Execution",
-    zh: "命令执行"
+    en: "Execution Result",
+    zh: "执行结果"
   },
   contextUsed: {
     en: "Context Used",
