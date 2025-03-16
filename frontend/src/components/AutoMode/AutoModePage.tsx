@@ -220,6 +220,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     // 更新最后提交的查询
     setLastSubmittedQuery(task.query);          
     // 更新消息列表
+    console.log('Restoring history task messages:', task.messages);
     setMessages(task.messages);    
     
     // 恢复事件文件ID
