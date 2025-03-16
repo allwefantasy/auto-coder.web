@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getMessage } from '../Sidebar/lang';
-import { autoCommandService, Message as ServiceMessage } from '../../services/autoCommandService';
+import { Message as ServiceMessage } from './types';
 import { ChatPanel } from './index';
 import InputPanel from './InputPanel';
+import { autoCommandService } from '../../services/autoCommandService';
 
 interface AutoModePageProps {
   projectName: string;

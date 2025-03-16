@@ -1,23 +1,12 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
 import { Editor, loader } from '@monaco-editor/react';
-import { Message as ServiceMessage } from '../../services/autoCommandService';
+import { Message as ServiceMessage, HistoryCommand } from './types';
 
 // 定义 CompletionItem 类型用于自动完成
 interface CompletionItem {
   display: string;
   path: string;
   location?: string;
-}
-
-// 添加历史任务接口
-interface HistoryCommand {
-  id: string;
-  query: string;
-  status: string;
-  timestamp: number;
-  messages: Array<ServiceMessage>;
-  event_file_id?: string;
-  stats?: string;  
 }
 
 // 配置 Monaco Editor loader
