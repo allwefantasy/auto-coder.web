@@ -125,8 +125,15 @@ const InputPanel: React.FC<InputPanelProps> = ({
       )}
 
       {/* 聊天表单 - 使用 SimpleEditor 组件 */}
-      <form onSubmit={onSubmit} className="w-full relative mb-6">
+      <form onSubmit={onSubmit} className="w-full relative mb-4 max-w-3xl mx-auto px-3 sm:px-0">
         <div className="w-full relative">
+          {/* 机器人图标 - 左侧 */}
+          <div className="absolute left-3.5 top-0 bottom-0 flex items-center z-10">
+            <svg className="w-4 h-4 text-purple-500 opacity-80" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5A2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5a2.5 2.5 0 0 0 2.5 2.5a2.5 2.5 0 0 0 2.5-2.5a2.5 2.5 0 0 0-2.5-2.5z" />
+            </svg>
+          </div>
+          
           {/* 使用 SimpleEditor 替换原有的输入框 */}
           <SimpleEditor
             ref={autoSearchInputRef}
@@ -138,29 +145,32 @@ const InputPanel: React.FC<InputPanelProps> = ({
             onToggleExpand={toggleExpandedEditor}
           />
           
-          {/* 扩展编辑器按钮 */}
-          <button
-            type="button"
-            className="absolute right-14 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-colors bg-gray-700 hover:bg-gray-600 z-10"
-            onClick={toggleExpandedEditor}
-            disabled={isProcessing}
-            title={getMessage('expandEditor')}
-          >
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-            </svg>
-          </button>
-          
-          {/* 提交按钮 - 位于输入框右侧的搜索图标 */}
-          <button
-            type="submit"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition-colors z-10"
-            disabled={isProcessing || !autoSearchTerm.trim()}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
+          {/* 按钮容器 - 使用flex布局调整位置 */}
+          <div className="absolute right-0 top-0 bottom-0 flex items-center pr-2">
+            {/* 扩展编辑器按钮 */}
+            <button
+              type="button"
+              className="p-1 mx-1 rounded-full transition-colors bg-gray-700 hover:bg-gray-600 z-10"
+              onClick={toggleExpandedEditor}
+              disabled={isProcessing}
+              title={getMessage('expandEditor')}
+            >
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+              </svg>
+            </button>
+            
+            {/* 提交按钮 */}
+            <button
+              type="submit"
+              className="p-1 rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition-colors z-10"
+              disabled={isProcessing || !autoSearchTerm.trim()}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          </div>
         </div>
       </form>
     </>

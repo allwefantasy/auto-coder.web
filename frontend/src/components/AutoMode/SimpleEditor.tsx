@@ -144,7 +144,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   };
 
   return (
-    <div className="w-full h-12 rounded-full overflow-hidden bg-gray-800 border border-gray-700 shadow-lg pl-6 pr-24">
+    <div className="w-full h-9 rounded-full overflow-hidden bg-gray-800 border border-gray-700 shadow-lg pl-10 pr-16">
       <Editor
         height="100%"
         defaultLanguage="markdown"
@@ -167,8 +167,8 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
           wordWrap: 'on',
           lineNumbers: 'off',
           folding: false,
-          fontSize: 14,
-          lineHeight: 20,
+          fontSize: 12,
+          lineHeight: 16,
           automaticLayout: true,
           contextmenu: false,
           overviewRulerLanes: 0,
@@ -182,7 +182,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
           quickSuggestions: true,
           acceptSuggestionOnEnter: 'smart',
           fixedOverflowWidgets: true,
-          padding: { top: 14, bottom: 14 },
+          padding: { top: 8, bottom: 8 },
           scrollbar: {
             vertical: 'hidden',
             horizontal: 'hidden',
