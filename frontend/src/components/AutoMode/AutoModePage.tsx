@@ -26,9 +26,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [isMessageAreaVisible, setIsMessageAreaVisible] = useState(true); // 消息区域显示状态
   
   // 添加处理任务完成的函数
-  const saveTaskHistory = useCallback(async (isError: boolean = false, query: string, eventFileId: string | null) => {    
-    console.log('lastSubmittedQuery', query);
-    console.log('currentEventFileId', eventFileId);
+  const saveTaskHistory = useCallback(async (isError: boolean = false, query: string, eventFileId: string | null) => {        
     if (!query || !eventFileId) return;
     
     try {
