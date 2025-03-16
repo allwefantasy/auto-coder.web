@@ -431,6 +431,22 @@ export const messages: { [key: string]: Message } = {
     en: "Files Referenced",
     zh: "引用的文件"
   },
+  contextAwareInfo: {
+    en: "Context Awareness",
+    zh: "上下文感知信息"
+  },
+  analyzingContext: {
+    en: "Analyzing Context...",
+    zh: "正在分析上下文..."
+  },
+  contextAnalysisComplete: {
+    en: "Context Analysis Complete",
+    zh: "上下文分析完成"
+  },
+  relevantContext: {
+    en: "Relevant Context",
+    zh: "相关上下文"
+  },
   completionTime: {
     en: "Completion Time",
     zh: "完成时间"

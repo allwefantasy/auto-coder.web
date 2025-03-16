@@ -11,8 +11,10 @@ import {
     ThinkingMessage,
     CommandSuggestionMessage,
     DefaultMessage,
-    SummaryMessage
+    SummaryMessage,
+    ContextAwareMessage    
 } from './MessageTypes';
+
 
 export interface MessageProps {
     id: string;
@@ -45,6 +47,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         // For markdown content
         if (message.contentType === 'markdown' && message.metadata?.stream_out_type !== "command_suggestion") {
             return <MarkdownMessage message={message} />;
+        }
+
+        // For 上下文感知信息的展示
+        if (message.metadata?.stream_out_type === "file_number_list") {
+            return <ContextAwareMessage message={message} />;
         }
 
         // For summary content
