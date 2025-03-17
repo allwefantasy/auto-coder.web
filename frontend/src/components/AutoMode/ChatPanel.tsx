@@ -94,17 +94,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
               <span>{getMessage('cache')}: </span>
               <span className="text-white ml-1">⊕ {accumulatedStats.cacheHits}</span>
               <span className="text-white ml-1">→ {accumulatedStats.cacheMisses}</span>
-            </div>
-            <div className="flex items-center">
-              <span>{getMessage('contextWindow')}: </span>
-              <span className="text-white ml-1">{accumulatedStats.contextWindowUsage}k</span>
-              <div className="w-24 h-2 bg-gray-700 rounded ml-1">
-                <div 
-                  className="h-full bg-blue-500 rounded" 
-                  style={{ width: `${Math.min(100, (accumulatedStats.contextWindowUsage) / (accumulatedStats.maxContextWindow) * 100)}%` }}
-                ></div>
-              </div>
-            </div>
+            </div>            
             <div className="flex items-center">
               <span>{getMessage('apiCost')}: </span>
               <span className="text-white ml-1">${accumulatedStats.totalCost.toFixed(5)}</span>

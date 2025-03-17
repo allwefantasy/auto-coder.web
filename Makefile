@@ -1,5 +1,8 @@
 .PHONY: release
-release: ## Build and package web assets	
+release: ## Build and package web assets
+	rm -rf build && mkdir -p build
+	rm -rf dist && mkdir -p dist	
+	rm -rf frontend/build
 	cd frontend && npm install && npm run build
 	tar -czf web.static.tar.gz -C frontend/build .
 	rm -rf src/auto_coder_web/web && mkdir -p src/auto_coder_web/web	

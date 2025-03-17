@@ -73,7 +73,7 @@ const StreamingCommandMessage: React.FC<{ message: MessageProps; isCompleted: bo
             </div>
             
             {/* 消息内容 */}
-            <div className="bg-gray-800/50 p-3 rounded-md border border-gray-700 whitespace-pre-wrap">
+            <div className="bg-gray-800/50 p-3 rounded-md border border-gray-700 whitespace-pre-wrap text-white break-words">
                 {isCollapsed ? collapsedContent : messageContent}                
             </div>
         </div>
@@ -88,7 +88,7 @@ const RegularCommandMessage: React.FC<{ message: MessageProps }> = ({ message })
                 <span className="mr-2">ℹ️</span>
                 <span>{getMessage('commandSuggestionTitle')}</span>
             </div>
-            <div className="bg-gray-800/50 p-3 rounded-md border border-gray-700 whitespace-pre-wrap">
+            <div className="bg-gray-800/50 p-3 rounded-md border border-gray-700 whitespace-pre-wrap text-white break-words">
                 {message.content}
             </div>
         </div>

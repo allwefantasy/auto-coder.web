@@ -218,20 +218,30 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   // 处理自动模式搜索提交
   const handleAutoSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (autoSearchTerm.trim()) {
+    
+    // 检查是否有来自扩展编辑器的内容
+    // 如果有，优先使用扩展编辑器的内容
+    const contentToSubmit = (window as any).lastEditorContent || autoSearchTerm;
+    
+    // 清除临时存储的编辑器内容
+    if ((window as any).lastEditorContent) {
+      delete (window as any).lastEditorContent;
+    }
+    
+    if (contentToSubmit.trim()) {
       try {
         setIsProcessing(true);
         // 保存最后提交的查询
-        setLastSubmittedQuery(autoSearchTerm);
+        setLastSubmittedQuery(contentToSubmit);
         // 添加用户消息到消息列表
         setMessages([{
           id: 'user-' + Date.now(),
           type: 'USER',
-          content: autoSearchTerm,
+          content: contentToSubmit,
           isUser: true
         }]);
         // 执行命令并获取事件文件ID
-        const result = await autoCommandService.executeCommand(autoSearchTerm);
+        const result = await autoCommandService.executeCommand(contentToSubmit);
         // 存储事件文件ID以便后续用户响应使用
         setCurrentEventFileId(result.event_file_id);
         

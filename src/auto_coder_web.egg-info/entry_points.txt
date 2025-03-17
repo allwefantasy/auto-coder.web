@@ -1,0 +1,2 @@
+[console_scripts]
+auto-coder.web = auto_coder_web.proxy:main

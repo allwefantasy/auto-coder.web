@@ -7,6 +7,15 @@ interface TokenStatMessageProps {
 }
 
 const TokenStatMessage: React.FC<TokenStatMessageProps> = ({ message }) => {
+    // Default max context window to 64k if not provided
+    const maxContextWindow = message.metadata?.max_context_window || 64*1024;
+    
+    // Calculate total tokens used (input + output)
+    const totalTokensUsed = (message.metadata?.input_tokens || 0) + (message.metadata?.output_tokens || 0);
+    
+    // Calculate percentage of context window used
+    const usagePercentage = Math.min(100, (totalTokensUsed / maxContextWindow) * 100);
+    
     return (
         <div className="font-mono text-xs text-gray-400 flex flex-row items-center gap-2">
             {message.metadata && (
@@ -22,13 +31,17 @@ const TokenStatMessage: React.FC<TokenStatMessageProps> = ({ message }) => {
                         <span className="text-white ml-1">→ {message.metadata.cache_miss || 0}</span>
                     </div>
                     <div className="flex items-center">
-                        <span>{getMessage('contextWindow')}: </span>
-                        <span className="text-white ml-1">{message.metadata.context_window || 0}k</span>
-                        <div className="w-64 h-2 bg-gray-700 rounded ml-1">
+                        <span>{getMessage('contextWindow')}: </span>                        
+                        <div className="relative w-32 h-3 bg-gray-800 rounded ml-1 border border-gray-600">
                             <div 
-                                className="h-full bg-blue-500 rounded" 
-                                style={{ width: `${Math.min(100, (message.metadata.context_window || 0) / (message.metadata.max_context_window || 100) * 100)}%` }}
+                                className="h-full bg-blue-600 rounded-l" 
+                                style={{ width: `${usagePercentage}%` }}
                             ></div>
+                            {usagePercentage > 10 && (
+                                <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white">
+                                    {usagePercentage.toFixed(1)}%
+                                </span>
+                            )}
                         </div>
                     </div>
                     <div className="flex items-center">

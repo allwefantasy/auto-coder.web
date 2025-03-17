@@ -43,7 +43,6 @@ const InputPanel: React.FC<InputPanelProps> = ({
 
   // 切换到扩展编辑器模式
   const toggleExpandedEditor = () => {
-    setIsExpandedEditor(!isExpandedEditor);
     // 如果切换到扩展模式，将当前输入框内容同步到编辑器
     if (!isExpandedEditor) {
       setEditorContent(autoSearchTerm);
@@ -51,6 +50,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
       // 如果从扩展模式切换回来，将编辑器内容同步到输入框
       setAutoSearchTerm(editorContent);
     }
+    // 切换编辑器状态 - 放在后面确保内容同步先完成
+    setIsExpandedEditor(!isExpandedEditor);
   };
 
   // 处理编辑器内容变更
@@ -63,19 +64,31 @@ const InputPanel: React.FC<InputPanelProps> = ({
   // 从编辑器提交内容
   const handleEditorSubmit = () => {
     if (editorContent.trim()) {
+      // 先更新状态并关闭编辑器
       setAutoSearchTerm(editorContent);
       setIsExpandedEditor(false);
-      // 使用 setTimeout 确保状态更新后再提交
+      
+      // 使用 setTimeout 确保状态更新完成后再提交
       setTimeout(() => {
-        onSubmit(new Event('submit') as unknown as React.FormEvent);
-      }, 0);
+        // 创建一个简单的事件对象
+        const formEvent = new Event('submit') as unknown as React.FormEvent;
+        
+        // 直接修改 autoSearchTerm 的值为当前编辑器内容，确保在提交时使用最新的内容
+        // 这是一个直接的方法，确保在提交时 autoSearchTerm 已经更新
+        (window as any).lastEditorContent = editorContent;
+        
+        // 调用提交函数
+        onSubmit(formEvent);
+      }, 50);
     }
   };
 
   // 处理简单编辑器提交
   const handleSimpleEditorSubmit = () => {
     if (autoSearchTerm.trim() && !isProcessing) {
-      onSubmit(new Event('submit') as unknown as React.FormEvent);
+      // 创建一个简单的 FormEvent 对象
+      const formEvent = new Event('submit') as unknown as React.FormEvent;
+      onSubmit(formEvent);
     }
   };
 
