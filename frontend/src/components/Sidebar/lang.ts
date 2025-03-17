@@ -448,8 +448,8 @@ export const messages: { [key: string]: Message } = {
     zh: "相关上下文"
   },
   viewChange: {
-    en: "Commits",
-    zh: "变更"
+    en: "History Changes",
+    zh: "历史变化"
   },
   viewChangeComingSoon: {
     en: "View this change feature coming soon",
@@ -539,7 +539,15 @@ export const messages: { [key: string]: Message } = {
   },
   commitHistory: {
     en: "Commit History",
-    zh: "变更历史"
+    zh: "提交历史"
+  },
+  currentChange: {
+    en: "Current Change",
+    zh: "当前变化"
+  },
+  currentChangeTitle: {
+    en: "Current Change Details",
+    zh: "当前变化详情"
   }
 };
 

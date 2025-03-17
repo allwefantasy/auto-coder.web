@@ -1,9 +1,9 @@
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends, Query
 from pydantic import BaseModel
 from loguru import logger
 import git
@@ -387,4 +387,47 @@ async def get_file_diff(
         raise HTTPException(
             status_code=500, 
             detail=f"Failed to get file diff: {str(e)}"
+        )
+
+
+@router.get("/api/current-changes")
+async def get_current_changes(
+    limit: int = 3, 
+    hours_ago: int = 24,
+    project_path: str = Depends(get_project_path)
+):
+    """
+    获取最近时间内的提交作为当前变化
+    
+    Args:
+        limit: 返回的最大提交数量，默认3
+        hours_ago: 从几小时前开始查找，默认24小时
+        project_path: 项目路径
+        
+    Returns:
+        最近的提交哈希列表
+    """
+    try:
+        repo = get_repo(project_path)
+        
+        # 计算时间范围
+        since_time = datetime.now() - timedelta(hours=hours_ago)
+        since_timestamp = since_time.timestamp()
+        
+        # 获取最近的提交
+        recent_commits = []
+        
+        for commit in repo.iter_commits():
+            if commit.committed_date >= since_timestamp:
+                recent_commits.append(commit.hexsha)
+                if len(recent_commits) >= limit:
+                    break
+                    
+        return {"commit_hashes": recent_commits}
+        
+    except Exception as e:
+        logger.error(f"Error getting current changes: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to get current changes: {str(e)}"
         ) 

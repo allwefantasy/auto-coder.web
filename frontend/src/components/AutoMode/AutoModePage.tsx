@@ -4,7 +4,7 @@ import { Message as ServiceMessage, HistoryCommand } from './types';
 import { ChatPanel } from './index';
 import InputPanel from './InputPanel';
 import { autoCommandService } from '../../services/autoCommandService';
-import CommitListPanel from './CommitListPanel';
+import { CommitListPanel, CurrentChangePanel } from './index';
 
 interface AutoModePageProps {
   projectName: string;
@@ -27,7 +27,8 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null); // 当前事件文件ID
   const [isMessageAreaVisible, setIsMessageAreaVisible] = useState(true); // 消息区域显示状态
   const [isMessageAreaAdaptive, setIsMessageAreaAdaptive] = useState(true); // 消息区域自适应状态
-  const [activeTab, setActiveTab] = useState<'messages' | 'commits'>('messages'); // 添加标签状态
+  const [activeTab, setActiveTab] = useState<'messages' | 'current-change' | 'commits'>('messages'); // 修改标签状态
+  const [currentCommitHashes, setCurrentCommitHashes] = useState<string[]>([]); // 当前变化的提交哈希
   
   const messagesRef = useRef(messages);
   
@@ -61,6 +62,8 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   
   // 组件挂载后的初始化效果
   useEffect(() => {
+    // 获取当前变更
+    fetchCurrentChanges();
 
     // 设置消息事件监听器
     autoCommandService.on('message', (message: ServiceMessage) => {
@@ -104,6 +107,21 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       autoCommandService.removeAllListeners();
     };
   }, []);
+
+  // 获取当前变更
+  const fetchCurrentChanges = async () => {
+    try {
+      const response = await fetch('/api/current-changes');
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentCommitHashes(data.commit_hashes || []);
+      } else {
+        console.error('Failed to fetch current changes:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching current changes:', error);
+    }
+  };
 
   // 单独处理任务完成事件，依赖于查询和事件文件ID
   useEffect(() => {
@@ -277,6 +295,12 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                 {getMessage('showMessages')}
               </button>
               <button
+                className={`px-4 py-2 font-medium text-sm ${activeTab === 'current-change' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-300'}`}
+                onClick={() => setActiveTab('current-change')}
+              >
+                {getMessage('currentChange')}
+              </button>
+              <button
                 className={`px-4 py-2 font-medium text-sm ${activeTab === 'commits' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-300'}`}
                 onClick={() => setActiveTab('commits')}
               >
@@ -322,9 +346,11 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                     : lastSubmittedQuery)
                   : (projectName || getMessage('noProjectSelected'))}
                 onUserResponse={handleUserResponse}
-                onClose={() => setIsMessageAreaVisible(false)}
-                onToggleAdaptive={() => setIsMessageAreaAdaptive(!isMessageAreaAdaptive)}
-                isMessageAreaAdaptive={isMessageAreaAdaptive}
+              />
+            ) : activeTab === 'current-change' ? (
+              <CurrentChangePanel 
+                projectName={projectName} 
+                commitHashes={currentCommitHashes} 
               />
             ) : (
               <CommitListPanel projectName={projectName} />
