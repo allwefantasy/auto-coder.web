@@ -57,6 +57,8 @@ const CommitListPanel: React.FC<CommitListPanelProps> = ({ projectName }) => {
   const [fileDiffLoading, setFileDiffLoading] = useState(false);
   const [fileDiffError, setFileDiffError] = useState<string | null>(null);
   const [diffViewMode, setDiffViewMode] = useState<'split' | 'unified'>('split');
+  // 添加最大化状态，用于跟踪当前哪个视图被最大化
+  const [maximizedView, setMaximizedView] = useState<'before' | 'after' | 'diff' | null>(null);
   
   // 使用refs来保存编辑器实例
   const beforeEditorRef = useRef<any>(null);
@@ -194,12 +196,23 @@ const CommitListPanel: React.FC<CommitListPanelProps> = ({ projectName }) => {
       beforeEditorRef.current = null;
       afterEditorRef.current = null;
       diffEditorRef.current = null;
+      
+      // 清除最大化状态
+      clearMaximizedView();
     } else {
       setSelectedCommit(hash);
       fetchCommitDetails(hash);
       setSelectedFile(null);
       setFileDiff(null);
+      
+      // 清除最大化状态
+      clearMaximizedView();
     }
+  };
+
+  // 清除最大化状态
+  const clearMaximizedView = () => {
+    setMaximizedView(null);
   };
 
   const handleFileClick = (filePath: string) => {
@@ -211,11 +224,17 @@ const CommitListPanel: React.FC<CommitListPanelProps> = ({ projectName }) => {
       beforeEditorRef.current = null;
       afterEditorRef.current = null;
       diffEditorRef.current = null;
+      
+      // 清除最大化状态
+      clearMaximizedView();
     } else {
       setSelectedFile(filePath);
       if (selectedCommit) {
         fetchFileDiff(selectedCommit, filePath);
       }
+      
+      // 清除最大化状态
+      clearMaximizedView();
     }
   };
 
@@ -302,13 +321,45 @@ const CommitListPanel: React.FC<CommitListPanelProps> = ({ projectName }) => {
       }
     };
     
+    // 最大化/正常化按钮
+    const MaximizeButton = ({ viewType }: { viewType: 'before' | 'after' | 'diff' }) => {
+      const isMaximized = maximizedView === viewType;
+      
+      return (
+        <button
+          className="ml-2 text-gray-400 hover:text-white transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMaximizedView(isMaximized ? null : viewType);
+            // 设置状态后重新计算尺寸
+            setTimeout(updateEditorDimensions, 50);
+          }}
+          title={isMaximized ? "恢复正常视图" : "最大化视图"}
+        >
+          {isMaximized ? (
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+            </svg>
+          ) : (
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+            </svg>
+          )}
+        </button>
+      );
+    };
+    
     if (diffViewMode === 'unified') {
       // 统一视图模式 - 只显示差异
       return (
         <div ref={editorContainerRef} className="bg-gray-900 rounded-lg border border-gray-700" style={{ height: editorHeight, width: editorWidth, overflow: 'hidden' }}>
+          <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300 flex justify-between items-center">
+            <span>{getMessage('diffView')}</span>
+            <MaximizeButton viewType="diff" />
+          </div>
           <Editor
             key={diffKey}
-            height="100%"
+            height="calc(100% - 26px)"
             width="100%"
             defaultLanguage="diff"
             value={fileDiff.diff_content || ''}
@@ -324,59 +375,68 @@ const CommitListPanel: React.FC<CommitListPanelProps> = ({ projectName }) => {
     // 分割视图模式
     return (
       <div ref={editorContainerRef} className="grid grid-cols-3 gap-2" style={{ height: editorHeight, width: editorWidth }}>
-        {/* 原始代码 */}
-        <div className="bg-gray-900 rounded-lg border border-gray-700" style={{ overflow: 'hidden' }}>
-          <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300">
-            {getMessage('beforeChange')} ({fileDiff.file_status === 'added' ? getMessage('newFile') : selectedFile})
+        {/* 根据最大化状态决定是否显示各个视图 */}
+        {(maximizedView === null || maximizedView === 'before') && (
+          <div className={`bg-gray-900 rounded-lg border border-gray-700 ${maximizedView === 'before' ? 'col-span-3' : ''}`} style={{ overflow: 'hidden' }}>
+            <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300 flex justify-between items-center">
+              <span>{getMessage('beforeChange')} ({fileDiff.file_status === 'added' ? getMessage('newFile') : selectedFile})</span>
+              <MaximizeButton viewType="before" />
+            </div>
+            <Editor
+              key={beforeKey}
+              height="calc(100% - 26px)"
+              width="100%"
+              defaultLanguage={language}
+              value={fileDiff.before_content || ''}
+              theme="vs-dark"
+              onMount={handleBeforeEditorDidMount}
+              options={editorOptions}
+              loading={<div className="flex items-center justify-center h-full text-gray-400">Loading...</div>}
+            />
           </div>
-          <Editor
-            key={beforeKey}
-            height="calc(100% - 26px)"
-            width="100%"
-            defaultLanguage={language}
-            value={fileDiff.before_content || ''}
-            theme="vs-dark"
-            onMount={handleBeforeEditorDidMount}
-            options={editorOptions}
-            loading={<div className="flex items-center justify-center h-full text-gray-400">Loading...</div>}
-          />
-        </div>
+        )}
         
         {/* 更改后代码 */}
-        <div className="bg-gray-900 rounded-lg border border-gray-700" style={{ overflow: 'hidden' }}>
-          <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300">
-            {getMessage('afterChange')} ({fileDiff.file_status === 'deleted' ? getMessage('fileDeleted') : selectedFile})
+        {(maximizedView === null || maximizedView === 'after') && (
+          <div className={`bg-gray-900 rounded-lg border border-gray-700 ${maximizedView === 'after' ? 'col-span-3' : ''}`} style={{ overflow: 'hidden' }}>
+            <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300 flex justify-between items-center">
+              <span>{getMessage('afterChange')} ({fileDiff.file_status === 'deleted' ? getMessage('fileDeleted') : selectedFile})</span>
+              <MaximizeButton viewType="after" />
+            </div>
+            <Editor
+              key={afterKey}
+              height="calc(100% - 26px)"
+              width="100%"
+              defaultLanguage={language}
+              value={fileDiff.after_content || ''}
+              theme="vs-dark"
+              onMount={handleAfterEditorDidMount}
+              options={editorOptions}
+              loading={<div className="flex items-center justify-center h-full text-gray-400">Loading...</div>}
+            />
           </div>
-          <Editor
-            key={afterKey}
-            height="calc(100% - 26px)"
-            width="100%"
-            defaultLanguage={language}
-            value={fileDiff.after_content || ''}
-            theme="vs-dark"
-            onMount={handleAfterEditorDidMount}
-            options={editorOptions}
-            loading={<div className="flex items-center justify-center h-full text-gray-400">Loading...</div>}
-          />
-        </div>
+        )}
         
         {/* 差异视图 */}
-        <div className="bg-gray-900 rounded-lg border border-gray-700" style={{ overflow: 'hidden' }}>
-          <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300">
-            {getMessage('diffView')}
+        {(maximizedView === null || maximizedView === 'diff') && (
+          <div className={`bg-gray-900 rounded-lg border border-gray-700 ${maximizedView === 'diff' ? 'col-span-3' : ''}`} style={{ overflow: 'hidden' }}>
+            <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300 flex justify-between items-center">
+              <span>{getMessage('diffView')}</span>
+              <MaximizeButton viewType="diff" />
+            </div>
+            <Editor
+              key={`diff-inline-${selectedCommit}-${selectedFile}`}
+              height="calc(100% - 26px)"
+              width="100%"
+              defaultLanguage="diff"
+              value={fileDiff.diff_content || ''}
+              theme="vs-dark"
+              onMount={handleDiffEditorDidMount}
+              options={editorOptions}
+              loading={<div className="flex items-center justify-center h-full text-gray-400">Loading...</div>}
+            />
           </div>
-          <Editor
-            key={`diff-inline-${selectedCommit}-${selectedFile}`}
-            height="calc(100% - 26px)"
-            width="100%"
-            defaultLanguage="diff"
-            value={fileDiff.diff_content || ''}
-            theme="vs-dark"
-            onMount={handleDiffEditorDidMount}
-            options={editorOptions}
-            loading={<div className="flex items-center justify-center h-full text-gray-400">Loading...</div>}
-          />
-        </div>
+        )}
       </div>
     );
   };
