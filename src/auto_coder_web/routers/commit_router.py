@@ -9,6 +9,11 @@ from loguru import logger
 import git
 from git import Repo, GitCommandError
 
+# 导入获取事件和action文件的相关模块
+from autocoder.events.event_manager_singleton import get_event_manager, get_event_file_path
+from autocoder.events.event_types import EventType
+from autocoder.common.action_yml_file_manager import ActionYmlFileManager
+
 router = APIRouter()
 
 
@@ -213,8 +218,6 @@ async def get_action_from_commit_msg(
     """
     try:
         # 初始化 ActionYmlFileManager
-        from autocoder.common.action_yml_file_manager import ActionYmlFileManager
-        
         action_manager = ActionYmlFileManager(project_path)
         
         # 从提交消息中获取文件名
@@ -394,40 +397,145 @@ async def get_file_diff(
 async def get_current_changes(
     limit: int = 3, 
     hours_ago: int = 24,
+    event_file_id: Optional[str] = None,
     project_path: str = Depends(get_project_path)
 ):
     """
-    获取最近时间内的提交作为当前变化
+    获取当前变更的提交列表
+    
+    有两种模式:
+    1. 如果提供了event_file_id，则从事件文件中提取相关的提交
+    2. 如果没有提供event_file_id，则返回最近的提交
     
     Args:
         limit: 返回的最大提交数量，默认3
         hours_ago: 从几小时前开始查找，默认24小时
+        event_file_id: 事件文件ID，可选
         project_path: 项目路径
         
     Returns:
-        最近的提交哈希列表
+        提交哈希列表
     """
     try:
         repo = get_repo(project_path)
         
-        # 计算时间范围
-        since_time = datetime.now() - timedelta(hours=hours_ago)
-        since_timestamp = since_time.timestamp()
-        
-        # 获取最近的提交
-        recent_commits = []
-        
-        for commit in repo.iter_commits():
-            if commit.committed_date >= since_timestamp:
-                recent_commits.append(commit.hexsha)
-                if len(recent_commits) >= limit:
-                    break
-                    
-        return {"commit_hashes": recent_commits}
-        
+        # 如果提供了事件文件ID，从事件中获取相关提交
+        if event_file_id:
+            try:
+                # 获取事件文件路径
+                event_file_path = get_event_file_path(event_file_id, project_path)
+                
+                # 获取事件管理器
+                event_manager = get_event_manager(event_file_path)
+                
+                # 获取所有事件
+                all_events = event_manager.read_events()
+                
+                # 创建ActionYmlFileManager实例
+                action_manager = ActionYmlFileManager(project_path)
+                                
+                # 改为收集带时间戳的提交信息
+                commit_data = []
+
+                action_files = set()
+                
+                for event in all_events:                    
+                    # 检查元数据中是否有action_file字段
+                    if 'action_file' in event.metadata:
+                        action_file = event.metadata['action_file']
+                        if action_file not in action_files:                            
+                            continue
+                        
+                        logger.info(f"获取Action文件: {action_file}")
+                        action_files.add(action_file)
+                        # 从action文件获取提交ID       
+                        # action_file 这里的值是 类似这样的 actions/000000000104_chat_action.yml
+                        if action_file.startswith("actions"):
+                            action_file = action_file[len("actions/"):]
+                            
+                        commit_id = action_manager.get_commit_id_from_file(action_file)
+                        logger.info(f"获取Action文件提交ID: {commit_id}")
+                        if commit_id:
+                            # 验证提交ID是否存在于仓库中
+                            try:
+                                commit = repo.commit(commit_id)
+                                # 将提交哈希和时间戳一起保存
+                                commit_data.append({
+                                    'hash': commit.hexsha,
+                                    'timestamp': commit.committed_date
+                                })
+                                
+                                # 如果达到限制数量，停止处理
+                                if len(commit_data) >= limit:
+                                    break
+                            except Exception as e:
+                                logger.warning(f"无法获取提交 {commit_id}: {str(e)}")
+                
+                # 按提交时间戳排序（降序 - 最新的在前面）
+                commit_data.sort(key=lambda x: x['timestamp'], reverse=True)
+                
+                # 提取排序后的哈希值，并去重（保持顺序）
+                seen_hashes = set()
+                commit_hashes_list = []
+                for item in commit_data:
+                    if item['hash'] not in seen_hashes:
+                        seen_hashes.add(item['hash'])
+                        commit_hashes_list.append(item['hash'])                                
+                
+                return {"commit_hashes": commit_hashes_list}
+            
+            except Exception as e:
+                logger.error(f"从事件文件获取提交失败: {str(e)}")
+                
+                return {"commit_hashes": []}
+        else:
+            # 如果没有提供事件文件ID，返回最近的提交
+            return {"commit_hashes": []}
+            
     except Exception as e:
-        logger.error(f"Error getting current changes: {str(e)}")
+        logger.error(f"获取当前变更失败: {str(e)}")
         raise HTTPException(
             status_code=500, 
-            detail=f"Failed to get current changes: {str(e)}"
-        ) 
+            detail=f"获取当前变更失败: {str(e)}"
+        )
+
+async def get_recent_commits(repo: Repo, limit: int, hours_ago: int):
+    """
+    获取最近的提交
+    
+    Args:
+        repo: Git仓库对象
+        limit: 最大提交数量
+        hours_ago: 时间范围（小时）
+        
+    Returns:
+        最近的提交哈希列表，按时间降序排序
+    """
+    # 计算时间范围
+    since_time = datetime.now() - timedelta(hours=hours_ago)
+    since_timestamp = since_time.timestamp()
+    
+    # 获取最近的提交，带时间戳
+    commit_data = []
+    
+    for commit in repo.iter_commits():
+        if commit.committed_date >= since_timestamp:
+            commit_data.append({
+                'hash': commit.hexsha,
+                'timestamp': commit.committed_date
+            })
+            if len(commit_data) >= limit:
+                break
+    
+    # 按时间戳排序（降序 - 最新的在前面）
+    commit_data.sort(key=lambda x: x['timestamp'], reverse=True)
+    
+    # 提取排序后的哈希值，并去重（保持顺序）
+    seen_hashes = set()
+    commit_hashes_list = []
+    for item in commit_data:
+        if item['hash'] not in seen_hashes:
+            seen_hashes.add(item['hash'])
+            commit_hashes_list.append(item['hash'])
+    
+    return {"commit_hashes": commit_hashes_list} 

@@ -100,9 +100,7 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
     // 如果有指定提交哈希，使用它们获取提交
     if (commitHashes && commitHashes.length > 0) {
       fetchCommitsByHashes();
-    } else {
-      fetchCommits();
-    }
+    } 
     
     // 初始化时计算一次
     updateEditorDimensions();
@@ -155,26 +153,7 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
       setLoading(false);
     }
   };
-
-  const fetchCommits = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/commits');
-      
-      if (!response.ok) {
-        throw new Error(`Error fetching commits: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      setCommits(data.commits);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-      console.error('Failed to fetch commits:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const fetchCommitDetails = async (hash: string) => {
     try {
@@ -441,7 +420,7 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
         <p className="text-sm">{error}</p>
         <button 
           className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white transition-colors"
-          onClick={commitHashes && commitHashes.length > 0 ? fetchCommitsByHashes : fetchCommits}
+          onClick={fetchCommitsByHashes}
         >
           Retry
         </button>
@@ -453,12 +432,10 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
     <div className="flex flex-col h-full" ref={containerRef}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-medium text-white">
-          {commitHashes && commitHashes.length > 0 
-            ? getMessage('currentChangeTitle') 
-            : getMessage('commitHistory', { project: projectName })}
+          { getMessage('currentChangeTitle') }
         </h2>
         <button 
-          onClick={commitHashes && commitHashes.length > 0 ? fetchCommitsByHashes : fetchCommits}
+          onClick={fetchCommitsByHashes}
           className="p-1 text-gray-400 hover:text-white transition-colors"
           title="Refresh"
         >
@@ -474,9 +451,7 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           <p className="text-lg font-medium mb-2">No Changes Available</p>
-          <p className="text-sm">{commitHashes && commitHashes.length > 0 
-            ? "No changes found for the specified commits." 
-            : "This repository has no commits yet."}</p>
+          <p className="text-sm">{ "No changes found for the specified commits." }</p>
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto pr-2">

@@ -62,9 +62,6 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   
   // 组件挂载后的初始化效果
   useEffect(() => {
-    // 获取当前变更
-    fetchCurrentChanges();
-
     // 设置消息事件监听器
     autoCommandService.on('message', (message: ServiceMessage) => {
       // 处理用户询问类型的消息
@@ -108,10 +105,28 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     };
   }, []);
 
+  // 添加对标签切换的监听，只有切换到'current-change'时获取当前变更
+  useEffect(() => {
+    // 只有当切换到"当前变化"标签时，才获取当前变更
+    if (activeTab === 'current-change' && currentEventFileId) {
+      fetchCurrentChanges(currentEventFileId);
+    }
+  }, [activeTab, currentEventFileId]);
+
   // 获取当前变更
-  const fetchCurrentChanges = async () => {
+  const fetchCurrentChanges = async (current_event_file_id: string) => {
     try {
-      const response = await fetch('/api/current-changes');
+      // 检查是否存在事件文件ID
+      if (!current_event_file_id) {
+        // 添加提示消息到消息列表
+        console.log('No event file ID available');
+        return; // 直接返回，不发起请求
+      }
+      
+      // 构建请求URL，传递事件文件ID参数
+      let url = `/api/current-changes?event_file_id=${encodeURIComponent(current_event_file_id)}`;
+      
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setCurrentCommitHashes(data.commit_hashes || []);
@@ -218,6 +233,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         const result = await autoCommandService.executeCommand(autoSearchTerm);
         // 存储事件文件ID以便后续用户响应使用
         setCurrentEventFileId(result.event_file_id);
+        
         // 清空输入框
         setAutoSearchTerm('');
       } catch (error) {
