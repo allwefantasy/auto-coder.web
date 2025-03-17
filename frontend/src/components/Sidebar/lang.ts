@@ -449,7 +449,7 @@ export const messages: { [key: string]: Message } = {
   },
   viewChange: {
     en: "Commits",
-    zh: "Commits"
+    zh: "变更"
   },
   viewChangeComingSoon: {
     en: "View this change feature coming soon",
@@ -505,8 +505,8 @@ export const messages: { [key: string]: Message } = {
     zh: "关闭"
   },
   showMessages: {
-    en: "Show Messages",
-    zh: "显示消息"
+    en: "Messages",
+    zh: "消息"
   }
 };
 

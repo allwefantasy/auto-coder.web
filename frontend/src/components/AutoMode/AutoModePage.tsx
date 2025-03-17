@@ -274,13 +274,13 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                 className={`px-4 py-2 font-medium text-sm ${activeTab === 'messages' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-300'}`}
                 onClick={() => setActiveTab('messages')}
               >
-                Messages
+                {getMessage('showMessages')}
               </button>
               <button
                 className={`px-4 py-2 font-medium text-sm ${activeTab === 'commits' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-300'}`}
                 onClick={() => setActiveTab('commits')}
               >
-                Changes
+                {getMessage('viewChange')}
               </button>
               
               {/* 控制按钮容器 - 移到标签栏右侧 */}
