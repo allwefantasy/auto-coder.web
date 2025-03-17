@@ -58,6 +58,15 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
   const [fileDiffLoading, setFileDiffLoading] = useState(false);
   const [fileDiffError, setFileDiffError] = useState<string | null>(null);
   const [diffViewMode, setDiffViewMode] = useState<'split' | 'unified'>('split');
+  // Revert 确认对话框状态
+  const [revertConfirmation, setRevertConfirmation] = useState<{
+    show: boolean;
+    commitHash: string;
+    commitMessage: string;
+  }>({ show: false, commitHash: '', commitMessage: '' });
+  const [revertLoading, setRevertLoading] = useState(false);
+  const [revertError, setRevertError] = useState<string | null>(null);
+  const [revertSuccess, setRevertSuccess] = useState<string | null>(null);
   
   // 使用refs来保存编辑器实例
   const beforeEditorRef = useRef<any>(null);
@@ -373,6 +382,57 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
     );
   };
 
+  // 处理 Revert 按钮点击
+  const handleRevertClick = (e: React.MouseEvent, commit: Commit) => {
+    e.stopPropagation(); // 阻止事件冒泡，避免触发展开提交详情
+    setRevertConfirmation({
+      show: true,
+      commitHash: commit.hash,
+      commitMessage: commit.message
+    });
+  };
+
+  // 执行 Revert 操作
+  const confirmRevert = async () => {
+    try {
+      setRevertLoading(true);
+      setRevertError(null);
+      setRevertSuccess(null);
+      
+      const response = await fetch(`/api/commits/${revertConfirmation.commitHash}/revert`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to revert commit');
+      }
+      
+      const result = await response.json();
+      setRevertSuccess(`Successfully reverted commit. New revert commit: ${result.new_commit_hash.substring(0, 7)}`);
+      
+      // 关闭确认对话框，但保留成功消息一段时间
+      setRevertConfirmation(prev => ({ ...prev, show: false }));
+      setTimeout(() => {
+        setRevertSuccess(null);
+      }, 5000);
+    } catch (err) {
+      setRevertError(err instanceof Error ? err.message : 'Failed to revert commit');
+      console.error('Failed to revert commit:', err);
+    } finally {
+      setRevertLoading(false);
+    }
+  };
+
+  // 取消 Revert 操作
+  const cancelRevert = () => {
+    setRevertConfirmation({ show: false, commitHash: '', commitMessage: '' });
+    setRevertError(null);
+  };
+
   if (loading && commits.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -395,6 +455,68 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
 
   return (
     <div className="flex flex-col h-full" ref={containerRef}>
+      {/* Revert 确认对话框 */}
+      {revertConfirmation.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 border border-gray-700">
+            <h3 className="text-xl font-semibold text-white mb-4">确认撤销提交</h3>
+            <p className="text-gray-300 mb-6">
+              您确定要撤销此提交吗？这将创建一个新的提交来撤销更改。
+            </p>
+            <div className="bg-gray-900 p-3 rounded mb-6 border border-gray-700">
+              <p className="text-sm text-gray-400 mb-1">提交信息:</p>
+              <p className="text-white">{revertConfirmation.commitMessage}</p>
+              <p className="text-xs text-gray-500 mt-2">Commit: {revertConfirmation.commitHash.substring(0, 7)}</p>
+            </div>
+            
+            {revertError && (
+              <div className="bg-red-900 bg-opacity-25 text-red-400 p-3 rounded mb-4">
+                {revertError}
+              </div>
+            )}
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                onClick={cancelRevert}
+                disabled={revertLoading}
+              >
+                取消
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors flex items-center"
+                onClick={confirmRevert}
+                disabled={revertLoading}
+              >
+                {revertLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    处理中...
+                  </>
+                ) : (
+                  <>确认撤销</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 成功消息提示 */}
+      {revertSuccess && (
+        <div className="fixed top-4 right-4 bg-green-800 text-green-100 p-4 rounded-lg shadow-lg z-50 animate-fade-in-out">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>{revertSuccess}</span>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-medium text-white">
           { getMessage('currentChangeTitle') }
@@ -423,7 +545,19 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
               >
                 <div className="flex justify-between items-start">
                   <h3 className="text-white font-medium mb-2 flex-1 mr-2">{commit.message}</h3>
-                  <span className="text-xs font-mono text-gray-400 whitespace-nowrap">{commit.short_hash}</span>
+                  <div className="flex items-center">
+                    {/* Revert 按钮 */}
+                    <button
+                      className="text-gray-400 hover:text-red-400 p-1 mr-1 transition-colors"
+                      onClick={(e) => handleRevertClick(e, commit)}
+                      title="撤销此提交"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                      </svg>
+                    </button>
+                    <span className="text-xs font-mono text-gray-400 whitespace-nowrap">{commit.short_hash}</span>
+                  </div>
                 </div>
                 
                 <div className="flex items-center text-xs text-gray-400 mt-2">

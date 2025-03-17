@@ -550,4 +550,98 @@ async def get_recent_commits(repo: Repo, limit: int, hours_ago: int):
             seen_hashes.add(item['hash'])
             commit_hashes_list.append(item['hash'])
     
-    return {"commit_hashes": commit_hashes_list} 
+    return {"commit_hashes": commit_hashes_list}
+
+@router.post("/api/commits/{commit_hash}/revert")
+async def revert_commit(
+    commit_hash: str, 
+    project_path: str = Depends(get_project_path)
+):
+    """
+    撤销指定的提交，创建一个新的 revert 提交
+    
+    Args:
+        commit_hash: 要撤销的提交哈希值
+        project_path: 项目路径
+        
+    Returns:
+        新创建的 revert 提交信息
+    """
+    try:
+        repo = get_repo(project_path)
+        
+        # 尝试获取指定的提交
+        try:
+            commit = repo.commit(commit_hash)
+        except ValueError:
+            # 如果是短哈希，尝试匹配
+            matching_commits = [c for c in repo.iter_commits() if c.hexsha.startswith(commit_hash)]
+            if not matching_commits:
+                raise HTTPException(status_code=404, detail=f"Commit {commit_hash} not found")
+            commit = matching_commits[0]
+        
+        # 检查工作目录是否干净
+        if repo.is_dirty():
+            raise HTTPException(
+                status_code=400, 
+                detail="Cannot revert: working directory has uncommitted changes"
+            )
+        
+        try:
+            # 执行 git revert
+            # 使用 -n 选项不自动创建提交，而是让我们手动提交
+            repo.git.revert(commit.hexsha, no_commit=True)
+            
+            # 创建带有信息的 revert 提交
+            revert_message = f"Revert \"{commit.message.strip()}\"\n\nThis reverts commit {commit.hexsha}"
+            new_commit = repo.index.commit(
+                revert_message,
+                author=repo.active_branch.commit.author,
+                committer=repo.active_branch.commit.committer
+            )
+            
+            # 构建新提交的信息
+            stats = new_commit.stats.total
+            new_commit_info = {
+                "new_commit_hash": new_commit.hexsha,
+                "new_commit_short_hash": new_commit.hexsha[:7],
+                "reverted_commit": {
+                    "hash": commit.hexsha,
+                    "short_hash": commit.hexsha[:7],
+                    "message": commit.message.strip()
+                },
+                "stats": {
+                    "insertions": stats["insertions"],
+                    "deletions": stats["deletions"],
+                    "files_changed": stats["files"]
+                }
+            }
+            
+            return new_commit_info
+            
+        except git.GitCommandError as e:
+            # 如果发生 Git 命令错误，尝试恢复工作目录
+            try:
+                repo.git.reset("--hard", "HEAD")
+            except:
+                pass  # 如果恢复失败，继续抛出原始错误
+                
+            if "patch does not apply" in str(e):
+                raise HTTPException(
+                    status_code=409, 
+                    detail="Cannot revert: patch does not apply (likely due to conflicts)"
+                )
+            else:
+                raise HTTPException(
+                    status_code=500, 
+                    detail=f"Git error during revert: {str(e)}"
+                )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error reverting commit: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to revert commit: {str(e)}"
+        ) 
