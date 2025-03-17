@@ -543,142 +543,153 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
                 }`}
                 onClick={() => handleCommitClick(commit.hash)}
               >
-                <div className="flex justify-between items-start">
-                  <h3 className="text-white font-medium mb-2 flex-1 mr-2">{commit.message}</h3>
-                  <div className="flex items-center">
-                    {/* Revert 按钮 */}
-                    <button
-                      className="text-gray-400 hover:text-red-400 p-1 mr-1 transition-colors"
-                      onClick={(e) => handleRevertClick(e, commit)}
-                      title="撤销此提交"
-                    >
+                {/* 使用条件样式添加红色边框和"已撤销"标签 */}
+                <div className={`${commit.message.startsWith('Revert ') ? 'border border-red-500 rounded-lg p-2 relative' : ''}`}>
+                  {commit.message.startsWith('Revert ') && (
+                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      已撤销
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-medium mb-2 flex-1 mr-2 text-white">{commit.message}</h3>
+                    <div className="flex items-center">
+                      {/* Revert 按钮 - 只对非Revert提交显示 */}
+                      {!commit.message.startsWith('Revert ') && (
+                        <button
+                          className="text-gray-400 hover:text-red-400 p-1 mr-1 transition-colors"
+                          onClick={(e) => handleRevertClick(e, commit)}
+                          title="撤销此提交"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                          </svg>
+                        </button>
+                      )}
+                      <span className="text-xs font-mono text-gray-400 whitespace-nowrap">{commit.short_hash}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center text-xs text-gray-400 mt-2">
+                    <span>{commit.author}</span>
+                    <span className="mx-2">•</span>
+                    <span>{formatDate(commit.date)}</span>
+                  </div>
+                  
+                  <div className="flex items-center mt-3 text-xs">
+                    <span className="flex items-center text-green-400 mr-3">
+                      <span className="font-mono mr-1">+{commit.stats.insertions}</span>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
-                    </button>
-                    <span className="text-xs font-mono text-gray-400 whitespace-nowrap">{commit.short_hash}</span>
+                    </span>
+                    <span className="flex items-center text-red-400 mr-3">
+                      <span className="font-mono mr-1">-{commit.stats.deletions}</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                      </svg>
+                    </span>
+                    <span className="text-gray-400">
+                      {commit.stats.files_changed} file{commit.stats.files_changed !== 1 ? 's' : ''} changed
+                    </span>
                   </div>
                 </div>
                 
-                <div className="flex items-center text-xs text-gray-400 mt-2">
-                  <span>{commit.author}</span>
-                  <span className="mx-2">•</span>
-                  <span>{formatDate(commit.date)}</span>
-                </div>
-                
-                <div className="flex items-center mt-3 text-xs">
-                  <span className="flex items-center text-green-400 mr-3">
-                    <span className="font-mono mr-1">+{commit.stats.insertions}</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </span>
-                  <span className="flex items-center text-red-400 mr-3">
-                    <span className="font-mono mr-1">-{commit.stats.deletions}</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                    </svg>
-                  </span>
-                  <span className="text-gray-400">
-                    {commit.stats.files_changed} file{commit.stats.files_changed !== 1 ? 's' : ''} changed
-                  </span>
-                </div>
-              </div>
-              
-              {/* 提交详情展开区域 */}
-              {selectedCommit === commit.hash && commitDetails && (
-                <div className="mt-2 pl-4 border-l-2 border-gray-700">
-                  <div className="bg-gray-800 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <h4 className="text-white text-sm font-medium">Changed Files</h4>
+                {/* 提交详情展开区域 */}
+                {selectedCommit === commit.hash && commitDetails && (
+                  <div className="mt-2 pl-4 border-l-2 border-gray-700">
+                    <div className="bg-gray-800 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-white text-sm font-medium">Changed Files</h4>
+                        
+                        {/* 视图切换按钮 */}
+                        {selectedFile && fileDiff && !fileDiffLoading && (
+                          <div className="flex space-x-2">
+                            <button
+                              className={`px-2 py-1 text-xs rounded ${diffViewMode === 'split' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                              onClick={() => {
+                                setDiffViewMode('split');
+                                // 设置模式后重新计算尺寸
+                                setTimeout(updateEditorDimensions, 50);
+                              }}
+                            >
+                              {getMessage('splitView')}
+                            </button>
+                            <button
+                              className={`px-2 py-1 text-xs rounded ${diffViewMode === 'unified' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                              onClick={() => {
+                                setDiffViewMode('unified');
+                                // 设置模式后重新计算尺寸
+                                setTimeout(updateEditorDimensions, 50);
+                              }}
+                            >
+                              {getMessage('unifiedView')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
                       
-                      {/* 视图切换按钮 */}
-                      {selectedFile && fileDiff && !fileDiffLoading && (
-                        <div className="flex space-x-2">
-                          <button
-                            className={`px-2 py-1 text-xs rounded ${diffViewMode === 'split' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                            onClick={() => {
-                              setDiffViewMode('split');
-                              // 设置模式后重新计算尺寸
-                              setTimeout(updateEditorDimensions, 50);
-                            }}
+                      {/* 文件列表 */}
+                      <div className="space-y-2 mb-4">
+                        {commitDetails.files.map((file: FileChange, index: number) => (
+                          <div 
+                            key={index} 
+                            className={`text-sm py-2 px-3 rounded cursor-pointer ${
+                              selectedFile === file.filename 
+                                ? 'bg-gray-700 border-l-2 border-indigo-500' 
+                                : 'hover:bg-gray-750'
+                            }`}
+                            onClick={() => handleFileClick(file.filename)}
                           >
-                            {getMessage('splitView')}
-                          </button>
-                          <button
-                            className={`px-2 py-1 text-xs rounded ${diffViewMode === 'unified' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                            onClick={() => {
-                              setDiffViewMode('unified');
-                              // 设置模式后重新计算尺寸
-                              setTimeout(updateEditorDimensions, 50);
-                            }}
-                          >
-                            {getMessage('unifiedView')}
-                          </button>
+                            <div className="flex items-center">
+                              <span className={`w-1.5 h-1.5 rounded-full mr-2 ${
+                                file.status === 'added' ? 'bg-green-500' :
+                                file.status === 'modified' ? 'bg-yellow-500' :
+                                file.status === 'deleted' ? 'bg-red-500' : 'bg-blue-500'
+                              }`}></span>
+                              <span className={`font-mono ${
+                                file.status === 'deleted' ? 'line-through text-gray-500' : 'text-gray-300'
+                              }`}>
+                                {file.filename}
+                              </span>
+                            </div>
+                            <div className="flex text-xs mt-1 ml-4">
+                              {file.changes && (
+                                <>
+                                  {file.changes.insertions > 0 && (
+                                    <span className="text-green-400 mr-3">+{file.changes.insertions}</span>
+                                  )}
+                                  {file.changes.deletions > 0 && (
+                                    <span className="text-red-400">-{file.changes.deletions}</span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* 文件差异加载状态 */}
+                      {fileDiffLoading && (
+                        <div className="flex items-center justify-center py-10">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
                         </div>
                       )}
-                    </div>
-                    
-                    {/* 文件列表 */}
-                    <div className="space-y-2 mb-4">
-                      {commitDetails.files.map((file: FileChange, index: number) => (
-                        <div 
-                          key={index} 
-                          className={`text-sm py-2 px-3 rounded cursor-pointer ${
-                            selectedFile === file.filename 
-                              ? 'bg-gray-700 border-l-2 border-indigo-500' 
-                              : 'hover:bg-gray-750'
-                          }`}
-                          onClick={() => handleFileClick(file.filename)}
-                        >
-                          <div className="flex items-center">
-                            <span className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                              file.status === 'added' ? 'bg-green-500' :
-                              file.status === 'modified' ? 'bg-yellow-500' :
-                              file.status === 'deleted' ? 'bg-red-500' : 'bg-blue-500'
-                            }`}></span>
-                            <span className={`font-mono ${
-                              file.status === 'deleted' ? 'line-through text-gray-500' : 'text-gray-300'
-                            }`}>
-                              {file.filename}
-                            </span>
-                          </div>
-                          <div className="flex text-xs mt-1 ml-4">
-                            {file.changes && (
-                              <>
-                                {file.changes.insertions > 0 && (
-                                  <span className="text-green-400 mr-3">+{file.changes.insertions}</span>
-                                )}
-                                {file.changes.deletions > 0 && (
-                                  <span className="text-red-400">-{file.changes.deletions}</span>
-                                )}
-                              </>
-                            )}
-                          </div>
+                      
+                      {/* 文件差异错误信息 */}
+                      {fileDiffError && (
+                        <div className="text-red-400 text-sm p-4 bg-red-900 bg-opacity-25 rounded-lg">
+                          <p className="font-medium">Error loading file diff:</p>
+                          <p>{fileDiffError}</p>
                         </div>
-                      ))}
+                      )}
+                      
+                      {/* 文件差异视图 */}
+                      {selectedFile && fileDiff && !fileDiffLoading && !fileDiffError && renderFileDiffView()}
                     </div>
-                    
-                    {/* 文件差异加载状态 */}
-                    {fileDiffLoading && (
-                      <div className="flex items-center justify-center py-10">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-                      </div>
-                    )}
-                    
-                    {/* 文件差异错误信息 */}
-                    {fileDiffError && (
-                      <div className="text-red-400 text-sm p-4 bg-red-900 bg-opacity-25 rounded-lg">
-                        <p className="font-medium">Error loading file diff:</p>
-                        <p>{fileDiffError}</p>
-                      </div>
-                    )}
-                    
-                    {/* 文件差异视图 */}
-                    {selectedFile && fileDiff && !fileDiffLoading && !fileDiffError && renderFileDiffView()}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>
