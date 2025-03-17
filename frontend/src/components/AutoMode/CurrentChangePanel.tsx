@@ -667,7 +667,9 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
                           <div className="flex space-x-2">
                             <button
                               className={`px-2 py-1 text-xs rounded ${diffViewMode === 'split' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                              onClick={() => {
+                              onClick={(e) => {
+                                // 阻止事件冒泡到父元素
+                                e.stopPropagation();
                                 setDiffViewMode('split');
                                 // 设置模式后重新计算尺寸
                                 setTimeout(updateEditorDimensions, 50);
@@ -677,7 +679,9 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
                             </button>
                             <button
                               className={`px-2 py-1 text-xs rounded ${diffViewMode === 'unified' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                              onClick={() => {
+                              onClick={(e) => {
+                                // 阻止事件冒泡到父元素
+                                e.stopPropagation();
                                 setDiffViewMode('unified');
                                 // 设置模式后重新计算尺寸
                                 setTimeout(updateEditorDimensions, 50);
