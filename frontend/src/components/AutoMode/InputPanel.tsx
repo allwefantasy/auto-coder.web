@@ -11,6 +11,7 @@ interface InputPanelProps {
   setAutoSearchTerm: (term: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onSelectHistoryTask?: (task: HistoryCommand) => void;
+  currentEventFileId?: string;
 }
 
 const InputPanel: React.FC<InputPanelProps> = ({
@@ -19,7 +20,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
   autoSearchTerm,
   setAutoSearchTerm,
   onSubmit,
-  onSelectHistoryTask
+  onSelectHistoryTask,
+  currentEventFileId
 }) => {
   // 状态管理
   const [isExpandedEditor, setIsExpandedEditor] = useState(false);
@@ -92,6 +94,30 @@ const InputPanel: React.FC<InputPanelProps> = ({
     }
   };
 
+  // 处理取消任务
+  const handleCancelTask = async (eventFileId: string) => {
+    try {
+      const response = await fetch('/api/auto-command/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ event_file_id: eventFileId }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to cancel task: ${response.statusText}`);
+      }
+      
+      // 可以在这里添加成功取消的提示或其他逻辑
+      console.log(`Task ${eventFileId} cancellation request sent`);
+    } catch (error) {
+      console.error('Error cancelling task:', error);
+      // 可以在这里添加错误处理逻辑
+      alert(`Failed to cancel task: ${error}`);
+    }
+  };
+
   return (
     <>
       {/* 扩展编辑器模态框 */}
@@ -161,6 +187,9 @@ const InputPanel: React.FC<InputPanelProps> = ({
             placeholder={`${getMessage('searchIn')} ${projectName || getMessage('yourProject')}`}
             onToggleExpand={toggleExpandedEditor}
             onSelectHistoryTask={onSelectHistoryTask}
+            isProcessing={isProcessing}
+            currentEventFileId={currentEventFileId}
+            onCancelTask={handleCancelTask}
           />
           
           {/* 按钮容器 - 使用flex布局调整位置 */}

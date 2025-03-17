@@ -3,6 +3,7 @@ import json
 import os
 from contextlib import contextmanager
 from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -12,9 +13,12 @@ from autocoder.events.event_manager_singleton import get_event_manager,gengerate
 from autocoder.events import event_content as EventContentCreator
 from autocoder.events.event_types import EventType
 from byzerllm.utils.langutil import asyncfy_with_semaphore
+from autocoder.common.global_cancel import global_cancel, CancelRequestedException 
 from loguru import logger
 router = APIRouter()
 
+# 创建线程池
+cancel_thread_pool = ThreadPoolExecutor(max_workers=5)
 
 class AutoCommandRequest(BaseModel):
     command: str
@@ -35,6 +39,10 @@ class TaskHistoryRequest(BaseModel):
     messages: List[Dict[str, Any]]
     status: str
     timestamp: int
+
+
+class CancelTaskRequest(BaseModel):
+    event_file_id: str
 
 
 async def get_project_path(request: Request) -> str:
@@ -279,3 +287,70 @@ async def get_task_detail(task_id: str, project_path: str = Depends(get_project_
         logger.error(f"Error getting task detail for {task_id}: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"Failed to get task detail: {str(e)}")
+
+
+@router.post("/api/auto-command/cancel")
+async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(get_project_path)):
+    """
+    取消正在运行的任务
+    
+    Args:
+        request: 包含event_file_id的请求对象
+        project_path: 项目路径
+        
+    Returns:
+        取消操作的结果
+    """
+    # 定义在线程中执行的取消任务函数
+    def cancel_task_thread(event_file_id: str, project_path: str):
+        try:
+            # 设置全局取消标志
+            global_cancel.set()
+            
+            # 获取事件文件路径和事件管理器
+            event_file = get_event_file_path(file_id=event_file_id, project_path=project_path)
+            event_manager = get_event_manager(event_file)
+            
+            # 向事件流写入取消事件
+            event_manager.write_error(
+                EventContentCreator.create_error(
+                    "USER_CANCELLED", 
+                    "canceled", 
+                    "Task was cancelled by the user"
+                ).to_dict()
+            )
+            
+            logger.info(f"Task {event_file_id} cancelled by user")
+            return True
+        except Exception as e:
+            logger.error(f"Error in cancel thread for task {event_file_id}: {str(e)}")
+            return False
+    
+    try:
+        # 在线程池中执行取消操作并获取 Future 对象
+        future = cancel_thread_pool.submit(
+            cancel_task_thread, 
+            request.event_file_id, 
+            project_path
+        )
+        
+        # 使用 asyncio 来等待线程完成
+        result = await asyncio.to_thread(future.result)
+        
+        if result:
+            # 线程成功完成
+            return {
+                "status": "success",
+                "message": "Task successfully cancelled",
+                "event_file_id": request.event_file_id
+            }
+        else:
+            # 线程返回了 False，表示出现了错误
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Failed to cancel task {request.event_file_id}"
+            )
+    except Exception as e:
+        logger.error(f"Error cancelling task: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to cancel task: {str(e)}")

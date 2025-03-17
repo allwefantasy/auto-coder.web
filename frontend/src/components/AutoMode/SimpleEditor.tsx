@@ -36,6 +36,12 @@ export interface SimpleEditorProps {
   onToggleExpand?: () => void;
   /** 选择历史任务的回调 */
   onSelectHistoryTask?: (task: HistoryCommand) => void;
+  /** 当前是否有任务在处理中 */
+  isProcessing?: boolean;
+  /** 当前正在运行的事件文件ID */
+  currentEventFileId?: string;
+  /** 取消当前任务的回调 */
+  onCancelTask?: (eventFileId: string) => void;
 }
 
 /**
@@ -49,7 +55,10 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   onSubmit,
   disabled = false,
   onToggleExpand,
-  onSelectHistoryTask
+  onSelectHistoryTask,
+  isProcessing = false,
+  currentEventFileId,
+  onCancelTask
 }, ref) => {
   // 编辑器引用
   const editorRef = useRef<any>(null);
@@ -272,16 +281,34 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
       
       {/* 历史命令按钮 */}
       <div className="absolute left-10 top-0 bottom-0 flex items-center z-10">
-        <button
-          type="button"
-          className="p-1 rounded-full text-gray-400 hover:text-gray-200 transition-colors focus:outline-none"
-          onClick={() => setShowHistory(!showHistory)}
-          title="命令历史"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" />
-          </svg>
-        </button>
+        {/* 如果任务在处理中且有事件文件ID，显示取消按钮 */}
+        {isProcessing && currentEventFileId && onCancelTask ? (
+          <button
+            type="button"
+            className="p-1 rounded-full text-red-500 hover:text-red-400 transition-colors focus:outline-none animate-pulse"
+            onClick={() => {
+              if (window.confirm('确定要取消当前运行的任务吗？')) {
+                onCancelTask(currentEventFileId);
+              }
+            }}
+            title="取消当前任务"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
+            </svg>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="p-1 rounded-full text-gray-400 hover:text-gray-200 transition-colors focus:outline-none"
+            onClick={() => setShowHistory(!showHistory)}
+            title="命令历史"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" />
+            </svg>
+          </button>
+        )}
         
         {/* 历史命令下拉列表 */}
         {showHistory && (
