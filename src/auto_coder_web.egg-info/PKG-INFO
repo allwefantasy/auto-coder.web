@@ -1,13 +1,13 @@
 Metadata-Version: 2.1
 Name: auto_coder_web
-Version: 0.1.20
+Version: 0.1.21
 Summary: auto-coder.web: A Python Project
 Author: allwefantasy
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Description-Content-Type: text/markdown
-Requires-Dist: auto-coder>=0.1.303
+Requires-Dist: auto-coder>=0.1.305
 Requires-Dist: aiofiles
 Requires-Dist: psutil
 Requires-Dist: sse-starlette
