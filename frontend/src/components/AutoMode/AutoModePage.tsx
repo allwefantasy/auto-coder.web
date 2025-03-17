@@ -4,6 +4,7 @@ import { Message as ServiceMessage, HistoryCommand } from './types';
 import { ChatPanel } from './index';
 import InputPanel from './InputPanel';
 import { autoCommandService } from '../../services/autoCommandService';
+import CommitListPanel from './CommitListPanel';
 
 interface AutoModePageProps {
   projectName: string;
@@ -26,6 +27,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null); // 当前事件文件ID
   const [isMessageAreaVisible, setIsMessageAreaVisible] = useState(true); // 消息区域显示状态
   const [isMessageAreaAdaptive, setIsMessageAreaAdaptive] = useState(true); // 消息区域自适应状态
+  const [activeTab, setActiveTab] = useState<'messages' | 'commits'>('messages'); // 添加标签状态
   
   const messagesRef = useRef(messages);
   
@@ -266,19 +268,67 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         {/* 消息区域 - 带滚动功能的主聊天界面，包含ChatPanel组件 */}
         {messages.length > 0 && isMessageAreaVisible && (
           <div className={`relative flex-1 ${isMessageAreaAdaptive ? 'overflow-y-auto' : ''} mb-6 bg-gray-800 rounded-lg p-4`}>
-            {/* 关闭按钮移至 ChatPanel 组件内 */}
-            <ChatPanel 
-              messages={messages} 
-              currentTask={lastSubmittedQuery.length > 0 
-                ? (lastSubmittedQuery.length > 20 
-                  ? `${lastSubmittedQuery.substring(0, 20)}...` 
-                  : lastSubmittedQuery)
-                : (projectName || getMessage('noProjectSelected'))}
-              onUserResponse={handleUserResponse}
-              onClose={() => setIsMessageAreaVisible(false)}
-              onToggleAdaptive={() => setIsMessageAreaAdaptive(!isMessageAreaAdaptive)}
-              isMessageAreaAdaptive={isMessageAreaAdaptive}
-            />
+            {/* 标签切换栏 */}
+            <div className="flex border-b border-gray-700 mb-4">
+              <button
+                className={`px-4 py-2 font-medium text-sm ${activeTab === 'messages' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-300'}`}
+                onClick={() => setActiveTab('messages')}
+              >
+                Messages
+              </button>
+              <button
+                className={`px-4 py-2 font-medium text-sm ${activeTab === 'commits' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-300'}`}
+                onClick={() => setActiveTab('commits')}
+              >
+                Changes
+              </button>
+              
+              {/* 控制按钮容器 - 移到标签栏右侧 */}
+              <div className="flex ml-auto">
+                <button
+                  className="text-gray-400 hover:text-white p-1 transition-colors mr-2"
+                  onClick={() => setIsMessageAreaAdaptive(!isMessageAreaAdaptive)}
+                  title={isMessageAreaAdaptive ? 'Fixed Height' : 'Adaptive Height'}
+                >
+                  {isMessageAreaAdaptive ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  className="text-gray-400 hover:text-white p-1 transition-colors"
+                  onClick={() => setIsMessageAreaVisible(false)}
+                  title="Close"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* 根据当前标签显示不同内容 */}
+            {activeTab === 'messages' ? (
+              <ChatPanel 
+                messages={messages} 
+                currentTask={lastSubmittedQuery.length > 0 
+                  ? (lastSubmittedQuery.length > 20 
+                    ? `${lastSubmittedQuery.substring(0, 20)}...` 
+                    : lastSubmittedQuery)
+                  : (projectName || getMessage('noProjectSelected'))}
+                onUserResponse={handleUserResponse}
+                onClose={() => setIsMessageAreaVisible(false)}
+                onToggleAdaptive={() => setIsMessageAreaAdaptive(!isMessageAreaAdaptive)}
+                isMessageAreaAdaptive={isMessageAreaAdaptive}
+              />
+            ) : (
+              <CommitListPanel projectName={projectName} />
+            )}
           </div>
         )}        
 

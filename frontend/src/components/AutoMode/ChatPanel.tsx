@@ -72,39 +72,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* 控制按钮组 - 右上角 */}
-      <div className="absolute top-2 right-2 flex space-x-2 z-20">
-        {/* 自适应切换按钮 */}
-        {onToggleAdaptive && (
-          <button 
-            className="p-1 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white transition-colors focus:outline-none"
-            onClick={onToggleAdaptive}
-            title={isMessageAreaAdaptive ? getMessage('disableAdaptive') || 'Disable Adaptive Panel' : getMessage('enableAdaptive') || 'Enable Adaptive Panel'}
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              {isMessageAreaAdaptive ? (
-                <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-              ) : (
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              )}
-            </svg>
-          </button>
-        )}
-        
-        {/* 关闭按钮 - 仅当提供了onClose回调时显示 */}
-        {onClose && (
-          <button 
-            className="p-1 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white transition-colors focus:outline-none"
-            onClick={onClose}
-            title={getMessage('close')}
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-        )}
-      </div>
-      
       {/* 固定在父容器顶部的状态栏 */}
       <div className="sticky top-0 z-10 bg-gray-800/90 backdrop-blur-sm border-b border-gray-700 shadow-md rounded-t-lg mb-4">
         <div className="px-4 py-3">
