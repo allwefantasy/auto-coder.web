@@ -11,3 +11,4 @@ output.txt
 events/
 ref_repos
 /node_modules
+/*.egg-info/
