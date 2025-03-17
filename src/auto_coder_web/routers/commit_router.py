@@ -429,68 +429,80 @@ async def get_current_changes(
                 event_manager = get_event_manager(event_file_path)
                 
                 # 获取所有事件
-                all_events = event_manager.read_events()
+                all_events = event_manager.event_store.get_events()
+                logger.info(f"获取事件: {len(all_events)}")
                 
                 # 创建ActionYmlFileManager实例
-                action_manager = ActionYmlFileManager(project_path)
-                                
-                # 改为收集带时间戳的提交信息
-                commit_data = []
+                action_manager = ActionYmlFileManager(project_path)                                                
 
                 action_files = set()
+                final_action_files = []
                 
                 for event in all_events:                    
                     # 检查元数据中是否有action_file字段
-                    if 'action_file' in event.metadata:
+                    if 'action_file' in event.metadata and event.metadata['action_file']:                        
                         action_file = event.metadata['action_file']
-                        if action_file not in action_files:                            
+                        if action_file in action_files:                            
                             continue
-                        
-                        logger.info(f"获取Action文件: {action_file}")
+                                                
                         action_files.add(action_file)
                         # 从action文件获取提交ID       
                         # action_file 这里的值是 类似这样的 actions/000000000104_chat_action.yml
                         if action_file.startswith("actions"):
                             action_file = action_file[len("actions/"):]
+
+                        final_action_files.append(action_file)
+                
+                commits = []
+                for action_file in final_action_files:            
+                    commit_msg_part = action_manager.get_commit_id_from_file(action_file)
+                    commit_id = None
+                    logger.info(f"获取Action文件提交ID: {commit_msg_part}")                    
+                    for commit in repo.iter_commits():
+                        if commit_msg_part in commit.message:
+                            commit_id = commit.hexsha
+                            break
+
+                    if commit_id:
+                        # 验证提交ID是否存在于仓库中
+                        try:
+                            commit = repo.commit(commit_id)
+                            # 获取提交统计信息
+                            stats = commit.stats.total
                             
-                        commit_id = action_manager.get_commit_id_from_file(action_file)
-                        logger.info(f"获取Action文件提交ID: {commit_id}")
-                        if commit_id:
-                            # 验证提交ID是否存在于仓库中
-                            try:
-                                commit = repo.commit(commit_id)
-                                # 将提交哈希和时间戳一起保存
-                                commit_data.append({
-                                    'hash': commit.hexsha,
-                                    'timestamp': commit.committed_date
-                                })
-                                
-                                # 如果达到限制数量，停止处理
-                                if len(commit_data) >= limit:
-                                    break
-                            except Exception as e:
-                                logger.warning(f"无法获取提交 {commit_id}: {str(e)}")
+                            # 构建提交信息
+                            commit_info = {
+                                "hash": commit.hexsha,
+                                "short_hash": commit.hexsha[:7],
+                                "author": f"{commit.author.name} <{commit.author.email}>",
+                                "date": datetime.fromtimestamp(commit.committed_date).isoformat(),
+                                "timestamp": commit.committed_date,
+                                "message": commit.message.strip(),
+                                "stats": {
+                                    "insertions": stats["insertions"],
+                                    "deletions": stats["deletions"],
+                                    "files_changed": stats["files"]
+                                }
+                            }
+                            commits.append(commit_info)
+                            
+                            return {"commits": commits, "total": len(list(repo.iter_commits()))}
+                        except Exception as e:
+                            logger.warning(f"无法获取提交 {commit_id}: {str(e)}")
                 
                 # 按提交时间戳排序（降序 - 最新的在前面）
-                commit_data.sort(key=lambda x: x['timestamp'], reverse=True)
+                commits.sort(key=lambda x: x['timestamp'], reverse=True)
+                                
                 
-                # 提取排序后的哈希值，并去重（保持顺序）
-                seen_hashes = set()
-                commit_hashes_list = []
-                for item in commit_data:
-                    if item['hash'] not in seen_hashes:
-                        seen_hashes.add(item['hash'])
-                        commit_hashes_list.append(item['hash'])                                
-                
-                return {"commit_hashes": commit_hashes_list}
+                return {"commits": commits, "total": len(commits)}
             
             except Exception as e:
                 logger.error(f"从事件文件获取提交失败: {str(e)}")
                 
-                return {"commit_hashes": []}
+                return {"commits": [], "total": 0}
         else:
             # 如果没有提供事件文件ID，返回最近的提交
-            return {"commit_hashes": []}
+            return {"commits": [], "total": 0}
             
     except Exception as e:
         logger.error(f"获取当前变更失败: {str(e)}")

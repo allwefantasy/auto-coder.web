@@ -13,7 +13,6 @@ loader.config({
 });
 
 interface Commit {
-  id: string;
   hash: string;
   short_hash: string;
   author: string;
@@ -24,6 +23,7 @@ interface Commit {
     deletions: number;
     files_changed: number;
   };
+  files?: FileChange[];
 }
 
 interface FileChange {
@@ -44,12 +44,12 @@ interface FileDiff {
 
 interface CurrentChangePanelProps {
   projectName: string;
-  commitHashes?: string[]; // 可选的提交哈希数组，只显示这些提交
+  commits: Commit[]; // 直接接收完整的提交数组
 }
 
-const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, commitHashes = [] }) => {
-  const [commits, setCommits] = useState<Commit[]>([]);
-  const [loading, setLoading] = useState(true);
+const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, commits = [] }) => {
+  // 移除commits状态，直接使用props
+  const [loading, setLoading] = useState(false); // 仅用于加载其他数据
   const [error, setError] = useState<string | null>(null);
   const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
   const [commitDetails, setCommitDetails] = useState<any | null>(null);
@@ -97,11 +97,6 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
   }, 100), []);
 
   useEffect(() => {
-    // 如果有指定提交哈希，使用它们获取提交
-    if (commitHashes && commitHashes.length > 0) {
-      fetchCommitsByHashes();
-    } 
-    
     // 初始化时计算一次
     updateEditorDimensions();
     
@@ -116,45 +111,10 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
       afterEditorRef.current = null;
       diffEditorRef.current = null;
     };
-  }, [commitHashes, updateEditorDimensions]);
+  }, [updateEditorDimensions]);
 
-  // 获取指定哈希的提交
-  const fetchCommitsByHashes = async () => {
-    try {
-      setLoading(true);
-      const commitPromises = commitHashes.map(hash => 
-        fetch(`/api/commits/${hash}`)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Error fetching commit ${hash}: ${response.statusText}`);
-            }
-            return response.json();
-          })
-      );
-      
-      const commitsData = await Promise.all(commitPromises);
-      // 将详细提交数据转换为Commit格式
-      const formattedCommits = commitsData.map(data => ({
-        id: data.hash,
-        hash: data.hash,
-        short_hash: data.short_hash,
-        author: data.author,
-        date: data.date,
-        message: data.message,
-        stats: data.stats
-      }));
-      
-      setCommits(formattedCommits);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-      console.error('Failed to fetch specific commits:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 移除原有的fetchCommitsByHashes函数，不再需要额外获取提交详情
   
-
   const fetchCommitDetails = async (hash: string) => {
     try {
       setCommitDetails(null);
@@ -217,7 +177,18 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
       diffEditorRef.current = null;
     } else {
       setSelectedCommit(hash);
-      fetchCommitDetails(hash);
+      
+      // 查找是否已经有该提交的详细信息
+      const commit = commits.find(c => c.hash === hash);
+      
+      // 如果已经有文件信息，直接使用
+      if (commit && commit.files) {
+        setCommitDetails(commit);
+      } else {
+        // 否则发起请求获取详细信息
+        fetchCommitDetails(hash);
+      }
+      
       setSelectedFile(null);
       setFileDiff(null);
     }
@@ -418,12 +389,6 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
         </svg>
         <p className="text-lg font-medium mb-2">Error Loading Changes</p>
         <p className="text-sm">{error}</p>
-        <button 
-          className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white transition-colors"
-          onClick={fetchCommitsByHashes}
-        >
-          Retry
-        </button>
       </div>
     );
   }
@@ -434,15 +399,6 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
         <h2 className="text-lg font-medium text-white">
           { getMessage('currentChangeTitle') }
         </h2>
-        <button 
-          onClick={fetchCommitsByHashes}
-          className="p-1 text-gray-400 hover:text-white transition-colors"
-          title="Refresh"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
       </div>
 
       {commits.length === 0 ? (

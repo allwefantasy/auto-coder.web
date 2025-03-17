@@ -28,7 +28,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
   const [isMessageAreaVisible, setIsMessageAreaVisible] = useState(true); // 消息区域显示状态
   const [isMessageAreaAdaptive, setIsMessageAreaAdaptive] = useState(true); // 消息区域自适应状态
   const [activeTab, setActiveTab] = useState<'messages' | 'current-change' | 'commits'>('messages'); // 修改标签状态
-  const [currentCommitHashes, setCurrentCommitHashes] = useState<string[]>([]); // 当前变化的提交哈希
+  const [currentCommits, setCurrentCommits] = useState<any[]>([]); // 当前变化的提交详情
   
   const messagesRef = useRef(messages);
   
@@ -129,7 +129,8 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        setCurrentCommitHashes(data.commit_hashes || []);
+        // 更新为新的数据结构：直接使用返回的提交数组
+        setCurrentCommits(data.commits || []);
       } else {
         console.error('Failed to fetch current changes:', response.statusText);
       }
@@ -366,7 +367,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
             ) : activeTab === 'current-change' ? (
               <CurrentChangePanel 
                 projectName={projectName} 
-                commitHashes={currentCommitHashes} 
+                commits={currentCommits} 
               />
             ) : (
               <CommitListPanel projectName={projectName} />
