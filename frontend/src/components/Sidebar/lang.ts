@@ -505,8 +505,41 @@ export const messages: { [key: string]: Message } = {
     zh: "关闭"
   },
   showMessages: {
-    en: "Messages",
-    zh: "消息"
+    en: "Show Messages",
+    zh: "显示消息"
+  },
+  // 提交历史和差异查看相关
+  beforeChange: {
+    en: "Before Changes",
+    zh: "变更前"
+  },
+  afterChange: {
+    en: "After Changes", 
+    zh: "变更后"
+  },
+  diffView: {
+    en: "Diff View",
+    zh: "差异视图"
+  },
+  splitView: {
+    en: "Split View",
+    zh: "三列视图"
+  },
+  unifiedView: {
+    en: "Unified View",
+    zh: "单列视图"
+  },
+  newFile: {
+    en: "New File",
+    zh: "新增文件"
+  },
+  fileDeleted: {
+    en: "File Deleted",
+    zh: "已删除文件"
+  },
+  commitHistory: {
+    en: "Commit History",
+    zh: "变更历史"
   }
 };
 
