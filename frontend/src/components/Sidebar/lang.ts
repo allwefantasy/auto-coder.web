@@ -548,6 +548,10 @@ export const messages: { [key: string]: Message } = {
   currentChangeTitle: {
     en: "Current Change Details",
     zh: "当前变化详情"
+  },
+  files: {
+    en: "Files",
+    zh: "文件列表"
   }
 };
 

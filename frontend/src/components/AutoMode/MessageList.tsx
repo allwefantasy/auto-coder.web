@@ -36,6 +36,7 @@ interface MessageListProps {
     onUserResponse: (response: string, eventId?: string) => Promise<void>;
 }
 
+// 真实在渲染的时候，我们会不展示 command_prepare_stat 类型的消息
 const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) => {
     // Function to render message content based on content type
     const renderMessageContent = (message: MessageProps) => {
@@ -65,9 +66,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         }
 
         // For command preparation statistics content
-        if (message.contentType === 'command_prepare_stat') {
-            return <CommandPrepareMessage message={message} />;
-        }
+        // if (message.contentType === 'command_prepare_stat') {
+        //     return <CommandPrepareMessage message={message} />;
+        // }
 
         // For command execution statistics content
         if (message.contentType === 'command_execute_stat') {
@@ -100,7 +101,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
 
     return (
         <>
-            {messages.map((message, index) => (
+            {messages.filter(message => message.contentType !== 'command_prepare_stat').map((message, index) => (
                 <div
                     key={message.id || index}
                     className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4 w-full`}
