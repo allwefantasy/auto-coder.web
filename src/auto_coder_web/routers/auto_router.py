@@ -314,9 +314,9 @@ async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(ge
             # 向事件流写入取消事件
             event_manager.write_error(
                 EventContentCreator.create_error(
-                    "USER_CANCELLED", 
-                    "canceled", 
-                    "Task was cancelled by the user"
+                    error_code="USER_CANCELLED", 
+                    error_message="Task was cancelled by the user",
+                    details={"message": "Task was cancelled by the user"}
                 ).to_dict()
             )
             

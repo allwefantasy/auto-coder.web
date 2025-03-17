@@ -39,9 +39,11 @@ export interface SimpleEditorProps {
   /** 当前是否有任务在处理中 */
   isProcessing?: boolean;
   /** 当前正在运行的事件文件ID */
-  currentEventFileId?: string;
+  currentEventFileId?: string | null;
   /** 取消当前任务的回调 */
   onCancelTask?: (eventFileId: string) => void;
+  /** 是否正在取消任务 */
+  isCancelling?: boolean;
 }
 
 /**
@@ -58,7 +60,8 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   onSelectHistoryTask,
   isProcessing = false,
   currentEventFileId,
-  onCancelTask
+  onCancelTask,
+  isCancelling = false
 }, ref) => {
   // 编辑器引用
   const editorRef = useRef<any>(null);
@@ -105,6 +108,15 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
       setIsLoadingHistory(false);
     }
   };
+  
+  // 添加调试日志，检查取消按钮所需的条件
+  useEffect(() => {
+    console.log('SimpleEditor Debug Info:');
+    console.log('- isProcessing:', isProcessing);
+    console.log('- currentEventFileId:', currentEventFileId);
+    console.log('- onCancelTask exists:', !!onCancelTask);
+    console.log('- Should show cancel button:', isProcessing && currentEventFileId && onCancelTask);
+  }, [isProcessing, currentEventFileId, onCancelTask]);
   
   // 当历史弹窗打开时刷新数据
   useEffect(() => {
@@ -279,36 +291,19 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
         </svg>
       </div>
       
-      {/* 历史命令按钮 */}
+      {/* 历史命令按钮 - 始终显示在原位置，不再与取消按钮切换 */}
       <div className="absolute left-10 top-0 bottom-0 flex items-center z-10">
-        {/* 如果任务在处理中且有事件文件ID，显示取消按钮 */}
-        {isProcessing && currentEventFileId && onCancelTask ? (
-          <button
-            type="button"
-            className="p-1 rounded-full text-red-500 hover:text-red-400 transition-colors focus:outline-none animate-pulse"
-            onClick={() => {
-              if (window.confirm('确定要取消当前运行的任务吗？')) {
-                onCancelTask(currentEventFileId);
-              }
-            }}
-            title="取消当前任务"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
-            </svg>
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="p-1 rounded-full text-gray-400 hover:text-gray-200 transition-colors focus:outline-none"
-            onClick={() => setShowHistory(!showHistory)}
-            title="命令历史"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" />
-            </svg>
-          </button>
-        )}
+        <button
+          type="button"
+          className="p-1 rounded-full text-gray-400 hover:text-gray-200 transition-colors focus:outline-none"
+          onClick={() => setShowHistory(!showHistory)}
+          title="命令历史"
+          disabled={isProcessing || isCancelling}
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" />
+          </svg>
+        </button>
         
         {/* 历史命令下拉列表 */}
         {showHistory && (
@@ -472,6 +467,69 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
           readOnly: disabled
         }}
       />
+      
+      {/* 按钮容器 - 放置提交按钮或取消按钮 */}
+      <div className="absolute right-0 top-0 bottom-0 flex items-center pr-2">
+        {/* 扩展编辑器按钮 */}
+        <button
+          type="button"
+          className="p-1 mx-1 rounded-full transition-colors bg-gray-700 hover:bg-gray-600 z-10"
+          onClick={onToggleExpand}
+          disabled={isProcessing}
+          title="展开编辑器"
+        >
+          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+          </svg>
+        </button>
+        
+        {/* 根据状态切换提交按钮/取消按钮 */}
+        {isProcessing && currentEventFileId && onCancelTask ? (
+          // 取消按钮 - 在任务处理中显示
+          <button
+            type="button"
+            className={`p-1 rounded-full transition-colors z-10 ${
+              isCancelling 
+                ? "bg-gray-600 text-gray-300" 
+                : "bg-red-600 hover:bg-red-700 text-white"
+            }`}
+            onClick={() => {
+              if (!isCancelling && onCancelTask && currentEventFileId) {
+                if (window.confirm('确定要取消当前运行的任务吗？')) {
+                  onCancelTask(currentEventFileId);
+                }
+              }
+            }}
+            disabled={isCancelling}
+            title={isCancelling ? "正在取消任务..." : "取消当前任务"}
+          >
+            {isCancelling ? (
+              // 加载动画
+              <svg className="w-3.5 h-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              // 取消图标
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+          </button>
+        ) : (
+          // 提交按钮 - 默认状态
+          <button
+            type="button"
+            className="p-1 rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition-colors z-10"
+            onClick={onSubmit}
+            disabled={isProcessing || !value.trim()}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </button>
+        )}
+      </div>
     </div>
   );
 });

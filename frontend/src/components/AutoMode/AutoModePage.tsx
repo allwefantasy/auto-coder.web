@@ -147,6 +147,10 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     // 添加新的监听器，闭包会捕获最新的状态值
     autoCommandService.on('taskComplete', (isError: boolean) => {
       if (lastSubmittedQuery && currentEventFileId) {
+        
+        // 任务真正停止的时候是这个时候
+        setIsProcessing(false);
+        console.log('AutoModePage: Set isProcessing to false');
         saveTaskHistory(isError, lastSubmittedQuery, currentEventFileId);
       } else {
         console.warn('Cannot save task history: missing query or event file ID');
@@ -231,6 +235,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     if (contentToSubmit.trim()) {
       try {
         setIsProcessing(true);
+        console.log('AutoModePage: Set isProcessing to true');
         // 保存最后提交的查询
         setLastSubmittedQuery(contentToSubmit);
         // 添加用户消息到消息列表
@@ -242,8 +247,10 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         }]);
         // 执行命令并获取事件文件ID
         const result = await autoCommandService.executeCommand(contentToSubmit);
+        console.log('AutoModePage: Command executed, received event_file_id:', result.event_file_id);
         // 存储事件文件ID以便后续用户响应使用
         setCurrentEventFileId(result.event_file_id);
+        console.log('AutoModePage: Set currentEventFileId to:', result.event_file_id);
         
         // 清空输入框
         setAutoSearchTerm('');
@@ -255,7 +262,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
           content: 'Failed to execute command. Please try again.'
         }]);
       } finally {
-        setIsProcessing(false);
+         console.log("query submitted")
       }
     }
   };
@@ -406,6 +413,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
           setAutoSearchTerm={setAutoSearchTerm}
           onSubmit={handleAutoSearch}
           onSelectHistoryTask={restoreHistoryTask}
+          currentEventFileId={currentEventFileId}
         />
 
         {/* 示例命令区域 - 提供快速使用的示例命令按钮 */}

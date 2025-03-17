@@ -3,6 +3,7 @@ import { getMessage } from '../Sidebar/lang';
 import ExpandableEditor from './ExpandableEditor';
 import SimpleEditor from './SimpleEditor';
 import { HistoryCommand } from './types';
+import { autoCommandService } from '../../services/autoCommandService';
 
 interface InputPanelProps {
   projectName: string;
@@ -11,7 +12,7 @@ interface InputPanelProps {
   setAutoSearchTerm: (term: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onSelectHistoryTask?: (task: HistoryCommand) => void;
-  currentEventFileId?: string;
+  currentEventFileId?: string | null;
 }
 
 const InputPanel: React.FC<InputPanelProps> = ({
@@ -26,10 +27,35 @@ const InputPanel: React.FC<InputPanelProps> = ({
   // 状态管理
   const [isExpandedEditor, setIsExpandedEditor] = useState(false);
   const [editorContent, setEditorContent] = useState('');
+  // 添加取消任务的加载状态
+  const [isCancelling, setIsCancelling] = useState(false);
   
   // DOM 引用
   const autoSearchInputRef = useRef<any>(null);
   const editorRef = useRef<any>(null);
+
+  // 监听任务完成事件
+  React.useEffect(() => {
+    const handleTaskComplete = (isError: boolean) => {
+      // 任务完成(包括错误)时重置取消加载状态
+      setIsCancelling(false);
+    };
+
+    // 添加任务完成事件监听器
+    autoCommandService.on('taskComplete', handleTaskComplete);
+
+    // 清理函数
+    return () => {
+      autoCommandService.off('taskComplete', handleTaskComplete);
+    };
+  }, []);
+  
+  // 添加调试日志，检查 InputPanel 接收到的属性
+  React.useEffect(() => {
+    console.log('InputPanel Debug Info:');
+    console.log('- isProcessing:', isProcessing);
+    console.log('- currentEventFileId:', currentEventFileId);
+  }, [isProcessing, currentEventFileId]);
 
   // 处理编辑器挂载
   const handleEditorDidMount = (editor: any, monaco: any) => {
@@ -96,6 +122,9 @@ const InputPanel: React.FC<InputPanelProps> = ({
 
   // 处理取消任务
   const handleCancelTask = async (eventFileId: string) => {
+    // 设置取消中状态
+    setIsCancelling(true);
+    
     try {
       const response = await fetch('/api/auto-command/cancel', {
         method: 'POST',
@@ -109,11 +138,14 @@ const InputPanel: React.FC<InputPanelProps> = ({
         throw new Error(`Failed to cancel task: ${response.statusText}`);
       }
       
-      // 可以在这里添加成功取消的提示或其他逻辑
+      // 取消请求已发送，但不要重置isCancelling状态
+      // 它将在收到autoCommandService的任务完成事件时重置
       console.log(`Task ${eventFileId} cancellation request sent`);
     } catch (error) {
       console.error('Error cancelling task:', error);
-      // 可以在这里添加错误处理逻辑
+      // 发生错误时重置取消状态
+      setIsCancelling(false);
+      // 显示错误提示
       alert(`Failed to cancel task: ${error}`);
     }
   };
@@ -190,34 +222,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
             isProcessing={isProcessing}
             currentEventFileId={currentEventFileId}
             onCancelTask={handleCancelTask}
+            isCancelling={isCancelling}
           />
-          
-          {/* 按钮容器 - 使用flex布局调整位置 */}
-          <div className="absolute right-0 top-0 bottom-0 flex items-center pr-2">
-            {/* 扩展编辑器按钮 */}
-            <button
-              type="button"
-              className="p-1 mx-1 rounded-full transition-colors bg-gray-700 hover:bg-gray-600 z-10"
-              onClick={toggleExpandedEditor}
-              disabled={isProcessing}
-              title={getMessage('expandEditor')}
-            >
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-              </svg>
-            </button>
-            
-            {/* 提交按钮 */}
-            <button
-              type="submit"
-              className="p-1 rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition-colors z-10"
-              disabled={isProcessing || !autoSearchTerm.trim()}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </button>
-          </div>
         </div>
       </form>
     </>
