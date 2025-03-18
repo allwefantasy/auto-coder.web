@@ -9,4 +9,5 @@ export { default as ThinkingMessage } from './ThinkingMessage';
 export { default as CommandSuggestionMessage } from './CommandSuggestionMessage';
 export { default as DefaultMessage } from './DefaultMessage';
 export { default as SummaryMessage } from './SummaryMessage';
-export {default as ContextAwareMessage} from './ContextAwareMessage';
+export { default as ContextAwareMessage } from './ContextAwareMessage';
+export { default as CodeGenerateMessage } from './CodeGenerateMessage';

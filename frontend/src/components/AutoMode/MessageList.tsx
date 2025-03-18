@@ -12,7 +12,8 @@ import {
     CommandSuggestionMessage,
     DefaultMessage,
     SummaryMessage,
-    ContextAwareMessage    
+    ContextAwareMessage,
+    CodeGenerateMessage
 } from './MessageTypes';
 
 
@@ -53,6 +54,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         // For 上下文感知信息的展示
         if (message.metadata?.stream_out_type === "file_number_list") {
             return <ContextAwareMessage message={message} />;
+        }
+        
+        // 代码生成结果的展示
+        if (message.metadata?.stream_out_type === "code_generate") {
+            return <CodeGenerateMessage message={message} />;
         }
 
         // For summary content

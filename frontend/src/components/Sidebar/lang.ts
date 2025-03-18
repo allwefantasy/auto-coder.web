@@ -169,6 +169,18 @@ export const messages: { [key: string]: Message } = {
     en: "Code generation complete",
     zh: "代码生成完成"
   },
+  generatingCode: {
+    en: "Generating code...",
+    zh: "正在生成代码..."
+  },
+  generatedCode: {
+    en: "Generated Code",
+    zh: "生成的代码"
+  },
+  codeGenerationComplete: {
+    en: "Code generation complete",
+    zh: "代码生成完成"
+  },
   priorityP0: {
     en: "P0 - Urgent",
     zh: "P0 - 紧急"
