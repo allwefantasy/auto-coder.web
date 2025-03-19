@@ -477,13 +477,38 @@ async def get_current_changes(
                     logger.info(f"处理action文件 {i+1}/{len(final_action_files)}: {action_file}")
                     commit_ids = action_manager.get_all_commit_id_from_file(action_file)                                        
                     
-                    logger.info(f"从action文件 {action_file} 获取到的提交ID: {commit_id}")
+                    logger.info(f"从action文件 {action_file} 获取到的提交ID列表: {commit_ids}")
                     
-                    if not commit_id:
+                    if not commit_ids:
                         logger.warning(f"无法从action文件 {action_file} 获取提交ID")
-                        continue                                            
+                        continue
                     
-                    if commit_id:
+                    # 如果有两个提交，检查是否有一个是revert提交
+                    if len(commit_ids) == 2:
+                        logger.info(f"检测到两个提交ID，可能存在revert操作: {commit_ids}")
+                        revert_commit_id = None
+                        
+                        # 检查每个提交是否是revert提交
+                        for cid in commit_ids:
+                            try:
+                                commit = repo.commit(cid)
+                                message = commit.message.strip()
+                                logger.info(f"检查提交 {cid[:7]} 是否为revert提交，消息: {message[:50]}...")
+                                
+                                if message.startswith("<revert>"):
+                                    logger.info(f"找到revert提交: {cid}")
+                                    revert_commit_id = cid
+                                    break
+                            except Exception as e:
+                                logger.warning(f"检查提交 {cid} 时出错: {str(e)}")
+                        
+                        # 如果找到revert提交，只处理这个提交
+                        if revert_commit_id:
+                            logger.info(f"将只处理revert提交: {revert_commit_id}")
+                            commit_ids = [revert_commit_id]
+                    
+                    # 处理所有提交ID（或者只处理revert提交）
+                    for commit_id in commit_ids:
                         # 验证提交ID是否存在于仓库中
                         try:
                             logger.info(f"获取提交详情: {commit_id}")
@@ -508,10 +533,6 @@ async def get_current_changes(
                             }
                             commits.append(commit_info)
                             logger.info(f"成功添加提交信息到结果列表，当前结果数: {len(commits)}")
-                            
-                            # 注意：这里有一个提前返回的逻辑，可能导致只返回第一个匹配的提交
-                            logger.warning("提前返回结果，只返回第一个匹配的提交。这可能是导致过滤问题的原因！")
-                            return {"commits": commits, "total": len(list(repo.iter_commits()))}
                         except Exception as e:
                             logger.warning(f"无法获取提交 {commit_id} 的详情: {str(e)}")
                 
