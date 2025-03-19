@@ -7,7 +7,7 @@ interface DefaultMessageProps {
 
 const DefaultMessage: React.FC<DefaultMessageProps> = ({ message }) => {
     return (
-        <pre className="whitespace-pre-wrap font-sans text-sm text-gray-200 break-words">
+        <pre className="whitespace-pre-wrap font-sans text-xs text-gray-200 break-words">
             {message.content}                
         </pre>
     );

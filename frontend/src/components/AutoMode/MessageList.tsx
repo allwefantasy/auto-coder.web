@@ -119,8 +119,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                     className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4 w-full`}
                 >
                     {!message.isUser && (
-                        <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center mr-2 flex-shrink-0">
-                            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center mr-2 flex-shrink-0">
+                            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                             </svg>
                         </div>
@@ -129,7 +129,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                         className={`w-[80%] ${message.isUser ? 'bg-indigo-600' :
                             message.type === 'ERROR' ? 'bg-red-900/80' :
                                 message.isThinking || message.isStreaming ? 'bg-gray-700/50' : 'bg-gray-700'} 
-              rounded-2xl px-4 py-3 ${message.isUser ? 'rounded-tr-none' : 'rounded-tl-none'}`}
+              rounded-xl px-3 py-2 ${message.isUser ? 'rounded-tr-none' : 'rounded-tl-none'}`}
                     >
                         {/* Message content based on content type */}
                         {renderMessageContent(message)}
@@ -140,7 +140,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                                 {message.options.map((option, i) => (
                                     <button
                                         key={i}
-                                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded-full text-sm text-white transition-colors"
+                                        className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 rounded-full text-xs text-white transition-colors"
                                         onClick={() => onUserResponse(option, message.eventId)}
                                     >
                                         {option}
@@ -150,8 +150,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                         )}
                     </div>
                     {message.isUser && (
-                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center ml-2 flex-shrink-0">
-                            <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                        <div className="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center ml-2 flex-shrink-0">
+                            <svg className="w-4 h-4 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                             </svg>
                         </div>

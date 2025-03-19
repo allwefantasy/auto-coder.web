@@ -305,90 +305,109 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       {/* 主内容区域 - 居中、最大宽度限制、垂直弹性布局 */}
       <div className={`w-full max-w-4xl mx-auto px-4 py-6 flex flex-col ${messages.length === 0 ? 'justify-center' : ''} h-full`}>
         {/* 标题区域 - 显示应用名称和当前项目 */}
-        <div className="flex flex-col items-center justify-center mb-6 space-y-2">
+        <div className="flex flex-col items-center justify-center mb-6 space-y-3">
           <div className="flex items-center">
-            <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-8 h-8 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-transparent bg-clip-text font-bold text-2xl">auto-coder.web</span>
+            <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-transparent bg-clip-text font-bold text-3xl">auto-coder.web</span>
           </div>
-          <div className="text-gray-400 text-sm font-mono">
-            {getMessage('projectName')}:{projectName}
+          <div className="text-gray-400 text-sm font-mono font-medium">
+            {getMessage('projectName')}: {projectName}
           </div>
         </div>
         
-        {/* 消息区域 - 带滚动功能的主聊天界面，包含ChatPanel组件 */}
+        {/* 消息区域 - 带滚动功能的主聊天界面，包含ChatPanel组件和侧边栏 */}
         {messages.length > 0 && isMessageAreaVisible && (
-          <div className={`relative flex-1 ${isMessageAreaAdaptive ? 'overflow-y-auto' : ''} mb-6 bg-gray-800 rounded-lg p-4`}>
-            {/* 标签切换栏 */}
-            <div className="flex border-b border-gray-700 mb-4">
-              <button
-                className={`px-4 py-2 font-medium text-sm ${activeTab === 'messages' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-300'}`}
-                onClick={() => setActiveTab('messages')}
-              >
-                {getMessage('showMessages')}
-              </button>
-              <button
-                className={`px-4 py-2 font-medium text-sm ${activeTab === 'current-change' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-300'}`}
-                onClick={() => setActiveTab('current-change')}
-              >
-                {getMessage('currentChange')}
-              </button>
-              <button
-                className={`px-4 py-2 font-medium text-sm ${activeTab === 'commits' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-300'}`}
-                onClick={() => setActiveTab('commits')}
-              >
-                {getMessage('viewChange')}
-              </button>
+          <div className="flex-1 mb-6 flex flex-col items-center w-full">
+            {/* 当自适应模式打开时，容器宽度接近页面宽度 */}
+            <div className={`w-full ${isMessageAreaAdaptive ? 'max-w-full px-4' : 'max-w-5xl'} flex`}>
+              {/* 侧边栏 - 粘性定位，确保滚动时始终保持可见 */}
+              <div className="w-48 sticky top-0 self-start max-h-screen bg-gray-800 rounded-l-lg p-4 flex flex-col shadow-lg">
+                {/* 标签按钮区域 - 始终保持可见 */}
+                <div className="space-y-3 mb-6">
+                  <h3 className="text-gray-300 font-medium text-xs uppercase tracking-wider mb-2">导航菜单</h3>
+                  <button
+                    className={`w-full px-3 py-2 text-left font-medium text-xs rounded-md flex items-center ${activeTab === 'messages' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}
+                    onClick={() => setActiveTab('messages')}
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    {getMessage('showMessages')}
+                  </button>
+                  <button
+                    className={`w-full px-3 py-2 text-left font-medium text-xs rounded-md flex items-center ${activeTab === 'current-change' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}
+                    onClick={() => setActiveTab('current-change')}
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    {getMessage('currentChange')}
+                  </button>
+                  <button
+                    className={`w-full px-3 py-2 text-left font-medium text-xs rounded-md flex items-center ${activeTab === 'commits' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}
+                    onClick={() => setActiveTab('commits')}
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    {getMessage('viewChange')}
+                  </button>
+                </div>
+                
+                {/* 控制按钮容器 - 移到侧边栏底部 */}
+                <div className="mt-auto flex flex-col space-y-2 pt-4 border-t border-gray-700">
+                  <button
+                    className="w-full flex items-center justify-center text-gray-400 hover:text-white p-2 transition-colors rounded hover:bg-gray-700"
+                    onClick={() => setIsMessageAreaAdaptive(!isMessageAreaAdaptive)}
+                    title={isMessageAreaAdaptive ? '全屏宽度' : '限制宽度'}
+                  >
+                    {isMessageAreaAdaptive ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                      </svg>
+                    )}
+                  </button>
+                  <button
+                    className="w-full flex items-center justify-center text-gray-400 hover:text-white p-2 transition-colors rounded hover:bg-gray-700"
+                    onClick={() => setIsMessageAreaVisible(false)}
+                    title="关闭"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
               
-              {/* 控制按钮容器 - 移到标签栏右侧 */}
-              <div className="flex ml-auto">
-                <button
-                  className="text-gray-400 hover:text-white p-1 transition-colors mr-2"
-                  onClick={() => setIsMessageAreaAdaptive(!isMessageAreaAdaptive)}
-                  title={isMessageAreaAdaptive ? 'Fixed Height' : 'Adaptive Height'}
-                >
-                  {isMessageAreaAdaptive ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-                    </svg>
-                  )}
-                </button>
-                <button
-                  className="text-gray-400 hover:text-white p-1 transition-colors"
-                  onClick={() => setIsMessageAreaVisible(false)}
-                  title="Close"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+              {/* 主内容区域 */}
+              <div className={`flex-1 ${isMessageAreaAdaptive ? 'overflow-y-auto' : ''} bg-gray-800 rounded-r-lg p-5 shadow-lg`}>
+                {/* 根据当前标签显示不同内容 */}
+                {activeTab === 'messages' ? (
+                  <ChatPanel 
+                    messages={messages} 
+                    currentTask={lastSubmittedQuery.length > 0 
+                      ? (lastSubmittedQuery.length > 20 
+                        ? `${lastSubmittedQuery.substring(0, 20)}...` 
+                        : lastSubmittedQuery)
+                      : (projectName || getMessage('noProjectSelected'))}
+                    onUserResponse={handleUserResponse}
+                  />
+                ) : activeTab === 'current-change' ? (
+                  <CurrentChangePanel 
+                    projectName={projectName} 
+                    commits={currentCommits} 
+                  />
+                ) : (
+                  <CommitListPanel projectName={projectName} />
+                )}
               </div>
             </div>
-            
-            {/* 根据当前标签显示不同内容 */}
-            {activeTab === 'messages' ? (
-              <ChatPanel 
-                messages={messages} 
-                currentTask={lastSubmittedQuery.length > 0 
-                  ? (lastSubmittedQuery.length > 20 
-                    ? `${lastSubmittedQuery.substring(0, 20)}...` 
-                    : lastSubmittedQuery)
-                  : (projectName || getMessage('noProjectSelected'))}
-                onUserResponse={handleUserResponse}
-              />
-            ) : activeTab === 'current-change' ? (
-              <CurrentChangePanel 
-                projectName={projectName} 
-                commits={currentCommits} 
-              />
-            ) : (
-              <CommitListPanel projectName={projectName} />
-            )}
           </div>
         )}        
 

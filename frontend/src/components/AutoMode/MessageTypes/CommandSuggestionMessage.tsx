@@ -36,7 +36,7 @@ const StreamingCommandMessage: React.FC<{ message: MessageProps; isCompleted: bo
         : messageContent;
     
     return (
-        <div className="font-mono text-sm">
+        <div className="font-mono text-xs">
             <div className={`flex items-center ${message.isStreaming ? 'text-yellow-400' : 'text-green-400'} font-semibold mb-2`}>
                 {/* 当消息完成且内容超过预览行数时显示折叠/展开切换按钮 */}
                 {isCompleted && contentLines.length > previewLines && (
@@ -73,7 +73,7 @@ const StreamingCommandMessage: React.FC<{ message: MessageProps; isCompleted: bo
             </div>
             
             {/* 消息内容 */}
-            <div className="bg-gray-800/50 p-3 rounded-md border border-gray-700 whitespace-pre-wrap text-white break-words">
+            <div className="bg-gray-800/50 p-2 rounded-md border border-gray-700 whitespace-pre-wrap text-white break-words">
                 {isCollapsed ? collapsedContent : messageContent}                
             </div>
         </div>
@@ -83,12 +83,12 @@ const StreamingCommandMessage: React.FC<{ message: MessageProps; isCompleted: bo
 // 常规命令消息组件，正常显示内容
 const RegularCommandMessage: React.FC<{ message: MessageProps }> = ({ message }) => {
     return (
-        <div className="font-mono text-sm">
+        <div className="font-mono text-xs">
             <div className="flex items-center text-blue-400 font-semibold mb-2">
                 <span className="mr-2">ℹ️</span>
                 <span>{getMessage('commandSuggestionTitle')}</span>
             </div>
-            <div className="bg-gray-800/50 p-3 rounded-md border border-gray-700 whitespace-pre-wrap text-white break-words">
+            <div className="bg-gray-800/50 p-2 rounded-md border border-gray-700 whitespace-pre-wrap text-white break-words">
                 {message.content}
             </div>
         </div>

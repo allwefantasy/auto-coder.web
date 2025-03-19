@@ -17,7 +17,7 @@ const TokenStatMessage: React.FC<TokenStatMessageProps> = ({ message }) => {
     const usagePercentage = Math.min(100, (totalTokensUsed / maxContextWindow) * 100);
     
     return (
-        <div className="font-mono text-xs text-gray-400 flex flex-row items-center gap-2">
+        <div className="font-mono text-[11px] text-gray-400 flex flex-row items-center gap-2">
             {message.metadata && (
                 <>
                     <div className="flex items-center">
@@ -32,13 +32,13 @@ const TokenStatMessage: React.FC<TokenStatMessageProps> = ({ message }) => {
                     </div>
                     <div className="flex items-center">
                         <span>{getMessage('contextWindow')}: </span>                        
-                        <div className="relative w-32 h-3 bg-gray-800 rounded ml-1 border border-gray-600">
+                        <div className="relative w-28 h-2 bg-gray-800 rounded ml-1 border border-gray-600">
                             <div 
                                 className="h-full bg-blue-600 rounded-l" 
                                 style={{ width: `${usagePercentage}%` }}
                             ></div>
                             {usagePercentage > 10 && (
-                                <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white">
+                                <span className="absolute inset-0 flex items-center justify-center text-[9px] text-white">
                                     {usagePercentage.toFixed(1)}%
                                 </span>
                             )}

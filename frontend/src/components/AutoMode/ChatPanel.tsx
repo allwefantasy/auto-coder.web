@@ -130,14 +130,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
         <div className="px-4 py-3">
           {/* 当前任务 */}
           <div className="mb-2 flex items-center">
-            <svg className="w-5 h-5 text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h2 className="text-white font-medium truncate">{currentTask || getMessage('noActiveTask')}</h2>            
+            <h2 className="text-white font-medium text-sm truncate">{currentTask || getMessage('noActiveTask')}</h2>            
           </div>
           
           {/* Token统计信息 */}
-          <div className="font-mono text-xs text-gray-400 flex flex-row items-center gap-2 flex-wrap">
+          <div className="font-mono text-xs text-gray-400 flex flex-row items-center gap-2 flex-wrap text-[11px]">
             <div className="flex items-center">
               <span>{getMessage('tokens')}: </span>
               <span className="text-green-500 ml-1">↑ {accumulatedStats.inputTokens}</span>

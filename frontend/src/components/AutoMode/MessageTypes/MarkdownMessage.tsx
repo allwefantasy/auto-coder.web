@@ -10,7 +10,7 @@ interface MarkdownMessageProps {
 
 const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
     return (
-        <div className="prose prose-invert prose-sm max-w-none">
+        <div className="prose prose-invert prose-xs max-w-none text-sm">
             <ReactMarkdown
                 className="text-gray-200 break-words"
                 components={{
