@@ -13,7 +13,8 @@ import {
     DefaultMessage,
     SummaryMessage,
     ContextAwareMessage,
-    CodeGenerateMessage
+    CodeGenerateMessage,
+    CodeRankMessage
 } from './MessageTypes';
 
 
@@ -39,12 +40,13 @@ interface MessageListProps {
 
 // 真实在渲染的时候，我们会不展示 command_prepare_stat 类型的消息
 const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) => {
+    // Function to filter and organize messages before rendering
+    const filterMessages = (messages: MessageProps[]): MessageProps[] => {
+        // Filter out command_prepare_stat messages and any other messages we don't want to display        
+        return messages.filter(message => message.contentType !== 'command_prepare_stat');
+    };
     // Function to render message content based on content type
-    const renderMessageContent = (message: MessageProps) => {
-        // For code content
-        if (message.contentType === 'code' && message.language) {
-            return <CodeMessage message={message} />;
-        }
+    const renderMessageContent = (message: MessageProps) => {        
 
         // For markdown content
         if (message.contentType === 'markdown' && message.metadata?.stream_out_type !== "command_suggestion") {
@@ -59,6 +61,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         // 代码生成结果的展示
         if (message.metadata?.stream_out_type === "code_generate") {
             return <CodeGenerateMessage message={message} />;
+        }
+
+        if (message.metadata?.stream_out_type === "code_rank") {
+            return <CodeRankMessage message={message} />;
         }
 
         // For summary content
@@ -107,7 +113,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
 
     return (
         <>
-            {messages.filter(message => message.contentType !== 'command_prepare_stat').map((message, index) => (
+            {filterMessages(messages).map((message, index) => (
                 <div
                     key={message.id || index}
                     className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4 w-full`}

@@ -181,6 +181,18 @@ export const messages: { [key: string]: Message } = {
     en: "Code generation complete",
     zh: "代码生成完成"
   },
+  rankingCode: {
+    en: "Ranking code...",
+    zh: "正在对代码进行排序..."
+  },
+  codeRankingComplete: {
+    en: "Code ranking complete",
+    zh: "代码排序完成"
+  },
+  rankedCode: {
+    en: "Ranked Code",
+    zh: "排序后的代码"
+  },
   priorityP0: {
     en: "P0 - Urgent",
     zh: "P0 - 紧急"
