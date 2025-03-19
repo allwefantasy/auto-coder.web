@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import MessageList, { MessageProps } from './MessageList';
 import { getMessage } from '../Sidebar/lang';
 
@@ -25,11 +25,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
   
   // 创建消息列表底部引用，用于自动滚动
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const userScrollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 滚动到消息列表底部的辅助函数
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const scrollToBottom = useCallback(() => {
+    if (shouldAutoScroll) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [shouldAutoScroll]);
 
   // 当messages变化时更新累计统计
   useEffect(() => {
@@ -65,10 +70,58 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
     });
   }, [messages]);
   
+  // 检测用户滚动事件
+  useEffect(() => {
+    const handleScroll = () => {
+      // 获取滚动容器
+      const container = messageContainerRef.current;
+      if (!container) return;
+      
+      // 检查是否滚动到底部附近（允许20px的误差）
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+      
+      // 如果用户手动滚动且不在底部，则暂停自动滚动
+      if (!isAtBottom && shouldAutoScroll) {
+        setShouldAutoScroll(false);
+      }
+      
+      // 重置计时器
+      if (userScrollTimerRef.current) {
+        clearTimeout(userScrollTimerRef.current);
+      }
+      
+      // 如果不在底部，设置10秒后恢复自动滚动
+      if (!isAtBottom) {
+        userScrollTimerRef.current = setTimeout(() => {
+          setShouldAutoScroll(true);
+          scrollToBottom();
+        }, 10000); // 10秒 = 10000毫秒
+      } else {
+        // 如果滚动到底部，立即恢复自动滚动
+        setShouldAutoScroll(true);
+      }
+    };
+    
+    const container = messageContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+    }
+    
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+      // 清除计时器
+      if (userScrollTimerRef.current) {
+        clearTimeout(userScrollTimerRef.current);
+      }
+    };
+  }, [scrollToBottom]);
+  
   // 当消息列表更新时滚动到底部
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   return (
     <div className="flex flex-col h-full relative">
@@ -104,7 +157,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
       </div>
       
       {/* 消息列表 */}
-      <div className="flex-grow overflow-y-auto">
+      <div className="flex-grow overflow-y-auto" ref={messageContainerRef}>
         <MessageList 
           messages={messages} 
           onUserResponse={onUserResponse} 

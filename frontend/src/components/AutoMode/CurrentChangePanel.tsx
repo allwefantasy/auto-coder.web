@@ -47,6 +47,16 @@ interface CurrentChangePanelProps {
   commits: Commit[]; // 直接接收完整的提交数组
 }
 
+{/* <revert>@/Users/allwefantasy/projects/tiny_coding/src/tiny_coding/proxy.py 在 ProxyServer 类的 setup_routes 方法中添加 hello 接口。具体要求：
+1. 在现有 /translate 接口下方添加
+2. 使用 @self.app.get("/hello") 装饰器
+3. 定义 async def hello(): 处理函数
+4. 返回 {"message": "Hello from proxy!"}
+5. 保持与 /translate 接口相同的缩进层级（4个空格）
+6. 添加文档注释 """返回简单问候信息"""
+auto_coder_000000000108_chat_action.yml
+65391182d90d8e52f804343407223c75b714ea53 */}
+
 const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, commits = [] }) => {
   // 移除commits状态，直接使用props
   const [loading, setLoading] = useState(false); // 仅用于加载其他数据

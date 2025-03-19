@@ -416,33 +416,47 @@ async def get_current_changes(
     Returns:
         提交哈希列表
     """
+    logger.info(f"开始获取当前变更 - 参数: limit={limit}, hours_ago={hours_ago}, event_file_id={event_file_id}, project_path={project_path}")
     try:
         repo = get_repo(project_path)
+        logger.info(f"成功获取Git仓库: {project_path}")
         
         # 如果提供了事件文件ID，从事件中获取相关提交
         if event_file_id:
+            logger.info(f"使用事件文件模式获取提交, event_file_id={event_file_id}")
             try:
                 # 获取事件文件路径
                 event_file_path = get_event_file_path(event_file_id, project_path)
+                logger.info(f"事件文件路径: {event_file_path}")
                 
                 # 获取事件管理器
                 event_manager = get_event_manager(event_file_path)
+                logger.info(f"成功获取事件管理器")
                 
                 # 获取所有事件
                 all_events = event_manager.event_store.get_events()
-                logger.info(f"获取事件: {len(all_events)}")
+                logger.info(f"获取事件总数: {len(all_events)}")
                 
                 # 创建ActionYmlFileManager实例
                 action_manager = ActionYmlFileManager(project_path)                                                
+                logger.info(f"成功创建ActionYmlFileManager实例")
 
                 action_files = set()
                 final_action_files = []
                 
-                for event in all_events:                    
+                # 记录事件中包含action_file字段的事件数量
+                action_file_count = 0
+                
+                for i, event in enumerate(all_events):
+                    logger.debug(f"处理事件 {i+1}/{len(all_events)}, 事件类型: {event.event_type}")
                     # 检查元数据中是否有action_file字段
-                    if 'action_file' in event.metadata and event.metadata['action_file']:                        
+                    if 'action_file' in event.metadata and event.metadata['action_file']:
+                        action_file_count += 1
                         action_file = event.metadata['action_file']
-                        if action_file in action_files:                            
+                        logger.debug(f"事件 {i+1} 包含action_file: {action_file}")
+                        
+                        if action_file in action_files:
+                            logger.debug(f"跳过重复的action_file: {action_file}")
                             continue
                                                 
                         action_files.add(action_file)
@@ -450,25 +464,33 @@ async def get_current_changes(
                         # action_file 这里的值是 类似这样的 actions/000000000104_chat_action.yml
                         if action_file.startswith("actions"):
                             action_file = action_file[len("actions/"):]
+                            logger.debug(f"处理后的action_file: {action_file}")
 
                         final_action_files.append(action_file)
                 
+                logger.info(f"从 {len(all_events)} 个事件中提取到 {action_file_count} 个包含action_file的事件")
+                logger.info(f"去重后得到 {len(action_files)} 个唯一action_file")
+                logger.info(f"最终处理的action_files: {final_action_files}")
+                
                 commits = []
-                for action_file in final_action_files:            
-                    commit_msg_part = action_manager.get_commit_id_from_file(action_file)
-                    commit_id = None
-                    logger.info(f"获取Action文件提交ID: {commit_msg_part}")                    
-                    for commit in repo.iter_commits():
-                        if commit_msg_part in commit.message:
-                            commit_id = commit.hexsha
-                            break
-
+                for i, action_file in enumerate(final_action_files):
+                    logger.info(f"处理action文件 {i+1}/{len(final_action_files)}: {action_file}")
+                    commit_ids = action_manager.get_all_commit_id_from_file(action_file)                                        
+                    
+                    logger.info(f"从action文件 {action_file} 获取到的提交ID: {commit_id}")
+                    
+                    if not commit_id:
+                        logger.warning(f"无法从action文件 {action_file} 获取提交ID")
+                        continue                                            
+                    
                     if commit_id:
                         # 验证提交ID是否存在于仓库中
                         try:
+                            logger.info(f"获取提交详情: {commit_id}")
                             commit = repo.commit(commit_id)
                             # 获取提交统计信息
                             stats = commit.stats.total
+                            logger.info(f"提交统计信息: 插入={stats['insertions']}, 删除={stats['deletions']}, 文件变更={stats['files']}")
                             
                             # 构建提交信息
                             commit_info = {
@@ -485,27 +507,42 @@ async def get_current_changes(
                                 }
                             }
                             commits.append(commit_info)
+                            logger.info(f"成功添加提交信息到结果列表，当前结果数: {len(commits)}")
                             
+                            # 注意：这里有一个提前返回的逻辑，可能导致只返回第一个匹配的提交
+                            logger.warning("提前返回结果，只返回第一个匹配的提交。这可能是导致过滤问题的原因！")
                             return {"commits": commits, "total": len(list(repo.iter_commits()))}
                         except Exception as e:
-                            logger.warning(f"无法获取提交 {commit_id}: {str(e)}")
+                            logger.warning(f"无法获取提交 {commit_id} 的详情: {str(e)}")
+                
+                logger.info(f"处理完所有action文件，共找到 {len(commits)} 个提交")
                 
                 # 按提交时间戳排序（降序 - 最新的在前面）
-                commits.sort(key=lambda x: x['timestamp'], reverse=True)
+                if commits:
+                    commits.sort(key=lambda x: x['timestamp'], reverse=True)
+                    logger.info("提交已按时间戳降序排序")
                                 
-                
+                logger.info(f"返回结果: {len(commits)} 个提交")
                 return {"commits": commits, "total": len(commits)}
             
             except Exception as e:
                 logger.error(f"从事件文件获取提交失败: {str(e)}")
-                
+                import traceback
+                logger.error(f"详细错误信息: {traceback.format_exc()}")
                 return {"commits": [], "total": 0}
         else:
             # 如果没有提供事件文件ID，返回最近的提交
+            logger.info("未提供event_file_id，应返回最近的提交，但当前实现返回空列表")
+            # 这里应该调用get_recent_commits函数获取最近的提交
+            # recent_commits = await get_recent_commits(repo, limit, hours_ago)
+            # logger.info(f"获取到 {len(recent_commits.get('commit_hashes', []))} 个最近的提交")
+            # return recent_commits
             return {"commits": [], "total": 0}
             
     except Exception as e:
         logger.error(f"获取当前变更失败: {str(e)}")
+        import traceback
+        logger.error(f"详细错误信息: {traceback.format_exc()}")
         raise HTTPException(
             status_code=500, 
             detail=f"获取当前变更失败: {str(e)}"
