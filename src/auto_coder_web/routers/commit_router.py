@@ -593,7 +593,7 @@ async def revert_commit(
             repo.git.revert(commit.hexsha, no_commit=True)
             
             # 创建带有信息的 revert 提交
-            revert_message = f"Revert \"{commit.message.strip()}\"\n\nThis reverts commit {commit.hexsha}"
+            revert_message = f"<revert>{commit.message.strip()}\n{commit.hexsha}"
             new_commit = repo.index.commit(
                 revert_message,
                 author=repo.active_branch.commit.author,

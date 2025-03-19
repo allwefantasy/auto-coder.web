@@ -604,8 +604,8 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
                 onClick={() => handleCommitClick(commit.hash)}
               >
                 {/* 使用条件样式添加红色边框和"已撤销"标签 */}
-                <div className={`${commit.message.startsWith('Revert ') ? 'border border-red-500 rounded-lg p-2 relative' : ''}`}>
-                  {commit.message.startsWith('Revert ') && (
+                <div className={`${commit.message.startsWith('<revert>') ? 'border border-red-500 rounded-lg p-2 relative' : ''}`}>
+                  {commit.message.startsWith('<revert>') && (
                     <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                       已撤销
                     </div>
@@ -615,7 +615,7 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
                     <h3 className="font-medium mb-2 flex-1 mr-2 text-white">{commit.message}</h3>
                     <div className="flex items-center">
                       {/* Revert 按钮 - 只对非Revert提交显示 */}
-                      {!commit.message.startsWith('Revert ') && (
+                      {!commit.message.startsWith('<revert>') && (
                         <button
                           className="text-gray-400 hover:text-red-400 p-1 mr-1 transition-colors"
                           onClick={(e) => handleRevertClick(e, commit)}
