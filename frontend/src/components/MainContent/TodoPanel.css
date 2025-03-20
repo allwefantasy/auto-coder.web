@@ -7,6 +7,9 @@
   border: 1px solid #2d2d2d;
   transition: all 0.2s ease;
   min-height: 200px;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
 }
 
 .todo-column:hover {
@@ -99,17 +102,16 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #374151;
-  border-radius: 3px;
+  background: #1e293b;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #4B5563;
+  background: #334155;
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #6B7280;
+  background: #475569;
 }
 
 /* 为 Firefox 添加滚动条样式 */
@@ -153,25 +155,66 @@
 
 /* 拆分结果视图样式 */
 .task-split-result-view {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
-  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: slideDown 0.3s ease-in-out;
 }
 
-/* 自定义滚动条 */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #1e293b;
+/* 解决面板之间的边距问题 */
+.todo-board {
+  gap: 1rem;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 3px;
+/* 当某个面板最大化时，添加轻微的缩放效果 */
+.todo-column.flex.w-full {
+  animation: scaleUp 0.3s ease-in-out;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+@keyframes scaleUp {
+  from {
+    transform: scale(0.98);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* 当面板恢复到正常大小时添加动画 */
+.todo-column.flex-1 {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.todo-column.maximized {
+  flex: 1 0 100%;
+}
+
+.todo-column .maximize-button {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.todo-column:hover .maximize-button {
+  opacity: 1;
+}
+
+.todo-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.todo-column-header h3 {
+  margin: 0;
+  font-weight: 500;
 }

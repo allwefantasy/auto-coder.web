@@ -107,21 +107,21 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
 
   return (
     <div className="task-split-result-view bg-gray-800 rounded-lg p-4 mb-4 animate-fadeIn">
-      <Title level={4} className="text-gray-200 mb-4">
+      <Title level={4} className="text-blue-300 mb-4">
         {getMessage('taskSplitResultTitle')}
       </Title>
       
       <Collapse 
         activeKey={activeKey}
         onChange={(keys) => setActiveKey(keys as string[])}
-        expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
+        expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} className="text-blue-400" />}
         className="bg-gray-700 border-gray-600"
       >
         {/* 原始任务 */}
         <Panel 
           header={
-            <span className="text-gray-200">
-              <FileTextOutlined className="mr-2" />
+            <span className="text-blue-200">
+              <FileTextOutlined className="mr-2 text-blue-300" />
               {getMessage('originalTask')}
             </span>
           } 
@@ -129,16 +129,16 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
           className="bg-gray-700 border-gray-600"
         >
           <Card className="bg-gray-800 border-gray-700">
-            <Title level={5} className="text-gray-200">{parsedResult.original_task.title}</Title>
-            <Paragraph className="text-gray-300">{parsedResult.original_task.description}</Paragraph>
+            <Title level={5} className="text-blue-200">{parsedResult.original_task.title}</Title>
+            <Paragraph className="text-gray-200">{parsedResult.original_task.description}</Paragraph>
           </Card>
         </Panel>
         
         {/* 分析结果 */}
         <Panel 
           header={
-            <span className="text-gray-200">
-              <NodeIndexOutlined className="mr-2" />
+            <span className="text-blue-200">
+              <NodeIndexOutlined className="mr-2 text-blue-300" />
               {getMessage('taskAnalysis')}
             </span>
           } 
@@ -146,15 +146,15 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
           className="bg-gray-700 border-gray-600"
         >
           <Card className="bg-gray-800 border-gray-700">
-            <Paragraph className="text-gray-300">{parsedResult.analysis}</Paragraph>
+            <Paragraph className="text-gray-200">{parsedResult.analysis}</Paragraph>
           </Card>
         </Panel>
         
         {/* 子任务列表 */}
         <Panel 
           header={
-            <span className="text-gray-200">
-              <BranchesOutlined className="mr-2" />
+            <span className="text-blue-200">
+              <BranchesOutlined className="mr-2 text-blue-300" />
               {getMessage('subTasks')} ({parsedResult.tasks_count || parsedResult.tasks?.length || 0})
             </span>
           } 
@@ -169,8 +169,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                   <Card 
                     title={
                       <div className="flex justify-between items-center">
-                        <Badge status="processing" text={
-                          <Text className="text-gray-200">
+                        <Badge status="processing" color="blue" text={
+                          <Text className="text-blue-200">
                             #{index + 1}: {task.title}
                           </Text>
                         } />
@@ -178,7 +178,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                           <Tag color={getPriorityColor(task.priority)} className="mr-2">
                             {task.priority}
                           </Tag>
-                          <Tag icon={<ClockCircleOutlined />} color="default">
+                          <Tag icon={<ClockCircleOutlined />} color="default" className="bg-gray-700 text-gray-200">
                             {task.estimate}
                           </Tag>
                         </div>
@@ -186,16 +186,16 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                     }
                     className="w-full bg-gray-800 border-gray-700"
                   >
-                    <Paragraph className="text-gray-300">{task.description}</Paragraph>
+                    <Paragraph className="text-gray-200">{task.description}</Paragraph>
                     
                     {task.references && task.references.length > 0 && (
                       <>
-                        <Divider orientation="left" className="text-gray-400 border-gray-600">
+                        <Divider orientation="left" className="text-blue-400 border-gray-600">
                           {getMessage('references')}
                         </Divider>
                         <div className="mb-4">
                           {task.references.map((ref, idx) => (
-                            <Tag key={idx} className="mb-1 bg-gray-700 border-gray-600 text-gray-300">
+                            <Tag key={idx} className="mb-1 bg-gray-700 border-gray-600 text-blue-100">
                               {ref}
                             </Tag>
                           ))}
@@ -205,7 +205,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                     
                     {task.steps && task.steps.length > 0 && (
                       <>
-                        <Divider orientation="left" className="text-gray-400 border-gray-600">
+                        <Divider orientation="left" className="text-blue-400 border-gray-600">
                           {getMessage('implementationSteps')}
                         </Divider>
                         <Steps 
@@ -213,7 +213,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                           size="small" 
                           current={-1}
                           items={task.steps.map((step) => ({
-                            title: <Text className="text-gray-300">{step}</Text>,
+                            title: <Text className="text-gray-200">{step}</Text>,
                             status: 'wait'
                           }))}
                           className="mb-4"
@@ -223,14 +223,14 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                     
                     {task.acceptance_criteria && task.acceptance_criteria.length > 0 && (
                       <>
-                        <Divider orientation="left" className="text-gray-400 border-gray-600">
+                        <Divider orientation="left" className="text-blue-400 border-gray-600">
                           {getMessage('acceptanceCriteria')}
                         </Divider>
                         <List
                           size="small"
                           dataSource={task.acceptance_criteria}
                           renderItem={(criteria) => (
-                            <List.Item className="text-gray-300 border-gray-700">
+                            <List.Item className="text-gray-200 border-gray-700">
                               {criteria}
                             </List.Item>
                           )}
@@ -254,8 +254,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
         {parsedResult.dependencies && parsedResult.dependencies.length > 0 && (
           <Panel 
             header={
-              <span className="text-gray-200">
-                <NodeIndexOutlined className="mr-2" />
+              <span className="text-blue-200">
+                <NodeIndexOutlined className="mr-2 text-blue-300" />
                 {getMessage('taskDependencies')}
               </span>
             } 
@@ -265,14 +265,14 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
             <List
               dataSource={parsedResult.dependencies}
               renderItem={(dep) => (
-                <List.Item className="text-gray-300">
+                <List.Item className="text-gray-200">
                   <Card className="w-full bg-gray-800 border-gray-700">
                     <div>
-                      <Badge color="blue" text={<Text className="text-gray-200">{dep.task}</Text>} />
-                      <Text className="text-gray-400 ml-2 mr-2">{getMessage('dependsOn')}</Text>
+                      <Badge color="blue" text={<Text className="text-blue-200">{dep.task}</Text>} />
+                      <Text className="text-gray-300 ml-2 mr-2">{getMessage('dependsOn')}</Text>
                       <div className="mt-2">
                         {dep.depends_on.map((depTask, idx) => (
-                          <Tag key={idx} color="purple" className="mb-1 mr-1">
+                          <Tag key={idx} color="purple" className="mb-1 mr-1 text-blue-100">
                             {depTask}
                           </Tag>
                         ))}

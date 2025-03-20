@@ -769,6 +769,15 @@ export const messages: { [key: string]: Message } = {
     en: "No split result data available",
     zh: "没有可用的拆分结果数据"
   },
+  // Panel maximize related
+  maximizePanel: {
+    en: "Maximize Panel",
+    zh: "最大化面板"
+  },
+  restorePanel: {
+    en: "Restore Panel",
+    zh: "恢复面板"
+  },
 };
 
 // 当前语言设置

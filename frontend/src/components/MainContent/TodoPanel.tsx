@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Button, Input, Select, Tag, Modal, Badge } from 'antd';
-import { PlusOutlined, EditOutlined, SyncOutlined, CodeOutlined } from '@ant-design/icons';
+import { Button, Input, Select, Tag, Modal, Badge, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, SyncOutlined, CodeOutlined, ExpandOutlined, CompressOutlined } from '@ant-design/icons';
 import { ErrorBoundary } from 'react-error-boundary';
 import { getMessage } from '../Sidebar/lang';
 import TodoEditModal from './TodoEditModal';
@@ -53,6 +53,7 @@ const TodoPanel: React.FC = () => {
   const [confirmMode, setConfirmMode] = useState(true);
   const [showSplitResult, setShowSplitResult] = useState<string | null>(null);
   const [splitResultData, setSplitResultData] = useState<any>(null);
+  const [maximizedPanel, setMaximizedPanel] = useState<ColumnId | null>(null);
 
   // Load initial data
   useEffect(() => {
@@ -427,6 +428,11 @@ const TodoPanel: React.FC = () => {
     }
   };
 
+  // 处理面板最大化/恢复的函数
+  const handleToggleMaximize = (columnId: ColumnId) => {
+    setMaximizedPanel(prevState => prevState === columnId ? null : columnId);
+  };
+
   return (
       <div className="todo-container h-full bg-gray-900 p-4" data-testid="todo-panel">
       {error && (
@@ -466,13 +472,31 @@ const TodoPanel: React.FC = () => {
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className={`todo-column flex-1 bg-gray-800 rounded-lg p-4 border flex flex-col ${
+                  className={`todo-column flex-col transition-all duration-300 ${
                     snapshot.isDraggingOver 
                       ? 'border-blue-500' 
                       : 'border-gray-700'
-                  }`}
+                  } ${
+                    // 根据最大化状态调整样式
+                    maximizedPanel === null 
+                      ? 'flex-1' 
+                      : maximizedPanel === column.id 
+                        ? 'flex w-full' 
+                        : 'hidden'
+                  } bg-gray-800 rounded-lg p-4 border flex`}
                 >
-                  <h3 className="text-gray-300 mb-3 font-medium">{column.title}</h3>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-gray-300 font-medium">{column.title}</h3>
+                    <Tooltip title={maximizedPanel === column.id ? getMessage('restorePanel') : getMessage('maximizePanel')}>
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={maximizedPanel === column.id ? <CompressOutlined /> : <ExpandOutlined />}
+                        onClick={() => handleToggleMaximize(column.id as ColumnId)}
+                        className="text-gray-400 hover:text-blue-400"
+                      />
+                    </Tooltip>
+                  </div>
                   <div className="flex-1 overflow-y-auto max-h-[calc(100vh-220px)] pr-1 custom-scrollbar">
                     {todos
                       .filter(todo => todo.status === column.id)
