@@ -1,9 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Button, Input, Select, Tag, Modal } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, Input, Select, Tag, Modal, Badge } from 'antd';
+import { PlusOutlined, EditOutlined, SyncOutlined } from '@ant-design/icons';
 import { ErrorBoundary } from 'react-error-boundary';
 import { getMessage } from '../Sidebar/lang';
+import TodoEditModal from './TodoEditModal';
+import AutoExecuteNotificationModal from './AutoExecuteNotificationModal';
 import './TodoPanel.css';
 
 type ColumnId = 'pending' | 'developing' | 'testing' | 'done';
@@ -36,33 +38,85 @@ const priorityColors = {
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+// 在任务卡片中渲染状态和操作按钮
+const renderTodoActions = (todo: TodoItem, handleEditTodo: (todo: TodoItem) => void) => {
+  if (todo.status === 'developing') {
+    // 进行中的任务显示运行状态，不显示编辑按钮
+    return (
+      <div className="todo-actions flex items-center gap-2">
+        <Badge 
+          status="processing" 
+          text={<span className="text-blue-400 text-xs">{getMessage('taskRunningStatus')}</span>}
+        />
+        <div className="todo-tags flex gap-1">
+          {todo.tags.map(tag => (
+            <Tag 
+              key={tag} 
+              className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
+            >
+              {tag}
+            </Tag>
+          ))}
+        </div>
+      </div>
+    );
+  } else {
+    // 其他状态的任务显示编辑按钮
+    return (
+      <div className="todo-actions flex items-center gap-2">
+        <Button
+          type="text"
+          size="small"
+          icon={<EditOutlined />}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleEditTodo(todo);
+          }}
+          className="text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center"
+        />
+        <div className="todo-tags flex gap-1">
+          {todo.tags.map(tag => (
+            <Tag 
+              key={tag} 
+              className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
+            >
+              {tag}
+            </Tag>
+          ))}
+        </div>
+      </div>
+    );
+  }
+};
+
 const TodoPanel: React.FC = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newTodo, setNewTodo] = useState<Partial<TodoItem>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingTodo, setEditingTodo] = useState<TodoItem | null>(null);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [executeModalVisible, setExecuteModalVisible] = useState(false);
+  const [executingTodo, setExecutingTodo] = useState<TodoItem | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [confirmMode, setConfirmMode] = useState(true);
 
   // Load initial data
   useEffect(() => {
-    const fetchTodos = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await fetch('/api/todos');
-        if (!response.ok) {
-          throw new Error('Failed to fetch todos');
-        }
-        const data = await response.json();
-        setTodos(data);
-      } catch (error) {
-        console.error('Failed to fetch todos:', error);
-        setError('Failed to load todos. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchTodos();
+    
+    // 添加自定义事件监听器用于处理弹窗关闭
+    const handleCloseModal = () => {
+      setExecuteModalVisible(false);
+    };
+
+    document.addEventListener('closeExecuteModal', handleCloseModal);
+
+    // 清理函数
+    return () => {
+      document.removeEventListener('closeExecuteModal', handleCloseModal);
+    };
   }, []);
 
   const columns = [
@@ -76,6 +130,14 @@ const TodoPanel: React.FC = () => {
     const { source, destination } = result;
 
     if (!destination) return;
+
+    // Check if task is moved from 'pending' to 'developing'
+    const isPendingToDeveloping = 
+      source.droppableId === 'pending' && 
+      destination.droppableId === 'developing';
+    
+    // Find the todo being dragged
+    const draggedTodo = todos.find(todo => todo.id === result.draggableId);
 
     // Optimistic update
     const originalTodos = [...todos];
@@ -124,11 +186,111 @@ const TodoPanel: React.FC = () => {
         })
       });
 
+      // 如果是从待评估拖到进行中，显示确认对话框
+      if (isPendingToDeveloping && draggedTodo) {
+        setExecutingTodo(draggedTodo);
+        setConfirmMode(true);
+        setExecuteModalVisible(true);
+      }
+
     } catch (error) {
       console.error('Failed to reorder todos:', error);
       // Revert to original state on error
       setTodos(originalTodos);
-      setError('Failed to save changes. Please try again.');
+      setError(getMessage('failedToSaveChanges'));
+    }
+  };
+
+  // 在用户确认后开始执行任务
+  const handleConfirmExecution = () => {
+    if (executingTodo) {
+      setConfirmMode(false);
+      startTaskExecution(executingTodo);
+    }
+  };
+
+  // 在用户取消时将任务移回待评估面板
+  const handleCancelExecution = async () => {
+    if (executingTodo) {
+      // 先更新本地状态
+      setTodos(prevTodos => {
+        return prevTodos.map(todo => {
+          if (todo.id === executingTodo.id) {
+            return { ...todo, status: 'pending' as ColumnId };
+          }
+          return todo;
+        });
+      });
+      
+      // 同步到后端
+      try {
+        await fetch('/api/todos/reorder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source_status: 'developing',
+            destination_status: 'pending',
+            todo_id: executingTodo.id,
+            // 索引信息 - 如果后端不需要精确的索引信息，可以给个默认值
+            source_index: 0,
+            destination_index: 0
+          })
+        });
+      } catch (error) {
+        console.error('Failed to move task back to pending:', error);
+        setError(getMessage('failedToSaveChanges'));
+      }
+      
+      // 关闭弹窗
+      setExecuteModalVisible(false);
+    }
+  };
+
+  // 模拟任务自动执行的函数
+  const startTaskExecution = async (todo: TodoItem) => {
+    setIsExecuting(true);
+    
+    try {
+      // 这里可以实现真正的后台任务执行逻辑，比如调用AI处理任务
+      // 这里仅做模拟，延迟3秒后完成
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // 更新任务状态
+      const response = await fetch(`/api/todos/${todo.id}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to execute task');
+      }
+      
+      // 可选：刷新任务列表
+      fetchTodos();
+      
+    } catch (error) {
+      console.error('Failed to execute task:', error);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  // 提取fetchTodos为独立函数以便重用
+  const fetchTodos = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/todos');
+      if (!response.ok) {
+        throw new Error(getMessage('failedToFetchTodos'));
+      }
+      const data = await response.json();
+      setTodos(data);
+    } catch (error) {
+      console.error(getMessage('failedToFetchTodos'), error);
+      setError(getMessage('failedToLoadTodos'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -147,7 +309,7 @@ const TodoPanel: React.FC = () => {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to create todo');
+        throw new Error(getMessage('failedToCreateTodo'));
       }
       
       const createdTodo = await response.json();
@@ -155,8 +317,34 @@ const TodoPanel: React.FC = () => {
       setIsModalVisible(false);
       setNewTodo({});
     } catch (error) {
-      console.error('Failed to create todo:', error);
-      setError('Failed to create new todo. Please try again.');
+      console.error(getMessage('failedToCreateTodo'), error);
+      setError(getMessage('failedToCreateNewTodo'));
+    }
+  };
+
+  const handleEditTodo = (todo: TodoItem) => {
+    setEditingTodo(todo);
+    setIsEditModalVisible(true);
+  };
+
+  const handleSaveTodo = async (updatedTodo: TodoItem) => {
+    try {
+      const response = await fetch(`/api/todos/${updatedTodo.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedTodo)
+      });
+      
+      if (!response.ok) {
+        throw new Error(getMessage('failedToSaveTodo'));
+      }
+      
+      const savedTodo = await response.json();
+      setTodos(prev => prev.map(todo => todo.id === savedTodo.id ? savedTodo : todo));
+    } catch (error) {
+      console.error(getMessage('failedToSaveTodo'), error);
+      setError(getMessage('failedToSaveTodo'));
+      throw error;
     }
   };
 
@@ -181,7 +369,7 @@ const TodoPanel: React.FC = () => {
       <ErrorBoundary
         fallbackRender={({ error }) => (
           <div className="text-red-500 p-4">
-            Droppable Error: {error.message}
+            {getMessage('droppableError', { message: error.message })}
           </div>
         )}
       >
@@ -219,7 +407,9 @@ const TodoPanel: React.FC = () => {
                               className={`todo-card bg-gray-700 p-3 mb-3 rounded border ${
                                 snapshot.isDragging
                                   ? 'border-blue-500 shadow-lg'
-                                  : 'border-gray-600'
+                                  : todo.status === 'developing' 
+                                      ? 'border-blue-400' 
+                                      : 'border-gray-600'
                               } transition-all duration-150`}
                             >
                               <div className="todo-card-header flex items-center justify-between mb-2">
@@ -229,21 +419,18 @@ const TodoPanel: React.FC = () => {
                                 >
                                   {todo.priority}
                                 </Tag>
-                                <div className="todo-tags flex gap-1">
-                                  {todo.tags.map(tag => (
-                                    <Tag 
-                                      key={tag} 
-                                      className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
-                                    >
-                                      {tag}
-                                    </Tag>
-                                  ))}
-                                </div>
+                                {renderTodoActions(todo, handleEditTodo)}
                               </div>
                               <div className="todo-title text-gray-200 text-sm mb-1">{todo.title}</div>
                               {todo.dueDate && (
                                 <div className="todo-due-date text-gray-400 text-xs">
-                                  截止: {new Date(todo.dueDate).toLocaleDateString()}
+                                  {getMessage('dueDate', { date: new Date(todo.dueDate).toLocaleDateString() })}
+                                </div>
+                              )}
+                              {todo.status === 'developing' && (
+                                <div className="todo-execution-status flex items-center gap-1 text-blue-400 text-xs mt-2">
+                                  <SyncOutlined spin />
+                                  <span>{getMessage('taskExecutingInBackground')}</span>
                                 </div>
                               )}
                             </div>
@@ -293,6 +480,22 @@ const TodoPanel: React.FC = () => {
           options={priorityOptions}
         />
       </Modal>
+      
+      <TodoEditModal
+        visible={isEditModalVisible}
+        todo={editingTodo}
+        onClose={() => setIsEditModalVisible(false)}
+        onSave={handleSaveTodo}
+      />
+      
+      <AutoExecuteNotificationModal
+        visible={executeModalVisible}
+        todo={executingTodo}
+        onClose={handleCancelExecution}
+        onConfirm={handleConfirmExecution}
+        isExecuting={isExecuting}
+        confirmMode={confirmMode}
+      />
       </ErrorBoundary> 
     </div>
   );

@@ -80,6 +80,7 @@ export interface ChatPanelProps {
   setClipboardContent: (content: string) => void;
   clipboardContent: string;
   setRequestId: (requestId: string) => void;
+  projectName?: string;
 }
 
 export interface CompletionItem {

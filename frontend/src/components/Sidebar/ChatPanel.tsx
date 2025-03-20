@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { message as AntdMessage, Modal, Input } from 'antd';
+import { message as AntdMessage, Modal, Input, Select, Button, Layout, Divider, Typography, Space, Dropdown, Menu, Tooltip } from 'antd';
+import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined } from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
 import InputArea from './InputArea';
 import { getMessage } from './lang';
@@ -17,7 +18,7 @@ import MessageList, { MessageProps } from '../../components/AutoMode/MessageList
 
 const CONFIRMATION_WORDS = ['confirm', '确认'] as const;
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, setActivePanel, setClipboardContent, clipboardContent }) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, setActivePanel, setClipboardContent, clipboardContent, projectName = '' }) => {
   const showNewChatModal = () => {
     // 清空当前对话内容
     setMessages([]);
@@ -226,6 +227,21 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       AntdMessage.error('Failed to load chat list');
     }
   };
+  
+  // 获取对话标题
+  const getChatTitle = () => {
+    if (messages.length > 0) {
+      // 找到第一条用户消息
+      const userMessage = messages.find(msg => 
+        msg.isUser || (msg.type === 'USER_RESPONSE'));
+      if (userMessage && userMessage.content) {
+        // 取前四个字符，如果不足四个字符则取全部
+        return userMessage.content.substring(0, 4);
+      }
+    }
+    // 如果没有消息或没有用户消息，返回 New Chat
+    return 'New Chat';
+  };
 
   const deleteChatList = async (name: string) => {
     try {
@@ -416,6 +432,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       codingService.removeAllListeners();
     };
   }, []);
+  
+  // 新消息到达时自动滚动到底部
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSendMessage = async () => {
     const trimmedText = editorRef.current?.getValue()?.trim();
@@ -453,76 +474,185 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     }
   };
 
+  // 删除聊天列表的处理函数
+  const handleDeleteChat = async (name: string) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除对话 "${name}" 吗？此操作不可撤销。`,
+      okText: '删除',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: async () => {
+        await deleteChatList(name);
+        AntdMessage.success('对话已删除');
+      },
+    });
+  };
+
+  // 生成聊天列表下拉菜单项，添加新建对话选项作为第一项
+  const chatListMenuItems = [
+    {
+      key: 'new-chat',
+      label: (
+        <div className="flex items-center w-full group text-blue-500 font-medium">
+          <PlusOutlined className="mr-1" style={{ fontSize: '12px' }} />
+          <span>新建对话</span>
+        </div>
+      ),
+    },
+    // 如果有聊天列表，添加分隔线
+    ...(chatLists.length > 0 ? [{ type: 'divider' as const }] : []),
+    // 添加现有聊天列表
+    ...chatLists.map(name => ({
+      key: name,
+      label: (
+        <div className="flex justify-between items-center w-full group">
+          <span className="truncate max-w-[180px]">{name}</span>
+          <Button 
+            type="text" 
+            size="small" 
+            className="opacity-0 group-hover:opacity-100 transition-opacity" 
+            icon={<DeleteOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteChat(name);
+            }}
+          />
+        </div>
+      ),
+    })),
+  ];
+
   return (
     <>
-    <div id="chat-panel-container" className="flex flex-col h-screen">
-      <div className="flex justify-between items-center p-2 bg-gray-100 border-b border-gray-300">
-        <div className="flex items-center">
-          <select 
-            className="px-2 py-1 border rounded mr-2 text-sm" 
-            value={chatListName} 
-            onChange={(e) => {
-              setChatListName(e.target.value);
-              loadChatList(e.target.value);
-            }}
-          >
-            {chatLists.map((name) => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
+    <Layout className="h-screen flex flex-col overflow-hidden">
+      {/* 头部导航栏 */}
+      <Layout.Header className="bg-gray-800 px-2 py-0.5 h-8 flex justify-between items-center border-b border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-10">
+        <div className="flex items-center space-x-2 flex-1 min-w-0 overflow-hidden">
+          <div className="flex items-center flex-shrink-0">
+            <svg className="w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-transparent bg-clip-text font-bold text-xs">auto-coder.web</span>
+          </div>
+          <div className="flex items-center min-w-0 flex-1 overflow-hidden">
+            <span className="text-gray-400 text-xs mx-0.5">|</span>
+            <div className="flex items-center min-w-0 flex-1 overflow-hidden">
+              <span className="text-gray-200 text-xs font-medium truncate">
+                {projectName || getMessage('noProjectSelected')}
+              </span>
+            </div>
+          </div>
         </div>
-        <button 
-          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
-          onClick={showNewChatModal}
-        >
-          New Chat
-        </button>
-      </div>
-      <div id="chat-messages-container" className="h-[50%] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-        <MessageList
-          messages={getAutoModeMessages()}
-          onUserResponse={async (response, eventId) => {
-            if (eventId && pendingResponseEvent) {
-              const { requestId, eventData } = pendingResponseEvent;
-              await fetch('/api/event/response', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  request_id: requestId,
-                  event: eventData,
-                  response: JSON.stringify({ "value": response })
-                })
-              });
-              setPendingResponseEvent(null);
-            }
+        
+        <div className="flex items-center space-x-1 flex-shrink-0">
+          <Dropdown 
+            menu={{ 
+              items: chatListMenuItems,
+              onClick: ({ key }) => {
+                if (key === 'new-chat') {
+                  showNewChatModal();
+                } else {
+                  setChatListName(key);
+                  loadChatList(key);
+                }
+              }
+            }} 
+            trigger={['click']}
+            placement="bottomRight"
+            arrow={{ pointAtCenter: true }}
+          >
+            <Button 
+              icon={<MessageOutlined style={{ fontSize: '12px' }} />}
+              size="small" 
+              className="flex items-center justify-center text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6"
+              title={getChatTitle()}
+            />
+          </Dropdown>
+          
+          <Tooltip title="设置">
+            <Button 
+              icon={<SettingOutlined style={{ fontSize: '10px' }} />} 
+              onClick={() => setShowConfig(!showConfig)}
+              className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
+              size="small"
+            />
+          </Tooltip>
+        </div>
+      </Layout.Header>
+      
+      {/* 消息列表区域 */}
+      <Layout.Content className="flex-1 overflow-hidden flex flex-col">
+        <div 
+          className="flex-1 overflow-y-auto bg-gray-900 p-2 transition-all duration-300" 
+          id="chat-messages-container"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0)',
+            backgroundSize: '20px 20px'
           }}
-        />
-      </div>
-        <div id="input-area-container" className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-        <InputArea
-          showConfig={showConfig}
-          setShowConfig={setShowConfig}
-          config={config}
-          updateConfig={updateConfig}
-          fileGroups={fileGroups}
-          selectedGroups={selectedGroups}
-          setSelectedGroups={setSelectedGroups}
-          fetchFileGroups={fetchFileGroups}
-          isMaximized={isMaximized}
-          setIsMaximized={setIsMaximized}
-          handleEditorDidMount={handleEditorDidMount}
-          setShouldSendMessage={setShouldSendMessage}
-          isWriteMode={isWriteMode}
-          setIsWriteMode={setIsWriteMode}
-          handleRevert={handleRevert}
-          handleSendMessage={handleSendMessage}
-          sendLoading={sendLoading}
-          setConfig={setConfig}
-        />
-      </div>
-    </div>
+        >
+          {messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-gray-400 animate-fade-in">
+              <MessageOutlined style={{ fontSize: '36px', marginBottom: '10px', opacity: 0.5 }} />
+              <Typography.Title level={5} className="text-gray-300 mb-1">
+                开始一个新的对话
+              </Typography.Title>
+              <Typography.Text className="text-gray-400 text-center max-w-md text-xs">
+                有任何问题都可以在下方输入，我会尽力帮助您。
+              </Typography.Text>
+            </div>
+          ) : (
+            <div className="space-y-4 animate-fade-in">
+              <MessageList
+                messages={getAutoModeMessages()}
+                onUserResponse={async (response, eventId) => {
+                  if (eventId && pendingResponseEvent) {
+                    const { requestId, eventData } = pendingResponseEvent;
+                    await fetch('/api/event/response', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        request_id: requestId,
+                        event: eventData,
+                        response: JSON.stringify({ "value": response })
+                      })
+                    });
+                    setPendingResponseEvent(null);
+                  }
+                }}
+              />
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+        
+        {/* 输入区域 */}
+        <div className="border-t border-gray-700 bg-gray-800 transition-all duration-300 shadow-inner">
+          <InputArea
+            showConfig={showConfig}
+            setShowConfig={setShowConfig}
+            config={config}
+            updateConfig={updateConfig}
+            fileGroups={fileGroups}
+            selectedGroups={selectedGroups}
+            setSelectedGroups={setSelectedGroups}
+            fetchFileGroups={fetchFileGroups}
+            isMaximized={isMaximized}
+            setIsMaximized={setIsMaximized}
+            handleEditorDidMount={handleEditorDidMount}
+            setShouldSendMessage={setShouldSendMessage}
+            isWriteMode={isWriteMode}
+            setIsWriteMode={setIsWriteMode}
+            handleRevert={handleRevert}
+            handleSendMessage={handleSendMessage}
+            sendLoading={sendLoading}
+            setConfig={setConfig}
+          />
+        </div>
+      </Layout.Content>
+    </Layout>
 
     {/* 新建对话模态框 */}
     <Modal
@@ -532,15 +662,28 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       onCancel={handleNewChatCancel}
       okText="创建"
       cancelText="取消"
+      centered
+      okButtonProps={{ 
+        disabled: !newChatName.trim(),
+        style: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' } 
+      }}
     >
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">对话名称</label>
+        <Typography.Text strong className="block mb-2">对话名称</Typography.Text>
         <Input 
           value={newChatName} 
           onChange={(e) => setNewChatName(e.target.value)}
           placeholder="请输入新对话的名称"
           onPressEnter={handleNewChatCreate}
+          prefix={<MessageOutlined style={{ color: '#bfbfbf' }} />}
+          autoFocus
+          size="large"
         />
+        {!newChatName.trim() && (
+          <Typography.Text type="danger" className="mt-1 block">
+            对话名称不能为空
+          </Typography.Text>
+        )}
       </div>
     </Modal>
     </>

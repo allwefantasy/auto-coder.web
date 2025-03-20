@@ -49,10 +49,10 @@ const InputArea: React.FC<InputAreaProps> = ({
   return (
     <div className="bg-gray-800 border-t border-gray-700">
       {/* Configuration and Groups Section */}
-      <div className="px-2 pt-1">
-        <div className="space-y-1">
+      <div className="px-1 pt-0.5">
+        <div className="space-y-0.5">
           <div className="flex items-center justify-between">
-            <span className="text-gray-300 text-sm font-semibold">{getMessage('settingsAndGroups')}</span>
+            <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
             <Switch
               size="small"
               checked={showConfig}
@@ -60,16 +60,16 @@ const InputArea: React.FC<InputAreaProps> = ({
               className="ml-2"
             />
           </div>
-          <div className="text-gray-400 text-[10px]">
+          <div className="text-gray-400 text-[9px]">
             {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize
           </div>
         </div>
 
         {showConfig && (
-          <div className="space-y-1 mb-1">
+          <div className="space-y-0.5 mb-0.5">
             <div className="flex items-center justify-between">
               <Tooltip title={getMessage('humanAsModelTooltip')}>
-                <span className="text-gray-300 text-xs">{getMessage('humanAsModel')}</span>
+                <span className="text-gray-300 text-[10px]">{getMessage('humanAsModel')}</span>
               </Tooltip>
               <Switch
                 size="small"
@@ -80,7 +80,7 @@ const InputArea: React.FC<InputAreaProps> = ({
 
             <div className="flex items-center justify-between">
               <Tooltip title={getMessage('skipBuildIndexTooltip')}>
-                <span className="text-gray-300 text-xs">{getMessage('skipBuildIndex')}</span>
+                <span className="text-gray-300 text-[10px]">{getMessage('skipBuildIndex')}</span>
               </Tooltip>
               <Switch
                 size="small"
@@ -91,7 +91,7 @@ const InputArea: React.FC<InputAreaProps> = ({
 
             <div className="flex items-center justify-between">
               <Tooltip title={getMessage('projectTypeTooltip')}>
-                <span className="text-gray-300 text-xs">{getMessage('projectType')}</span>
+                <span className="text-gray-300 text-[10px]">{getMessage('projectType')}</span>
               </Tooltip>
               <Select
                 mode="tags"
@@ -112,10 +112,10 @@ const InputArea: React.FC<InputAreaProps> = ({
             </div>
 
             {/* Custom Configuration */}
-            <div className="space-y-2 mt-2">
+            <div className="space-y-1 mt-1">
               {/* Heading */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-300 text-xs font-medium">{getMessage('customConfig')}</span>
+                <span className="text-gray-300 text-[10px] font-medium">{getMessage('customConfig')}</span>
                 <button
                   onClick={() => {
                     const newExtraConf = { ...config.extra_conf };
@@ -125,14 +125,14 @@ const InputArea: React.FC<InputAreaProps> = ({
                       extra_conf: newExtraConf
                     }));
                   }}
-                  className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  className="px-1.5 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                 >
                   {getMessage('addConfig')}
                 </button>
               </div>
 
               {/* Config Items */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {Object.entries(config.extra_conf).map(([key, value], index) => (
                   <div key={index} className="flex items-center space-x-2">
                     <Select
@@ -225,8 +225,8 @@ const InputArea: React.FC<InputAreaProps> = ({
         )}
 
         {/* File Groups Select */}
-        <div className="px-2">
-          <div className="h-[1px] bg-gray-700/50 my-1"></div>
+        <div className="px-1">
+          <div className="h-[1px] bg-gray-700/50 my-0.5"></div>
           <Select
             mode="multiple"
             style={{ width: '100%' }}
@@ -264,7 +264,7 @@ const InputArea: React.FC<InputAreaProps> = ({
 
       {/* Message Input */}
       <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}>
-        <div className="flex-1 min-h-[150px] h-full">
+        <div className="flex-1 min-h-[120px] h-full">
           <EditorComponent
             isMaximized={isMaximized}
             onEditorDidMount={handleEditorDidMount}
@@ -272,15 +272,15 @@ const InputArea: React.FC<InputAreaProps> = ({
             onToggleMaximize={() => setIsMaximized((prev: boolean): boolean => !prev)}
           />
         </div>
-        <div className="flex flex-col mt-2 gap-2">
+        <div className="flex flex-col mt-1 gap-1">
           {/* Bottom Actions Container */}
-          <div className="space-y-3 bg-gray-850 p-3 rounded-lg shadow-inner border border-gray-700/50">
+          <div className="space-y-2 bg-gray-850 p-2 rounded-lg shadow-inner border border-gray-700/50">
             {/* Mode and Shortcuts Row */}
-            <div className="flex items-center justify-between px-1">
+            <div className="flex items-center justify-between px-0.5">
               <div className="flex items-center space-x-4">
                 {/* Mode Switch with Label */}
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs font-medium text-gray-400">Mode:</span>
+                  <span className="text-[10px] font-medium text-gray-400">Mode:</span>
                   <Switch
                     size="small"
                     checked={isWriteMode}
@@ -291,11 +291,11 @@ const InputArea: React.FC<InputAreaProps> = ({
                   />
                 </div>
                 {/* Keyboard Shortcut */}
-                <div className="flex items-center space-x-1.5">
-                  <kbd className="px-2 py-1 text-xs font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
+                <div className="flex items-center space-x-1">
+                  <kbd className="px-1 py-0.5 text-[10px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
                     {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
                   </kbd>
-                  <span className="text-xs text-gray-500">to send</span>
+                  <span className="text-[10px] text-gray-500">to send</span>
                 </div>
               </div>
             </div>

@@ -576,6 +576,141 @@ export const messages: { [key: string]: Message } = {
   files: {
     en: "Files",
     zh: "文件列表"
+  },
+  // TodoPanel specific messages
+  failedToFetchTodos: {
+    en: "Failed to fetch todos",
+    zh: "获取待办事项失败"
+  },
+  failedToLoadTodos: {
+    en: "Failed to load todos. Please try again later.",
+    zh: "加载待办事项失败，请稍后重试。"
+  },
+  failedToCreateTodo: {
+    en: "Failed to create todo",
+    zh: "创建待办事项失败"
+  },
+  failedToSaveChanges: {
+    en: "Failed to save changes. Please try again.",
+    zh: "保存更改失败，请重试。"
+  },
+  failedToCreateNewTodo: {
+    en: "Failed to create new todo. Please try again.",
+    zh: "创建新待办事项失败，请重试。"
+  },
+  droppableError: {
+    en: "Droppable Error: {message}",
+    zh: "拖放错误: {message}"
+  },
+  dueDate: {
+    en: "Due: {date}",
+    zh: "截止: {date}"
+  },
+  // TodoEditModal specific messages
+  editTodoTitle: {
+    en: "Edit Task",
+    zh: "编辑任务"
+  },
+  todoTitle: {
+    en: "Title",
+    zh: "标题"
+  },
+  todoTitlePlaceholder: {
+    en: "Enter task title",
+    zh: "输入任务标题"
+  },
+  todoDescription: {
+    en: "Description",
+    zh: "任务描述"
+  },
+  todoDescriptionPlaceholder: {
+    en: "Enter detailed task description",
+    zh: "输入详细任务描述"
+  },
+  priority: {
+    en: "Priority",
+    zh: "优先级"
+  },
+  tags: {
+    en: "Tags",
+    zh: "标签"
+  },
+  addTag: {
+    en: "Add",
+    zh: "添加"
+  },
+  addTagPlaceholder: {
+    en: "New tag",
+    zh: "新标签"
+  },
+  save: {
+    en: "Save",
+    zh: "保存"
+  },
+  todoTitleRequired: {
+    en: "Task title is required",
+    zh: "任务标题不能为空"
+  },
+  todoDescriptionRequired: {
+    en: "Task description is required for splitting",
+    zh: "拆分任务需要提供任务描述"
+  },
+  failedToSaveTodo: {
+    en: "Failed to save task",
+    zh: "保存任务失败"
+  },
+  splitTask: {
+    en: "Split Task with AI",
+    zh: "AI拆分任务"
+  },
+  failedToSplitTask: {
+    en: "Failed to split task",
+    zh: "拆分任务失败"
+  },
+  taskSplitSuccess: {
+    en: "Successfully split into {count} sub-tasks",
+    zh: "成功拆分为 {count} 个子任务"
+  },
+  editTask: {
+    en: "Edit",
+    zh: "编辑"
+  },
+  // AutoExecuteNotificationModal specific messages
+  taskAutoExecuteTitle: {
+    en: "Task Auto-Execution",
+    zh: "任务自动执行"
+  },
+  taskAutoExecuteMessage: {
+    en: "This task will be automatically executed in the background",
+    zh: "该任务将在后台自动执行"
+  },
+  taskExecutingMessage: {
+    en: "Task is being executed in the background...",
+    zh: "任务正在后台执行中..."
+  },
+  taskAutoExecuteDescription: {
+    en: "The system will process this task automatically. You can close this notification and continue working on other tasks.",
+    zh: "系统将自动处理此任务。您可以关闭此通知并继续处理其他任务。"
+  },
+  taskConfirmExecuteMessage: {
+    en: "Do you want to automatically execute this task?",
+    zh: "是否要自动执行此任务？"
+  },
+  taskConfirmExecuteDescription: {
+    en: "The system will begin processing this task in the background. You can continue working on other tasks while this is running.",
+    zh: "系统将在后台开始处理此任务。在任务运行期间，您可以继续处理其他任务。"
+  },
+  confirm: {
+    en: "Confirm",
+    zh: "确认"
+  },
+  taskRunningStatus: {
+    en: "Running",
+    zh: "运行中"
+  },
+  taskExecutingInBackground: {
+    en: "Executing in background...",
+    zh: "后台执行中..."
   }
 };
 

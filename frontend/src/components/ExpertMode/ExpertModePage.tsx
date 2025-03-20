@@ -44,36 +44,20 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   return (
     <Split 
       className="flex-1 flex"
-      sizes={[30, 70]}
-      minSize={[200, 400]}
-      gutterSize={4}
-      snapOffset={30}
+      sizes={[25, 75]}
+      minSize={[180, 400]}
+      gutterSize={3}
+      snapOffset={20}
     >
       {/* Left Sidebar - Chat */}
       <div className="border-r border-gray-700 flex flex-col">
-        <div className="bg-gray-800 p-3 border-b border-gray-700 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-transparent bg-clip-text font-bold text-sm">auto-coder.web</span>
-            </div>
-            <span className="text-gray-400">|</span>
-            <div className="flex items-center">
-              <span className="text-gray-400 text-sm mr-1">{getMessage('currentProject')}</span>
-              <span className="text-gray-200 text-sm font-medium">
-                {projectName || getMessage('noProjectSelected')}
-              </span>
-            </div>
-          </div>
-        </div>
         <ChatPanel
           setPreviewFiles={setPreviewFiles}
           setActivePanel={setActivePanel}
           setClipboardContent={setClipboardContent}
           clipboardContent={clipboardContent}
           setRequestId={setRequestId}
+          projectName={projectName}
         />
       </div>
 
@@ -82,9 +66,9 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
         <Split 
           direction="vertical"
           sizes={[75, 25]}
-          minSize={[200, 100]}
-          gutterSize={4}
-          snapOffset={30}
+          minSize={[180, 80]}
+          gutterSize={3}
+          snapOffset={20}
           dragInterval={1}
           cursor="row-resize"
           style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
