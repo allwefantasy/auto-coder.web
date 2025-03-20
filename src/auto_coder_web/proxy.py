@@ -54,7 +54,7 @@ import git
 import hashlib
 from datetime import datetime
 from autocoder.utils import operate_config_api
-from .routers import todo_router, settings_router, auto_router, commit_router
+from .routers import todo_router, settings_router, auto_router, commit_router, chat_router, coding_router
 
 
 
@@ -365,6 +365,8 @@ class ProxyServer:
         self.app.include_router(settings_router.router)
         self.app.include_router(auto_router.router)
         self.app.include_router(commit_router.router)
+        self.app.include_router(chat_router.router)
+        self.app.include_router(coding_router.router)
         
         # Store project_path in app state for dependency injection
         self.app.state.project_path = self.project_path

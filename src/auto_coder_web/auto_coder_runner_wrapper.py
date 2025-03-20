@@ -46,6 +46,13 @@ class AutoCoderRunnerWrapper:
     
     def configure_wrapper(self,conf: str, skip_print=False ):
         return configure(conf, skip_print)
+
+
+    def coding_wapper(self,query):
+        return coding(query) 
+
+    def chat_wrapper(self,query):
+        return chat(query)          
         
     
     
