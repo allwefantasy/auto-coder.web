@@ -47,6 +47,18 @@ const getPriorityColor = (priority: string) => {
   return priorities[priority] || 'blue';
 };
 
+// 自定义卡片样式，确保在深色背景上的文字可见
+const darkModeCardStyle = {
+  background: '#1f2937', // bg-gray-750
+  borderColor: '#4b5563', // border-gray-600
+  color: '#e5e7eb', // text-gray-200
+};
+
+// 自定义标签样式
+const darkModeTagStyle = {
+  color: '#f3f4f6', // text-gray-100
+};
+
 const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, result }) => {
   const [activeKey, setActiveKey] = useState<string[]>(['1']);
   const [loading, setLoading] = useState(true);
@@ -100,6 +112,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
           description={error || getMessage('noSplitResultData')}
           type="error"
           showIcon
+          className="text-white"
         />
       </div>
     );
@@ -107,29 +120,29 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
 
   return (
     <div className="task-split-result-view bg-gray-800 rounded-lg p-4 mb-4 animate-fadeIn">
-      <Title level={4} className="text-blue-300 mb-4">
+      <Title level={4} className="text-white mb-4 font-medium">
         {getMessage('taskSplitResultTitle')}
       </Title>
       
       <Collapse 
         activeKey={activeKey}
         onChange={(keys) => setActiveKey(keys as string[])}
-        expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} className="text-blue-400" />}
-        className="bg-gray-700 border-gray-600"
+        expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} className="text-amber-400" />}
+        className="bg-gray-700 border-gray-600 shadow-md"
       >
         {/* 原始任务 */}
         <Panel 
           header={
-            <span className="text-blue-200">
-              <FileTextOutlined className="mr-2 text-blue-300" />
+            <span className="text-white">
+              <FileTextOutlined className="mr-2 text-amber-300" />
               {getMessage('originalTask')}
             </span>
           } 
           key="1"
           className="bg-gray-700 border-gray-600"
         >
-          <Card className="bg-gray-800 border-gray-700">
-            <Title level={5} className="text-blue-200">{parsedResult.original_task.title}</Title>
+          <Card className="bg-gray-750 border-gray-600 shadow-inner" style={darkModeCardStyle}>
+            <Title level={5} className="text-white font-medium">{parsedResult.original_task.title}</Title>
             <Paragraph className="text-gray-200">{parsedResult.original_task.description}</Paragraph>
           </Card>
         </Panel>
@@ -137,15 +150,15 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
         {/* 分析结果 */}
         <Panel 
           header={
-            <span className="text-blue-200">
-              <NodeIndexOutlined className="mr-2 text-blue-300" />
+            <span className="text-white">
+              <NodeIndexOutlined className="mr-2 text-amber-300" />
               {getMessage('taskAnalysis')}
             </span>
           } 
           key="2"
           className="bg-gray-700 border-gray-600"
         >
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-750 border-gray-600 shadow-inner" style={darkModeCardStyle}>
             <Paragraph className="text-gray-200">{parsedResult.analysis}</Paragraph>
           </Card>
         </Panel>
@@ -153,8 +166,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
         {/* 子任务列表 */}
         <Panel 
           header={
-            <span className="text-blue-200">
-              <BranchesOutlined className="mr-2 text-blue-300" />
+            <span className="text-white">
+              <BranchesOutlined className="mr-2 text-amber-300" />
               {getMessage('subTasks')} ({parsedResult.tasks_count || parsedResult.tasks?.length || 0})
             </span>
           } 
@@ -169,33 +182,48 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                   <Card 
                     title={
                       <div className="flex justify-between items-center">
-                        <Badge status="processing" color="blue" text={
-                          <Text className="text-blue-200">
+                        <Badge status="processing" color="orange" text={
+                          <Text className="text-white">
                             #{index + 1}: {task.title}
                           </Text>
                         } />
                         <div className="flex items-center">
-                          <Tag color={getPriorityColor(task.priority)} className="mr-2">
+                          <Tag 
+                            color={getPriorityColor(task.priority)} 
+                            className="mr-2" 
+                            style={darkModeTagStyle}
+                          >
                             {task.priority}
                           </Tag>
-                          <Tag icon={<ClockCircleOutlined />} color="default" className="bg-gray-700 text-gray-200">
+                          <Tag 
+                            icon={<ClockCircleOutlined />} 
+                            color="default" 
+                            className="bg-gray-700 text-white"
+                            style={darkModeTagStyle}
+                          >
                             {task.estimate}
                           </Tag>
                         </div>
                       </div>
                     }
-                    className="w-full bg-gray-800 border-gray-700"
+                    className="w-full bg-gray-750 border-gray-600 shadow-sm hover:shadow-md transition-shadow duration-300"
+                    style={darkModeCardStyle}
+                    headStyle={{ background: '#374151', borderColor: '#4b5563', color: '#f9fafb' }}
                   >
                     <Paragraph className="text-gray-200">{task.description}</Paragraph>
                     
                     {task.references && task.references.length > 0 && (
                       <>
-                        <Divider orientation="left" className="text-blue-400 border-gray-600">
-                          {getMessage('references')}
+                        <Divider orientation="left" className="text-amber-300 border-gray-600">
+                          <Text className="text-amber-300">{getMessage('references')}</Text>
                         </Divider>
                         <div className="mb-4">
                           {task.references.map((ref, idx) => (
-                            <Tag key={idx} className="mb-1 bg-gray-700 border-gray-600 text-blue-100">
+                            <Tag 
+                              key={idx} 
+                              className="mb-1 bg-gray-700 border-gray-600 text-amber-100"
+                              style={{ ...darkModeTagStyle, backgroundColor: '#374151' }}
+                            >
                               {ref}
                             </Tag>
                           ))}
@@ -205,32 +233,34 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                     
                     {task.steps && task.steps.length > 0 && (
                       <>
-                        <Divider orientation="left" className="text-blue-400 border-gray-600">
-                          {getMessage('implementationSteps')}
+                        <Divider orientation="left" className="text-amber-300 border-gray-600">
+                          <Text className="text-amber-300">{getMessage('implementationSteps')}</Text>
                         </Divider>
                         <Steps 
                           direction="vertical" 
                           size="small" 
                           current={-1}
                           items={task.steps.map((step) => ({
-                            title: <Text className="text-gray-200">{step}</Text>,
-                            status: 'wait'
+                            title: <Text className="text-white">{step}</Text>,
+                            status: 'wait',
+                            style: { color: '#f9fafb' }
                           }))}
-                          className="mb-4"
+                          className="mb-4 text-gray-200"
+                          style={{ color: '#f9fafb' }}
                         />
                       </>
                     )}
                     
                     {task.acceptance_criteria && task.acceptance_criteria.length > 0 && (
                       <>
-                        <Divider orientation="left" className="text-blue-400 border-gray-600">
-                          {getMessage('acceptanceCriteria')}
+                        <Divider orientation="left" className="text-amber-300 border-gray-600">
+                          <Text className="text-amber-300">{getMessage('acceptanceCriteria')}</Text>
                         </Divider>
                         <List
                           size="small"
                           dataSource={task.acceptance_criteria}
                           renderItem={(criteria) => (
-                            <List.Item className="text-gray-200 border-gray-700">
+                            <List.Item className="text-white border-gray-700">
                               {criteria}
                             </List.Item>
                           )}
@@ -254,8 +284,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
         {parsedResult.dependencies && parsedResult.dependencies.length > 0 && (
           <Panel 
             header={
-              <span className="text-blue-200">
-                <NodeIndexOutlined className="mr-2 text-blue-300" />
+              <span className="text-white">
+                <NodeIndexOutlined className="mr-2 text-amber-300" />
                 {getMessage('taskDependencies')}
               </span>
             } 
@@ -265,14 +295,22 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
             <List
               dataSource={parsedResult.dependencies}
               renderItem={(dep) => (
-                <List.Item className="text-gray-200">
-                  <Card className="w-full bg-gray-800 border-gray-700">
+                <List.Item className="text-white">
+                  <Card 
+                    className="w-full bg-gray-750 border-gray-600 shadow-sm" 
+                    style={darkModeCardStyle}
+                  >
                     <div>
-                      <Badge color="blue" text={<Text className="text-blue-200">{dep.task}</Text>} />
+                      <Badge color="orange" text={<Text className="text-white">{dep.task}</Text>} />
                       <Text className="text-gray-300 ml-2 mr-2">{getMessage('dependsOn')}</Text>
                       <div className="mt-2">
                         {dep.depends_on.map((depTask, idx) => (
-                          <Tag key={idx} color="purple" className="mb-1 mr-1 text-blue-100">
+                          <Tag 
+                            key={idx} 
+                            color="orange" 
+                            className="mb-1 mr-1"
+                            style={{ color: '#ffffff' }}
+                          >
                             {depTask}
                           </Tag>
                         ))}

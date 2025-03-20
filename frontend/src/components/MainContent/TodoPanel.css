@@ -153,10 +153,17 @@
   }
 }
 
-/* 拆分结果视图样式 */
+/* 自定义背景色，添加中间灰度值 */
+.bg-gray-750 {
+  background-color: #222933;
+}
+
+/* 增强拆分结果视图样式 */
 .task-split-result-view {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   animation: slideDown 0.3s ease-in-out;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 @keyframes slideDown {
@@ -168,6 +175,37 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.task-split-result-view .ant-typography {
+  transition: color 0.3s ease;
+}
+
+.task-split-result-view .ant-collapse-item {
+  margin-bottom: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.task-split-result-view .ant-card {
+  transition: all 0.3s ease;
+}
+
+.task-split-result-view .ant-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.task-split-result-view .ant-divider {
+  margin: 16px 0;
+}
+
+.task-split-result-view .ant-tag {
+  transition: all 0.3s ease;
+}
+
+.task-split-result-view .ant-tag:hover {
+  transform: scale(1.05);
 }
 
 /* 解决面板之间的边距问题 */
