@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button, Input, Select, Tag, Modal, Badge } from 'antd';
-import { PlusOutlined, EditOutlined, SyncOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, SyncOutlined, CodeOutlined } from '@ant-design/icons';
 import { ErrorBoundary } from 'react-error-boundary';
 import { getMessage } from '../Sidebar/lang';
 import TodoEditModal from './TodoEditModal';
 import AutoExecuteNotificationModal from './AutoExecuteNotificationModal';
+import TaskSplitResultView from './TaskSplitResult/TaskSplitResultView';
 import './TodoPanel.css';
 
 type ColumnId = 'pending' | 'developing' | 'testing' | 'done';
@@ -29,65 +30,14 @@ const priorityColors = {
   P3: 'gray'
 };
 
-  const priorityOptions = [
-    { value: 'P0', label: getMessage('priorityP0') },
-    { value: 'P1', label: getMessage('priorityP1') },
-    { value: 'P2', label: getMessage('priorityP2') },
-    { value: 'P3', label: getMessage('priorityP3') },
-  ];
+const priorityOptions = [
+  { value: 'P0', label: getMessage('priorityP0') },
+  { value: 'P1', label: getMessage('priorityP1') },
+  { value: 'P2', label: getMessage('priorityP2') },
+  { value: 'P3', label: getMessage('priorityP3') },
+];
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-// 在任务卡片中渲染状态和操作按钮
-const renderTodoActions = (todo: TodoItem, handleEditTodo: (todo: TodoItem) => void) => {
-  if (todo.status === 'developing') {
-    // 进行中的任务显示运行状态，不显示编辑按钮
-    return (
-      <div className="todo-actions flex items-center gap-2">
-        <Badge 
-          status="processing" 
-          text={<span className="text-blue-400 text-xs">{getMessage('taskRunningStatus')}</span>}
-        />
-        <div className="todo-tags flex gap-1">
-          {todo.tags.map(tag => (
-            <Tag 
-              key={tag} 
-              className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
-            >
-              {tag}
-            </Tag>
-          ))}
-        </div>
-      </div>
-    );
-  } else {
-    // 其他状态的任务显示编辑按钮
-    return (
-      <div className="todo-actions flex items-center gap-2">
-        <Button
-          type="text"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleEditTodo(todo);
-          }}
-          className="text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center"
-        />
-        <div className="todo-tags flex gap-1">
-          {todo.tags.map(tag => (
-            <Tag 
-              key={tag} 
-              className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
-            >
-              {tag}
-            </Tag>
-          ))}
-        </div>
-      </div>
-    );
-  }
-};
 
 const TodoPanel: React.FC = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
@@ -101,6 +51,8 @@ const TodoPanel: React.FC = () => {
   const [executingTodo, setExecutingTodo] = useState<TodoItem | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [confirmMode, setConfirmMode] = useState(true);
+  const [showSplitResult, setShowSplitResult] = useState<string | null>(null);
+  const [splitResultData, setSplitResultData] = useState<any>(null);
 
   // Load initial data
   useEffect(() => {
@@ -348,6 +300,133 @@ const TodoPanel: React.FC = () => {
     }
   };
 
+  // 在任务卡片中渲染状态和操作按钮
+  const renderTodoActions = (todo: TodoItem, handleEditTodo: (todo: TodoItem) => void) => {
+    const hasSplitResultTag = todo.tags && todo.tags.includes('正在拆解');
+    const isShowingSplitResult = showSplitResult === todo.id;
+    
+    // 检查localStorage中是否有该任务的拆分结果
+    const checkSplitResult = () => {
+      const lastSplitResult = localStorage.getItem('lastSplitResult');
+      if (lastSplitResult) {
+        try {
+          const resultData = JSON.parse(lastSplitResult);
+          if (resultData) {
+            return true;
+          }
+        } catch (e) {
+          console.error('Error parsing split result:', e);
+        }
+      }
+      return false;
+    };
+
+    const hasSplitResultInStorage = checkSplitResult();
+    
+    if (todo.status === 'developing') {
+      // 进行中的任务显示运行状态，不显示编辑按钮
+      return (
+        <div className="todo-actions flex items-center gap-2">
+          <Badge 
+            status="processing" 
+            text={<span className="text-blue-400 text-xs">{getMessage('taskRunningStatus')}</span>}
+          />
+          {hasSplitResultTag && hasSplitResultInStorage && (
+            <Button
+              type="text"
+              size="small"
+              icon={<CodeOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isShowingSplitResult) {
+                  setShowSplitResult(null);
+                  setSplitResultData(null);
+                } else {
+                  // 从localStorage获取拆分结果并显示
+                  const lastSplitResult = localStorage.getItem('lastSplitResult');
+                  if (lastSplitResult) {
+                    try {
+                      const resultData = JSON.parse(lastSplitResult);
+                      setSplitResultData(resultData);
+                      setShowSplitResult(todo.id);
+                    } catch (e) {
+                      console.error('Error parsing split result:', e);
+                    }
+                  }
+                }
+              }}
+              className={`text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center ${isShowingSplitResult ? 'bg-blue-900/30' : ''}`}
+            />
+          )}
+          <div className="todo-tags flex gap-1">
+            {todo.tags.map(tag => (
+              <Tag 
+                key={tag} 
+                className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
+              >
+                {tag}
+              </Tag>
+            ))}
+          </div>
+        </div>
+      );
+    } else {
+      // 其他状态的任务显示编辑按钮
+      return (
+        <div className="todo-actions flex items-center gap-2">
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditTodo(todo);
+            }}
+            className="text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center"
+          />
+          {hasSplitResultTag && hasSplitResultInStorage && (
+            <Button
+              type="text"
+              size="small"
+              icon={<CodeOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isShowingSplitResult) {
+                  setShowSplitResult(null);
+                  setSplitResultData(null);
+                } else {
+                  // 从localStorage获取拆分结果并显示
+                  const lastSplitResult = localStorage.getItem('lastSplitResult');
+                  if (lastSplitResult) {
+                    try {
+                      const resultData = JSON.parse(lastSplitResult);
+                      setSplitResultData(resultData);
+                      setShowSplitResult(todo.id);
+                    } catch (e) {
+                      console.error('Error parsing split result:', e);
+                    }
+                  }
+                }
+              }}
+              className={`text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center ${isShowingSplitResult ? 'bg-blue-900/30' : ''}`}
+              title={isShowingSplitResult ? getMessage('hideTaskSplitResult') : getMessage('viewTaskSplitResult')}
+            />
+          )}
+          <div className="todo-tags flex gap-1">
+            {todo.tags.map(tag => (
+              <Tag 
+                key={tag} 
+                className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
+              >
+                {tag}
+              </Tag>
+            ))}
+          </div>
+        </div>
+      );
+    }
+  };
+
   return (
       <div className="todo-container h-full bg-gray-900 p-4" data-testid="todo-panel">
       {error && (
@@ -398,44 +477,52 @@ const TodoPanel: React.FC = () => {
                     {todos
                       .filter(todo => todo.status === column.id)
                       .map((todo, index) => (
-                        <Draggable key={todo.id} draggableId={todo.id} index={index}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`todo-card bg-gray-700 p-3 mb-3 rounded border ${
-                                snapshot.isDragging
-                                  ? 'border-blue-500 shadow-lg'
-                                  : todo.status === 'developing' 
-                                      ? 'border-blue-400' 
-                                      : 'border-gray-600'
-                              } transition-all duration-150`}
-                            >
-                              <div className="todo-card-header flex items-center justify-between mb-2">
-                                <Tag 
-                                  color={priorityColors[todo.priority]} 
-                                  className="border-none text-xs px-2 rounded-full"
-                                >
-                                  {todo.priority}
-                                </Tag>
-                                {renderTodoActions(todo, handleEditTodo)}
+                        <React.Fragment key={todo.id}>
+                          <Draggable draggableId={todo.id} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`todo-card bg-gray-700 p-3 mb-3 rounded border ${
+                                  snapshot.isDragging
+                                    ? 'border-blue-500 shadow-lg'
+                                    : todo.status === 'developing' 
+                                        ? 'border-blue-400' 
+                                        : 'border-gray-600'
+                                } transition-all duration-150`}
+                              >
+                                <div className="todo-card-header flex items-center justify-between mb-2">
+                                  <Tag 
+                                    color={priorityColors[todo.priority]} 
+                                    className="border-none text-xs px-2 rounded-full"
+                                  >
+                                    {todo.priority}
+                                  </Tag>
+                                  {renderTodoActions(todo, handleEditTodo)}
+                                </div>
+                                <div className="todo-title text-gray-200 text-sm mb-1">{todo.title}</div>
+                                {todo.dueDate && (
+                                  <div className="todo-due-date text-gray-400 text-xs">
+                                    {getMessage('dueDate', { date: new Date(todo.dueDate).toLocaleDateString() })}
+                                  </div>
+                                )}
+                                {todo.status === 'developing' && (
+                                  <div className="todo-execution-status flex items-center gap-1 text-blue-400 text-xs mt-2">
+                                    <SyncOutlined spin />
+                                    <span>{getMessage('taskExecutingInBackground')}</span>
+                                  </div>
+                                )}
                               </div>
-                              <div className="todo-title text-gray-200 text-sm mb-1">{todo.title}</div>
-                              {todo.dueDate && (
-                                <div className="todo-due-date text-gray-400 text-xs">
-                                  {getMessage('dueDate', { date: new Date(todo.dueDate).toLocaleDateString() })}
-                                </div>
-                              )}
-                              {todo.status === 'developing' && (
-                                <div className="todo-execution-status flex items-center gap-1 text-blue-400 text-xs mt-2">
-                                  <SyncOutlined spin />
-                                  <span>{getMessage('taskExecutingInBackground')}</span>
-                                </div>
-                              )}
-                            </div>
+                            )}
+                          </Draggable>
+                          {showSplitResult === todo.id && splitResultData && (
+                            <TaskSplitResultView 
+                              visible={true} 
+                              result={splitResultData}
+                            />
                           )}
-                        </Draggable>
+                        </React.Fragment>
                       ))}
                     {provided.placeholder}
                   </div>

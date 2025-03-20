@@ -711,7 +711,64 @@ export const messages: { [key: string]: Message } = {
   taskExecutingInBackground: {
     en: "Executing in background...",
     zh: "后台执行中..."
-  }
+  },
+  // 任务拆分结果查看相关
+  taskSplitResultTitle: {
+    en: "Task Split Results",
+    zh: "任务拆分结果"
+  },
+  originalTask: {
+    en: "Original Task",
+    zh: "原始任务"
+  },
+  taskAnalysis: {
+    en: "Analysis",
+    zh: "需求分析"
+  },
+  subTasks: {
+    en: "Sub Tasks",
+    zh: "子任务"
+  },
+  noSubTasks: {
+    en: "No sub tasks found",
+    zh: "未找到子任务"
+  },
+  references: {
+    en: "References",
+    zh: "参考资料"
+  },
+  implementationSteps: {
+    en: "Implementation Steps",
+    zh: "实现步骤"
+  },
+  acceptanceCriteria: {
+    en: "Acceptance Criteria",
+    zh: "验收标准"
+  },
+  taskDependencies: {
+    en: "Task Dependencies",
+    zh: "任务依赖关系"
+  },
+  dependsOn: {
+    en: "depends on",
+    zh: "依赖于"
+  },
+  viewTaskSplitResult: {
+    en: "View Split Results",
+    zh: "查看拆分结果"
+  },
+  hideTaskSplitResult: {
+    en: "Hide Split Results",
+    zh: "隐藏拆分结果"
+  },
+  errorTitle: {
+    en: "Error",
+    zh: "错误"
+  },
+  noSplitResultData: {
+    en: "No split result data available",
+    zh: "没有可用的拆分结果数据"
+  },
 };
 
 // 当前语言设置

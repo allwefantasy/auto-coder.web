@@ -119,40 +119,160 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
     }
 
     setSplitLoading(true);
+    
     try {
-      const command = `split_task "${editedTodo.title}" "${editedTodo.description}" "${editedTodo.priority || 'P2'}"`;
+      // 1. 更新本地状态
+      setEditedTodo({
+        ...editedTodo,
+        status: 'developing'
+      });
       
+      // 2. 构建AI提示
+      const prompt = `请帮我将以下任务需求进行细化拆解:
+标题: ${editedTodo.title}
+描述: ${editedTodo.description}
+优先级: ${editedTodo.priority || 'P2'}
+
+请按照以下步骤进行拆解:
+1. 分析需求的核心目标和关键功能点
+2. 将大任务拆分成多个小任务，每个小任务应该足够独立且能够明确衡量完成情况
+3. 为每个小任务标明以下内容:
+   - 任务标题: 简洁清晰
+   - 任务描述: 详细说明需要完成的内容
+   - 技术参考: 可能需要参考的文件、API或技术文档
+   - 实现步骤: 逐步列出完成该任务的具体操作
+   - 验收标准: 如何判断该任务已完成
+   - 优先级: 继承原任务优先级或适当调整
+   - 预估工作量: 用小时或点数表示
+
+4. 以JSON格式文本返回结果，格式如下:
+
+\`\`\`json
+{
+  "original_task": {
+    "title": "原任务标题",
+    "description": "原任务描述"
+  },
+  "analysis": "对整体需求的分析",
+  "tasks": [
+    {
+      "title": "子任务1标题",
+      "description": "子任务1详细描述",
+      "references": ["可能需要参考的文件或文档"],
+      "steps": ["步骤1", "步骤2"...],
+      "acceptance_criteria": ["验收标准1", "验收标准2"...],
+      "priority": "优先级",
+      "estimate": "预估工作量"
+    },
+    // 更多子任务...
+  ],
+  "tasks_count": 3, // 子任务总数
+  "dependencies": [ // 可选，标明任务间依赖关系
+    {
+      "task": "子任务标题",
+      "depends_on": ["依赖的子任务标题"]
+    }
+  ]
+}
+\`\`\`
+
+特别注意，你最后调用 response_user 函数的时候，要给函数传递的是 json 文本数据，符合上面的格式要求。
+`;
+
+      const command = `split_task ${JSON.stringify(prompt)}`;
+      
+      // 3. 保存任务到服务器，标记为正在拆解
+      if (todo) {
+        try {
+          const updatedTodo = {
+            ...todo,
+            ...editedTodo,
+            status: 'developing',
+            tags: [...(editedTodo.tags || todo.tags || []), '正在拆解']
+          } as TodoItem;
+          
+          await onSave(updatedTodo);
+          
+          // 4. 立即关闭对话框，让用户可以继续其他操作
+          onClose();
+        } catch (error) {
+          console.error('Failed to update task status:', error);
+          AntMessage.warning(getMessage('failedToSaveTodo'));
+          // 即使保存失败也继续拆解任务
+        }
+      } else {
+        // 如果是新任务，也关闭对话框
+        onClose();
+      }
+      
+      // 5. 设置事件监听器
       const handleTaskSplitResult = (msgEvent: any) => {
         if (msgEvent.contentType === 'summary') {
           console.log('Task split result:', msgEvent);
           let tasksCount = 0;
+          let splitResult = null;
+          
           try {
-            tasksCount = JSON.parse(msgEvent.content).tasks_count || 0;
+            // 尝试解析消息内容，可能是JSON字符串或者已经是对象
+            if (typeof msgEvent.content === 'string') {
+              splitResult = JSON.parse(msgEvent.content);
+            } else {
+              splitResult = msgEvent.content;
+            }
+            
+            // 保存完整的拆分结果到localStorage以便TodoPanel组件使用
+            if (splitResult) {
+              localStorage.setItem('lastSplitResult', JSON.stringify(splitResult));
+              console.log('Split result saved to localStorage:', splitResult);
+              
+              // 从结果中获取任务数量
+              tasksCount = splitResult.tasks_count || splitResult.tasks?.length || 0;
+            }
           } catch (e) {
-            console.error('Error parsing task count:', e);
+            console.error('Error parsing task result:', e);
           }
           
           AntMessage.success(getMessage('taskSplitSuccess', { count: String(tasksCount) }));
-          setSplitLoading(false);
-          onClose();
-          
-          autoCommandService.removeListener('message', handleTaskSplitResult);
-          eventListenerRef.current = false;
+          // 不在这里设置加载状态，交给taskComplete事件处理
         }
       };
+
+      // 处理任务完成事件（无论成功或失败）
+      const handleTaskComplete = (hasError: boolean) => {
+        console.log('Task complete event received, has error:', hasError);
+        
+        // 结束加载状态
+        setSplitLoading(false);
+        
+        // 如果有错误且之前没有显示过成功消息
+        if (hasError) {
+          AntMessage.error(getMessage('failedToSplitTask'));
+        }
+        
+        // 清理所有事件监听
+        autoCommandService.removeListener('message', handleTaskSplitResult);
+        autoCommandService.removeListener('taskComplete', handleTaskComplete);
+        eventListenerRef.current = false;
+      };
       
+      // 注册事件监听
       autoCommandService.on('message', handleTaskSplitResult);
+      autoCommandService.on('taskComplete', handleTaskComplete);
       eventListenerRef.current = true;
       
+      // 6. 执行AI拆分命令
       await autoCommandService.executeCommand(command);
       
     } catch (error) {
       console.error(getMessage('failedToSplitTask'), error);
       AntMessage.error(getMessage('failedToSplitTask'));
       setSplitLoading(false);
+      onClose(); // 确保对话框关闭
       
+      // 清理事件监听
       if (eventListenerRef.current) {
         autoCommandService.removeListener('message', function() {});
+        autoCommandService.removeListener('taskComplete', function() {});
         eventListenerRef.current = false;
       }
     }
