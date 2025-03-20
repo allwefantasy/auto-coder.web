@@ -141,9 +141,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       const response = await fetch('/api/chat-lists');
       const data = await response.json();
 
-      // Automatically load the latest chat if there are any chats
+      // 如果有任何聊天记录，自动加载最新的聊天
       if (data.chat_lists && data.chat_lists.length > 0) {
-        // The first chat in the list is the latest one since they're sorted by modification time
+        // 列表中的第一个聊天是最新的，因为它们按修改时间排序
         setChatListName(data.chat_lists[0]);
         setChatLists(data.chat_lists);
         await loadChatList(data.chat_lists[0]);
@@ -198,7 +198,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       // Convert legacy Message format to AutoModeMessage if needed
       const convertedMessages = data.messages.map((message: any) => {
         if ('role' in message) {
-          // Legacy format, convert to AutoModeMessage
+          // 旧格式，转换为 AutoModeMessage
           return {
             id: message.id || Date.now().toString(),
             type: message.role === 'user' ? 'USER_RESPONSE' : 'RESULT',
@@ -211,7 +211,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             isThinking: false
           } as AutoModeMessage;
         }
-        // Already in AutoModeMessage format or close enough
+        // 已经是 AutoModeMessage 格式或接近该格式
         return {
           ...message,
           isStreaming: false,
@@ -278,7 +278,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTime;
 
-    if (timeSinceLastFetch >= 30000) { // 30 seconds
+    if (timeSinceLastFetch >= 30000) { // 30秒
       try {
         const response = await fetch('/api/file-groups');
         if (!response.ok) throw new Error('Failed to fetch file groups');
@@ -291,7 +291,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     }
   }, [lastFetchTime]);
 
-  // Initial fetch
+  // 初始加载
   useEffect(() => {
     fetchFileGroups();
   }, []);
@@ -300,6 +300,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     editorRef.current = editor;
   };
 
+  // 方便手动添加用户消息
   const addUserMessage = (content: string) => {
     const timestamp = Date.now();
     const uuid = uuidv4();
@@ -325,6 +326,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     return newMessage.id;
   };
 
+  // 方便手动添加机器人消息
   const addBotMessage = (content: string) => {
     const timestamp = Date.now();
     const uuid = uuidv4();
@@ -365,15 +367,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const handleRevert = async () => {    
   };
 
-  // Messages are already in AutoMode format, so we don't need conversion
+  // 消息已经是 AutoMode 格式，所以不需要转换
   const getAutoModeMessages = (): MessageProps[] => {
     return messages;
   };
 
-  // Handle message events from chat and coding services
+  // 处理来自聊天和编码服务的消息事件
   const setupMessageListener = (service: typeof chatService | typeof codingService) => {
     service.on('message', (autoModeMessage: AutoModeMessage) => {
-      // Directly add or update AutoMode message to our messages state
+      // 直接添加或更新 AutoMode 消息到我们的消息状态
       console.log('ChatPanel: Received message from service:', 
         service === chatService ? 'chatService' : 'codingService', 
         autoModeMessage.type, 
@@ -381,12 +383,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       setMessages(prev => {
         const existingMessageIndex = prev.findIndex(msg => msg.id === autoModeMessage.id);
         if (existingMessageIndex !== -1) {
-          // Update existing message
+          // 更新现有消息
           const updatedMessages = [...prev];
           updatedMessages[existingMessageIndex] = autoModeMessage;
           return updatedMessages;
         } else {
-          // Add new message
+          // 添加新消息
           return [...prev, autoModeMessage];
         }
       });
@@ -403,12 +405,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     });
   };
 
-  // Set up event listeners when component mounts
+  // 在组件挂载时设置事件监听器
   useEffect(() => {
     setupMessageListener(chatService);
     setupMessageListener(codingService);
 
-    // Clean up event listeners when component unmounts
+    // 在组件卸载时清理事件监听器
     return () => {
       chatService.removeAllListeners();
       codingService.removeAllListeners();
@@ -428,15 +430,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     updateMessageStatus(messageId, 'sent');
 
     try {
-      // Use the appropriate service based on the current mode
+      // 根据当前模式使用适当的服务
       if (isWriteMode) {
-        // Coding mode
+        // 编码模式
         console.log('ChatPanel: Sending message to codingService');
         const result = await codingService.executeCommand(trimmedText);
         console.log('ChatPanel: Received result from codingService:', result);
         setRequestId(result.event_file_id);
       } else {
-        // Chat mode
+        // 聊天模式
         console.log('ChatPanel: Sending message to chatService');
         const result = await chatService.executeCommand(trimmedText);
         console.log('ChatPanel: Received result from chatService:', result);
@@ -522,7 +524,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       </div>
     </div>
 
-    {/* New Chat Modal */}
+    {/* 新建对话模态框 */}
     <Modal
       title="创建新对话"
       open={isNewChatModalVisible}
