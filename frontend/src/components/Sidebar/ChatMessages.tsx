@@ -1,7 +1,7 @@
 import React from 'react';
-import { Markdown } from './Markdown';
 import { getMessage } from './lang';
 import { Message } from './types';
+import MessageRenderer from './MessageRenderer';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -35,26 +35,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                 : 'bg-gray-800 text-gray-300'
                 }`}
             >
-              <Markdown>{message.content}</Markdown>
-              {message.status === 'sending' && (
-                <div className="flex items-center text-2xs text-gray-400 mt-1">
-                  <div className="mr-1">sending</div>
-                  <div className="animate-bounce">•</div>
-                  <div className="animate-bounce delay-100">•</div>
-                  <div className="animate-bounce delay-200">•</div>
-                </div>
-              )}
-              {message.status === 'sent' && (
-                <div className="text-2xs text-green-400 mt-1">
-                  ✓ sent
-                </div>
-              )}
-              {message.status === 'error' && (
-                <div className="flex items-center text-2xs text-red-400 mt-1">
-                  <span className="mr-1">⚠</span>
-                  failed to send
-                </div>
-              )}
+              <MessageRenderer message={message} />
             </div>
           </div>
         ))}

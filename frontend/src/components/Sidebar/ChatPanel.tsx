@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import ChatMessages from './ChatMessages';
-import { message as AntdMessage } from 'antd';
+import { message as AntdMessage, Modal, Input } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
 import InputArea from './InputArea';
 import { getMessage } from './lang';
 import { pollEvents, pollStreamResult } from './polling';
@@ -8,22 +8,55 @@ import {
   FileGroup,
   ConfigState,
   CodingEvent,
-  Message,
   ChatPanelProps,
 } from './types';
+import { chatService } from '../../services/chatService';
+import { codingService } from '../../services/codingService';
+import { Message as AutoModeMessage } from '../../components/AutoMode/types';
+import MessageList, { MessageProps } from '../../components/AutoMode/MessageList';
 
 const CONFIRMATION_WORDS = ['confirm', '确认'] as const;
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, setActivePanel, setClipboardContent, clipboardContent }) => {
-  const handleNewChat = () => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const newChatName = `chat_${timestamp}`;
-    setChatListName(newChatName);
+  const showNewChatModal = () => {
+    // 清空当前对话内容
     setMessages([]);
-    setChatLists(prev => [newChatName, ...prev]);
+    
+    // 设置默认的新对话名称
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    setNewChatName(`chat_${timestamp}`);
+    
+    // 显示新对话模态框
+    setIsNewChatModalVisible(true);
   };
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const handleNewChatCancel = () => {
+    setIsNewChatModalVisible(false);
+    setNewChatName('');
+  };
+
+  const handleNewChatCreate = async () => {
+    if (!newChatName.trim()) {
+      AntdMessage.error('Chat name cannot be empty');
+      return;
+    }
+
+    try {
+      setChatListName(newChatName);
+      setMessages([]);
+      setChatLists(prev => [newChatName, ...prev]);
+      
+      // Save the new empty chat list
+      await saveChatList(newChatName, []);
+      AntdMessage.success('New chat created successfully');
+      setIsNewChatModalVisible(false);
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+      AntdMessage.error('Failed to create new chat');
+    }
+  };
+
+  const [messages, setMessages] = useState<AutoModeMessage[]>([]);
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [showConfig, setShowConfig] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
@@ -45,6 +78,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [shouldSendMessage, setShouldSendMessage] = useState(false);
   const [pendingRevert, setPendingRevert] = useState<boolean>(false);
+  const [isNewChatModalVisible, setIsNewChatModalVisible] = useState<boolean>(false);
+  const [newChatName, setNewChatName] = useState<string>('');
+  
+  // 添加消息ID计数器，用于生成唯一的消息ID
+  const [messageIdCounter, setMessageIdCounter] = useState<number>(0);
 
   // 添加新的 useEffect 用于滚动到最新消息
   useEffect(() => {
@@ -121,7 +159,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     }
   };
 
-  const saveChatList = async (name: string, newMessages: Message[] = []) => {
+  const saveChatList = async (name: string, newMessages: AutoModeMessage[] = []) => {
     console.log('save chat list:', name);
     console.log('messages:', newMessages);
     if (!name.trim()) {
@@ -157,12 +195,32 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     try {
       const response = await fetch(`/api/chat-lists/${name}`);
       const data = await response.json();
-      data.messages.forEach((message: Message) => {
-        if (message.role === 'user') {
-          message.status = 'sent';
+      // Convert legacy Message format to AutoModeMessage if needed
+      const convertedMessages = data.messages.map((message: any) => {
+        if ('role' in message) {
+          // Legacy format, convert to AutoModeMessage
+          return {
+            id: message.id || Date.now().toString(),
+            type: message.role === 'user' ? 'USER_RESPONSE' : 'RESULT',
+            content: message.content,
+            contentType: message.contentType || 'markdown',
+            language: message.language,
+            metadata: message.metadata,
+            isUser: message.role === 'user',
+            isStreaming: false,
+            isThinking: false
+          } as AutoModeMessage;
         }
+        // Already in AutoModeMessage format or close enough
+        return {
+          ...message,
+          isStreaming: false,
+          isThinking: false,
+          type: message.type || (message.isUser ? 'USER_RESPONSE' : 'RESULT'),
+          contentType: message.contentType || 'markdown'
+        } as AutoModeMessage;
       });
-      setMessages(data.messages);
+      setMessages(convertedMessages);
     } catch (error) {
       console.error('Error loading chat list:', error);
       AntdMessage.error('Failed to load chat list');
@@ -243,12 +301,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   };
 
   const addUserMessage = (content: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
+    const timestamp = Date.now();
+    const uuid = uuidv4();
+    const nextId = messageIdCounter + 1;
+    setMessageIdCounter(nextId);
+    
+    const newMessage: AutoModeMessage = {
+      id: `user-${uuid}-${timestamp}-${nextId}`,
+      type: 'USER_RESPONSE',
       content,
-      status: 'sending',
-      timestamp: Date.now()
+      contentType: 'markdown',
+      isUser: true,
+      isStreaming: true,
+      isThinking: false
     };
     setMessages(prev => {
       const newMessages = [...prev, newMessage];
@@ -261,11 +326,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   };
 
   const addBotMessage = (content: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: 'bot',
+    const timestamp = Date.now();
+    const uuid = uuidv4();
+    const nextId = messageIdCounter + 1;
+    setMessageIdCounter(nextId);
+    
+    const newMessage: AutoModeMessage = {
+      id: `bot-${uuid}-${timestamp}-${nextId}`,
+      type: 'RESULT',
       content,
-      timestamp: Date.now()
+      contentType: 'markdown',
+      isUser: false,
+      isStreaming: false,
+      isThinking: false
     };
     setMessages(prev => {
       const newMessages = [...prev, newMessage];
@@ -283,46 +356,64 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     setMessages(prev =>
       prev.map(msg =>
         msg.id === messageId
-          ? { ...msg, status }
+          ? { ...msg, isStreaming: status === 'sending', isThinking: status === 'sending' }
           : msg
       )
     );
   };
 
-
-  const handleRevert = async () => {
-    try {
-      // First get the YAML content
-      const yamlResponse = await fetch('/api/last-yaml');
-      if (!yamlResponse.ok) {
-        throw new Error('Failed to get last action information');
-      }
-
-      const yamlData = await yamlResponse.json();
-      if (!yamlData.status) {
-        AntdMessage.error(yamlData.message);
-        addBotMessage(yamlData.message);
-        return;
-      }
-
-      // Get the query from YAML content
-      const query = yamlData.content.query;
-      if (!query) {
-        AntdMessage.error('No query found in the last action');
-        addBotMessage(getMessage('noQueryFound'));
-        return;
-      }
-
-      // Ask for confirmation
-      addBotMessage(getMessage('revertConfirmation', { query }));
-      setPendingRevert(true);
-
-    } catch (error) {
-      AntdMessage.error('Failed to get last action information');
-      addBotMessage(getMessage('getLastActionError'));
-      console.error('Error getting last action:', error);
-    }
+  const handleRevert = async () => {    
   };
+
+  // Messages are already in AutoMode format, so we don't need conversion
+  const getAutoModeMessages = (): MessageProps[] => {
+    return messages;
+  };
+
+  // Handle message events from chat and coding services
+  const setupMessageListener = (service: typeof chatService | typeof codingService) => {
+    service.on('message', (autoModeMessage: AutoModeMessage) => {
+      // Directly add or update AutoMode message to our messages state
+      console.log('ChatPanel: Received message from service:', 
+        service === chatService ? 'chatService' : 'codingService', 
+        autoModeMessage.type, 
+        autoModeMessage.id);
+      setMessages(prev => {
+        const existingMessageIndex = prev.findIndex(msg => msg.id === autoModeMessage.id);
+        if (existingMessageIndex !== -1) {
+          // Update existing message
+          const updatedMessages = [...prev];
+          updatedMessages[existingMessageIndex] = autoModeMessage;
+          return updatedMessages;
+        } else {
+          // Add new message
+          return [...prev, autoModeMessage];
+        }
+      });
+    });
+
+    service.on('taskComplete', (hasError: boolean) => {
+      if (hasError) {
+        AntdMessage.error('Task completed with errors');
+      } else {
+        AntdMessage.success('Task completed successfully');
+      }
+      setSendLoading(false);
+      setRequestId("");
+    });
+  };
+
+  // Set up event listeners when component mounts
+  useEffect(() => {
+    setupMessageListener(chatService);
+    setupMessageListener(codingService);
+
+    // Clean up event listeners when component unmounts
+    return () => {
+      chatService.removeAllListeners();
+      codingService.removeAllListeners();
+    };
+  }, []);
 
   const handleSendMessage = async () => {
     const trimmedText = editorRef.current?.getValue()?.trim();
@@ -332,184 +423,79 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     }
 
     const messageId = addUserMessage(trimmedText);
-    editorRef.current?.setValue("");
-
-    // Handle revert confirmation
-    if (pendingRevert) {
-      const isConfirmed = CONFIRMATION_WORDS.includes(trimmedText.toLowerCase());
-      if (isConfirmed) {
-        try {
-          const response = await fetch('/api/revert', {
-            method: 'POST'
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to revert changes');
-          }
-
-          const data = await response.json();
-          if (data.status) {
-            AntdMessage.success('Changes reverted successfully');
-            addBotMessage(getMessage('revertSuccess'));
-          } else {
-            AntdMessage.error(data.message);
-            addBotMessage(getMessage('revertFailure', { message: data.message }));
-          }
-
-          // Refresh preview panel if active
-          setPreviewFiles([]);
-          setActivePanel('code');
-        } catch (error) {
-          AntdMessage.error('Failed to revert changes');
-          addBotMessage(getMessage('revertError'));
-          console.error('Error reverting changes:', error);
-        }
-      } else {
-        addBotMessage(getMessage('revertCancelled'));
-      }
-      setPendingRevert(false);
-      updateMessageStatus(messageId, 'sent');
-      return;
-    }
-
-    // Original handleSendMessage logic
-    if (pendingResponseEvent) {
-      const isConfirmed = CONFIRMATION_WORDS.includes(trimmedText.toLowerCase());
-      if (isConfirmed) {
-        const { requestId, eventData } = pendingResponseEvent;
-        const v = JSON.stringify({
-          "value": clipboardContent
-        });
-        await fetch('/api/event/response', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            request_id: requestId,
-            event: eventData,
-            response: v
-          })
-        });
-        console.log('Response event:', JSON.stringify({
-          request_id: requestId,
-          event: eventData,
-          response: v
-        }));
-      } else {
-        const { requestId, eventData } = pendingResponseEvent;
-        const v = JSON.stringify({
-          "value": ""
-        });
-        await fetch('/api/event/response', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            request_id: requestId,
-            event: eventData,
-            response: v
-          })
-        });
-        console.log('Response event:', JSON.stringify({
-          request_id: requestId,
-          event: eventData,
-          response: v
-        }));
-        addBotMessage(getMessage('cancelResponseEvent'));
-      }
-      updateMessageStatus(messageId, 'sent');
-      setPendingResponseEvent(null);
-      updateMessageStatus(messageId, 'sent');
-      return;
-    }
-
+    editorRef.current?.setValue("");    
     setSendLoading(true);
+    updateMessageStatus(messageId, 'sent');
 
     try {
-      const endpoint = isWriteMode ? '/api/coding' : '/api/chat';
-      console.log('Sending message to:', endpoint);
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query: trimmedText })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send message');
+      // Use the appropriate service based on the current mode
+      if (isWriteMode) {
+        // Coding mode
+        console.log('ChatPanel: Sending message to codingService');
+        const result = await codingService.executeCommand(trimmedText);
+        console.log('ChatPanel: Received result from codingService:', result);
+        setRequestId(result.event_file_id);
+      } else {
+        // Chat mode
+        console.log('ChatPanel: Sending message to chatService');
+        const result = await chatService.executeCommand(trimmedText);
+        console.log('ChatPanel: Received result from chatService:', result);
+        setRequestId(result.event_file_id);
       }
-
-      const data = await response.json();
-      if (data.request_id) {
-        // Update original message status
-        setRequestId(data.request_id);
-        updateMessageStatus(messageId, 'sent');
-        if (isWriteMode) {
-          // Start polling for events
-          const { final_status, content } = await pollEvents(data.request_id, {
-            addBotMessage,
-            setPreviewFiles,
-            setActivePanel,
-            setClipboardContent,
-            setPendingResponseEvent
-          });
-          if (final_status === 'completed') {
-            addBotMessage(getMessage('codeModificationComplete'));
-            setRequestId("");
-          } else {
-            addBotMessage(getMessage('codeModificationFailed', { content }));
-            setRequestId("");
-          }
-        } else {
-          const messageBotId = addBotMessage("");
-          const { text } = await pollStreamResult(
-            data.request_id,
-            (newText) => {
-              if (newText === "") {
-                newText = "typing...";
-              }
-              setMessages(prev => prev.map(msg =>
-                msg.id === messageBotId ? { ...msg, content: newText } : msg
-              ));
-            },
-            config,
-            isWriteMode,
-            {
-              setActivePanel,
-              setClipboardContent
-            }
-          );
-          if (text) {
-            setMessages(prev => prev.map(msg =>
-              msg.id === messageBotId ? { ...msg, content: text } : msg
-            ));
-          }
-        }
-
-      }
-
     } catch (error) {
       console.error('Error sending message:', error);
       AntdMessage.error('Failed to send message');
       updateMessageStatus(messageId, 'error');
-
-      // Add error message from bot
       addBotMessage(getMessage('processingError'));
-    } finally {
       setSendLoading(false);
     }
   };
 
   return (
+    <>
     <div id="chat-panel-container" className="flex flex-col h-screen">
+      <div className="flex justify-between items-center p-2 bg-gray-100 border-b border-gray-300">
+        <div className="flex items-center">
+          <select 
+            className="px-2 py-1 border rounded mr-2 text-sm" 
+            value={chatListName} 
+            onChange={(e) => {
+              setChatListName(e.target.value);
+              loadChatList(e.target.value);
+            }}
+          >
+            {chatLists.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
+        <button 
+          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+          onClick={showNewChatModal}
+        >
+          New Chat
+        </button>
+      </div>
       <div id="chat-messages-container" className="h-[50%] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-        <ChatMessages
-          messages={messages}
-          messagesEndRef={messagesEndRef}
-          handleNewChat={handleNewChat}
+        <MessageList
+          messages={getAutoModeMessages()}
+          onUserResponse={async (response, eventId) => {
+            if (eventId && pendingResponseEvent) {
+              const { requestId, eventData } = pendingResponseEvent;
+              await fetch('/api/event/response', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  request_id: requestId,
+                  event: eventData,
+                  response: JSON.stringify({ "value": response })
+                })
+              });
+              setPendingResponseEvent(null);
+            }
+          }}
         />
       </div>
         <div id="input-area-container" className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
@@ -536,6 +522,26 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       </div>
     </div>
 
+    {/* New Chat Modal */}
+    <Modal
+      title="创建新对话"
+      open={isNewChatModalVisible}
+      onOk={handleNewChatCreate}
+      onCancel={handleNewChatCancel}
+      okText="创建"
+      cancelText="取消"
+    >
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">对话名称</label>
+        <Input 
+          value={newChatName} 
+          onChange={(e) => setNewChatName(e.target.value)}
+          placeholder="请输入新对话的名称"
+          onPressEnter={handleNewChatCreate}
+        />
+      </div>
+    </Modal>
+    </>
   );
 };
 

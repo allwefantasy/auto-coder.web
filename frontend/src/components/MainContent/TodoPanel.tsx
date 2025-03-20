@@ -199,57 +199,59 @@ const TodoPanel: React.FC = () => {
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className={`todo-column flex-1 bg-gray-800 rounded-lg p-4 border ${
+                  className={`todo-column flex-1 bg-gray-800 rounded-lg p-4 border flex flex-col ${
                     snapshot.isDraggingOver 
                       ? 'border-blue-500' 
                       : 'border-gray-700'
                   }`}
                 >
                   <h3 className="text-gray-300 mb-3 font-medium">{column.title}</h3>
-                  {todos
-                    .filter(todo => todo.status === column.id)
-                    .map((todo, index) => (
-                      <Draggable key={todo.id} draggableId={todo.id} index={index}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={`todo-card bg-gray-700 p-3 mb-3 rounded border ${
-                              snapshot.isDragging
-                                ? 'border-blue-500 shadow-lg'
-                                : 'border-gray-600'
-                            } transition-all duration-150`}
-                          >
-                            <div className="todo-card-header flex items-center justify-between mb-2">
-                              <Tag 
-                                color={priorityColors[todo.priority]} 
-                                className="border-none text-xs px-2 rounded-full"
-                              >
-                                {todo.priority}
-                              </Tag>
-                              <div className="todo-tags flex gap-1">
-                                {todo.tags.map(tag => (
-                                  <Tag 
-                                    key={tag} 
-                                    className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
-                                  >
-                                    {tag}
-                                  </Tag>
-                                ))}
+                  <div className="flex-1 overflow-y-auto max-h-[calc(100vh-220px)] pr-1 custom-scrollbar">
+                    {todos
+                      .filter(todo => todo.status === column.id)
+                      .map((todo, index) => (
+                        <Draggable key={todo.id} draggableId={todo.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`todo-card bg-gray-700 p-3 mb-3 rounded border ${
+                                snapshot.isDragging
+                                  ? 'border-blue-500 shadow-lg'
+                                  : 'border-gray-600'
+                              } transition-all duration-150`}
+                            >
+                              <div className="todo-card-header flex items-center justify-between mb-2">
+                                <Tag 
+                                  color={priorityColors[todo.priority]} 
+                                  className="border-none text-xs px-2 rounded-full"
+                                >
+                                  {todo.priority}
+                                </Tag>
+                                <div className="todo-tags flex gap-1">
+                                  {todo.tags.map(tag => (
+                                    <Tag 
+                                      key={tag} 
+                                      className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
+                                    >
+                                      {tag}
+                                    </Tag>
+                                  ))}
+                                </div>
                               </div>
+                              <div className="todo-title text-gray-200 text-sm mb-1">{todo.title}</div>
+                              {todo.dueDate && (
+                                <div className="todo-due-date text-gray-400 text-xs">
+                                  截止: {new Date(todo.dueDate).toLocaleDateString()}
+                                </div>
+                              )}
                             </div>
-                            <div className="todo-title text-gray-200 text-sm mb-1">{todo.title}</div>
-                            {todo.dueDate && (
-                              <div className="todo-due-date text-gray-400 text-xs">
-                                截止: {new Date(todo.dueDate).toLocaleDateString()}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                  {provided.placeholder}
+                          )}
+                        </Draggable>
+                      ))}
+                    {provided.placeholder}
+                  </div>
                 </div>
               )}
             </Droppable>

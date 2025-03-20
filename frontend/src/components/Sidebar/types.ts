@@ -67,6 +67,9 @@ export interface Message {
   id: string;
   role: 'user' | 'bot';
   content: string;
+  contentType?: string;
+  language?: string;
+  metadata?: Record<string, any>;
   status?: 'sending' | 'sent' | 'error';
   timestamp: number;
 }
