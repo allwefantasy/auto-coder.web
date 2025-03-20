@@ -6,7 +6,7 @@ import asyncio
 import aiofiles
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from pathlib import Path
 
@@ -42,6 +42,12 @@ class ReorderTodoRequest(BaseModel):
     destination_status: str
     destination_index: int
     todo_id: str
+
+class ExecuteTaskResponse(BaseModel):
+    status: str
+    task_id: str
+    message: str
+    split_result: Optional[Dict[str, Any]] = None
 
 async def load_todos() -> List[TodoItem]:
     """异步加载所有待办事项"""
@@ -138,6 +144,85 @@ async def reorder_todos(request: ReorderTodoRequest):
     
     await save_todos(todos)
     return {"status": "success"}
+
+@router.post("/api/todos/{todo_id}/execute", response_model=ExecuteTaskResponse)
+async def execute_task(todo_id: str):
+    """执行任务（从待评估移到进行中后用户确认执行）"""
+    # 获取所有待办事项
+    todos = await load_todos()
+    
+    # 查找指定的待办事项
+    todo = next((t for t in todos if t.id == todo_id), None)
+    if not todo:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    
+    # 确保任务状态为"进行中"
+    if todo.status != "developing":
+        todo.status = "developing"
+        todo.updated_at = datetime.now().isoformat()
+        # 更新任务状态
+        await save_todos([t if t.id != todo_id else todo for t in todos])
+    
+    # 添加"正在拆解"标签，如果还没有的话
+    if "正在拆解" not in todo.tags:
+        todo.tags.append("正在拆解")
+        todo.updated_at = datetime.now().isoformat()
+        await save_todos([t if t.id != todo_id else todo for t in todos])
+    
+    # 获取任务的原始需求（这里就是任务标题）
+    original_task = {
+        "title": todo.title,
+        "description": f"优先级: {todo.priority}, 标签: {', '.join(todo.tags)}"
+    }
+    
+    # 打印日志，显示我们正在处理这个任务
+    logger.info(f"执行任务: {todo_id}, 标题: {todo.title}")
+    logger.info(f"原始需求: {original_task}")
+    
+    # 模拟任务拆分 - 这里只是创建一个示例结果
+    # 实际实现中，这里可能会调用AI服务或其他逻辑来拆分任务
+    mock_split_result = {
+        "original_task": original_task,
+        "analysis": f"这是对任务 '{todo.title}' 的分析...",
+        "tasks": [
+            {
+                "title": f"{todo.title} - 子任务 1",
+                "description": "这是子任务1的描述",
+                "steps": ["步骤1", "步骤2", "步骤3"],
+                "priority": todo.priority,
+                "estimate": "2小时",
+                "references": [],
+                "acceptance_criteria": ["验收标准1", "验收标准2"]
+            },
+            {
+                "title": f"{todo.title} - 子任务 2",
+                "description": "这是子任务2的描述",
+                "steps": ["步骤1", "步骤2"],
+                "priority": todo.priority,
+                "estimate": "3小时",
+                "references": [],
+                "acceptance_criteria": ["验收标准1"]
+            }
+        ],
+        "tasks_count": 2,
+        "dependencies": [
+            {
+                "task": f"{todo.title} - 子任务 2",
+                "depends_on": [f"{todo.title} - 子任务 1"]
+            }
+        ]
+    }
+    
+    # 打印拆分结果
+    logger.info(f"任务拆分结果: {json.dumps(mock_split_result, ensure_ascii=False, indent=2)}")
+    
+    # 返回响应
+    return ExecuteTaskResponse(
+        status="success",
+        task_id=todo_id,
+        message="任务已开始执行",
+        split_result=mock_split_result
+    )
 
 async def get_insert_index(todos: List[TodoItem], status: str, destination_index: int) -> int:
     """计算插入位置的绝对索引"""

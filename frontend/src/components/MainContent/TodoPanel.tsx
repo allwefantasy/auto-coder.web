@@ -204,11 +204,7 @@ const TodoPanel: React.FC = () => {
     setIsExecuting(true);
     
     try {
-      // 这里可以实现真正的后台任务执行逻辑，比如调用AI处理任务
-      // 这里仅做模拟，延迟3秒后完成
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // 更新任务状态
+      // 调用后端API执行任务
       const response = await fetch(`/api/todos/${todo.id}/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -218,13 +214,46 @@ const TodoPanel: React.FC = () => {
         throw new Error('Failed to execute task');
       }
       
-      // 可选：刷新任务列表
-      fetchTodos();
+      // 获取API响应
+      const result = await response.json();
+      
+      // 如果有拆分结果，保存到localStorage
+      if (result.split_result) {
+        localStorage.setItem('lastSplitResult', JSON.stringify(result.split_result));
+        
+        // 更新UI状态，显示任务已被处理
+        setTodos(prev => prev.map(t => {
+          if (t.id === todo.id) {
+            // 确保任务有"正在拆解"标签
+            const updatedTags = t.tags.includes('正在拆解') ? 
+              t.tags : 
+              [...t.tags, '正在拆解'];
+            
+            return {
+              ...t, 
+              status: 'developing',
+              tags: updatedTags,
+              updated_at: new Date().toISOString()
+            };
+          }
+          return t;
+        }));
+        
+        // 显示拆分结果
+        setSplitResultData(result.split_result);
+        setShowSplitResult(todo.id);
+      }
+      
+      // 刷新任务列表
+      await fetchTodos();
       
     } catch (error) {
       console.error('Failed to execute task:', error);
+      setError(getMessage('failedToExecuteTask'));
     } finally {
       setIsExecuting(false);
+      // 无论结果如何，关闭执行对话框
+      setExecuteModalVisible(false);
     }
   };
 

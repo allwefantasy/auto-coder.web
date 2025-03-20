@@ -583,8 +583,12 @@ export const messages: { [key: string]: Message } = {
     zh: "获取待办事项失败"
   },
   failedToLoadTodos: {
-    en: "Failed to load todos. Please try again later.",
-    zh: "加载待办事项失败，请稍后重试。"
+    en: "Failed to load todos",
+    zh: "加载待办事项失败"
+  },
+  failedToExecuteTask: {
+    en: "Failed to execute task",
+    zh: "执行任务失败"
   },
   failedToCreateTodo: {
     en: "Failed to create todo",

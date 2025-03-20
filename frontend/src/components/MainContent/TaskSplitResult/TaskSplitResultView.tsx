@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Collapse, Card, Tag, List, Typography, Divider, Empty, Steps, Badge, Alert } from 'antd';
+import { Collapse, Card, Tag, List, Typography, Divider, Empty, Steps, Badge, Alert, Tooltip } from 'antd';
 import { getMessage } from '../../Sidebar/lang';
-import { CaretRightOutlined, FileTextOutlined, BranchesOutlined, NodeIndexOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { 
+  CaretRightOutlined, 
+  FileTextOutlined, 
+  BranchesOutlined, 
+  NodeIndexOutlined, 
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  InfoCircleOutlined,
+  LinkOutlined
+} from '@ant-design/icons';
 
 const { Panel } = Collapse;
 const { Title, Text, Paragraph } = Typography;
@@ -37,26 +46,38 @@ interface TaskSplitResultViewProps {
   result?: TaskSplitResult | null;
 }
 
+// 优先级颜色映射
 const getPriorityColor = (priority: string) => {
   const priorities: Record<string, string> = {
-    'P0': 'red',
-    'P1': 'orange',
-    'P2': 'blue',
-    'P3': 'gray',
+    'P0': '#ef4444', // 红色
+    'P1': '#f97316', // 橙色
+    'P2': '#3b82f6', // 蓝色
+    'P3': '#6b7280', // 灰色
   };
-  return priorities[priority] || 'blue';
+  return priorities[priority] || '#3b82f6';
 };
 
-// 自定义卡片样式，确保在深色背景上的文字可见
-const darkModeCardStyle = {
-  background: '#1f2937', // bg-gray-750
-  borderColor: '#4b5563', // border-gray-600
-  color: '#e5e7eb', // text-gray-200
+// 自定义卡片样式
+const cardStyle = {
+  background: '#1e293b', // 深蓝灰色背景
+  borderColor: '#334155', // 边框颜色
+  color: '#f8fafc', // 文本颜色
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
 };
 
 // 自定义标签样式
-const darkModeTagStyle = {
-  color: '#f3f4f6', // text-gray-100
+const tagStyle = {
+  color: '#f1f5f9',
+  fontWeight: 500,
+};
+
+// 自定义面板头部样式
+const panelHeaderStyle = {
+  background: '#0f172a',
+  borderRadius: '6px',
+  padding: '8px 12px',
+  marginBottom: '8px',
+  borderLeft: '3px solid #0ea5e9', // 蓝色左边框
 };
 
 const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, result }) => {
@@ -95,10 +116,11 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
 
   if (loading) {
     return (
-      <div className="task-split-result-view bg-gray-800 rounded-lg p-4 mb-4">
-        <div className="text-center py-4">
-          <div className="loading-spinner"></div>
-          <p className="text-gray-400 mt-2">{getMessage('loading')}</p>
+      <div className="task-split-result-view bg-slate-900 rounded-xl p-6 mb-4 shadow-lg">
+        <div className="text-center py-8">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-sky-500 border-r-transparent">
+          </div>
+          <p className="text-sky-400 mt-4 font-medium">{getMessage('loading')}</p>
         </div>
       </div>
     );
@@ -106,167 +128,261 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
 
   if (error || !parsedResult) {
     return (
-      <div className="task-split-result-view bg-gray-800 rounded-lg p-4 mb-4">
+      <div className="task-split-result-view bg-slate-900 rounded-xl p-6 mb-4 shadow-lg">
         <Alert
           message={getMessage('errorTitle')}
           description={error || getMessage('noSplitResultData')}
           type="error"
           showIcon
-          className="text-white"
+          style={{ 
+            background: '#450a0a', 
+            borderColor: '#b91c1c',
+            borderRadius: '8px' 
+          }}
         />
       </div>
     );
   }
 
   return (
-    <div className="task-split-result-view bg-gray-800 rounded-lg p-4 mb-4 animate-fadeIn">
-      <Title level={4} className="text-white mb-4 font-medium">
-        {getMessage('taskSplitResultTitle')}
-      </Title>
+    <div className="task-split-result-view bg-slate-900 rounded-xl p-6 mb-4 animate-fadeIn shadow-lg">
+      <div className="flex items-center justify-between mb-6">
+        <Title level={4} style={{ color: '#f8fafc', margin: 0, fontWeight: 600 }}>
+          {getMessage('taskSplitResultTitle')}
+        </Title>
+        <Tooltip title={getMessage('taskSplitResultHelp') || 'Task breakdown and analysis'}>
+          <InfoCircleOutlined style={{ color: '#60a5fa', fontSize: '18px' }} />
+        </Tooltip>
+      </div>
       
       <Collapse 
         activeKey={activeKey}
         onChange={(keys) => setActiveKey(keys as string[])}
-        expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} className="text-amber-400" />}
-        className="bg-gray-700 border-gray-600 shadow-md"
+        expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} style={{ color: '#0ea5e9' }} />}
+        className="bg-transparent border-0 shadow-none"
+        ghost
       >
         {/* 原始任务 */}
         <Panel 
           header={
-            <span className="text-white">
-              <FileTextOutlined className="mr-2 text-amber-300" />
-              {getMessage('originalTask')}
-            </span>
+            <div style={panelHeaderStyle} className="flex items-center">
+              <FileTextOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
+              <span style={{ color: '#f8fafc', fontWeight: 500 }}>
+                {getMessage('originalTask')}
+              </span>
+            </div>
           } 
           key="1"
-          className="bg-gray-700 border-gray-600"
+          className="mb-4"
         >
-          <Card className="bg-gray-750 border-gray-600 shadow-inner" style={darkModeCardStyle}>
-            <Title level={5} className="text-white font-medium">{parsedResult.original_task.title}</Title>
-            <Paragraph className="text-gray-200">{parsedResult.original_task.description}</Paragraph>
+          <Card bordered={false} style={cardStyle} className="rounded-lg overflow-hidden">
+            <Title level={5} style={{ color: '#f8fafc', fontWeight: 600, marginBottom: '12px' }}>
+              {parsedResult.original_task.title}
+            </Title>
+            <Paragraph style={{ color: '#cbd5e1', lineHeight: 1.6, fontSize: '14px' }}>
+              {parsedResult.original_task.description}
+            </Paragraph>
           </Card>
         </Panel>
         
         {/* 分析结果 */}
         <Panel 
           header={
-            <span className="text-white">
-              <NodeIndexOutlined className="mr-2 text-amber-300" />
-              {getMessage('taskAnalysis')}
-            </span>
+            <div style={panelHeaderStyle} className="flex items-center">
+              <NodeIndexOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
+              <span style={{ color: '#f8fafc', fontWeight: 500 }}>
+                {getMessage('taskAnalysis')}
+              </span>
+            </div>
           } 
           key="2"
-          className="bg-gray-700 border-gray-600"
+          className="mb-4"
         >
-          <Card className="bg-gray-750 border-gray-600 shadow-inner" style={darkModeCardStyle}>
-            <Paragraph className="text-gray-200">{parsedResult.analysis}</Paragraph>
+          <Card bordered={false} style={cardStyle} className="rounded-lg overflow-hidden">
+            <Paragraph style={{ color: '#cbd5e1', lineHeight: 1.6, fontSize: '14px' }}>
+              {parsedResult.analysis}
+            </Paragraph>
           </Card>
         </Panel>
         
         {/* 子任务列表 */}
         <Panel 
           header={
-            <span className="text-white">
-              <BranchesOutlined className="mr-2 text-amber-300" />
-              {getMessage('subTasks')} ({parsedResult.tasks_count || parsedResult.tasks?.length || 0})
-            </span>
+            <div style={panelHeaderStyle} className="flex items-center">
+              <BranchesOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
+              <span style={{ color: '#f8fafc', fontWeight: 500 }}>
+                {getMessage('subTasks')} 
+                <Badge 
+                  count={parsedResult.tasks_count || parsedResult.tasks?.length || 0} 
+                  style={{ backgroundColor: '#0ea5e9', marginLeft: '8px' }} 
+                />
+              </span>
+            </div>
           } 
           key="3"
-          className="bg-gray-700 border-gray-600"
+          className="mb-4"
         >
           {parsedResult.tasks && parsedResult.tasks.length > 0 ? (
             <List
               dataSource={parsedResult.tasks}
+              itemLayout="vertical"
+              split={false}
+              className="space-y-4"
               renderItem={(task, index) => (
-                <List.Item>
+                <List.Item className="p-0">
                   <Card 
+                    bordered={false}
+                    className="rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
+                    style={cardStyle}
                     title={
-                      <div className="flex justify-between items-center">
-                        <Badge status="processing" color="orange" text={
-                          <Text className="text-white">
-                            #{index + 1}: {task.title}
-                          </Text>
-                        } />
+                      <div className="flex justify-between items-center py-1">
                         <div className="flex items-center">
-                          <Tag 
-                            color={getPriorityColor(task.priority)} 
-                            className="mr-2" 
-                            style={darkModeTagStyle}
-                          >
-                            {task.priority}
-                          </Tag>
-                          <Tag 
-                            icon={<ClockCircleOutlined />} 
-                            color="default" 
-                            className="bg-gray-700 text-white"
-                            style={darkModeTagStyle}
-                          >
-                            {task.estimate}
-                          </Tag>
+                          <Badge 
+                            count={index + 1} 
+                            style={{ 
+                              backgroundColor: '#0ea5e9', 
+                              marginRight: '12px',
+                              boxShadow: '0 0 0 2px rgba(14, 165, 233, 0.2)'
+                            }} 
+                          />
+                          <Text style={{ color: '#f8fafc', fontWeight: 600, fontSize: '15px' }}>
+                            {task.title}
+                          </Text>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Tooltip title={`Priority: ${task.priority}`}>
+                            <Tag 
+                              style={{ 
+                                backgroundColor: getPriorityColor(task.priority),
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '4px',
+                                fontWeight: 600,
+                                padding: '0 8px'
+                              }}
+                            >
+                              {task.priority}
+                            </Tag>
+                          </Tooltip>
+                          <Tooltip title={`Estimated time: ${task.estimate}`}>
+                            <Tag 
+                              icon={<ClockCircleOutlined />} 
+                              style={{ 
+                                backgroundColor: '#334155',
+                                color: '#e2e8f0',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '0 8px'
+                              }}
+                            >
+                              {task.estimate}
+                            </Tag>
+                          </Tooltip>
                         </div>
                       </div>
                     }
-                    className="w-full bg-gray-750 border-gray-600 shadow-sm hover:shadow-md transition-shadow duration-300"
-                    style={darkModeCardStyle}
-                    headStyle={{ background: '#374151', borderColor: '#4b5563', color: '#f9fafb' }}
+                    headStyle={{ 
+                      backgroundColor: '#0f172a', 
+                      borderBottom: '1px solid #334155',
+                      padding: '12px 16px'
+                    }}
+                    bodyStyle={{ padding: '16px' }}
                   >
-                    <Paragraph className="text-gray-200">{task.description}</Paragraph>
+                    <Paragraph style={{ color: '#cbd5e1', lineHeight: 1.6, fontSize: '14px', marginBottom: '16px' }}>
+                      {task.description}
+                    </Paragraph>
                     
                     {task.references && task.references.length > 0 && (
-                      <>
-                        <Divider orientation="left" className="text-amber-300 border-gray-600">
-                          <Text className="text-amber-300">{getMessage('references')}</Text>
-                        </Divider>
-                        <div className="mb-4">
+                      <div className="mb-5">
+                        <div className="flex items-center mb-2">
+                          <LinkOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
+                          <Text style={{ color: '#0ea5e9', fontWeight: 500 }}>
+                            {getMessage('references')}
+                          </Text>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
                           {task.references.map((ref, idx) => (
                             <Tag 
                               key={idx} 
-                              className="mb-1 bg-gray-700 border-gray-600 text-amber-100"
-                              style={{ ...darkModeTagStyle, backgroundColor: '#374151' }}
+                              style={{ 
+                                backgroundColor: '#1e293b',
+                                color: '#94a3b8',
+                                border: '1px solid #334155',
+                                borderRadius: '4px',
+                                padding: '2px 8px'
+                              }}
                             >
                               {ref}
                             </Tag>
                           ))}
                         </div>
-                      </>
+                      </div>
                     )}
                     
                     {task.steps && task.steps.length > 0 && (
-                      <>
-                        <Divider orientation="left" className="text-amber-300 border-gray-600">
-                          <Text className="text-amber-300">{getMessage('implementationSteps')}</Text>
-                        </Divider>
+                      <div className="mb-5">
+                        <div className="flex items-center mb-3">
+                          <NodeIndexOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
+                          <Text style={{ color: '#0ea5e9', fontWeight: 500 }}>
+                            {getMessage('implementationSteps')}
+                          </Text>
+                        </div>
                         <Steps 
                           direction="vertical" 
                           size="small" 
                           current={-1}
+                          progressDot
                           items={task.steps.map((step) => ({
-                            title: <Text className="text-white">{step}</Text>,
+                            title: <Text style={{ color: '#e2e8f0', fontWeight: 500 }}>{step}</Text>,
                             status: 'wait',
-                            style: { color: '#f9fafb' }
                           }))}
-                          className="mb-4 text-gray-200"
-                          style={{ color: '#f9fafb' }}
+                          className="mb-2"
+                          style={{ 
+                            color: '#cbd5e1',
+                            background: '#0f172a',
+                            padding: '12px',
+                            borderRadius: '6px'
+                          }}
                         />
-                      </>
+                      </div>
                     )}
                     
                     {task.acceptance_criteria && task.acceptance_criteria.length > 0 && (
-                      <>
-                        <Divider orientation="left" className="text-amber-300 border-gray-600">
-                          <Text className="text-amber-300">{getMessage('acceptanceCriteria')}</Text>
-                        </Divider>
+                      <div className="mb-2">
+                        <div className="flex items-center mb-3">
+                          <CheckCircleOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
+                          <Text style={{ color: '#0ea5e9', fontWeight: 500 }}>
+                            {getMessage('acceptanceCriteria')}
+                          </Text>
+                        </div>
                         <List
                           size="small"
                           dataSource={task.acceptance_criteria}
-                          renderItem={(criteria) => (
-                            <List.Item className="text-white border-gray-700">
+                          split={false}
+                          className="space-y-2"
+                          renderItem={(criteria, idx) => (
+                            <List.Item 
+                              style={{ 
+                                color: '#e2e8f0', 
+                                border: 'none',
+                                background: '#0f172a',
+                                padding: '8px 12px',
+                                borderRadius: '4px'
+                              }}
+                            >
+                              <Badge 
+                                count={idx + 1} 
+                                size="small" 
+                                style={{ 
+                                  backgroundColor: '#0ea5e9', 
+                                  marginRight: '8px' 
+                                }} 
+                              />
                               {criteria}
                             </List.Item>
                           )}
-                          className="mb-2"
                         />
-                      </>
+                      </div>
                     )}
                   </Card>
                 </List.Item>
@@ -284,32 +400,51 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
         {parsedResult.dependencies && parsedResult.dependencies.length > 0 && (
           <Panel 
             header={
-              <span className="text-white">
-                <NodeIndexOutlined className="mr-2 text-amber-300" />
-                {getMessage('taskDependencies')}
-              </span>
+              <div style={panelHeaderStyle} className="flex items-center">
+                <LinkOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
+                <span style={{ color: '#f8fafc', fontWeight: 500 }}>
+                  {getMessage('taskDependencies')}
+                </span>
+              </div>
             } 
             key="4"
-            className="bg-gray-700 border-gray-600"
+            className="mb-4"
           >
             <List
               dataSource={parsedResult.dependencies}
+              split={false}
+              className="space-y-4"
               renderItem={(dep) => (
-                <List.Item className="text-white">
+                <List.Item className="p-0">
                   <Card 
-                    className="w-full bg-gray-750 border-gray-600 shadow-sm" 
-                    style={darkModeCardStyle}
+                    bordered={false}
+                    className="rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl" 
+                    style={cardStyle}
+                    bodyStyle={{ padding: '16px' }}
                   >
                     <div>
-                      <Badge color="orange" text={<Text className="text-white">{dep.task}</Text>} />
-                      <Text className="text-gray-300 ml-2 mr-2">{getMessage('dependsOn')}</Text>
-                      <div className="mt-2">
+                      <div className="flex items-center mb-3">
+                        <Badge 
+                          status="processing" 
+                          color="#0ea5e9" 
+                          style={{ marginRight: '8px' }} 
+                        />
+                        <Text style={{ color: '#f8fafc', fontWeight: 600 }}>{dep.task}</Text>
+                      </div>
+                      <Text style={{ color: '#94a3b8', display: 'block', marginBottom: '8px' }}>
+                        {getMessage('dependsOn')}:
+                      </Text>
+                      <div className="flex flex-wrap gap-2 mt-2">
                         {dep.depends_on.map((depTask, idx) => (
                           <Tag 
                             key={idx} 
-                            color="orange" 
-                            className="mb-1 mr-1"
-                            style={{ color: '#ffffff' }}
+                            style={{ 
+                              backgroundColor: '#0f172a',
+                              color: '#0ea5e9',
+                              border: '1px solid #0ea5e9',
+                              borderRadius: '4px',
+                              padding: '2px 8px'
+                            }}
                           >
                             {depTask}
                           </Tag>
