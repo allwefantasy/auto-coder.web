@@ -210,7 +210,7 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
         if (msgEvent.contentType === 'summary') {
           console.log('Task split result:', msgEvent);
           let tasksCount = 0;
-          let splitResult = null;
+          let splitResult: any = null;
           
           try {
             // 尝试解析消息内容，可能是JSON字符串或者已经是对象
@@ -227,6 +227,47 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
               
               // 从结果中获取任务数量
               tasksCount = splitResult.tasks_count || splitResult.tasks?.length || 0;
+              
+              // 如果有todo对象，将任务拆分结果保存到后端
+              if (todo && todo.id) {
+                // 1. 准备要提交给后端的数据
+                const tasksForBackend = splitResult.tasks?.map((task: any) => ({
+                  title: task.title,
+                  description: task.description || null,
+                  references: Array.isArray(task.references) ? task.references : [],
+                  steps: Array.isArray(task.steps) ? task.steps : [],
+                  acceptance_criteria: Array.isArray(task.acceptance_criteria) ? task.acceptance_criteria : [],
+                  priority: task.priority || todo.priority,
+                  estimate: task.estimate || null
+                })) || [];
+                
+                const updatedTodoData = {
+                  ...todo,
+                  tasks: tasksForBackend,
+                  status: 'developing',
+                  tags: [...(todo.tags || [])].filter(tag => tag !== '正在拆解').concat(['已拆解'])
+                };
+                
+                // 2. 调用API保存到后端
+                fetch(`/api/todos/${todo.id}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(updatedTodoData)
+                })
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error(getMessage('failedToSaveTodo'));
+                  }
+                  return response.json();
+                })
+                .then(() => {
+                  console.log('Task split result saved to backend successfully');
+                })
+                .catch(error => {
+                  console.error('Failed to save split result to backend:', error);
+                  AntMessage.warning(getMessage('failedToSaveTodo'));
+                });
+              }
             }
           } catch (e) {
             console.error('Error parsing task result:', e);

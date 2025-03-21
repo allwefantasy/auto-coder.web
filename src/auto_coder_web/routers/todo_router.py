@@ -4,11 +4,15 @@ import uuid
 import logging
 import asyncio
 import aiofiles
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from pathlib import Path
+from threading import Thread
+from autocoder.events.event_manager_singleton import get_event_manager, gengerate_event_file_path, get_event_file_path
+from autocoder.events import event_content as EventContentCreator
+from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
 
 router = APIRouter()
 
@@ -20,6 +24,18 @@ TODO_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger(__name__)
 
+class Task(BaseModel):
+    title: str
+    description: Optional[str] = None
+    references: Optional[List[str]] = []
+    steps: Optional[List[str]] = []
+    acceptance_criteria: Optional[List[str]] = []
+    priority: Optional[str] = None
+    estimate: Optional[str] = None
+    status: Optional[str] = "pending"  # 任务状态: pending/executing/completed/failed
+    event_file_id: Optional[str] = None  # 关联的执行事件ID
+    next_task_ready: Optional[bool] = False  # 标记下一个任务是否已准备好执行
+
 class TodoItem(BaseModel):
     id: str
     title: str
@@ -30,6 +46,8 @@ class TodoItem(BaseModel):
     due_date: Optional[str] = None
     created_at: str
     updated_at: str
+    description: Optional[str] = None
+    tasks: Optional[List[Task]] = None
 
 class CreateTodoRequest(BaseModel):
     title: str
@@ -48,6 +66,8 @@ class ExecuteTaskResponse(BaseModel):
     task_id: str
     message: str
     split_result: Optional[Dict[str, Any]] = None
+    current_task_index: Optional[int] = None
+    event_file_id: Optional[str] = None
 
 async def load_todos() -> List[TodoItem]:
     """异步加载所有待办事项"""
@@ -146,8 +166,7 @@ async def reorder_todos(request: ReorderTodoRequest):
     return {"status": "success"}
 
 @router.post("/api/todos/{todo_id}/execute", response_model=ExecuteTaskResponse)
-async def execute_task(todo_id: str):
-    """执行任务（从待评估移到进行中后用户确认执行）"""
+async def execute_task(todo_id: str, project_path: str = Depends(get_project_path)):    
     # 获取所有待办事项
     todos = await load_todos()
     
@@ -156,72 +175,98 @@ async def execute_task(todo_id: str):
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
     
-    # 确保任务状态为"进行中"
-    if todo.status != "developing":
-        todo.status = "developing"
-        todo.updated_at = datetime.now().isoformat()
-        # 更新任务状态
-        await save_todos([t if t.id != todo_id else todo for t in todos])
+    # 验证是否有待执行的任务
+    if not todo.tasks or len(todo.tasks) == 0:
+        raise HTTPException(status_code=400, detail="No tasks to execute")
     
-    # 添加"正在拆解"标签，如果还没有的话
-    if "正在拆解" not in todo.tags:
-        todo.tags.append("正在拆解")
-        todo.updated_at = datetime.now().isoformat()
-        await save_todos([t if t.id != todo_id else todo for t in todos])
+    # 找到第一个待执行的任务
+    current_task_index = next((i for i, task in enumerate(todo.tasks) if task.status == "pending"), None)
+    if current_task_index is None:
+        # 如果没有待执行的任务，检查是否所有任务都已完成
+        all_completed = all(task.status == "completed" for task in todo.tasks)
+        if all_completed:
+            return ExecuteTaskResponse(
+                status="success",
+                task_id=todo_id,
+                message="All tasks have been completed",
+                current_task_index=None
+            )
+        else:
+            # 重置第一个失败的任务状态为pending
+            for i, task in enumerate(todo.tasks):
+                if task.status == "failed":
+                    todo.tasks[i].status = "pending"
+                    current_task_index = i
+                    break
+            
+            if current_task_index is None:
+                return ExecuteTaskResponse(
+                    status="error",
+                    task_id=todo_id,
+                    message="No pending tasks found and some tasks are in progress",
+                    current_task_index=None
+                )
     
-    # 获取任务的原始需求（这里就是任务标题）
-    original_task = {
-        "title": todo.title,
-        "description": f"优先级: {todo.priority}, 标签: {', '.join(todo.tags)}"
-    }
+    # 获取当前要执行的任务
+    current_task = todo.tasks[current_task_index]
     
-    # 打印日志，显示我们正在处理这个任务
-    logger.info(f"执行任务: {todo_id}, 标题: {todo.title}")
-    logger.info(f"原始需求: {original_task}")
+    # 构建执行命令
+    command = generate_command_from_task(current_task, todo)
     
-    # 模拟任务拆分 - 这里只是创建一个示例结果
-    # 实际实现中，这里可能会调用AI服务或其他逻辑来拆分任务
-    mock_split_result = {
-        "original_task": original_task,
-        "analysis": f"这是对任务 '{todo.title}' 的分析...",
-        "tasks": [
-            {
-                "title": f"{todo.title} - 子任务 1",
-                "description": "这是子任务1的描述",
-                "steps": ["步骤1", "步骤2", "步骤3"],
-                "priority": todo.priority,
-                "estimate": "2小时",
-                "references": [],
-                "acceptance_criteria": ["验收标准1", "验收标准2"]
-            },
-            {
-                "title": f"{todo.title} - 子任务 2",
-                "description": "这是子任务2的描述",
-                "steps": ["步骤1", "步骤2"],
-                "priority": todo.priority,
-                "estimate": "3小时",
-                "references": [],
-                "acceptance_criteria": ["验收标准1"]
-            }
-        ],
-        "tasks_count": 2,
-        "dependencies": [
-            {
-                "task": f"{todo.title} - 子任务 2",
-                "depends_on": [f"{todo.title} - 子任务 1"]
-            }
-        ]
-    }
+    # 生成事件文件路径
+    event_file, file_id = gengerate_event_file_path()
     
-    # 打印拆分结果
-    logger.info(f"任务拆分结果: {json.dumps(mock_split_result, ensure_ascii=False, indent=2)}")
+    # 更新任务状态
+    todo.tasks[current_task_index].status = "executing"
+    todo.tasks[current_task_index].event_file_id = file_id
+    
+    # 保存更新后的待办事项
+    await save_todos(todos)
+    
+    # 定义线程中运行的函数
+    def run_task_in_thread():
+        try:
+            # 创建AutoCoderRunnerWrapper实例
+            wrapper = AutoCoderRunnerWrapper(project_path)
+            wrapper.configure_wrapper(f"event_file:{event_file}")
+            
+            # 调用coding方法执行任务
+            result = wrapper.coding_wapper(command)
+            
+            # 标记任务完成
+            get_event_manager(event_file).write_completion(
+                EventContentCreator.create_completion("200", "completed", result).to_dict()
+            )
+            
+            # 更新任务状态（需要在异步上下文中运行）
+            asyncio.run(update_task_status(todo_id, current_task_index, "completed", file_id))
+            
+            logger.info(f"Task {file_id} for todo {todo_id} completed successfully")
+        except Exception as e:
+            logger.error(f"Error executing task {file_id} for todo {todo_id}: {str(e)}")
+            
+            # 标记任务失败
+            get_event_manager(event_file).write_error(
+                EventContentCreator.create_error("500", "error", str(e)).to_dict()
+            )
+            
+            # 更新任务状态为失败
+            asyncio.run(update_task_status(todo_id, current_task_index, "failed", file_id))
+    
+    # 创建并启动线程
+    thread = Thread(target=run_task_in_thread)
+    thread.daemon = True
+    thread.start()
+    
+    logger.info(f"Started task execution {file_id} in background thread for todo {todo_id}")
     
     # 返回响应
     return ExecuteTaskResponse(
         status="success",
         task_id=todo_id,
-        message="任务已开始执行",
-        split_result=mock_split_result
+        message=f"Executing task: {current_task.title}",
+        current_task_index=current_task_index,
+        event_file_id=file_id
     )
 
 async def get_insert_index(todos: List[TodoItem], status: str, destination_index: int) -> int:
@@ -239,3 +284,241 @@ async def get_insert_index(todos: List[TodoItem], status: str, destination_index
     
     # 返回目标列中对应位置的索引
     return status_todos[destination_index] if destination_index < len(status_todos) else status_todos[-1] + 1
+
+async def get_project_path(request: Request) -> str:
+    """从FastAPI请求上下文中获取项目路径"""
+    return request.app.state.project_path
+
+def generate_command_from_task(task: Task, todo: TodoItem) -> str:
+    """
+    根据任务信息生成执行命令
+    
+    Args:
+        task: 要执行的任务对象
+        todo: 所属的待办事项对象
+    
+    Returns:
+        用于执行的coding命令
+    """
+    # 构建任务上下文信息
+    context = {
+        "todo_title": todo.title,
+        "todo_description": todo.description or "",
+        "task_title": task.title,
+        "task_description": task.description or "",
+        "references": task.references or [],
+        "steps": task.steps or [],
+        "acceptance_criteria": task.acceptance_criteria or []
+    }
+    
+    # 构建提示
+    prompt = f"""请根据以下任务需求帮我实现功能:
+
+## 主任务
+标题: {context['todo_title']}
+描述: {context['todo_description']}
+
+## 当前子任务
+标题: {context['task_title']}
+描述: {context['task_description']}
+
+## 实现步骤
+{chr(10).join([f"- {step}" for step in context['steps']])}
+
+## 技术参考
+{chr(10).join([f"- {ref}" for ref in context['references']])}
+
+## 验收标准
+{chr(10).join([f"- {criterion}" for criterion in context['acceptance_criteria']])}
+
+请根据上述信息，完成这个子任务。首先分析任务需求，然后编写代码实现。如果需要，请修改或创建必要的文件。
+在实现过程中，请遵循代码最佳实践，保持代码清晰、可维护。
+"""
+
+    # 创建coding命令
+    return f"coding {json.dumps(prompt)}"
+
+async def update_task_status(todo_id: str, task_index: int, new_status: str, event_file_id: Optional[str] = None):
+    """
+    更新任务状态
+    
+    Args:
+        todo_id: 待办事项ID
+        task_index: 任务索引
+        new_status: 新状态 (pending/executing/completed/failed)
+        event_file_id: 关联的事件文件ID
+    """
+    try:
+        # 加载所有待办事项
+        todos = await load_todos()
+        
+        # 查找指定的待办事项
+        todo_index = next((i for i, t in enumerate(todos) if t.id == todo_id), None)
+        if todo_index is None:
+            logger.error(f"Todo {todo_id} not found for status update")
+            return
+        
+        # 更新任务状态
+        if 0 <= task_index < len(todos[todo_index].tasks):
+            todos[todo_index].tasks[task_index].status = new_status
+            if event_file_id:
+                todos[todo_index].tasks[task_index].event_file_id = event_file_id
+                
+            # 如果当前任务完成，且有下一个任务，则自动开始下一个任务
+            if new_status == "completed" and task_index + 1 < len(todos[todo_index].tasks):
+                next_task = todos[todo_index].tasks[task_index + 1]
+                if next_task.status == "pending":
+                    # 任务完成后，启动下一个任务（通过API）
+                    # 注意：这里不直接执行，而是记录一个标志，由前端轮询检测并触发
+                    todos[todo_index].tasks[task_index].next_task_ready = True
+                    
+            # 检查所有任务状态，更新整体状态
+            all_completed = all(task.status == "completed" for task in todos[todo_index].tasks)
+            if all_completed:
+                todos[todo_index].status = "done"
+                
+            # 保存更新后的待办事项
+            await save_todos(todos)
+            
+            logger.info(f"Updated task {task_index} status to {new_status} for todo {todo_id}")
+        else:
+            logger.error(f"Task index {task_index} out of range for todo {todo_id}")
+    except Exception as e:
+        logger.error(f"Error updating task status: {str(e)}")
+
+@router.get("/api/todos/{todo_id}/tasks/status")
+async def get_tasks_status(todo_id: str):
+    """
+    获取待办事项的所有任务状态
+    
+    Args:
+        todo_id: 待办事项ID
+    
+    Returns:
+        任务状态列表
+    """
+    todos = await load_todos()
+    
+    # 查找指定的待办事项
+    todo = next((t for t in todos if t.id == todo_id), None)
+    if not todo:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    
+    # 如果没有任务，返回空列表
+    if not todo.tasks:
+        return {"tasks": []}
+    
+    # 准备任务状态数据
+    tasks_status = []
+    for i, task in enumerate(todo.tasks):
+        status_data = {
+            "index": i,
+            "title": task.title,
+            "status": task.status,
+            "event_file_id": task.event_file_id,
+            "next_task_ready": task.next_task_ready
+        }
+        tasks_status.append(status_data)
+    
+    # 检查是否有下一个准备执行的任务
+    next_task_index = next((i for i, task in enumerate(todo.tasks) if task.next_task_ready), None)
+    
+    return {
+        "tasks": tasks_status,
+        "next_task_index": next_task_index
+    }
+
+@router.post("/api/todos/{todo_id}/tasks/{task_index}/execute-next")
+async def execute_next_task(todo_id: str, task_index: int, project_path: str = Depends(get_project_path)):
+    """
+    执行指定待办事项的下一个任务
+    
+    Args:
+        todo_id: 待办事项ID
+        task_index: 当前任务索引
+    
+    Returns:
+        执行状态
+    """
+    todos = await load_todos()
+    
+    # 查找指定的待办事项
+    todo = next((t for t in todos if t.id == todo_id), None)
+    if not todo:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    
+    # 验证任务索引
+    if not todo.tasks or task_index < 0 or task_index >= len(todo.tasks) - 1:
+        raise HTTPException(status_code=400, detail="Invalid task index or no next task available")
+    
+    # 验证当前任务是否已完成并标记下一个任务准备好执行
+    current_task = todo.tasks[task_index]
+    if current_task.status != "completed" or not current_task.next_task_ready:
+        raise HTTPException(status_code=400, detail="Current task not completed or next task not ready")
+    
+    # 获取下一个任务
+    next_task_index = task_index + 1
+    next_task = todo.tasks[next_task_index]
+    
+    # 重置标志
+    todo.tasks[task_index].next_task_ready = False
+    await save_todos(todos)
+    
+    # 构建执行命令
+    command = generate_command_from_task(next_task, todo)
+    
+    # 生成事件文件路径
+    event_file, file_id = gengerate_event_file_path()
+    
+    # 更新下一个任务状态
+    todo.tasks[next_task_index].status = "executing"
+    todo.tasks[next_task_index].event_file_id = file_id
+    
+    # 保存更新后的待办事项
+    await save_todos(todos)
+    
+    # 定义线程中运行的函数
+    def run_task_in_thread():
+        try:
+            # 创建AutoCoderRunnerWrapper实例
+            wrapper = AutoCoderRunnerWrapper(project_path)
+            wrapper.configure_wrapper(f"event_file:{event_file}")
+            
+            # 调用coding方法执行任务
+            result = wrapper.coding_wapper(command)
+            
+            # 标记任务完成
+            get_event_manager(event_file).write_completion(
+                EventContentCreator.create_completion("200", "completed", result).to_dict()
+            )
+            
+            # 更新任务状态
+            asyncio.run(update_task_status(todo_id, next_task_index, "completed", file_id))
+            
+            logger.info(f"Task {file_id} for todo {todo_id} completed successfully")
+        except Exception as e:
+            logger.error(f"Error executing task {file_id} for todo {todo_id}: {str(e)}")
+            
+            # 标记任务失败
+            get_event_manager(event_file).write_error(
+                EventContentCreator.create_error("500", "error", str(e)).to_dict()
+            )
+            
+            # 更新任务状态为失败
+            asyncio.run(update_task_status(todo_id, next_task_index, "failed", file_id))
+    
+    # 创建并启动线程
+    thread = Thread(target=run_task_in_thread)
+    thread.daemon = True
+    thread.start()
+    
+    logger.info(f"Started next task execution {file_id} in background thread for todo {todo_id}")
+    
+    # 返回响应
+    return ExecuteTaskResponse(
+        status="success",
+        task_id=todo_id,
+        message=f"Executing next task: {next_task.title}",
+        current_task_index=next_task_index,
+        event_file_id=file_id
+    )
