@@ -46,7 +46,7 @@ from datetime import datetime
 from autocoder.utils import operate_config_api
 from .routers import todo_router, settings_router, auto_router, commit_router, chat_router, coding_router
 from expert_routers import history_router
-from .common_router import completions_router, file_router, auto_coder_conf_router, chat_list_router
+from .common_router import completions_router, file_router, auto_coder_conf_router, chat_list_router, file_group_router
 
 
 
@@ -364,11 +364,14 @@ class ProxyServer:
         self.app.include_router(file_router.router)
         self.app.include_router(auto_coder_conf_router.router)
         self.app.include_router(chat_list_router.router)
+        self.app.include_router(file_group_router.router)
         
         # Store project_path in app state for dependency injection
         self.app.state.project_path = self.project_path
         # Store auto_coder_runner in app state for dependency injection
         self.app.state.auto_coder_runner = self.auto_coder_runner
+        # Store file_group_manager in app state for dependency injection
+        self.app.state.file_group_manager = self.file_group_manager
 
         @self.app.on_event("shutdown")
         async def shutdown_event():
@@ -394,60 +397,9 @@ class ProxyServer:
         def get_project_runner(project_path: str) -> AutoCoderRunner:
             return self.projects[project_path]
 
-        @self.app.post("/api/file-groups")
-        async def create_file_group(request: Request):
-            data = await request.json()
-            name = data.get("name")
-            description = data.get("description", "")
-            group = await self.file_group_manager.create_group(name, description)
-            return group
-
-        @self.app.post("/api/file-groups/auto")
-        async def auto_create_groups(request: Request):            
-            try:
-                data = await request.json()
-                file_size_limit = data.get("file_size_limit", 100)
-                skip_diff = data.get("skip_diff", False)
-                group_num_limit = data.get("group_num_limit", 10)
-
-                # Create AutoFileGroup instance
-                auto_grouper = AutoFileGroup(
-                    operate_config_api.get_llm(self.auto_coder_runner.memory),
-                    self.project_path,
-                    skip_diff=skip_diff,
-                    file_size_limit=file_size_limit,
-                    group_num_limit=group_num_limit
-                )
-
-                # Get groups
-                groups = auto_grouper.group_files()
-
-                # Create groups using file_group_manager
-                for group in groups:
-                    await self.file_group_manager.create_group(
-                        name=group.name,
-                        description=group.description
-                    )
-                    # Add files to the group
-                    await self.file_group_manager.add_files_to_group(
-                        group.name,
-                        group.urls
-                    )
-
-                return {"status": "success", "message": f"Created {len(groups)} groups"}
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
         @self.app.get("/api/os")
         async def get_os():
             return {"os": os.name}
-
-        @self.app.post("/api/file-groups/switch")
-        async def switch_file_groups(request: Request):
-            data = await request.json()
-            group_names = data.get("group_names", [])
-            result = await self.file_group_manager.switch_groups(group_names)
-            return result
 
         @self.app.get("/api/conf/keys")
         async def get_conf_keys():
@@ -476,29 +428,6 @@ class ProxyServer:
                 })
             return {"keys": keys}
 
-        @self.app.delete("/api/file-groups/{name}")
-        async def delete_file_group(name: str):
-            await self.file_group_manager.delete_group(name)
-            return {"status": "success"}
-
-        @self.app.post("/api/file-groups/{name}/files")
-        async def add_files_to_group(name: str, request: Request):
-            data = await request.json()
-            files = data.get("files", [])
-            description = data.get("description")
-            if description is not None:
-                group = await self.file_group_manager.update_group_description(name, description)
-            else:
-                group = await self.file_group_manager.add_files_to_group(name, files)
-            return group
-
-        @self.app.delete("/api/file-groups/{name}/files")
-        async def remove_files_from_group(name: str, request: Request):
-            data = await request.json()
-            files = data.get("files", [])
-            group = await self.file_group_manager.remove_files_from_group(name, files)
-            return group
-
         @self.app.post("/api/revert")
         async def revert():
             try:
@@ -506,11 +435,6 @@ class ProxyServer:
                 return result
             except Exception as e:
                 raise HTTPException(status_code=500, detail=str(e))
-
-        @self.app.get("/api/file-groups")
-        async def get_file_groups():
-            groups = await self.file_group_manager.get_groups()
-            return {"groups": groups}
 
         @self.app.get("/api/active-files")
         async def get_active_files():

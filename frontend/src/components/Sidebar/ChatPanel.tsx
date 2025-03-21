@@ -103,14 +103,46 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const [pendingRevert, setPendingRevert] = useState<boolean>(false);
   const [isNewChatModalVisible, setIsNewChatModalVisible] = useState<boolean>(false);
   const [newChatName, setNewChatName] = useState<string>('');
+  const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
   
   // 添加消息ID计数器，用于生成唯一的消息ID
   const [messageIdCounter, setMessageIdCounter] = useState<number>(0);
 
   // 添加新的 useEffect 用于滚动到最新消息
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // 只有当用户在查看底部时，才自动滚动到新消息
+    if (isAtBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isAtBottom]);
+
+  // 添加监听滚动事件的函数，检测用户是否在底部
+  const handleScroll = useCallback(() => {
+    const container = document.getElementById('chat-messages-container');
+    if (container) {
+      // 检查是否滚动到底部（考虑一个小的阈值，如20像素）
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+      setIsAtBottom(isNearBottom);
+    }
+  }, []);
+
+  // 添加滚动事件监听器
+  useEffect(() => {
+    const container = document.getElementById('chat-messages-container');
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      // 初始化时设置isAtBottom
+      handleScroll();
+    }
+    
+    // 清理函数
+    return () => {
+      const container = document.getElementById('chat-messages-container');
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [handleScroll]);
 
   useEffect(() => {
     if (shouldSendMessage) {
@@ -440,6 +472,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       }
       setSendLoading(false);
       setRequestId("");
+      
+      // 在任务完成时保存当前的聊天记录
+      if (chatListName && messages.length > 0) {
+        saveChatList(chatListName, messages);
+        console.log('Chat list saved after task completion:', chatListName);
+      }
     });
   };
 
@@ -456,9 +494,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   }, []);
   
   // 新消息到达时自动滚动到底部
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  // useEffect(() => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // }, [messages]);
 
   const handleSendMessage = async () => {
     const trimmedText = editorRef.current?.getValue()?.trim();
@@ -649,6 +687,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             </div>
           )}
           <div ref={messagesEndRef} />
+          
+          {/* 添加"滚动到底部"按钮，当有新消息且用户不在底部时显示 */}
+          {!isAtBottom && messages.length > 0 && (
+            <Button
+              type="primary"
+              shape="circle"
+              size="small"
+              icon={<DownOutlined />}
+              onClick={() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                setIsAtBottom(true);
+              }}
+              className="fixed bottom-24 right-4 z-10 bg-indigo-600 hover:bg-indigo-700 border-0 shadow-lg flex items-center justify-center"
+              style={{ width: '36px', height: '36px' }}
+            />
+          )}
         </div>
         
         {/* 输入区域 */}

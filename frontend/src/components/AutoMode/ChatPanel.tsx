@@ -27,14 +27,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const userScrollTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasUserScrolled, setHasUserScrolled] = useState(false);
+  const prevMessagesLengthRef = useRef(messages.length);
 
   // 滚动到消息列表底部的辅助函数
   const scrollToBottom = useCallback(() => {
-    if (shouldAutoScroll) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [shouldAutoScroll]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
 
   // 当messages变化时更新累计统计
   useEffect(() => {
@@ -77,51 +76,71 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
       const container = messageContainerRef.current;
       if (!container) return;
       
+      // 标记用户已经滚动过
+      setHasUserScrolled(true);
+      
       // 检查是否滚动到底部附近（允许20px的误差）
       const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
       
-      // 如果用户手动滚动且不在底部，则暂停自动滚动
-      if (!isAtBottom && shouldAutoScroll) {
-        setShouldAutoScroll(false);
-      }
-      
-      // 重置计时器
-      if (userScrollTimerRef.current) {
-        clearTimeout(userScrollTimerRef.current);
-      }
-      
-      // 如果不在底部，设置10秒后恢复自动滚动
-      if (!isAtBottom) {
-        userScrollTimerRef.current = setTimeout(() => {
-          setShouldAutoScroll(true);
-          scrollToBottom();
-        }, 10000); // 10秒 = 10000毫秒
-      } else {
-        // 如果滚动到底部，立即恢复自动滚动
-        setShouldAutoScroll(true);
-      }
+      // 更新滚动状态
+      setShouldAutoScroll(isAtBottom);
     };
     
     const container = messageContainerRef.current;
     if (container) {
       container.addEventListener('scroll', handleScroll);
+      
+      // 初始化时检查一次是否在底部
+      setTimeout(() => {
+        if (container && messageContainerRef.current === container) {
+          handleScroll();
+        }
+      }, 100);
     }
     
     return () => {
       if (container) {
         container.removeEventListener('scroll', handleScroll);
       }
-      // 清除计时器
-      if (userScrollTimerRef.current) {
-        clearTimeout(userScrollTimerRef.current);
-      }
     };
-  }, [scrollToBottom]);
+  }, []);
   
-  // 当消息列表更新时滚动到底部
+  // 当消息列表更新时，仅在用户处于底部时才滚动到底部
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    // 检查消息是否有变化
+    const currentMessagesLength = messages.length;
+    const messagesChanged = currentMessagesLength !== prevMessagesLengthRef.current;
+    prevMessagesLengthRef.current = currentMessagesLength;
+    
+    // 如果消息数量增加，且用户尚未滚动过或者用户在底部，则滚动到底部
+    if (messagesChanged && (!hasUserScrolled || shouldAutoScroll)) {
+      // 使用 setTimeout 确保在DOM更新后滚动
+      setTimeout(() => {
+        scrollToBottom();
+      }, 0);
+    }
+  }, [messages, shouldAutoScroll, hasUserScrolled, scrollToBottom]);
+  
+  // 当组件挂载或标签切换回来时，确保滚动到底部
+  useEffect(() => {
+    // 使用延时确保DOM已完全渲染
+    const timer = setTimeout(() => {
+      if (!hasUserScrolled || shouldAutoScroll) {
+        scrollToBottom();
+      }
+      
+      // 重新检查滚动位置
+      const container = messageContainerRef.current;
+      if (container) {
+        const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+        if (isAtBottom !== shouldAutoScroll) {
+          setShouldAutoScroll(isAtBottom);
+        }
+      }
+    }, 200);
+    
+    return () => clearTimeout(timer);
+  }, []); // 仅在挂载时执行
 
   return (
     <div className="flex flex-col h-full relative">
@@ -157,13 +176,30 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
       </div>
       
       {/* 消息列表 */}
-      <div className="flex-grow overflow-y-auto" ref={messageContainerRef}>
+      <div className="flex-grow overflow-y-auto relative" ref={messageContainerRef}>
         <MessageList 
           messages={messages} 
           onUserResponse={onUserResponse} 
         />
         {/* 消息列表底部引用点，用于自动滚动 */}
         <div ref={messagesEndRef} />
+        
+        {/* 添加"滚动到底部"按钮，当用户不在底部时显示 */}
+        {!shouldAutoScroll && messages.length > 0 && (
+          <button
+            onClick={() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+              setShouldAutoScroll(true);
+            }}
+            className="fixed bottom-24 right-4 z-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+            style={{ width: '36px', height: '36px' }}
+            aria-label="滚动到底部"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );
