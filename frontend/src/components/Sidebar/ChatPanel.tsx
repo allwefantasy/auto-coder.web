@@ -515,7 +515,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       if (isWriteMode) {
         // 编码模式
         console.log('ChatPanel: Sending message to codingService');
-        const result = await codingService.executeCommand(trimmedText);
+        const result = await codingService.executeCommand(`/apply ${trimmedText}`);
         console.log('ChatPanel: Received result from codingService:', result);
         setRequestId(result.event_file_id);
       } else {
