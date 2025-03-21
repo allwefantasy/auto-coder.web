@@ -7,7 +7,7 @@ import { CaretRightOutlined, InfoCircleOutlined, NodeIndexOutlined, BranchesOutl
 
 // Import sub-components
 import TaskAnalysisPanel from './TaskAnalysisPanel';
-import SubTasksPanel from './SubTasksPanel';
+import SubtasksPanel from './SubTasksPanel';
 import TaskDependenciesPanel from './TaskDependenciesPanel';
 
 // Import types
@@ -221,6 +221,91 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     saveData(updatedResult);
   };
 
+  // 添加新的子任务
+  const addSubTask = () => {
+    if (!parsedResult) return;
+    
+    const updatedResult = { ...parsedResult };
+    const updatedTasks = [...updatedResult.tasks];
+    
+    // 创建新的子任务对象
+    const newTask: SubTask = {
+      id: updatedTasks.length + 1,
+      title: `新任务 ${updatedTasks.length + 1}`,
+      description: '',
+      references: [],
+      steps: [],
+      acceptance_criteria: [],
+      priority: 'P2',
+      estimate: '1d'
+    };
+    
+    // 添加到任务列表
+    updatedTasks.push(newTask);
+    updatedResult.tasks = updatedTasks;
+    updatedResult.tasks_count = updatedTasks.length;
+    
+    setParsedResult(updatedResult);
+    saveData(updatedResult);
+    AntMessage.success('新子任务添加成功');
+  };
+  
+  // 删除子任务
+  const deleteSubTask = (taskIndex: number) => {
+    if (!parsedResult) return;
+    
+    const updatedResult = { ...parsedResult };
+    const updatedTasks = [...updatedResult.tasks];
+    
+    // 删除指定索引的任务
+    updatedTasks.splice(taskIndex, 1);
+    
+    // 更新任务ID
+    updatedTasks.forEach((task, index) => {
+      task.id = index + 1;
+    });
+    
+    updatedResult.tasks = updatedTasks;
+    updatedResult.tasks_count = updatedTasks.length;
+    
+    // 如果有依赖关系，也需要更新
+    if (updatedResult.dependencies && updatedResult.dependencies.length > 0) {
+      // 过滤掉被删除任务相关的依赖
+      updatedResult.dependencies = updatedResult.dependencies.filter(
+        dep => dep.task !== `Task ${taskIndex + 1}` && 
+        !dep.depends_on.includes(`Task ${taskIndex + 1}`)
+      );
+      
+      // 更新依赖中的任务编号
+      updatedResult.dependencies.forEach(dep => {
+        // 更新task字段
+        const taskMatch = dep.task.match(/Task (\d+)/);
+        if (taskMatch) {
+          const taskNum = parseInt(taskMatch[1]);
+          if (taskNum > taskIndex + 1) {
+            dep.task = `Task ${taskNum - 1}`;
+          }
+        }
+        
+        // 更新depends_on字段
+        dep.depends_on = dep.depends_on.map(item => {
+          const itemMatch = item.match(/Task (\d+)/);
+          if (itemMatch) {
+            const itemNum = parseInt(itemMatch[1]);
+            if (itemNum > taskIndex + 1) {
+              return `Task ${itemNum - 1}`;
+            }
+          }
+          return item;
+        });
+      });
+    }
+    
+    setParsedResult(updatedResult);
+    saveData(updatedResult);
+    AntMessage.success('子任务删除成功');
+  };
+
   if (!visible) {
     return null;
   }
@@ -318,7 +403,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
           key="3"
           className="mb-4"
         >
-          <SubTasksPanel 
+          <SubtasksPanel 
             tasks={parsedResult.tasks}
             tasksCount={parsedResult.tasks_count || parsedResult.tasks?.length || 0}
             updateTaskData={updateTaskData}
@@ -326,6 +411,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
             saveData={saveData}
             parsedResult={parsedResult}
             setParsedResult={setParsedResult}
+            addSubTask={addSubTask}
+            deleteSubTask={deleteSubTask}
           />
         </Collapse.Panel>
         

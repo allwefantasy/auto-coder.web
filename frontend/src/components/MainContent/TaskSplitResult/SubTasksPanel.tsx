@@ -1,5 +1,5 @@
 import React from 'react';
-import { Collapse, Card, Tag, List, Typography, Badge, Input, Select, Tooltip, Button, Empty } from 'antd';
+import { Collapse, Card, Tag, List, Typography, Badge, Input, Select, Tooltip, Button, Empty, message as AntMessage } from 'antd';
 import { 
   BranchesOutlined, 
   NodeIndexOutlined, 
@@ -34,14 +34,11 @@ const cardStyle = {
 };
 
 // 优先级颜色映射
-const getPriorityColor = (priority: string) => {
-  const priorities: Record<string, string> = {
-    'P0': '#ef4444', // 红色
-    'P1': '#f97316', // 橙色
-    'P2': '#3b82f6', // 蓝色
-    'P3': '#6b7280', // 灰色
-  };
-  return priorities[priority] || '#3b82f6';
+const priorityColors: Record<string, string> = {
+  'P0': '#ef4444', // 红色
+  'P1': '#f97316', // 橙色
+  'P2': '#0ea5e9', // 蓝色
+  'P3': '#6b7280', // 灰色
 };
 
 interface SubTasksPanelProps {
@@ -52,6 +49,8 @@ interface SubTasksPanelProps {
   saveData: (updatedResult: any) => void;
   parsedResult: any;
   setParsedResult: (result: any) => void;
+  addSubTask?: () => void;
+  deleteSubTask?: (taskIndex: number) => void;
 }
 
 const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
@@ -61,17 +60,37 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
   updateArrayField,
   saveData,
   parsedResult,
-  setParsedResult
+  setParsedResult,
+  addSubTask,
+  deleteSubTask
 }) => {
-  return (
-    <div>
-      {tasks && tasks.length > 0 ? (
-        <List
-          dataSource={tasks}
-          itemLayout="vertical"
-          split={false}
-          className="space-y-4"
-          renderItem={(task, index) => (
+  // Render the add task button
+  const renderAddTaskButton = () => {
+    if (!addSubTask) return null;
+    
+    return (
+      <div className="flex justify-end mb-4">
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={addSubTask}
+          style={{ backgroundColor: '#0ea5e9' }}
+        >
+          添加子任务
+        </Button>
+      </div>
+    );
+  };
+
+  // Render the task list
+  const renderTaskList = () => {
+    return (
+      <List
+        dataSource={tasks}
+        itemLayout="vertical"
+        split={false}
+        className="space-y-4"
+        renderItem={(task: SubTask, index: number) => (
             <List.Item className="p-0">
               <Card 
                 bordered={false}
@@ -100,6 +119,20 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                       </Text>
                     </div>
                     <div className="flex items-center space-x-2">
+                      {deleteSubTask && (
+                        <Tooltip title="删除此子任务">
+                          <Button 
+                            type="text" 
+                            danger 
+                            icon={<DeleteOutlined />} 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteSubTask(index);
+                            }}
+                            size="small"
+                          />
+                        </Tooltip>
+                      )}
                       <Tooltip title="Click to change priority">
                         <Select
                           value={task.priority || 'P2'}
@@ -115,8 +148,7 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                           ]}
                           suffixIcon={null}
                           className="priority-select"
-                        >
-                        </Select>
+                        />
                       </Tooltip>
                       <Tooltip title="Click to edit estimate">
                         <Input
@@ -337,12 +369,48 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
             </List.Item>
           )}
         />
-      ) : (
+      );
+  };
+
+  // Render empty state
+  const renderEmptyState = () => {
+    return (
+      <div className="flex flex-col items-center">
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={<span className="text-gray-400">{getMessage('noSubTasks')}</span>}
         />
-      )}
+        {addSubTask && (
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={addSubTask}
+            style={{ marginTop: '16px', backgroundColor: '#0ea5e9' }}
+          >
+            添加子任务
+          </Button>
+        )}
+      </div>
+    );
+  };
+
+  // Main render function
+  const renderContent = () => {
+    if (tasks && tasks.length > 0) {
+      return (
+        <div>
+          {renderAddTaskButton()}
+          {renderTaskList()}
+        </div>
+      );
+    }
+    
+    return renderEmptyState();
+  };
+
+  return (
+    <div>
+      {renderContent()}
     </div>
   );
 };
