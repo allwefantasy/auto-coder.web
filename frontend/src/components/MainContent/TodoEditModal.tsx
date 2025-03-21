@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { JsonExtractor } from '../../services/JsonExtractor';
 import { Modal, Input, Select, DatePicker, Button, Tag, message as AntMessage } from 'antd';
 import { PlusOutlined, SplitCellsOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
@@ -7,6 +8,11 @@ import { autoCommandService } from '../../services/autoCommandService';
 
 const { TextArea } = Input;
 const { Option } = Select;
+
+interface Dependency {
+  task: string;
+  depends_on: string[];
+}
 
 interface TodoItem {
   id: string;
@@ -19,6 +25,9 @@ interface TodoItem {
   dueDate?: string;
   created_at: string;
   updated_at: string;
+  analysis?: string;
+  dependencies?: Dependency[];
+  tasks?: any[];
 }
 
 interface TodoEditModalProps {
@@ -213,9 +222,9 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
           let splitResult: any = null;
           
           try {
-            // 尝试解析消息内容，可能是JSON字符串或者已经是对象
+            // 使用JsonExtractor工具类解析消息内容
             if (typeof msgEvent.content === 'string') {
-              splitResult = JSON.parse(msgEvent.content);
+              splitResult = JsonExtractor.extract(msgEvent.content) || msgEvent.content;
             } else {
               splitResult = msgEvent.content;
             }
@@ -231,7 +240,8 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
               // 如果有todo对象，将任务拆分结果保存到后端
               if (todo && todo.id) {
                 // 1. 准备要提交给后端的数据
-                const tasksForBackend = splitResult.tasks?.map((task: any) => ({
+                const tasksForBackend = splitResult.tasks?.map((task: any, index: number) => ({
+                  id: index , // 根据序号生成id
                   title: task.title,
                   description: task.description || null,
                   references: Array.isArray(task.references) ? task.references : [],
@@ -245,7 +255,9 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
                   ...todo,
                   tasks: tasksForBackend,
                   status: 'developing',
-                  tags: [...(todo.tags || [])].filter(tag => tag !== '正在拆解').concat(['已拆解'])
+                  tags: [...(todo.tags || [])].filter(tag => tag !== '正在拆解').concat(['已拆解']),
+                  analysis: splitResult.analysis || null,
+                  dependencies: splitResult.dependencies || null
                 };
                 
                 // 2. 调用API保存到后端
@@ -262,6 +274,17 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
                 })
                 .then(() => {
                   console.log('Task split result saved to backend successfully');
+                  
+                  // 通知父组件更新任务（移除"正在拆解"标签，添加"已拆解"标签）
+                  const updatedTodoWithNewTags = {
+                    ...todo,
+                    tags: [...(todo.tags || [])].filter(tag => tag !== "正在拆解").concat(["已拆解"]),
+                    analysis: splitResult.analysis || null,
+                    dependencies: splitResult.dependencies || null,
+                    tasks: tasksForBackend
+                  } as TodoItem;
+                  
+                  onSave(updatedTodoWithNewTags);
                 })
                 .catch(error => {
                   console.error('Failed to save split result to backend:', error);

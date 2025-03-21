@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { JsonExtractor } from '../../services/JsonExtractor';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button, Input, Select, Tag, Modal, Badge, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, SyncOutlined, CodeOutlined, ExpandOutlined, CompressOutlined } from '@ant-design/icons';
@@ -340,7 +341,7 @@ const TodoPanel: React.FC = () => {
       const lastSplitResult = localStorage.getItem('lastSplitResult');
       if (lastSplitResult) {
         try {
-          const resultData = JSON.parse(lastSplitResult);
+          const resultData = JsonExtractor.extract(lastSplitResult);
           if (resultData) {
             return true;
           }
@@ -376,7 +377,7 @@ const TodoPanel: React.FC = () => {
                   const lastSplitResult = localStorage.getItem('lastSplitResult');
                   if (lastSplitResult) {
                     try {
-                      const resultData = JSON.parse(lastSplitResult);
+                      const resultData = JsonExtractor.extract(lastSplitResult);
                       setSplitResultData(resultData);
                       setShowSplitResult(todo.id);
                     } catch (e) {
@@ -429,7 +430,7 @@ const TodoPanel: React.FC = () => {
                   const lastSplitResult = localStorage.getItem('lastSplitResult');
                   if (lastSplitResult) {
                     try {
-                      const resultData = JSON.parse(lastSplitResult);
+                      const resultData = JsonExtractor.extract(lastSplitResult);
                       setSplitResultData(resultData);
                       setShowSplitResult(todo.id);
                     } catch (e) {
@@ -573,6 +574,7 @@ const TodoPanel: React.FC = () => {
                             <TaskSplitResultView 
                               visible={true} 
                               result={splitResultData}
+                              todoId={todo.id}
                             />
                           )}
                         </React.Fragment>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { JsonExtractor } from '../../../services/JsonExtractor';
+import axios from 'axios';
 import { Collapse, Card, Tag, List, Typography, Divider, Empty, Steps, Badge, Alert, Tooltip, Input, Select, message as AntMessage, Button } from 'antd';
 import { getMessage } from '../../Sidebar/lang';
 import { 
@@ -26,16 +28,21 @@ interface TaskReference {
 }
 
 interface SubTask {
+  id: number;
   title: string;
-  description: string;
+  description: string | null;
   references: string[];
   steps: string[];
   acceptance_criteria: string[];
-  priority: string;
-  estimate: string;
+  priority: string | null;
+  estimate: string | null;
+  status?: string;  // pending/executing/completed/failed
+  event_file_id?: string;  // 关联的执行事件ID
+  next_task_ready?: boolean;  // 标记下一个任务是否已准备好执行
 }
 
 interface TaskSplitResult {
+  id?: string;
   original_task: {
     title: string;
     description: string;
@@ -49,6 +56,7 @@ interface TaskSplitResult {
 interface TaskSplitResultViewProps {
   visible: boolean;
   result?: TaskSplitResult | null;
+  todoId?: string; // 添加 todoId 属性，用于更新操作
 }
 
 // 优先级颜色映射
@@ -101,7 +109,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
       try {
         // 如果result是字符串，尝试解析
         if (typeof result === 'string') {
-          setParsedResult(JSON.parse(result));
+          setParsedResult(JsonExtractor.extract(result) || {});
         } else {
           setParsedResult(result);
         }
@@ -118,16 +126,21 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
 
   // 保存更新后的数据
   const saveData = async (updatedResult: TaskSplitResult) => {
-    if (!updatedResult) return;
+    if (!updatedResult) {
+      console.log('saveData: No data provided to save');
+      return;
+    }
     
+    console.log('saveData: Starting save operation', { updatedResult });
     setSaving(true);
     try {
-      // 获取当前URL中的todo_id参数
-      const urlParams = new URLSearchParams(window.location.search);
-      const todoId = urlParams.get('todo_id');
+      // Get todoId from the result object itself
+      const todoId = updatedResult.id;
+      console.log('saveData: Using todoId from result object', { todoId });
       
       if (!todoId) {
-        throw new Error('No todo_id found in URL');
+        console.error('saveData: No todoId found in result object');
+        throw new Error('No todoId found in result');
       }
       
       // 准备更新数据
@@ -137,25 +150,40 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
         analysis: updatedResult.analysis,
         dependencies: updatedResult.dependencies
       };
+      console.log('saveData: Prepared update data', { updateData });
       
       // 调用API保存数据
-      const response = await fetch(`/api/todos/${todoId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData),
+      console.log(`saveData: Sending PUT request to /api/todos/${todoId}`);
+      const response = await axios.put(`/api/todos/${todoId}`, updateData);
+      console.log('saveData: Received response', { 
+        status: response.status, 
+        statusText: response.statusText,
+        data: response.data
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to save changes');
+      if (response.status !== 200) {
+        console.error('saveData: API returned non-200 status', { 
+          status: response.status, 
+          statusText: response.statusText 
+        });
+        throw new Error(`Failed to save changes: ${response.statusText}`);
       }
       
+      console.log('saveData: Changes saved successfully');
       AntMessage.success('Changes saved successfully');
     } catch (error) {
-      console.error('Error saving changes:', error);
-      AntMessage.error('Failed to save changes');
+      console.error('saveData: Error saving changes:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('saveData: Axios error details:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          message: error.message
+        });
+      }
+      AntMessage.error(`Failed to save changes: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
+      console.log('saveData: Operation complete');
       setSaving(false);
     }
   };
@@ -418,7 +446,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                       <div className="flex justify-between items-center py-1">
                         <div className="flex items-center">
                           <Badge 
-                            count={index + 1} 
+                            count={task.id !== undefined ? task.id : index} 
                             style={{ 
                               backgroundColor: '#0ea5e9', 
                               marginRight: '12px',
@@ -439,7 +467,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                         <div className="flex items-center space-x-2">
                           <Tooltip title="Click to change priority">
                             <Select
-                              value={task.priority}
+                              value={task.priority || 'P2'}
                               style={{ width: 70 }}
                               bordered={false}
                               dropdownStyle={{ backgroundColor: '#1e293b', color: '#f8fafc' }}
@@ -458,7 +486,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                           <Tooltip title="Click to edit estimate">
                             <Input
                               prefix={<ClockCircleOutlined style={{ color: '#0ea5e9' }} />}
-                              value={task.estimate}
+                              value={task.estimate || ''}
                               onChange={(e) => updateTaskData(index, 'estimate', e.target.value)}
                               style={{ 
                                 width: 100, 

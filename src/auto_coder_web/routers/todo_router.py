@@ -31,6 +31,7 @@ async def get_project_path(request: Request) -> str:
     return request.app.state.project_path
 
 class Task(BaseModel):
+    id: int
     title: str
     description: Optional[str] = None
     references: Optional[List[str]] = []
@@ -41,6 +42,10 @@ class Task(BaseModel):
     status: Optional[str] = "pending"  # 任务状态: pending/executing/completed/failed
     event_file_id: Optional[str] = None  # 关联的执行事件ID
     next_task_ready: Optional[bool] = False  # 标记下一个任务是否已准备好执行
+
+class Dependency(BaseModel):
+    task: str
+    depends_on: List[str] = []
 
 class TodoItem(BaseModel):
     id: str
@@ -54,6 +59,8 @@ class TodoItem(BaseModel):
     updated_at: str
     description: Optional[str] = None
     tasks: Optional[List[Task]] = None
+    analysis: Optional[str] = None  # 任务拆分分析
+    dependencies: Optional[List[Dependency]] = None  # 子任务间的依赖关系
 
 class CreateTodoRequest(BaseModel):
     title: str
