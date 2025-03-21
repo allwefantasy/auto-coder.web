@@ -204,18 +204,7 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
       if (todo) {
         try {
           // 标记该任务正在拆解
-          setSplittingTodoId(todo.id);
-          
-          // 更新任务状态为开发中
-          const updatedTodo = {
-            ...todo,
-            ...editedTodo,
-            status: 'developing'
-          } as TodoItem;
-          
-          await onSave(updatedTodo);
-          
-          // 让用户可以继续其他操作
+          setSplittingTodoId(todo.id);                                        
           onClose();
         } catch (error) {
           console.error('Failed to update task status:', error);

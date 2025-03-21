@@ -40,6 +40,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   onSwitchToAutoMode
 }) => {
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
+  const [showToolsDropdown, setShowToolsDropdown] = useState(false);
 
   return (
     <Split 
@@ -133,20 +134,26 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                 </svg>
                 <span>{getMessage('fileGroups')}</span>
               </button>
-              <div className="relative group">
+              <div className="relative">
                 <button
                   className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 
                     ${['preview', 'clipboard', 'settings'].includes(activePanel)
                       ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
                       : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
                     } flex items-center space-x-2`}
+                  onMouseEnter={() => setShowToolsDropdown(true)}
+                  onMouseLeave={() => setShowToolsDropdown(false)}
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                   <span>Tools</span>
                 </button>
-                <div className="absolute z-10 mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div 
+                  className={`absolute z-10 mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-opacity duration-200 ${showToolsDropdown ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  onMouseEnter={() => setShowToolsDropdown(true)}
+                  onMouseLeave={() => setShowToolsDropdown(false)}
+                >
                   <div className="py-1">
                     <button
                       className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${
