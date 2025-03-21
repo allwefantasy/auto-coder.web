@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Collapse, Card, Tag, List, Typography, Divider, Empty, Steps, Badge, Alert, Tooltip, Input, Select, message } from 'antd';
+import { Collapse, Card, Tag, List, Typography, Divider, Empty, Steps, Badge, Alert, Tooltip, Input, Select, message, Button } from 'antd';
 import { getMessage } from '../../Sidebar/lang';
 import { 
   CaretRightOutlined, 
@@ -11,7 +11,9 @@ import {
   InfoCircleOutlined,
   LinkOutlined,
   EditOutlined,
-  SaveOutlined
+  SaveOutlined,
+  DeleteOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 
 const { Panel } = Collapse;
@@ -551,22 +553,81 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                                   }} 
                                 />
                               </div>
-                              <Input.TextArea
-                                value={step}
-                                onChange={(e) => updateArrayField(index, 'steps', stepIdx, e.target.value)}
-                                style={{ 
-                                  backgroundColor: 'transparent',
-                                  color: '#e2e8f0',
-                                  border: '1px solid #334155',
-                                  borderRadius: '4px',
-                                  width: '100%',
-                                  resize: 'vertical',
-                                  minHeight: '60px'
-                                }}
-                                autoSize={{ minRows: 2, maxRows: 6 }}
-                              />
+                              <div className="flex-1 relative">
+                                <Input.TextArea
+                                  value={step}
+                                  onChange={(e) => updateArrayField(index, 'steps', stepIdx, e.target.value)}
+                                  style={{ 
+                                    backgroundColor: 'transparent',
+                                    color: '#e2e8f0',
+                                    border: '1px solid #334155',
+                                    borderRadius: '4px',
+                                    width: '100%',
+                                    resize: 'vertical',
+                                    minHeight: '60px'
+                                  }}
+                                  autoSize={{ minRows: 2, maxRows: 6 }}
+                                />
+                                <Button 
+                                  type="text" 
+                                  danger 
+                                  icon={<DeleteOutlined />} 
+                                  size="small"
+                                  onClick={() => {
+                                    const newSteps = [...task.steps];
+                                    newSteps.splice(stepIdx, 1);
+                                    const newTasks = [...parsedResult.tasks];
+                                    newTasks[index] = {
+                                      ...task,
+                                      steps: newSteps
+                                    };
+                                    setParsedResult({
+                                      ...parsedResult,
+                                      tasks: newTasks
+                                    });
+                                    saveData({
+                                      ...parsedResult,
+                                      tasks: newTasks
+                                    });
+                                  }}
+                                  style={{ 
+                                    position: 'absolute', 
+                                    right: '-30px', 
+                                    top: '0', 
+                                    color: '#ef4444' 
+                                  }}
+                                />
+                              </div>
                             </div>
                           ))}
+                          <Button 
+                            type="dashed" 
+                            icon={<PlusOutlined />} 
+                            onClick={() => {
+                              const newSteps = [...task.steps, ''];
+                              const newTasks = [...parsedResult.tasks];
+                              newTasks[index] = {
+                                ...task,
+                                steps: newSteps
+                              };
+                              setParsedResult({
+                                ...parsedResult,
+                                tasks: newTasks
+                              });
+                              saveData({
+                                ...parsedResult,
+                                tasks: newTasks
+                              });
+                            }}
+                            style={{ 
+                              borderColor: '#0ea5e9', 
+                              color: '#0ea5e9',
+                              marginTop: '8px',
+                              width: '100%'
+                            }}
+                          >
+                            添加步骤
+                          </Button>
                         </div>
                       </div>
                     )}
