@@ -519,114 +519,112 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
                       </div>
                     )}
                     
-                    {task.steps && task.steps.length > 0 && (
-                      <div className="mb-5">
-                        <div className="flex items-center mb-3">
-                          <NodeIndexOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
-                          <Text style={{ color: '#0ea5e9', fontWeight: 500 }}>
-                            {getMessage('implementationSteps')}
-                          </Text>
-                        </div>
-                        <div 
-                          className="mb-2"
+                    <div className="mb-5">
+                      <div className="flex items-center mb-3">
+                        <NodeIndexOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
+                        <Text style={{ color: '#0ea5e9', fontWeight: 500 }}>
+                          {getMessage('implementationSteps')}
+                        </Text>
+                      </div>
+                      <div 
+                        className="mb-2"
+                        style={{ 
+                          color: '#cbd5e1',
+                          background: '#0f172a',
+                          padding: '12px',
+                          borderRadius: '6px'
+                        }}
+                      >
+                        {task.steps && task.steps.length > 0 && task.steps.map((step, stepIdx) => (
+                          <div key={stepIdx} className="flex items-start mb-3">
+                            <div className="mr-3 mt-1">
+                              <div 
+                                style={{ 
+                                  width: '8px', 
+                                  height: '8px', 
+                                  borderRadius: '50%', 
+                                  backgroundColor: '#0ea5e9',
+                                  display: 'inline-block'
+                                }} 
+                              />
+                            </div>
+                            <div className="flex-1 relative">
+                              <Input.TextArea
+                                value={step}
+                                onChange={(e) => updateArrayField(index, 'steps', stepIdx, e.target.value)}
+                                style={{ 
+                                  backgroundColor: 'transparent',
+                                  color: '#e2e8f0',
+                                  border: '1px solid #334155',
+                                  borderRadius: '4px',
+                                  width: '100%',
+                                  resize: 'vertical',
+                                  minHeight: '60px'
+                                }}
+                                autoSize={{ minRows: 2, maxRows: 6 }}
+                              />
+                              <Button 
+                                type="text" 
+                                danger 
+                                icon={<DeleteOutlined />} 
+                                size="small"
+                                onClick={() => {
+                                  const newSteps = [...task.steps];
+                                  newSteps.splice(stepIdx, 1);
+                                  const newTasks = [...parsedResult.tasks];
+                                  newTasks[index] = {
+                                    ...task,
+                                    steps: newSteps
+                                  };
+                                  setParsedResult({
+                                    ...parsedResult,
+                                    tasks: newTasks
+                                  });
+                                  saveData({
+                                    ...parsedResult,
+                                    tasks: newTasks
+                                  });
+                                }}
+                                style={{ 
+                                  position: 'absolute', 
+                                  right: '-30px', 
+                                  top: '0', 
+                                  color: '#ef4444' 
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                        <Button 
+                          type="dashed" 
+                          icon={<PlusOutlined />} 
+                          onClick={() => {
+                            const newSteps = [...(task.steps || []), ''];
+                            const newTasks = [...parsedResult.tasks];
+                            newTasks[index] = {
+                              ...task,
+                              steps: newSteps
+                            };
+                            setParsedResult({
+                              ...parsedResult,
+                              tasks: newTasks
+                            });
+                            saveData({
+                              ...parsedResult,
+                              tasks: newTasks
+                            });
+                          }}
                           style={{ 
-                            color: '#cbd5e1',
-                            background: '#0f172a',
-                            padding: '12px',
-                            borderRadius: '6px'
+                            borderColor: '#0ea5e9', 
+                            color: '#0ea5e9',
+                            marginTop: '8px',
+                            width: '100%'
                           }}
                         >
-                          {task.steps.map((step, stepIdx) => (
-                            <div key={stepIdx} className="flex items-start mb-3">
-                              <div className="mr-3 mt-1">
-                                <div 
-                                  style={{ 
-                                    width: '8px', 
-                                    height: '8px', 
-                                    borderRadius: '50%', 
-                                    backgroundColor: '#0ea5e9',
-                                    display: 'inline-block'
-                                  }} 
-                                />
-                              </div>
-                              <div className="flex-1 relative">
-                                <Input.TextArea
-                                  value={step}
-                                  onChange={(e) => updateArrayField(index, 'steps', stepIdx, e.target.value)}
-                                  style={{ 
-                                    backgroundColor: 'transparent',
-                                    color: '#e2e8f0',
-                                    border: '1px solid #334155',
-                                    borderRadius: '4px',
-                                    width: '100%',
-                                    resize: 'vertical',
-                                    minHeight: '60px'
-                                  }}
-                                  autoSize={{ minRows: 2, maxRows: 6 }}
-                                />
-                                <Button 
-                                  type="text" 
-                                  danger 
-                                  icon={<DeleteOutlined />} 
-                                  size="small"
-                                  onClick={() => {
-                                    const newSteps = [...task.steps];
-                                    newSteps.splice(stepIdx, 1);
-                                    const newTasks = [...parsedResult.tasks];
-                                    newTasks[index] = {
-                                      ...task,
-                                      steps: newSteps
-                                    };
-                                    setParsedResult({
-                                      ...parsedResult,
-                                      tasks: newTasks
-                                    });
-                                    saveData({
-                                      ...parsedResult,
-                                      tasks: newTasks
-                                    });
-                                  }}
-                                  style={{ 
-                                    position: 'absolute', 
-                                    right: '-30px', 
-                                    top: '0', 
-                                    color: '#ef4444' 
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          ))}
-                          <Button 
-                            type="dashed" 
-                            icon={<PlusOutlined />} 
-                            onClick={() => {
-                              const newSteps = [...task.steps, ''];
-                              const newTasks = [...parsedResult.tasks];
-                              newTasks[index] = {
-                                ...task,
-                                steps: newSteps
-                              };
-                              setParsedResult({
-                                ...parsedResult,
-                                tasks: newTasks
-                              });
-                              saveData({
-                                ...parsedResult,
-                                tasks: newTasks
-                              });
-                            }}
-                            style={{ 
-                              borderColor: '#0ea5e9', 
-                              color: '#0ea5e9',
-                              marginTop: '8px',
-                              width: '100%'
-                            }}
-                          >
-                            添加步骤
-                          </Button>
-                        </div>
+                          添加步骤
+                        </Button>
                       </div>
-                    )}
+                    </div>
                     
                     {task.acceptance_criteria && task.acceptance_criteria.length > 0 && (
                       <div className="mb-2">
