@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Collapse, Card, Tag, List, Typography, Divider, Empty, Steps, Badge, Alert, Tooltip, Input, Select, message, Button } from 'antd';
+import { Collapse, Card, Tag, List, Typography, Divider, Empty, Steps, Badge, Alert, Tooltip, Input, Select, message as AntMessage, Button } from 'antd';
 import { getMessage } from '../../Sidebar/lang';
 import { 
   CaretRightOutlined, 
@@ -151,10 +151,10 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
         throw new Error('Failed to save changes');
       }
       
-      message.success('Changes saved successfully');
+      AntMessage.success('Changes saved successfully');
     } catch (error) {
       console.error('Error saving changes:', error);
-      message.error('Failed to save changes');
+      AntMessage.error('Failed to save changes');
     } finally {
       setSaving(false);
     }

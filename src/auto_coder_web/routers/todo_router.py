@@ -24,6 +24,12 @@ TODO_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger(__name__)
 
+async def get_project_path(request: Request) -> str:
+    """
+    从FastAPI请求上下文中获取项目路径
+    """
+    return request.app.state.project_path
+
 class Task(BaseModel):
     title: str
     description: Optional[str] = None
@@ -118,7 +124,7 @@ async def update_todo(todo_id: str, update_data: dict):
     
     for index, todo in enumerate(todos):
         if todo.id == todo_id:
-            updated_data = todos[index].dict()
+            updated_data = todos[index].model_dump()
             updated_data.update(update_data)
             updated_data["updated_at"] = datetime.now().isoformat()
             todos[index] = TodoItem(**updated_data)
