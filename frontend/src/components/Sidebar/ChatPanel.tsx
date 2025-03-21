@@ -49,6 +49,27 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       
       // Save the new empty chat list
       await saveChatList(newChatName, []);
+      
+      // Send a /new command to the chat router
+      try {
+        const response = await fetch('/api/chat-command', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            command: '/new',
+          }),
+        });
+        
+        if (!response.ok) {
+          console.warn('Failed to send /new command to chat router');
+        }
+      } catch (cmdError) {
+        console.error('Error sending /new command:', cmdError);
+        // Don't show error to user as this is a background operation
+      }
+      
       AntdMessage.success('New chat created successfully');
       setIsNewChatModalVisible(false);
     } catch (error) {
