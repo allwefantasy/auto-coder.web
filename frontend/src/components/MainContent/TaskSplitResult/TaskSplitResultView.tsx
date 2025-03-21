@@ -43,10 +43,7 @@ interface SubTask {
 
 interface TaskSplitResult {
   id?: string;
-  original_task: {
-    title: string;
-    description: string;
-  };
+  // original_task 字段已移除，因为它不存在于后端模型中
   analysis: string;
   tasks: SubTask[];
   tasks_count: number;
@@ -93,7 +90,7 @@ const panelHeaderStyle = {
   borderLeft: '3px solid #0ea5e9', // 蓝色左边框
 };
 
-const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, result }) => {
+const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, result, todoId }) => {
   const [activeKey, setActiveKey] = useState<string[]>(['1']);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,18 +132,24 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     setSaving(true);
     try {
       // Get todoId from the result object itself
-      const todoId = updatedResult.id;
-      console.log('saveData: Using todoId from result object', { todoId });
-      
       if (!todoId) {
         console.error('saveData: No todoId found in result object');
         throw new Error('No todoId found in result');
       }
       
-      // 准备更新数据
+      // 准备更新数据 - 只发送与后端模型一致的字段
       const updateData = {
-        tasks: updatedResult.tasks,
-        original_task: updatedResult.original_task,
+        tasks: updatedResult.tasks.map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          references: task.references,
+          steps: task.steps,
+          acceptance_criteria: task.acceptance_criteria,
+          priority: task.priority,
+          estimate: task.estimate,
+          status: task.status || 'pending'
+        })),
         analysis: updatedResult.analysis,
         dependencies: updatedResult.dependencies
       };
@@ -223,19 +226,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     saveData(updatedResult);
   };
   
-  // 更新原始任务
-  const updateOriginalTask = (field: 'title' | 'description', value: string) => {
-    if (!parsedResult) return;
-    
-    const updatedResult = { ...parsedResult };
-    updatedResult.original_task = {
-      ...updatedResult.original_task,
-      [field]: value
-    };
-    
-    setParsedResult(updatedResult);
-    saveData(updatedResult);
-  };
+  // 原始任务更新函数已移除
   
   // 更新分析结果
   const updateAnalysis = (value: string) => {
@@ -350,41 +341,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
         className="bg-transparent border-0 shadow-none"
         ghost
       >
-        {/* 原始任务 */}
-        <Panel 
-          header={
-            <div style={panelHeaderStyle} className="flex items-center">
-              <FileTextOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
-              <span style={{ color: '#f8fafc', fontWeight: 500 }}>
-                {getMessage('originalTask')}
-              </span>
-            </div>
-          } 
-          key="1"
-          className="mb-4"
-        >
-          <Card bordered={false} style={cardStyle} className="rounded-lg overflow-hidden">
-            <div className="flex items-center mb-3">
-              <Title level={5} style={{ color: '#f8fafc', fontWeight: 600, marginBottom: '0', flex: 1 }} editable={{
-                onChange: (value) => updateOriginalTask('title', value),
-                tooltip: 'Click to edit title',
-                icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
-              }}>
-                {parsedResult.original_task.title}
-              </Title>
-            </div>
-            <Paragraph 
-              style={{ color: '#cbd5e1', lineHeight: 1.6, fontSize: '14px' }} 
-              editable={{
-                onChange: (value) => updateOriginalTask('description', value),
-                tooltip: 'Click to edit description',
-                icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
-              }}
-            >
-              {parsedResult.original_task.description}
-            </Paragraph>
-          </Card>
-        </Panel>
+        {/* 原始任务部分已移除 */}
         
         {/* 分析结果 */}
         <Panel 
