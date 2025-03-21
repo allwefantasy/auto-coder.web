@@ -10,6 +10,7 @@ import AutoExecuteNotificationModal from './AutoExecuteNotificationModal';
 import TaskSplitResultView from './TaskSplitResult/TaskSplitResultView';
 import TaskStatusView from './TaskStatus/TaskStatusView';
 import './TodoPanel.css';
+import { useTaskSplitting } from '../../contexts/TaskSplittingContext';
 
 type ColumnId = 'pending' | 'developing' | 'testing' | 'done';
 
@@ -69,14 +70,22 @@ const TodoPanel: React.FC = () => {
   const [executingTodo, setExecutingTodo] = useState<TodoItem | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [confirmMode, setConfirmMode] = useState(true);
-  const [splittingTodoId, setSplittingTodoId] = useState<string | null>(null);
-  const [lastSplitResult, setLastSplitResult] = useState<any>(null);
-  const [splitCompleted, setSplitCompleted] = useState<boolean>(false);
-  const [lastSplitTodoId, setLastSplitTodoId] = useState<string | null>(null);
   const [showSplitResult, setShowSplitResult] = useState<string | null>(null);
   const [splitResultData, setSplitResultData] = useState<any>(null);
   const [showTaskStatus, setShowTaskStatus] = useState<string | null>(null);
   const [maximizedPanel, setMaximizedPanel] = useState<ColumnId | null>(null);
+  
+  // Use the TaskSplittingContext instead of local state
+  const {
+    splittingTodoId,
+    setSplittingTodoId,
+    lastSplitResult,
+    setLastSplitResult,
+    splitCompleted,
+    setSplitCompleted,
+    lastSplitTodoId,
+    setLastSplitTodoId
+  } = useTaskSplitting();
 
   // Load initial data
   useEffect(() => {
@@ -97,32 +106,21 @@ const TodoPanel: React.FC = () => {
   
   // 检查任务拆解状态
   useEffect(() => {
-    // 当拆解完成时，刷新任务列表
-    if (splitCompleted && lastSplitTodoId) {
+    // 当拆解完成时，刷新任务列表并更新UI
+    if (splitCompleted && lastSplitTodoId && lastSplitResult) {
       // 刷新任务列表
       fetchTodos();
       
-      // 重置状态
+      // 更新拆解结果显示
+      setSplitResultData(lastSplitResult);
+      setShowSplitResult(lastSplitTodoId);
+      
+      // 重置完成状态，但保留结果和任务ID以便于显示
       setSplitCompleted(false);
-      setLastSplitTodoId(null);
     }
-  }, [splitCompleted, lastSplitTodoId]);
+  }, [splitCompleted, lastSplitTodoId, lastSplitResult, setSplitCompleted]);
   
-  // 导出状态变量和设置函数，供其他组件使用
-  useEffect(() => {
-    // 将状态变量和设置函数挂载到 window 对象上，供 TodoEditModal 组件使用
-    (window as any).todoPanel = {
-      setSplittingTodoId,
-      setLastSplitResult,
-      setSplitCompleted,
-      setLastSplitTodoId
-    };
-    
-    return () => {
-      // 组件卸载时清理
-      (window as any).todoPanel = undefined;
-    };
-  }, []);
+  // 现在使用 Context 完全管理拆解状态，不再需要 window 对象
 
   const columns = [
     { id: 'pending', title: getMessage('statusPending') },
@@ -494,23 +492,8 @@ const TodoPanel: React.FC = () => {
     const hasSplitResultTag = todo.tags && todo.tags.includes('正在拆解');
     const isShowingSplitResult = showSplitResult === todo.id;
     
-    // 检查localStorage中是否有该任务的拆分结果
-    const checkSplitResult = () => {
-      const lastSplitResult = localStorage.getItem('lastSplitResult');
-      if (lastSplitResult) {
-        try {
-          const resultData = JsonExtractor.extract(lastSplitResult);
-          if (resultData) {
-            return true;
-          }
-        } catch (e) {
-          console.error('Error parsing split result:', e);
-        }
-      }
-      return false;
-    };
-
-    const hasSplitResultInStorage = checkSplitResult();
+    // 检查Context中是否有该任务的拆分结果
+    const hasSplitResult = lastSplitResult !== null && lastSplitTodoId === todo.id;
     
     // 检查当前任务是否正在拆解
     const isSplitting = todo.id === splittingTodoId;
@@ -544,7 +527,7 @@ const TodoPanel: React.FC = () => {
               title="查看任务状态"
             />
           )}
-          {hasSplitResultTag && hasSplitResultInStorage && (
+          {(todo.tasks && todo.tasks.length > 0) && (
             <Button
               type="text"
               size="small"
@@ -555,20 +538,28 @@ const TodoPanel: React.FC = () => {
                   setShowSplitResult(null);
                   setSplitResultData(null);
                 } else {
-                  // 从localStorage获取拆分结果并显示
-                  const lastSplitResult = localStorage.getItem('lastSplitResult');
-                  if (lastSplitResult) {
-                    try {
-                      const resultData = JsonExtractor.extract(lastSplitResult);
-                      setSplitResultData(resultData);
-                      setShowSplitResult(todo.id);
-                    } catch (e) {
-                      console.error('Error parsing split result:', e);
-                    }
+                  // 从Context获取拆分结果并显示
+                  if (lastSplitResult && lastSplitTodoId === todo.id) {
+                    setSplitResultData(lastSplitResult);
+                    setShowSplitResult(todo.id);
+                  } else if (todo.tasks && todo.tasks.length > 0) {
+                    // 如果没有拆解结果但有tasks，直接构建一个结果对象
+                    const constructedResult = {
+                      original_task: {
+                        title: todo.title,
+                        description: todo.description || ''
+                      },
+                      analysis: todo.analysis || '',
+                      tasks: todo.tasks,
+                      dependencies: todo.dependencies || []
+                    };
+                    setSplitResultData(constructedResult);
+                    setShowSplitResult(todo.id);
                   }
                 }
               }}
               className={`text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center ${isShowingSplitResult ? 'bg-blue-900/30' : ''}`}
+              title="查看任务拆解结果"
             />
           )}
           <div className="todo-tags flex gap-1">
@@ -611,7 +602,7 @@ const TodoPanel: React.FC = () => {
               title="查看任务状态"
             />
           )}
-          {hasSplitResultTag && hasSplitResultInStorage && (
+          {(todo.tasks && todo.tasks.length > 0) && (
             <Button
               type="text"
               size="small"
@@ -771,8 +762,8 @@ const TodoPanel: React.FC = () => {
                               </div>
                             )}
                           </Draggable>
-                          {/* 如果是待办事项拆分结果视图 - 只在 pending 状态下显示 */}
-                          {showSplitResult === todo.id && splitResultData && todo.status === 'pending' && (
+                          {/* 任务拆分结果视图 - 在所有状态下都可以显示 */}
+                          {showSplitResult === todo.id && splitResultData && (
                             <TaskSplitResultView 
                               visible={true} 
                               result={splitResultData}

@@ -3,6 +3,7 @@ import { JsonExtractor } from '../../services/JsonExtractor';
 import { Modal, Input, Select, DatePicker, Button, Tag, message as AntMessage } from 'antd';
 import { PlusOutlined, SplitCellsOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
+import { useTaskSplitting } from '../../contexts/TaskSplittingContext';
 import moment from 'moment';
 import { autoCommandService } from '../../services/autoCommandService';
 
@@ -121,6 +122,15 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
     }
   };
 
+  // 使用 TaskSplittingContext 获取和设置任务拆解状态
+  const {
+    splittingTodoId,
+    setSplittingTodoId,
+    setLastSplitResult,
+    setSplitCompleted,
+    setLastSplitTodoId
+  } = useTaskSplitting();
+
   const handleSplitTask = async () => {
     if (!editedTodo.title || !editedTodo.description) {
       AntMessage.error(getMessage('todoDescriptionRequired'));
@@ -128,14 +138,6 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
     }
 
     // 检查是否已有任务正在拆解
-    const todoPanel = (window as any).todoPanel;
-    if (!todoPanel) {
-      console.error('TodoPanel not initialized');
-      return;
-    }
-    
-    // 从 TodoPanel 获取当前正在拆解的任务ID
-    const splittingTodoId = (window as any).splittingTodoId;
     if (splittingTodoId) {
       AntMessage.error('已有任务正在拆解中，请等待当前拆解完成');
       return;
@@ -202,9 +204,7 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
       if (todo) {
         try {
           // 标记该任务正在拆解
-          if (todoPanel && todoPanel.setSplittingTodoId) {
-            todoPanel.setSplittingTodoId(todo.id);
-          }
+          setSplittingTodoId(todo.id);
           
           // 更新任务状态为开发中
           const updatedTodo = {
@@ -242,11 +242,9 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
               splitResult = msgEvent.content;
             }
             
-            // 保存完整的拆分结果到TodoPanel组件
+            // 保存完整的拆分结果到Context
             if (splitResult) {
-              if (todoPanel && todoPanel.setLastSplitResult) {
-                todoPanel.setLastSplitResult(splitResult);
-              }
+              setLastSplitResult(splitResult);
               console.log('Split result saved to TodoPanel:', splitResult);
               
               // 从结果中获取任务数量
@@ -290,21 +288,12 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
                 .then(() => {
                   console.log('Task split result saved to backend successfully');
                   
-                  // 标记拆解已完成
-                  if (todoPanel) {
-                    if (todoPanel.setSplitCompleted) {
-                      todoPanel.setSplitCompleted(true);
-                    }
-                    
-                    if (todoPanel.setLastSplitTodoId) {
-                      todoPanel.setLastSplitTodoId(todo.id);
-                    }
-                    
-                    // 清除正在拆解的标记
-                    if (todoPanel.setSplittingTodoId) {
-                      todoPanel.setSplittingTodoId(null);
-                    }
-                  }
+                  // 使用Context标记拆解已完成
+                  setSplitCompleted(true);
+                  setLastSplitTodoId(todo.id);
+                  
+                  // 清除正在拆解的标记
+                  setSplittingTodoId(null);
                   
                   // 通知父组件更新任务（移除"正在拆解"标签，添加"已拆解"标签）
                   const updatedTodoWithNewTags = {

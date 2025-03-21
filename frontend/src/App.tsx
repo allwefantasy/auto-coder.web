@@ -5,6 +5,7 @@ import AutoModePage from './components/AutoMode';
 import { ExpertModePage } from './components/ExpertMode';
 import { getMessage, initLanguage } from './components/Sidebar/lang';
 import './App.css';
+import { TaskSplittingProvider } from './contexts/TaskSplittingContext';
 
 
 const App: React.FC = () => {
@@ -86,7 +87,8 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-900">
+    <TaskSplittingProvider>
+      <div className="h-screen flex flex-col bg-gray-900">
       {/* Mode Toggle */}
       <div className="bg-gray-800 p-2 border-b border-gray-700 flex justify-end items-center space-x-2">
         <span className="text-gray-400 text-sm">{getMessage('autoMode')}</span>
@@ -194,8 +196,7 @@ const App: React.FC = () => {
         />
       </Modal>
       </div>
-
-      
+    </TaskSplittingProvider>
   );
 };
 
