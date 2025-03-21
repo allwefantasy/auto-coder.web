@@ -1,94 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { JsonExtractor } from '../../../services/JsonExtractor';
 import axios from 'axios';
-import { Collapse, Card, Tag, List, Typography, Divider, Empty, Steps, Badge, Alert, Tooltip, Input, Select, message as AntMessage, Button } from 'antd';
+import { Collapse, Typography, Alert, Tooltip, message as AntMessage, Badge } from 'antd';
 import { getMessage } from '../../Sidebar/lang';
-import { 
-  CaretRightOutlined, 
-  FileTextOutlined, 
-  BranchesOutlined, 
-  NodeIndexOutlined, 
-  ClockCircleOutlined,
-  CheckCircleOutlined,
-  InfoCircleOutlined,
-  LinkOutlined,
-  EditOutlined,
-  SaveOutlined,
-  DeleteOutlined,
-  PlusOutlined
-} from '@ant-design/icons';
+import { CaretRightOutlined, InfoCircleOutlined, NodeIndexOutlined, BranchesOutlined, LinkOutlined } from '@ant-design/icons';
 
-const { Panel } = Collapse;
-const { Title, Text, Paragraph } = Typography;
-const { TextArea } = Input;
+// Import sub-components
+import TaskAnalysisPanel from './TaskAnalysisPanel';
+import SubTasksPanel from './SubTasksPanel';
+import TaskDependenciesPanel from './TaskDependenciesPanel';
 
-interface TaskReference {
-  task: string;
-  depends_on: string[];
-}
+// Import types
+import { TaskSplitResult, TaskSplitResultViewProps, SubTask, TaskReference } from './types';
 
-interface SubTask {
-  id: number;
-  title: string;
-  description: string | null;
-  references: string[];
-  steps: string[];
-  acceptance_criteria: string[];
-  priority: string | null;
-  estimate: string | null;
-  status?: string;  // pending/executing/completed/failed
-  event_file_id?: string;  // 关联的执行事件ID
-  next_task_ready?: boolean;  // 标记下一个任务是否已准备好执行
-}
-
-interface TaskSplitResult {
-  id?: string;
-  // original_task 字段已移除，因为它不存在于后端模型中
-  analysis: string;
-  tasks: SubTask[];
-  tasks_count: number;
-  dependencies?: TaskReference[];
-}
-
-interface TaskSplitResultViewProps {
-  visible: boolean;
-  result?: TaskSplitResult | null;
-  todoId?: string; // 添加 todoId 属性，用于更新操作
-}
-
-// 优先级颜色映射
-const getPriorityColor = (priority: string) => {
-  const priorities: Record<string, string> = {
-    'P0': '#ef4444', // 红色
-    'P1': '#f97316', // 橙色
-    'P2': '#3b82f6', // 蓝色
-    'P3': '#6b7280', // 灰色
-  };
-  return priorities[priority] || '#3b82f6';
-};
-
-// 自定义卡片样式
-const cardStyle = {
-  background: '#1e293b', // 深蓝灰色背景
-  borderColor: '#334155', // 边框颜色
-  color: '#f8fafc', // 文本颜色
-  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-};
-
-// 自定义标签样式
-const tagStyle = {
-  color: '#f1f5f9',
-  fontWeight: 500,
-};
-
-// 自定义面板头部样式
-const panelHeaderStyle = {
-  background: '#0f172a',
-  borderRadius: '6px',
-  padding: '8px 12px',
-  marginBottom: '8px',
-  borderLeft: '3px solid #0ea5e9', // 蓝色左边框
-};
+const { Title } = Typography;
 
 const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, result, todoId }) => {
   const [activeKey, setActiveKey] = useState<string[]>(['1']);
@@ -203,14 +128,15 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
   };
   
   // 更新任务数据
-  const updateTaskData = (taskIndex: number, field: keyof SubTask, value: any) => {
+  const updateTaskData = (taskIndex: number, field: string | number | symbol, value: any) => {
     if (!parsedResult) return;
     
     const updatedResult = { ...parsedResult };
     const updatedTasks = [...updatedResult.tasks];
+    // Use type assertion to safely update the field
     updatedTasks[taskIndex] = {
       ...updatedTasks[taskIndex],
-      [field]: value
+      ...(({ [field]: value } as any))
     };
     updatedResult.tasks = updatedTasks;
     
@@ -219,17 +145,19 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
   };
   
   // 更新数组类型的字段
-  const updateArrayField = (taskIndex: number, field: keyof SubTask, itemIndex: number, value: string) => {
+  const updateArrayField = (taskIndex: number, field: string | number | symbol, itemIndex: number, value: string) => {
     if (!parsedResult) return;
     
     const updatedResult = { ...parsedResult };
     const updatedTasks = [...updatedResult.tasks];
-    const currentArray = [...(updatedTasks[taskIndex][field] as string[])];
+    // Use type assertion to safely access the field
+    const currentArray = [...((updatedTasks[taskIndex] as any)[field] as string[])];
     currentArray[itemIndex] = value;
     
+    // Use type assertion to safely update the field
     updatedTasks[taskIndex] = {
       ...updatedTasks[taskIndex],
-      [field]: currentArray
+      ...(({ [field]: currentArray } as any))
     };
     
     updatedResult.tasks = updatedTasks;
@@ -354,10 +282,10 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
       >
         {/* 原始任务部分已移除 */}
         
-        {/* 分析结果 */}
-        <Panel 
+        {/* 分析结果 - Panel key="2" */}
+        <Collapse.Panel 
           header={
-            <div style={panelHeaderStyle} className="flex items-center">
+            <div style={{ background: '#0f172a', borderRadius: '6px', padding: '8px 12px', marginBottom: '8px', borderLeft: '3px solid #0ea5e9' }} className="flex items-center">
               <NodeIndexOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
               <span style={{ color: '#f8fafc', fontWeight: 500 }}>
                 {getMessage('taskAnalysis')}
@@ -367,24 +295,16 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
           key="2"
           className="mb-4"
         >
-          <Card bordered={false} style={cardStyle} className="rounded-lg overflow-hidden">
-            <Paragraph 
-              style={{ color: '#cbd5e1', lineHeight: 1.6, fontSize: '14px' }}
-              editable={{
-                onChange: updateAnalysis,
-                tooltip: 'Click to edit analysis',
-                icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
-              }}
-            >
-              {parsedResult.analysis}
-            </Paragraph>
-          </Card>
-        </Panel>
+          <TaskAnalysisPanel 
+            analysis={parsedResult.analysis}
+            updateAnalysis={updateAnalysis}
+          />
+        </Collapse.Panel>
         
-        {/* 子任务列表 */}
-        <Panel 
+        {/* 子任务列表 - Panel key="3" */}
+        <Collapse.Panel 
           header={
-            <div style={panelHeaderStyle} className="flex items-center">
+            <div style={{ background: '#0f172a', borderRadius: '6px', padding: '8px 12px', marginBottom: '8px', borderLeft: '3px solid #0ea5e9' }} className="flex items-center">
               <BranchesOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
               <span style={{ color: '#f8fafc', fontWeight: 500 }}>
                 {getMessage('subTasks')} 
@@ -398,299 +318,22 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
           key="3"
           className="mb-4"
         >
-          {parsedResult.tasks && parsedResult.tasks.length > 0 ? (
-            <List
-              dataSource={parsedResult.tasks}
-              itemLayout="vertical"
-              split={false}
-              className="space-y-4"
-              renderItem={(task, index) => (
-                <List.Item className="p-0">
-                  <Card 
-                    bordered={false}
-                    className="rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
-                    style={cardStyle}
-                    title={
-                      <div className="flex justify-between items-center py-1">
-                        <div className="flex items-center">
-                          <Badge 
-                            count={task.id !== undefined ? task.id : index} 
-                            style={{ 
-                              backgroundColor: '#0ea5e9', 
-                              marginRight: '12px',
-                              boxShadow: '0 0 0 2px rgba(14, 165, 233, 0.2)'
-                            }} 
-                          />
-                          <Text 
-                            style={{ color: '#f8fafc', fontWeight: 600, fontSize: '15px' }}
-                            editable={{
-                              onChange: (value) => updateTaskData(index, 'title', value),
-                              tooltip: 'Click to edit title',
-                              icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
-                            }}
-                          >
-                            {task.title}
-                          </Text>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Tooltip title="Click to change priority">
-                            <Select
-                              value={task.priority || 'P2'}
-                              style={{ width: 70 }}
-                              bordered={false}
-                              dropdownStyle={{ backgroundColor: '#1e293b', color: '#f8fafc' }}
-                              onChange={(value) => updateTaskData(index, 'priority', value)}
-                              options={[
-                                { value: 'P0', label: 'P0' },
-                                { value: 'P1', label: 'P1' },
-                                { value: 'P2', label: 'P2' },
-                                { value: 'P3', label: 'P3' },
-                              ]}
-                              suffixIcon={null}
-                              className="priority-select"
-                            >
-                            </Select>
-                          </Tooltip>
-                          <Tooltip title="Click to edit estimate">
-                            <Input
-                              prefix={<ClockCircleOutlined style={{ color: '#0ea5e9' }} />}
-                              value={task.estimate || ''}
-                              onChange={(e) => updateTaskData(index, 'estimate', e.target.value)}
-                              style={{ 
-                                width: 100, 
-                                backgroundColor: '#334155',
-                                color: '#e2e8f0',
-                                border: 'none',
-                                borderRadius: '4px',
-                                padding: '0 8px'
-                              }}
-                              size="small"
-                            />
-                          </Tooltip>
-                        </div>
-                      </div>
-                    }
-                    headStyle={{ 
-                      backgroundColor: '#0f172a', 
-                      borderBottom: '1px solid #334155',
-                      padding: '12px 16px'
-                    }}
-                    bodyStyle={{ padding: '16px' }}
-                  >
-                    <Paragraph 
-                      style={{ color: '#cbd5e1', lineHeight: 1.6, fontSize: '14px', marginBottom: '16px' }}
-                      editable={{
-                        onChange: (value) => updateTaskData(index, 'description', value),
-                        tooltip: 'Click to edit description',
-                        icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
-                      }}
-                    >
-                      {task.description}
-                    </Paragraph>
-                    
-                    {task.references && task.references.length > 0 && (
-                      <div className="mb-5">
-                        <div className="flex items-center mb-2">
-                          <LinkOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
-                          <Text style={{ color: '#0ea5e9', fontWeight: 500 }}>
-                            {getMessage('references')}
-                          </Text>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {task.references.map((ref, idx) => (
-                            <Input
-                              key={idx}
-                              value={ref}
-                              onChange={(e) => updateArrayField(index, 'references', idx, e.target.value)}
-                              style={{ 
-                                backgroundColor: '#1e293b',
-                                color: '#94a3b8',
-                                border: '1px solid #334155',
-                                borderRadius: '4px',
-                                padding: '2px 8px',
-                                width: 'auto',
-                                marginRight: '8px',
-                                marginBottom: '8px'
-                              }}
-                              size="small"
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="mb-5">
-                      <div className="flex items-center mb-3">
-                        <NodeIndexOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
-                        <Text style={{ color: '#0ea5e9', fontWeight: 500 }}>
-                          {getMessage('implementationSteps')}
-                        </Text>
-                      </div>
-                      <div 
-                        className="mb-2"
-                        style={{ 
-                          color: '#cbd5e1',
-                          background: '#0f172a',
-                          padding: '12px',
-                          borderRadius: '6px'
-                        }}
-                      >
-                        {task.steps && task.steps.length > 0 && task.steps.map((step, stepIdx) => (
-                          <div key={stepIdx} className="flex items-start mb-3">
-                            <div className="mr-3 mt-1">
-                              <div 
-                                style={{ 
-                                  width: '8px', 
-                                  height: '8px', 
-                                  borderRadius: '50%', 
-                                  backgroundColor: '#0ea5e9',
-                                  display: 'inline-block'
-                                }} 
-                              />
-                            </div>
-                            <div className="flex-1 relative">
-                              <Input.TextArea
-                                value={step}
-                                onChange={(e) => updateArrayField(index, 'steps', stepIdx, e.target.value)}
-                                style={{ 
-                                  backgroundColor: 'transparent',
-                                  color: '#e2e8f0',
-                                  border: '1px solid #334155',
-                                  borderRadius: '4px',
-                                  width: '100%',
-                                  resize: 'vertical',
-                                  minHeight: '60px'
-                                }}
-                                autoSize={{ minRows: 2, maxRows: 6 }}
-                              />
-                              <Button 
-                                type="text" 
-                                danger 
-                                icon={<DeleteOutlined />} 
-                                size="small"
-                                onClick={() => {
-                                  const newSteps = [...task.steps];
-                                  newSteps.splice(stepIdx, 1);
-                                  const newTasks = [...parsedResult.tasks];
-                                  newTasks[index] = {
-                                    ...task,
-                                    steps: newSteps
-                                  };
-                                  setParsedResult({
-                                    ...parsedResult,
-                                    tasks: newTasks
-                                  });
-                                  saveData({
-                                    ...parsedResult,
-                                    tasks: newTasks
-                                  });
-                                }}
-                                style={{ 
-                                  position: 'absolute', 
-                                  right: '-30px', 
-                                  top: '0', 
-                                  color: '#ef4444' 
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                        <Button 
-                          type="dashed" 
-                          icon={<PlusOutlined />} 
-                          onClick={() => {
-                            const newSteps = [...(task.steps || []), ''];
-                            const newTasks = [...parsedResult.tasks];
-                            newTasks[index] = {
-                              ...task,
-                              steps: newSteps
-                            };
-                            setParsedResult({
-                              ...parsedResult,
-                              tasks: newTasks
-                            });
-                            saveData({
-                              ...parsedResult,
-                              tasks: newTasks
-                            });
-                          }}
-                          style={{ 
-                            borderColor: '#0ea5e9', 
-                            color: '#0ea5e9',
-                            marginTop: '8px',
-                            width: '100%'
-                          }}
-                        >
-                          添加步骤
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {task.acceptance_criteria && task.acceptance_criteria.length > 0 && (
-                      <div className="mb-2">
-                        <div className="flex items-center mb-3">
-                          <CheckCircleOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
-                          <Text style={{ color: '#0ea5e9', fontWeight: 500 }}>
-                            {getMessage('acceptanceCriteria')}
-                          </Text>
-                        </div>
-                        <div className="space-y-2">
-                          {task.acceptance_criteria.map((criteria, criteriaIdx) => (
-                            <div 
-                              key={criteriaIdx}
-                              style={{ 
-                                color: '#e2e8f0', 
-                                border: 'none',
-                                background: '#0f172a',
-                                padding: '8px 12px',
-                                borderRadius: '4px',
-                                display: 'flex',
-                                alignItems: 'flex-start'
-                              }}
-                            >
-                              <Badge 
-                                count={criteriaIdx + 1} 
-                                size="small" 
-                                style={{ 
-                                  backgroundColor: '#0ea5e9', 
-                                  marginRight: '8px',
-                                  marginTop: '6px'
-                                }} 
-                              />
-                              <Input.TextArea
-                                value={criteria}
-                                onChange={(e) => updateArrayField(index, 'acceptance_criteria', criteriaIdx, e.target.value)}
-                                style={{ 
-                                  backgroundColor: 'transparent',
-                                  color: '#e2e8f0',
-                                  border: 'none',
-                                  width: '100%',
-                                  resize: 'vertical'
-                                }}
-                                autoSize={{ minRows: 1, maxRows: 4 }}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-                </List.Item>
-              )}
-            />
-          ) : (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={<span className="text-gray-400">{getMessage('noSubTasks')}</span>}
-            />
-          )}
-        </Panel>
+          <SubTasksPanel 
+            tasks={parsedResult.tasks}
+            tasksCount={parsedResult.tasks_count || parsedResult.tasks?.length || 0}
+            updateTaskData={updateTaskData}
+            updateArrayField={updateArrayField}
+            saveData={saveData}
+            parsedResult={parsedResult}
+            setParsedResult={setParsedResult}
+          />
+        </Collapse.Panel>
         
-        {/* 依赖关系 */}
+        {/* 依赖关系 - Panel key="4" */}
         {parsedResult.dependencies && parsedResult.dependencies.length > 0 && (
-          <Panel 
+          <Collapse.Panel 
             header={
-              <div style={panelHeaderStyle} className="flex items-center">
+              <div style={{ background: '#0f172a', borderRadius: '6px', padding: '8px 12px', marginBottom: '8px', borderLeft: '3px solid #0ea5e9' }} className="flex items-center">
                 <LinkOutlined style={{ color: '#0ea5e9', marginRight: '8px' }} />
                 <span style={{ color: '#f8fafc', fontWeight: 500 }}>
                   {getMessage('taskDependencies')}
@@ -700,65 +343,12 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
             key="4"
             className="mb-4"
           >
-            <List
-              dataSource={parsedResult.dependencies}
-              split={false}
-              className="space-y-4"
-              renderItem={(dep, index) => (
-                <List.Item className="p-0">
-                  <Card 
-                    bordered={false}
-                    className="rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl" 
-                    style={cardStyle}
-                    bodyStyle={{ padding: '16px' }}
-                  >
-                    <div>
-                      <div className="flex items-center mb-3">
-                        <Badge 
-                          status="processing" 
-                          color="#0ea5e9" 
-                          style={{ marginRight: '8px' }} 
-                        />
-                        <Text 
-                          style={{ color: '#f8fafc', fontWeight: 600 }}
-                          editable={{
-                            onChange: (value) => updateDependency(index, 'task', value),
-                            tooltip: 'Click to edit task',
-                            icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
-                          }}
-                        >
-                          {dep.task}
-                        </Text>
-                      </div>
-                      <Text style={{ color: '#94a3b8', display: 'block', marginBottom: '8px' }}>
-                        {getMessage('dependsOn')}:
-                      </Text>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {dep.depends_on.map((depTask, idx) => (
-                          <Input
-                            key={idx}
-                            value={depTask}
-                            onChange={(e) => updateDependencyItem(index, idx, e.target.value)}
-                            style={{ 
-                              backgroundColor: '#0f172a',
-                              color: '#0ea5e9',
-                              border: '1px solid #0ea5e9',
-                              borderRadius: '4px',
-                              padding: '2px 8px',
-                              width: 'auto',
-                              marginRight: '8px',
-                              marginBottom: '8px'
-                            }}
-                            size="small"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </Card>
-                </List.Item>
-              )}
+            <TaskDependenciesPanel 
+              dependencies={parsedResult.dependencies}
+              updateDependency={updateDependency}
+              updateDependencyItem={updateDependencyItem}
             />
-          </Panel>
+          </Collapse.Panel>
         )}
       </Collapse>
     </div>
