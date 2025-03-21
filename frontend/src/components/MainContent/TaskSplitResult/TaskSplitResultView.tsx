@@ -649,7 +649,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
               dataSource={parsedResult.dependencies}
               split={false}
               className="space-y-4"
-              renderItem={(dep) => (
+              renderItem={(dep, index) => (
                 <List.Item className="p-0">
                   <Card 
                     bordered={false}
