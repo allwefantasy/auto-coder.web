@@ -8,9 +8,22 @@ import { getMessage } from '../Sidebar/lang';
 import TodoEditModal from './TodoEditModal';
 import AutoExecuteNotificationModal from './AutoExecuteNotificationModal';
 import TaskSplitResultView from './TaskSplitResult/TaskSplitResultView';
+import TaskStatusView from './TaskStatus/TaskStatusView';
 import './TodoPanel.css';
 
 type ColumnId = 'pending' | 'developing' | 'testing' | 'done';
+
+interface Task {
+  id?: string;
+  title: string;
+  description?: string;
+  references?: string[];
+  steps?: string[];
+  acceptance_criteria?: string[];
+  priority?: string;
+  estimate?: string;
+  status?: string;
+}
 
 interface TodoItem {
   id: string;
@@ -22,6 +35,10 @@ interface TodoItem {
   dueDate?: string;  // Changed to string to match backend
   created_at: string;
   updated_at: string;
+  description?: string;
+  tasks?: Task[];
+  analysis?: string;
+  dependencies?: any[];
 }
 
 const priorityColors = {
@@ -54,6 +71,7 @@ const TodoPanel: React.FC = () => {
   const [confirmMode, setConfirmMode] = useState(true);
   const [showSplitResult, setShowSplitResult] = useState<string | null>(null);
   const [splitResultData, setSplitResultData] = useState<any>(null);
+  const [showTaskStatus, setShowTaskStatus] = useState<string | null>(null);
   const [maximizedPanel, setMaximizedPanel] = useState<ColumnId | null>(null);
 
   // Load initial data
@@ -85,13 +103,31 @@ const TodoPanel: React.FC = () => {
 
     if (!destination) return;
 
+    // Find the todo being dragged
+    const draggedTodo = todos.find(todo => todo.id === result.draggableId);
+    
+    // 禁止将 testing 和 done 状态的任务拖到 pending 和 developing 状态中
+    if (draggedTodo && 
+        (source.droppableId === 'testing' || source.droppableId === 'done') && 
+        (destination.droppableId === 'pending' || destination.droppableId === 'developing')) {
+      setError('测试中或已完成的任务不能移动到待办或开发中状态');
+      return;
+    }
+
     // Check if task is moved from 'pending' to 'developing'
     const isPendingToDeveloping = 
       source.droppableId === 'pending' && 
       destination.droppableId === 'developing';
     
-    // Find the todo being dragged
-    const draggedTodo = todos.find(todo => todo.id === result.draggableId);
+    // 如果是从 pending 拖到 developing，检查 tasks 字段是否为空
+    if (isPendingToDeveloping && draggedTodo) {
+      // 检查 tasks 字段是否为空
+      if (!draggedTodo.tasks || draggedTodo.tasks.length === 0) {
+        // 如果 tasks 为空，取消拖拽操作
+        setError(getMessage('cannotExecuteEmptyTasks') || '无法执行空任务，请先拆解任务');
+        return;
+      }
+    }
 
     // Optimistic update
     const originalTodos = [...todos];
@@ -200,62 +236,151 @@ const TodoPanel: React.FC = () => {
     }
   };
 
-  // 模拟任务自动执行的函数
+  // 任务执行函数
   const startTaskExecution = async (todo: TodoItem) => {
     setIsExecuting(true);
     
     try {
-      // 调用后端API执行任务
-      const response = await fetch(`/api/todos/${todo.id}/execute`, {
+      // 调用新的API执行所有任务
+      const response = await fetch(`/api/todos/${todo.id}/execute-tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
       
       if (!response.ok) {
-        throw new Error('Failed to execute task');
+        throw new Error('Failed to execute tasks');
       }
       
       // 获取API响应
       const result = await response.json();
       
-      // 如果有拆分结果，保存到localStorage
-      if (result.split_result) {
-        localStorage.setItem('lastSplitResult', JSON.stringify(result.split_result));
-        
-        // 更新UI状态，显示任务已被处理
-        setTodos(prev => prev.map(t => {
-          if (t.id === todo.id) {
-            // 确保任务有"正在拆解"标签
-            const updatedTags = t.tags.includes('正在拆解') ? 
-              t.tags : 
-              [...t.tags, '正在拆解'];
-            
-            return {
-              ...t, 
-              status: 'developing',
-              tags: updatedTags,
-              updated_at: new Date().toISOString()
-            };
-          }
-          return t;
-        }));
-        
-        // 显示拆分结果
-        setSplitResultData(result.split_result);
-        setShowSplitResult(todo.id);
+      console.log('Task execution started:', result);
+      
+      // 更新UI状态，显示任务正在执行
+      setTodos(prev => prev.map(t => {
+        if (t.id === todo.id) {
+          // 更新状态为正在执行
+          return {
+            ...t, 
+            status: 'developing',
+            updated_at: new Date().toISOString()
+          };
+        }
+        return t;
+      }));
+      
+      // 清除任务拆分结果视图
+      if (showSplitResult === todo.id) {
+        setShowSplitResult(null);
       }
+      
+      // 显示任务状态视图
+      setShowTaskStatus(todo.id);
+      
+      // 开始轮询任务状态
+      startPollingTaskStatus(todo.id);
       
       // 刷新任务列表
       await fetchTodos();
       
     } catch (error) {
-      console.error('Failed to execute task:', error);
+      console.error('Failed to execute tasks:', error);
       setError(getMessage('failedToExecuteTask'));
     } finally {
       setIsExecuting(false);
       // 无论结果如何，关闭执行对话框
       setExecuteModalVisible(false);
     }
+  };
+  
+  // 轮询任务状态
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  
+  // 开始轮询任务状态
+  const startPollingTaskStatus = (todoId: string) => {
+    // 清除现有的轮询器
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+    }
+    
+    // 创建新的轮询器，每3秒查询一次
+    const interval = setInterval(async () => {
+      try {
+        // 获取任务状态
+        const response = await fetch(`/api/todos/${todoId}/tasks/status`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch task status');
+        }
+        
+        const statusData = await response.json();
+        console.log('Task status:', statusData);
+        
+        // 更新UI上的任务状态
+        updateTaskStatusUI(todoId, statusData);
+        
+        // 检查是否所有任务已完成
+        const allCompleted = statusData.tasks.every((task: any) => task.status === 'completed');
+        const anyFailed = statusData.tasks.some((task: any) => task.status === 'failed');
+        
+        if (allCompleted || anyFailed) {
+          // 如果所有任务已完成或有任务失败，停止轮询
+          clearInterval(interval);
+          setPollingInterval(null);
+          
+          // 刷新任务列表
+          await fetchTodos();
+        }
+        
+      } catch (error) {
+        console.error('Error polling task status:', error);
+      }
+    }, 3000);
+    
+    setPollingInterval(interval);
+    
+    // 清理函数
+    return () => {
+      clearInterval(interval);
+      setPollingInterval(null);
+    };
+  };
+  
+  // 更新UI上的任务状态
+  const updateTaskStatusUI = (todoId: string, statusData: any) => {
+    setTodos(prev => prev.map(todo => {
+      if (todo.id === todoId && todo.tasks) {
+        // 更新每个任务的状态
+        const updatedTasks = todo.tasks.map((task, index) => {
+          if (index < statusData.tasks.length) {
+            return {
+              ...task,
+              status: statusData.tasks[index].status
+            };
+          }
+          return task;
+        });
+        
+        // 检查是否所有任务已完成或有任务失败
+        const allCompleted = statusData.tasks.every((task: any) => task.status === 'completed');
+        const anyFailed = statusData.tasks.some((task: any) => task.status === 'failed');
+        
+        // 如果所有任务已完成或有任务失败，延迟关闭任务状态视图
+        if (allCompleted || anyFailed) {
+          // 延迟5秒后关闭任务状态视图，让用户有时间查看最终状态
+          setTimeout(() => {
+            if (showTaskStatus === todoId) {
+              setShowTaskStatus(null);
+            }
+          }, 5000);
+        }
+        
+        return {
+          ...todo,
+          tasks: updatedTasks
+        };
+      }
+      return todo;
+    }));
   };
 
   // 提取fetchTodos为独立函数以便重用
@@ -362,6 +487,20 @@ const TodoPanel: React.FC = () => {
             status="processing" 
             text={<span className="text-blue-400 text-xs">{getMessage('taskRunningStatus')}</span>}
           />
+          {/* 查看任务状态按钮 */}
+          {todo.tasks && todo.tasks.length > 0 && (
+            <Button
+              type={showTaskStatus === todo.id ? "primary" : "text"}
+              size="small"
+              icon={<SyncOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTaskStatus(showTaskStatus === todo.id ? null : todo.id);
+              }}
+              className="text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center"
+              title="查看任务状态"
+            />
+          )}
           {hasSplitResultTag && hasSplitResultInStorage && (
             <Button
               type="text"
@@ -415,6 +554,20 @@ const TodoPanel: React.FC = () => {
             }}
             className="text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center"
           />
+          {/* 在 testing 和 done 状态下显示查看任务状态按钮 */}
+          {(todo.status === 'testing' || todo.status === 'done') && todo.tasks && todo.tasks.length > 0 && (
+            <Button
+              type={showTaskStatus === todo.id ? "primary" : "text"}
+              size="small"
+              icon={<SyncOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTaskStatus(showTaskStatus === todo.id ? null : todo.id);
+              }}
+              className="text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center"
+              title="查看任务状态"
+            />
+          )}
           {hasSplitResultTag && hasSplitResultInStorage && (
             <Button
               type="text"
@@ -570,11 +723,20 @@ const TodoPanel: React.FC = () => {
                               </div>
                             )}
                           </Draggable>
-                          {showSplitResult === todo.id && splitResultData && (
+                          {/* 如果是待办事项拆分结果视图 - 只在 pending 状态下显示 */}
+                          {showSplitResult === todo.id && splitResultData && todo.status === 'pending' && (
                             <TaskSplitResultView 
                               visible={true} 
                               result={splitResultData}
                               todoId={todo.id}
+                            />
+                          )}
+                          
+                          {/* 任务状态视图 - 在 developing、testing 和 done 状态下显示 */}
+                          {showTaskStatus === todo.id && (todo.status === 'developing' || todo.status === 'testing' || todo.status === 'done') && (
+                            <TaskStatusView 
+                              todoId={todo.id}
+                              onClose={() => setShowTaskStatus(null)}
                             />
                           )}
                         </React.Fragment>

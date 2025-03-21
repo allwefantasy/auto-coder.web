@@ -1,0 +1,29 @@
+.task-status-card {
+  width: 100%;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background-color: #2d2d2d;
+  border: 1px solid #374151;
+}
+
+.task-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.task-status-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  gap: 16px;
+}
+
+.task-status-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}

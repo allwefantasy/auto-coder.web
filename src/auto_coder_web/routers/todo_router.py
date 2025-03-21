@@ -399,6 +399,69 @@ async def update_task_status(todo_id: str, task_index: int, new_status: str, eve
     except Exception as e:
         logger.error(f"Error updating task status: {str(e)}")
 
+
+async def update_todo_status(todo_id: str, new_status: str):
+    """
+    更新待办事项的状态
+    
+    Args:
+        todo_id: 待办事项ID
+        new_status: 新状态
+    """
+    try:
+        # 加载所有待办事项
+        todos = await load_todos()
+        
+        # 查找指定的待办事项
+        todo_index = next((i for i, t in enumerate(todos) if t.id == todo_id), None)
+        if todo_index is None:
+            logger.error(f"Todo {todo_id} not found when updating todo status")
+            return
+        
+        # 更新待办事项状态
+        todos[todo_index].status = new_status
+        
+        # 保存更新后的待办事项
+        await save_todos(todos)
+        
+        logger.info(f"Updated todo {todo_id} status to {new_status}")
+    except Exception as e:
+        logger.error(f"Error updating todo status: {str(e)}")
+
+
+async def mark_next_task_ready(todo_id: str, current_task_index: int):
+    """
+    标记下一个任务准备好执行
+    
+    Args:
+        todo_id: 待办事项ID
+        current_task_index: 当前任务索引
+    """
+    try:
+        # 加载所有待办事项
+        todos = await load_todos()
+        
+        # 查找指定的待办事项
+        todo_index = next((i for i, t in enumerate(todos) if t.id == todo_id), None)
+        if todo_index is None:
+            logger.error(f"Todo {todo_id} not found when marking next task ready")
+            return
+        
+        # 验证任务索引
+        if not todos[todo_index].tasks or current_task_index < 0 or current_task_index >= len(todos[todo_index].tasks) - 1:
+            logger.error(f"Invalid task index {current_task_index} for todo {todo_id} or no next task available")
+            return
+        
+        # 标记当前任务的next_task_ready为True
+        todos[todo_index].tasks[current_task_index].next_task_ready = True
+        
+        # 保存更新后的待办事项
+        await save_todos(todos)
+        
+        logger.info(f"Marked next task ready after task {current_task_index} for todo {todo_id}")
+    except Exception as e:
+        logger.error(f"Error marking next task ready: {str(e)}")
+
 @router.get("/api/todos/{todo_id}/tasks/status")
 async def get_tasks_status(todo_id: str):
     """
@@ -441,14 +504,13 @@ async def get_tasks_status(todo_id: str):
         "next_task_index": next_task_index
     }
 
-@router.post("/api/todos/{todo_id}/tasks/{task_index}/execute-next")
-async def execute_next_task(todo_id: str, task_index: int, project_path: str = Depends(get_project_path)):
+@router.post("/api/todos/{todo_id}/execute-tasks")
+async def execute_todo_tasks(todo_id: str, project_path: str = Depends(get_project_path)):
     """
-    执行指定待办事项的下一个任务
+    按顺序执行待办事项的所有任务
     
     Args:
         todo_id: 待办事项ID
-        task_index: 当前任务索引
     
     Returns:
         执行状态
@@ -459,79 +521,124 @@ async def execute_next_task(todo_id: str, task_index: int, project_path: str = D
     todo = next((t for t in todos if t.id == todo_id), None)
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
+        
+    # 检查是否有任务
+    if not todo.tasks or len(todo.tasks) == 0:
+        raise HTTPException(status_code=400, detail="No tasks found in this todo item")
     
-    # 验证任务索引
-    if not todo.tasks or task_index < 0 or task_index >= len(todo.tasks) - 1:
-        raise HTTPException(status_code=400, detail="Invalid task index or no next task available")
+    # 更新待办事项状态为正在执行
+    todo_index = next((i for i, t in enumerate(todos) if t.id == todo_id), None)
+    if todo_index is not None:
+        todos[todo_index].status = "developing"
+        await save_todos(todos)
     
-    # 验证当前任务是否已完成并标记下一个任务准备好执行
-    current_task = todo.tasks[task_index]
-    if current_task.status != "completed" or not current_task.next_task_ready:
-        raise HTTPException(status_code=400, detail="Current task not completed or next task not ready")
+    # 创建一个列表来存储所有任务的执行状态
+    task_execution_results = []
     
-    # 获取下一个任务
-    next_task_index = task_index + 1
-    next_task = todo.tasks[next_task_index]
-    
-    # 重置标志
-    todo.tasks[task_index].next_task_ready = False
-    await save_todos(todos)
-    
-    # 构建执行命令
-    command = generate_command_from_task(next_task, todo)
-    
-    # 生成事件文件路径
-    event_file, file_id = gengerate_event_file_path()
-    
-    # 更新下一个任务状态
-    todo.tasks[next_task_index].status = "executing"
-    todo.tasks[next_task_index].event_file_id = file_id
-    
-    # 保存更新后的待办事项
-    await save_todos(todos)
+    # 定义执行单个任务的函数
+    async def execute_single_task(task_index: int):
+        task = todo.tasks[task_index]
+        
+        # 构建执行命令
+        command = generate_command_from_task(task, todo)
+        
+        # 生成事件文件路径
+        event_file, file_id = gengerate_event_file_path()
+        
+        # 更新任务状态
+        todo.tasks[task_index].status = "executing"
+        todo.tasks[task_index].event_file_id = file_id
+        
+        # 保存更新后的待办事项
+        await save_todos(todos)
+        
+        return task, event_file, file_id
     
     # 定义线程中运行的函数
-    def run_task_in_thread():
+    def run_tasks_in_thread():
         try:
-            # 创建AutoCoderRunnerWrapper实例
-            wrapper = AutoCoderRunnerWrapper(project_path)
-            wrapper.configure_wrapper(f"event_file:{event_file}")
+            for i, task in enumerate(todo.tasks):
+                try:
+                    # 获取当前任务的信息
+                    current_task, event_file, file_id = asyncio.run(execute_single_task(i))
+                    
+                    # 创建AutoCoderRunnerWrapper实例
+                    wrapper = AutoCoderRunnerWrapper(project_path)
+                    wrapper.configure_wrapper(f"event_file:{event_file}")
+                    
+                    # 调用coding方法执行任务
+                    command = generate_command_from_task(current_task, todo)
+                    result = wrapper.coding_wapper(command)
+                    
+                    # 标记任务完成
+                    get_event_manager(event_file).write_completion(
+                        EventContentCreator.create_completion("200", "completed", result).to_dict()
+                    )
+                    
+                    # 更新任务状态
+                    asyncio.run(update_task_status(todo_id, i, "completed", file_id))
+                    
+                    # 如果还有下一个任务，标记它准备好执行
+                    if i < len(todo.tasks) - 1:
+                        asyncio.run(mark_next_task_ready(todo_id, i))
+                    
+                    logger.info(f"Task {i+1}/{len(todo.tasks)} (ID: {file_id}) for todo {todo_id} completed successfully")
+                    
+                    # 添加到结果列表
+                    task_execution_results.append({
+                        "task_index": i,
+                        "task_id": file_id,
+                        "status": "completed",
+                        "title": current_task.title
+                    })
+                    
+                except Exception as e:
+                    logger.error(f"Error executing task {i+1}/{len(todo.tasks)} for todo {todo_id}: {str(e)}")
+                    
+                    # 标记任务失败
+                    if 'event_file' in locals():
+                        get_event_manager(event_file).write_error(
+                            EventContentCreator.create_error("500", "error", str(e)).to_dict()
+                        )
+                    
+                    # 更新任务状态为失败
+                    if 'file_id' in locals():
+                        asyncio.run(update_task_status(todo_id, i, "failed", file_id))
+                    
+                    # 添加到结果列表
+                    task_execution_results.append({
+                        "task_index": i,
+                        "status": "failed",
+                        "error": str(e),
+                        "title": task.title
+                    })
+                    
+                    # 如果一个任务失败，停止执行后续任务
+                    break
             
-            # 调用coding方法执行任务
-            result = wrapper.coding_wapper(command)
+            # 所有任务执行完成后，更新todo状态
+            all_completed = all(result.get("status") == "completed" for result in task_execution_results)
+            final_status = "testing" if all_completed else "pending"
+            asyncio.run(update_todo_status(todo_id, final_status))
             
-            # 标记任务完成
-            get_event_manager(event_file).write_completion(
-                EventContentCreator.create_completion("200", "completed", result).to_dict()
-            )
+            # 记录状态变更
+            logger.info(f"Updated todo {todo_id} status to {final_status} after task execution")
             
-            # 更新任务状态
-            asyncio.run(update_task_status(todo_id, next_task_index, "completed", file_id))
-            
-            logger.info(f"Task {file_id} for todo {todo_id} completed successfully")
         except Exception as e:
-            logger.error(f"Error executing task {file_id} for todo {todo_id}: {str(e)}")
-            
-            # 标记任务失败
-            get_event_manager(event_file).write_error(
-                EventContentCreator.create_error("500", "error", str(e)).to_dict()
-            )
-            
-            # 更新任务状态为失败
-            asyncio.run(update_task_status(todo_id, next_task_index, "failed", file_id))
+            logger.error(f"Error in task execution thread for todo {todo_id}: {str(e)}")
     
     # 创建并启动线程
-    thread = Thread(target=run_task_in_thread)
+    thread = Thread(target=run_tasks_in_thread)
     thread.daemon = True
     thread.start()
     
-    logger.info(f"Started next task execution {file_id} in background thread for todo {todo_id}")
+    logger.info(f"Started sequential task execution in background thread for todo {todo_id}")
     
     # 返回响应
     return ExecuteTaskResponse(
         status="success",
         task_id=todo_id,
-        message=f"Executing next task: {next_task.title}",
-        current_task_index=next_task_index,
-        event_file_id=file_id
+        message=f"Executing all tasks for todo: {todo.title}",
+        current_task_index=0,  # 从第一个任务开始
+        event_file_id=None  # 不返回单个事件ID，因为有多个任务
     )
