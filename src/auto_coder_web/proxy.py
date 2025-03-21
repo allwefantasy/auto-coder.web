@@ -23,19 +23,9 @@ from auto_coder_web.file_group import FileGroupManager
 from auto_coder_web.file_manager import get_directory_tree
 from auto_coder_web.auto_coder_runner import AutoCoderRunner
 from autocoder.agent.auto_filegroup import AutoFileGroup
-from .types import (
-    EventGetRequest,
-    EventResponseRequest,
-    CompletionItem,
-    CompletionResponse,
-    ChatList,
-    HistoryQuery,
-    ValidationResponse,
-    QueryWithFileNumber,
-    ValidationResponseWithFileNumbers,
-    FileContentResponse,
-    FileChange,
-    CommitDiffResponse,
+from .types import (    
+    ChatList,    
+    FileContentResponse,    
 )
 
 from rich.console import Console
@@ -56,7 +46,7 @@ from datetime import datetime
 from autocoder.utils import operate_config_api
 from .routers import todo_router, settings_router, auto_router, commit_router, chat_router, coding_router
 from expert_routers import history_router
-from .common_router import completions_router, file_router
+from .common_router import completions_router, file_router, auto_coder_conf_router, chat_list_router
 
 
 
@@ -333,12 +323,12 @@ class ProxyServer:
 
         self.setup_static_files()
         self.project_path = project_path
-
-        self.setup_routes()        
-        self.client = httpx.AsyncClient()
         
         self.auto_coder_runner = AutoCoderRunner(project_path, product_mode=product_mode)
         self.file_group_manager = FileGroupManager(self.auto_coder_runner)
+
+        self.setup_routes()        
+        self.client = httpx.AsyncClient()
 
     def setup_middleware(self):
         self.app.add_middleware(
@@ -372,6 +362,8 @@ class ProxyServer:
         self.app.include_router(history_router)
         self.app.include_router(completions_router.router)
         self.app.include_router(file_router.router)
+        self.app.include_router(auto_coder_conf_router.router)
+        self.app.include_router(chat_list_router.router)
         
         # Store project_path in app state for dependency injection
         self.app.state.project_path = self.project_path
@@ -520,40 +512,11 @@ class ProxyServer:
             groups = await self.file_group_manager.get_groups()
             return {"groups": groups}
 
-        @self.app.get("/api/conf")
-        async def get_conf():
-            return {"conf": self.auto_coder_runner.get_config()}
-
         @self.app.get("/api/active-files")
         async def get_active_files():
             """获取当前活动文件列表"""
             active_files = self.auto_coder_runner.get_active_files()
             return active_files
-
-        @self.app.post("/api/conf")
-        async def config(request: Request):
-            data = await request.json()
-            try:
-                for key, value in data.items():
-                    self.auto_coder_runner.configure(key, str(value))
-                return {"status": "success"}
-            except Exception as e:
-                raise HTTPException(status_code=400, detail=str(e))
-
-        @self.app.delete("/api/conf/{key}")
-        async def delete_config(key: str):
-            try:
-                result = self.auto_coder_runner.drop_config(key)
-                return result
-            except ValueError as e:
-                raise HTTPException(status_code=404, detail=str(e))
-            except Exception as e:
-                raise HTTPException(status_code=400, detail=str(e))
-                
-
-        @self.app.get("/api/conf")
-        async def get_conf():
-            return {"conf": self.auto_coder_runner.get_config()}            
 
         @self.app.post("/api/commit")
         async def commit():
@@ -561,95 +524,12 @@ class ProxyServer:
                 result = self.auto_coder_runner.commit()
                 return result
             except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
-        @self.app.get("/api/output/{request_id}")
-        async def get_terminal_logs(request_id: str):
-            return self.auto_coder_runner.get_logs(request_id)
+                raise HTTPException(status_code=500, detail=str(e))        
 
         @self.app.get("/api/last-yaml")
         async def get_last_yaml():
             """Get information about the last YAML file"""
             return JSONResponse(content=self.auto_coder_runner.get_last_yaml_info())
-
-        @self.app.post("/api/chat-lists/save")
-        async def save_chat_list(chat_list: ChatList):
-            try:
-                chat_lists_dir = os.path.join(
-                    ".auto-coder", "auto-coder.web", "chat-lists")
-                os.makedirs(chat_lists_dir, exist_ok=True)
-
-                file_path = os.path.join(
-                    chat_lists_dir, f"{chat_list.name}.json")
-                async with aiofiles.open(file_path, 'w') as f:
-                    await f.write(json.dumps({"messages": chat_list.messages}, indent=2))
-                return {"status": "success", "message": f"Chat list {chat_list.name} saved successfully"}
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
-        @self.app.get("/api/chat-lists")
-        async def get_chat_lists():
-            try:
-                chat_lists_dir = os.path.join(
-                    ".auto-coder", "auto-coder.web", "chat-lists")
-                os.makedirs(chat_lists_dir, exist_ok=True)
-
-                # Get files with their modification times
-                chat_lists = []
-                for file in os.listdir(chat_lists_dir):
-                    if file.endswith('.json'):
-                        file_path = os.path.join(chat_lists_dir, file)
-                        mod_time = os.path.getmtime(file_path)
-                        # Store tuple of (name, mod_time)
-                        chat_lists.append((file[:-5], mod_time))
-
-                # Sort by modification time (newest first)
-                chat_lists.sort(key=lambda x: x[1], reverse=True)
-
-                # Return only the chat list names
-                return {"chat_lists": [name for name, _ in chat_lists]}
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
-        @self.app.get("/api/chat-lists/{name}")
-        async def get_chat_list(name: str):
-            try:
-                file_path = os.path.join(
-                    ".auto-coder", "auto-coder.web", "chat-lists", f"{name}.json")
-                if not os.path.exists(file_path):
-                    raise HTTPException(
-                        status_code=404, detail=f"Chat list {name} not found")
-
-                async with aiofiles.open(file_path, 'r') as f:
-                    content = await f.read()
-                    return json.loads(content)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
-        @self.app.delete("/api/chat-lists/{name}")
-        async def delete_chat_list(name: str):
-            try:
-                file_path = os.path.join(
-                    ".auto-coder", "auto-coder.web", "chat-lists", f"{name}.json")
-                if not os.path.exists(file_path):
-                    raise HTTPException(
-                        status_code=404, detail=f"Chat list {name} not found")
-
-                os.remove(file_path)
-                return {"status": "success", "message": f"Chat list {name} deleted successfully"}
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
-        @self.app.post("/api/event/clear")
-        async def clear_events():
-            """Clear all pending events in the event queue"""
-            try:
-                self.auto_coder_runner.clear_events()
-                return {"status": "success", "message": "Event queue cleared successfully"}
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
-                
 
         @self.app.get("/api/history/file-content/{file_number}", response_model=FileContentResponse)
         async def get_file_content(file_number: int):

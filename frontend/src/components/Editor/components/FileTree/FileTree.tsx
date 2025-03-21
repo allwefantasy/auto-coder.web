@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
-import { Tree, Dropdown, Modal, message, Input } from 'antd';
-import { SearchOutlined, FolderOutlined, FileOutlined, DeleteOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Tree, Dropdown, Modal, message, Input, Tooltip, Empty } from 'antd';
+import { 
+  SearchOutlined, 
+  FolderOutlined, 
+  FileOutlined, 
+  DeleteOutlined,
+  ReloadOutlined,
+  FolderAddOutlined,
+  FileAddOutlined,
+  CopyOutlined,
+  ScissorOutlined,
+  DownloadOutlined,
+  InfoCircleOutlined
+} from '@ant-design/icons';
 import type { DataNode } from 'antd/es/tree';
 import type { MenuProps } from 'antd';
 import './FileTree.css';
@@ -9,15 +21,21 @@ interface FileTreeProps {
   treeData: DataNode[];
   onSelect: (selectedKeys: React.Key[], info: any) => void;
   onRefresh: () => Promise<void>;
+  projectName?: string;
 }
 
-const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh }) => {
+const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, projectName }) => {
   const [filteredTreeData, setFilteredTreeData] = useState<DataNode[]>(treeData);
   const [contextMenuNode, setContextMenuNode] = useState<DataNode | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [searchValue, setSearchValue] = useState<string>('');
+  const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setFilteredTreeData(treeData);
+    if (searchValue) {
+      handleSearch(searchValue);
+    }
   }, [treeData]);
 
   const handleDelete = async (node: DataNode) => {
@@ -42,8 +60,91 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh }) =>
     event.preventDefault();
     setContextMenuNode(node);
   };
+  
+  // Helper function to get file extension
+  const getFileExtension = (filename: string): string => {
+    const parts = filename.toString().split('.');
+    return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
+  };
+
+  // Helper function to check if node is a directory
+  const isDirectory = (node: DataNode): boolean => {
+    return !node.isLeaf;
+  };
+
+  const handleSearch = (value: string) => {
+    const searchText = value.toLowerCase();
+    setSearchValue(value);
+    
+    if (!searchText) {
+      setFilteredTreeData(treeData);
+      setIsSearchActive(false);
+      return;
+    }
+    
+    setIsSearchActive(true);
+
+    // Helper function to get all leaf nodes (files) from tree
+    const getAllFiles = (nodes: DataNode[]): DataNode[] => {
+      return nodes.reduce((acc: DataNode[], node) => {
+        if (node.isLeaf) {
+          acc.push(node);
+        } else if (node.children) {
+          acc.push(...getAllFiles(node.children));
+        }
+        return acc;
+      }, []);
+    };
+
+    // Get all files that match the search value
+    const allFiles = getAllFiles(treeData);
+    const matchingFiles = allFiles.filter(file => {
+      const fullPath = file.key.toString().toLowerCase();
+      return fullPath.includes(searchText);
+    });
+
+    // Create a flat tree structure for matching files
+    const flattenedTree = matchingFiles.map(file => ({
+      ...file,
+      title: (
+        <div className="file-node">
+          <span className={`file-icon file file-${getFileExtension(file.key.toString())}`}>
+            <FileOutlined />
+          </span>
+          <span className="file-name">{file.title?.toString()}</span>
+          <div className="path-breadcrumb">{file.key.toString()}</div>
+        </div>
+      ),
+    }));
+
+    setFilteredTreeData(flattenedTree as DataNode[]);
+  };
 
   const menuItems: MenuProps['items'] = [
+    {
+      key: 'info',
+      icon: <InfoCircleOutlined />,
+      label: 'File Info',
+      onClick: () => {
+        if (contextMenuNode) {
+          message.info(`Path: ${contextMenuNode.key}`);
+        }
+      },
+    },
+    {
+      key: 'copy',
+      icon: <CopyOutlined />,
+      label: 'Copy Path',
+      onClick: () => {
+        if (contextMenuNode) {
+          navigator.clipboard.writeText(contextMenuNode.key.toString());
+          message.success('Path copied to clipboard');
+        }
+      },
+    },
+    {
+      type: 'divider',
+    },
     {
       key: 'delete',
       icon: <DeleteOutlined />,
@@ -80,80 +181,111 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh }) =>
     }
   };
 
+  // Custom title renderer for tree nodes
+  const renderTitle = (node: DataNode) => {
+    const fileName = node.title?.toString() || '';
+    const isDir = !node.isLeaf;
+    const ext = getFileExtension(fileName);
+    
+    return (
+      <div className="file-node">
+        <span className={`file-icon ${isDir ? 'folder' : `file file-${ext}`}`}>
+          {isDir ? <FolderOutlined /> : <FileOutlined />}
+        </span>
+        <span className="file-name">{fileName}</span>
+      </div>
+    );
+  };
+
+  // Process tree data to add custom titles
+  const processTreeData = (data: DataNode[]): DataNode[] => {
+    return data.map(node => {
+      const processedNode: DataNode = {
+        ...node,
+        title: renderTitle(node),
+      };
+      
+      if (node.children) {
+        processedNode.children = processTreeData(node.children);
+      }
+      
+      return processedNode;
+    });
+  };
+
+  // Processed tree data with custom rendering
+  const processedTreeData = React.useMemo(() => {
+    return isSearchActive ? filteredTreeData : processTreeData(filteredTreeData);
+  }, [filteredTreeData, isSearchActive]);
+
   return (
     <div className="file-tree-container">
       <div className="file-tree-header">
-        <button
-          onClick={handleRefresh}
-          className="refresh-button"
-        >
-          {isRefreshing ? (
-            <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          )}
-        </button>
+        <div className="file-tree-header-title">
+          {projectName || 'Project Files'}
+        </div>
+        <div className="file-tree-actions">
+          <Tooltip title="Refresh">
+            <button
+              onClick={handleRefresh}
+              className="action-button"
+              aria-label="Refresh file tree"
+            >
+              {isRefreshing ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <ReloadOutlined />
+              )}
+            </button>
+          </Tooltip>
+        </div>
       </div>
       
       <div className="file-tree-search">
         <Input
           prefix={<SearchOutlined className="text-gray-400" />}
-          placeholder="Filter files by path..."
+          placeholder="Search files..."
           className="custom-input"
-          onChange={(e) => {
-            const searchValue = e.target.value.toLowerCase();
-
-            if (!searchValue) {
-              setFilteredTreeData(treeData);
-              return;
-            }
-
-            // Helper function to get all leaf nodes (files) from tree
-            const getAllFiles = (nodes: DataNode[]): DataNode[] => {
-              return nodes.reduce((acc: DataNode[], node) => {
-                if (node.isLeaf) {
-                  acc.push(node);
-                } else if (node.children) {
-                  acc.push(...getAllFiles(node.children));
-                }
-                return acc;
-              }, []);
-            };
-
-            // Get all files that match the search value
-            const allFiles = getAllFiles(treeData);
-            const matchingFiles = allFiles.filter(file => {
-              const fullPath = file.key.toString().toLowerCase();
-              return fullPath.includes(searchValue);
-            });
-
-            // Create a flat tree structure for matching files
-            const flattenedTree = matchingFiles.map(file => ({
-              ...file,
-              title: file.key, // Show full path as title
-            }));
-
-            setFilteredTreeData(flattenedTree as DataNode[]);
-          }}
+          allowClear
+          value={searchValue}
+          onChange={(e) => handleSearch(e.target.value)}
         />
       </div>
       
       <div className="file-tree-content">
-        <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
-          <Tree
-            showIcon
-            defaultExpandAll
-            onSelect={onSelect}
-            onRightClick={handleRightClick}
-            treeData={filteredTreeData}
-            className="bg-gray-900 text-gray-300"
-          />
-        </Dropdown>
+        {treeData.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <FolderOutlined />
+            </div>
+            <div className="empty-state-text">
+              No files found
+            </div>
+          </div>
+        ) : processedTreeData.length === 0 && isSearchActive ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <SearchOutlined />
+            </div>
+            <div className="empty-state-text">
+              No matching files found
+            </div>
+          </div>
+        ) : (
+          <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
+            <Tree
+              showIcon={false} // We're using custom icons
+              defaultExpandAll
+              onSelect={onSelect}
+              onRightClick={handleRightClick}
+              treeData={processedTreeData}
+              className="file-tree"
+            />
+          </Dropdown>
+        )}
       </div>
     </div>
   );
