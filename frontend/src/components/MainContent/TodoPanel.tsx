@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { JsonExtractor } from '../../services/JsonExtractor';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Button, Input, Select, Tag, Modal, Badge, Tooltip } from 'antd';
+import { Button, Input, Select, Tag, Modal, Badge, Tooltip, Alert } from 'antd';
 import { PlusOutlined, EditOutlined, SyncOutlined, CodeOutlined, ExpandOutlined, CompressOutlined } from '@ant-design/icons';
 import { ErrorBoundary } from 'react-error-boundary';
 import { getMessage } from '../Sidebar/lang';
@@ -69,6 +69,7 @@ const TodoPanel: React.FC = () => {
   const [executingTodo, setExecutingTodo] = useState<TodoItem | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [confirmMode, setConfirmMode] = useState(true);
+  const [splittingTodoId, setSplittingTodoId] = useState<string | null>(null);
   const [showSplitResult, setShowSplitResult] = useState<string | null>(null);
   const [splitResultData, setSplitResultData] = useState<any>(null);
   const [showTaskStatus, setShowTaskStatus] = useState<string | null>(null);
@@ -89,6 +90,52 @@ const TodoPanel: React.FC = () => {
     return () => {
       document.removeEventListener('closeExecuteModal', handleCloseModal);
     };
+  }, []);
+  
+  // 检查任务拆解状态
+  useEffect(() => {
+    // 检查是否有正在拆解的任务
+    const splittingId = localStorage.getItem('splittingTodoId');
+    if (splittingId) {
+      setSplittingTodoId(splittingId);
+    }
+    
+    // 检查是否有拆解完成的标记
+    const splitCompleted = localStorage.getItem('splitCompleted');
+    if (splitCompleted === 'true') {
+      // 获取最后拆解的任务ID
+      const lastSplitTodoId = localStorage.getItem('lastSplitTodoId');
+      if (lastSplitTodoId) {
+        // 清除标记
+        localStorage.removeItem('splitCompleted');
+        localStorage.removeItem('lastSplitTodoId');
+        
+        // 刷新任务列表
+        fetchTodos();
+      }
+    }
+    
+    // 设置定时器定期检查拆解状态
+    const intervalId = setInterval(() => {
+      const splittingId = localStorage.getItem('splittingTodoId');
+      setSplittingTodoId(splittingId);
+      
+      const splitCompleted = localStorage.getItem('splitCompleted');
+      if (splitCompleted === 'true') {
+        // 获取最后拆解的任务ID
+        const lastSplitTodoId = localStorage.getItem('lastSplitTodoId');
+        if (lastSplitTodoId) {
+          // 清除标记
+          localStorage.removeItem('splitCompleted');
+          localStorage.removeItem('lastSplitTodoId');
+          
+          // 刷新任务列表
+          fetchTodos();
+        }
+      }
+    }, 2000); // 每2秒检查一次
+    
+    return () => clearInterval(intervalId);
   }, []);
 
   const columns = [
@@ -479,14 +526,24 @@ const TodoPanel: React.FC = () => {
 
     const hasSplitResultInStorage = checkSplitResult();
     
+    // 检查当前任务是否正在拆解
+    const isSplitting = todo.id === splittingTodoId;
+    
     if (todo.status === 'developing') {
       // 进行中的任务显示运行状态，不显示编辑按钮
       return (
         <div className="todo-actions flex items-center gap-2">
-          <Badge 
-            status="processing" 
-            text={<span className="text-blue-400 text-xs">{getMessage('taskRunningStatus')}</span>}
-          />
+          {isSplitting ? (
+            <Badge 
+              status="processing" 
+              text={<span className="text-blue-400 text-xs">正在拆解...</span>}
+            />
+          ) : (
+            <Badge 
+              status="processing" 
+              text={<span className="text-blue-400 text-xs">{getMessage('taskRunningStatus')}</span>}
+            />
+          )}
           {/* 查看任务状态按钮 */}
           {todo.tasks && todo.tasks.length > 0 && (
             <Button
@@ -619,9 +676,14 @@ const TodoPanel: React.FC = () => {
   return (
       <div className="todo-container h-full bg-gray-900 p-4" data-testid="todo-panel">
       {error && (
-        <div className="text-red-500 p-4 border border-red-700 bg-red-900 rounded mb-4">
-          {error}
-        </div>
+        <Alert
+          message={error}
+          type="error"
+          showIcon
+          closable
+          onClose={() => setError(null)}
+          className="mb-4"
+        />
       )}
       <div className="todo-header mb-4">
             <Button 

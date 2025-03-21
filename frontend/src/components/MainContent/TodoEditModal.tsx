@@ -127,16 +127,17 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
       return;
     }
 
+    // 检查是否已有任务正在拆解
+    const splittingTodoId = localStorage.getItem('splittingTodoId');
+    if (splittingTodoId) {
+      AntMessage.error('已有任务正在拆解中，请等待当前拆解完成');
+      return;
+    }
+
     setSplitLoading(true);
     
-    try {
-      // 1. 更新本地状态
-      setEditedTodo({
-        ...editedTodo,
-        status: 'developing'
-      });
-      
-      // 2. 构建AI提示
+    try {            
+      // 1. 构建AI提示
       const prompt = `请帮我将以下任务需求进行细化拆解:
 标题: ${editedTodo.title}
 描述: ${editedTodo.description}
@@ -190,19 +191,22 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
 
       const command = `split_task ${JSON.stringify(prompt)}`;
       
-      // 3. 保存任务到服务器，标记为正在拆解
+      // 保存任务到服务器，标记为正在拆解
       if (todo) {
         try {
+          // 标记该任务正在拆解
+          localStorage.setItem('splittingTodoId', todo.id);
+          
+          // 更新任务状态为开发中
           const updatedTodo = {
             ...todo,
             ...editedTodo,
-            status: 'developing',
-            tags: [...(editedTodo.tags || todo.tags || []), '正在拆解']
+            status: 'developing'
           } as TodoItem;
           
           await onSave(updatedTodo);
           
-          // 4. 立即关闭对话框，让用户可以继续其他操作
+          // 让用户可以继续其他操作
           onClose();
         } catch (error) {
           console.error('Failed to update task status:', error);
@@ -214,7 +218,7 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
         onClose();
       }
       
-      // 5. 设置事件监听器
+      // 设置事件监听器
       const handleTaskSplitResult = (msgEvent: any) => {
         if (msgEvent.contentType === 'summary') {
           console.log('Task split result:', msgEvent);
