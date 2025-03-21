@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { message as AntdMessage, Modal, Input, Select, Button, Layout, Divider, Typography, Space, Dropdown, Menu, Tooltip } from 'antd';
 import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined } from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
+import './ChatPanel.css';
 import InputArea from './InputArea';
 import { getMessage } from './lang';
 import { pollEvents, pollStreamResult } from './polling';
@@ -515,7 +516,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     {
       key: 'new-chat',
       label: (
-        <div className="flex items-center w-full group text-blue-500 font-medium">
+        <div className="flex items-center w-full group text-white font-medium">
           <PlusOutlined className="mr-1" style={{ fontSize: '12px' }} />
           <span>新建对话</span>
         </div>
@@ -528,11 +529,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       key: name,
       label: (
         <div className="flex justify-between items-center w-full group">
-          <span className="truncate max-w-[180px]">{name}</span>
+          <span className="truncate max-w-[180px] text-white">{name}</span>
           <Button 
             type="text" 
             size="small" 
-            className="opacity-0 group-hover:opacity-100 transition-opacity" 
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-white" 
             icon={<DeleteOutlined />}
             onClick={(e) => {
               e.stopPropagation();
@@ -577,7 +578,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
                   setChatListName(key);
                   loadChatList(key);
                 }
-              }
+              },
+              style: { backgroundColor: '#1F2937', borderColor: '#4B5563', color: '#FFFFFF' }
             }} 
             trigger={['click']}
             placement="bottomRight"
@@ -677,7 +679,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
     {/* 新建对话模态框 */}
     <Modal
-      title="创建新对话"
+      title={<span style={{ color: '#FFFFFF' }}>创建新对话</span>}
       open={isNewChatModalVisible}
       onOk={handleNewChatCreate}
       onCancel={handleNewChatCancel}
@@ -686,19 +688,23 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       centered
       okButtonProps={{ 
         disabled: !newChatName.trim(),
-        style: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' } 
+        style: { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' } 
       }}
+      bodyStyle={{ backgroundColor: '#1F2937', color: '#E5E7EB' }}
+      style={{ top: 20 }}
+      className="custom-modal"
     >
       <div className="mb-4">
-        <Typography.Text strong className="block mb-2">对话名称</Typography.Text>
+        <Typography.Text strong className="block mb-2" style={{ color: '#FFFFFF' }}>对话名称</Typography.Text>
         <Input 
           value={newChatName} 
           onChange={(e) => setNewChatName(e.target.value)}
           placeholder="请输入新对话的名称"
           onPressEnter={handleNewChatCreate}
-          prefix={<MessageOutlined style={{ color: '#bfbfbf' }} />}
+          prefix={<MessageOutlined style={{ color: '#8B5CF6' }} />}
           autoFocus
           size="large"
+          style={{ backgroundColor: '#374151', borderColor: '#4B5563', color: '#FFFFFF' }}
         />
         {!newChatName.trim() && (
           <Typography.Text type="danger" className="mt-1 block">

@@ -1,0 +1,52 @@
+/* Custom Modal Styling */
+.custom-modal .ant-modal-content {
+  background-color: #1F2937;
+  border: 1px solid #4B5563;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  color: #FFFFFF;
+}
+
+.custom-modal .ant-modal-header {
+  background-color: #1F2937;
+  border-bottom: 1px solid #4B5563;
+  padding: 16px 24px;
+}
+
+.custom-modal .ant-modal-title {
+  color: #FFFFFF;
+}
+
+.custom-modal .ant-modal-close {
+  color: #9CA3AF;
+}
+
+.custom-modal .ant-modal-close:hover {
+  color: #E5E7EB;
+}
+
+.custom-modal .ant-modal-footer {
+  border-top: 1px solid #4B5563;
+  background-color: #1F2937;
+  padding: 12px 24px;
+}
+
+.custom-modal .ant-modal-footer .ant-btn-default {
+  background-color: transparent;
+  border-color: #4B5563;
+  color: #E5E7EB;
+}
+
+.custom-modal .ant-modal-footer .ant-btn-default:hover {
+  background-color: #374151;
+  border-color: #6B7280;
+}
+
+.custom-modal .ant-modal-footer .ant-btn-primary:not(:disabled) {
+  background-color: #8B5CF6;
+  border-color: #8B5CF6;
+}
+
+.custom-modal .ant-modal-footer .ant-btn-primary:not(:disabled):hover {
+  background-color: #7C3AED;
+  border-color: #7C3AED;
+}
