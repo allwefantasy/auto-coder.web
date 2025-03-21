@@ -56,6 +56,7 @@ from datetime import datetime
 from autocoder.utils import operate_config_api
 from .routers import todo_router, settings_router, auto_router, commit_router, chat_router, coding_router
 from expert_routers import history_router
+from .common_router import completions_router, file_router
 
 
 
@@ -369,9 +370,13 @@ class ProxyServer:
         self.app.include_router(chat_router.router)
         self.app.include_router(coding_router.router)
         self.app.include_router(history_router)
+        self.app.include_router(completions_router.router)
+        self.app.include_router(file_router.router)
         
         # Store project_path in app state for dependency injection
         self.app.state.project_path = self.project_path
+        # Store auto_coder_runner in app state for dependency injection
+        self.app.state.auto_coder_runner = self.auto_coder_runner
 
         @self.app.on_event("shutdown")
         async def shutdown_event():
@@ -381,23 +386,6 @@ class ProxyServer:
         async def terminal_websocket(websocket: WebSocket):
             session_id = str(uuid.uuid4())
             await terminal_manager.handle_websocket(websocket, session_id)
-
-        @self.app.delete("/api/files/{path:path}")
-        async def delete_file(path: str):
-            try:
-                full_path = os.path.join(self.project_path, path)
-                if os.path.exists(full_path):
-                    if os.path.isdir(full_path):
-                        import shutil
-                        shutil.rmtree(full_path)
-                    else:
-                        os.remove(full_path)
-                    return {"message": f"Successfully deleted {path}"}
-                else:
-                    raise HTTPException(
-                        status_code=404, detail="File not found")
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.get("/", response_class=HTMLResponse)
         async def read_root():
@@ -532,90 +520,15 @@ class ProxyServer:
             groups = await self.file_group_manager.get_groups()
             return {"groups": groups}
 
-        @self.app.get("/api/files")
-        async def get_files():
-            tree = get_directory_tree(self.project_path)
-            return {"tree": tree}
-
-        @self.app.get("/api/completions/files")
-        async def get_file_completions(name: str = Query(...)):
-            """获取文件名补全"""
-            matches = self.auto_coder_runner.find_files_in_project([name])
-            completions = []
-            project_root = self.auto_coder_runner.project_path
-            for file_name in matches:
-                path_parts = file_name.split(os.sep)
-                # 只显示最后三层路径，让显示更简洁
-                display_name = os.sep.join(
-                    path_parts[-3:]) if len(path_parts) > 3 else file_name
-                relative_path = os.path.relpath(file_name, project_root)
-
-                completions.append(CompletionItem(
-                    name=relative_path,  # 给补全项一个唯一标识
-                    path=relative_path,  # 实际用于替换的路径
-                    display=display_name,  # 显示的简短路径
-                    location=relative_path  # 完整的相对路径信息
-                ))
-            return CompletionResponse(completions=completions)
-
-        @self.app.get("/api/completions/symbols")
-        async def get_symbol_completions(name: str = Query(...)):
-            """获取符号补全"""
-            symbols = self.auto_coder_runner.get_symbol_list()
-            matches = []
-
-            for symbol in symbols:
-                if name.lower() in symbol.symbol_name.lower():
-                    relative_path = os.path.relpath(
-                        symbol.file_name, self.project_path)
-                    matches.append(CompletionItem(
-                        name=symbol.symbol_name,
-                        path=f"{symbol.symbol_name} ({relative_path}/{symbol.symbol_type.value})",
-                        display=f"{symbol.symbol_name}(location: {relative_path})"
-                    ))
-            return CompletionResponse(completions=matches)
-
-        @self.app.put("/api/file/{path:path}")
-        async def update_file(path: str, request: Request):
-            try:
-                data = await request.json()
-                content = data.get("content")
-                if content is None:
-                    raise HTTPException(
-                        status_code=400, detail="Content is required")
-
-                full_path = os.path.join(self.project_path, path)
-
-                # Ensure the directory exists
-                os.makedirs(os.path.dirname(full_path), exist_ok=True)
-
-                # Write the file content
-                with open(full_path, 'w', encoding='utf-8') as f:
-                    f.write(content)
-
-                return {"message": f"Successfully updated {path}"}
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
-        @self.app.get("/api/file/{path:path}")
-        async def get_file_content(path: str):
-            from .file_manager import read_file_content
-            content = read_file_content(self.project_path, path)
-            if content is None:
-                raise HTTPException(
-                    status_code=404, detail="File not found or cannot be read")
-
-            return {"content": content}
+        @self.app.get("/api/conf")
+        async def get_conf():
+            return {"conf": self.auto_coder_runner.get_config()}
 
         @self.app.get("/api/active-files")
         async def get_active_files():
             """获取当前活动文件列表"""
             active_files = self.auto_coder_runner.get_active_files()
             return active_files
-
-        @self.app.get("/api/conf")
-        async def get_conf():
-            return {"conf": self.auto_coder_runner.get_config()}
 
         @self.app.post("/api/conf")
         async def config(request: Request):
@@ -636,55 +549,11 @@ class ProxyServer:
                 raise HTTPException(status_code=404, detail=str(e))
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e))
+                
 
-        @self.app.post("/api/coding")
-        async def coding(request: Request):
-            data = await request.json()
-            query = data.get("query", "")
-            if not query:
-                raise HTTPException(
-                    status_code=400, detail="Query is required")
-            return await self.auto_coder_runner.coding(query)
-
-        @self.app.post("/api/chat")
-        async def chat(request: Request):
-            data = await request.json()
-            query = data.get("query", "")
-            if not query:
-                raise HTTPException(
-                    status_code=400, detail="Query is required")
-            return await self.auto_coder_runner.chat(query)
-
-        @self.app.get("/api/result/{request_id}")
-        async def get_result(request_id: str):
-            result = await self.auto_coder_runner.get_result(request_id)
-            if result is None:
-                raise HTTPException(
-                    status_code=404, detail="Result not found or not ready yet")
-
-            v = {"result": result.value, "status": result.status.value}
-            return v
-
-        @self.app.post("/api/event/get")
-        async def get_event(request: EventGetRequest):
-            request_id = request.request_id
-            if not request_id:
-                raise HTTPException(
-                    status_code=400, detail="request_id is required")
-
-            v = self.auto_coder_runner.get_event(request_id)
-            return v
-
-        @self.app.post("/api/event/response")
-        async def response_event(request: EventResponseRequest):
-            request_id = request.request_id
-            if not request_id:
-                raise HTTPException(
-                    status_code=400, detail="request_id is required")
-
-            self.auto_coder_runner.response_event(
-                request_id, request.event, request.response)
-            return {"message": "success"}
+        @self.app.get("/api/conf")
+        async def get_conf():
+            return {"conf": self.auto_coder_runner.get_config()}            
 
         @self.app.post("/api/commit")
         async def commit():
