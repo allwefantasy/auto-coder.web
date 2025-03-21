@@ -70,6 +70,9 @@ const TodoPanel: React.FC = () => {
   const [isExecuting, setIsExecuting] = useState(false);
   const [confirmMode, setConfirmMode] = useState(true);
   const [splittingTodoId, setSplittingTodoId] = useState<string | null>(null);
+  const [lastSplitResult, setLastSplitResult] = useState<any>(null);
+  const [splitCompleted, setSplitCompleted] = useState<boolean>(false);
+  const [lastSplitTodoId, setLastSplitTodoId] = useState<string | null>(null);
   const [showSplitResult, setShowSplitResult] = useState<string | null>(null);
   const [splitResultData, setSplitResultData] = useState<any>(null);
   const [showTaskStatus, setShowTaskStatus] = useState<string | null>(null);
@@ -94,48 +97,31 @@ const TodoPanel: React.FC = () => {
   
   // 检查任务拆解状态
   useEffect(() => {
-    // 检查是否有正在拆解的任务
-    const splittingId = localStorage.getItem('splittingTodoId');
-    if (splittingId) {
-      setSplittingTodoId(splittingId);
-    }
-    
-    // 检查是否有拆解完成的标记
-    const splitCompleted = localStorage.getItem('splitCompleted');
-    if (splitCompleted === 'true') {
-      // 获取最后拆解的任务ID
-      const lastSplitTodoId = localStorage.getItem('lastSplitTodoId');
-      if (lastSplitTodoId) {
-        // 清除标记
-        localStorage.removeItem('splitCompleted');
-        localStorage.removeItem('lastSplitTodoId');
-        
-        // 刷新任务列表
-        fetchTodos();
-      }
-    }
-    
-    // 设置定时器定期检查拆解状态
-    const intervalId = setInterval(() => {
-      const splittingId = localStorage.getItem('splittingTodoId');
-      setSplittingTodoId(splittingId);
+    // 当拆解完成时，刷新任务列表
+    if (splitCompleted && lastSplitTodoId) {
+      // 刷新任务列表
+      fetchTodos();
       
-      const splitCompleted = localStorage.getItem('splitCompleted');
-      if (splitCompleted === 'true') {
-        // 获取最后拆解的任务ID
-        const lastSplitTodoId = localStorage.getItem('lastSplitTodoId');
-        if (lastSplitTodoId) {
-          // 清除标记
-          localStorage.removeItem('splitCompleted');
-          localStorage.removeItem('lastSplitTodoId');
-          
-          // 刷新任务列表
-          fetchTodos();
-        }
-      }
-    }, 2000); // 每2秒检查一次
+      // 重置状态
+      setSplitCompleted(false);
+      setLastSplitTodoId(null);
+    }
+  }, [splitCompleted, lastSplitTodoId]);
+  
+  // 导出状态变量和设置函数，供其他组件使用
+  useEffect(() => {
+    // 将状态变量和设置函数挂载到 window 对象上，供 TodoEditModal 组件使用
+    (window as any).todoPanel = {
+      setSplittingTodoId,
+      setLastSplitResult,
+      setSplitCompleted,
+      setLastSplitTodoId
+    };
     
-    return () => clearInterval(intervalId);
+    return () => {
+      // 组件卸载时清理
+      (window as any).todoPanel = undefined;
+    };
   }, []);
 
   const columns = [
