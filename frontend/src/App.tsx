@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Modal, Input, List, Switch } from 'antd';
+import { Modal, Input, List, Switch, Button } from 'antd';
 import AutoModePage from './components/AutoMode';
 import { ExpertModePage } from './components/ExpertMode';
 import { getMessage, initLanguage } from './components/Sidebar/lang';
@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Array<{name: string, path: string, display: string}>>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null); // State for selected file
   const [isExpertMode, setIsExpertMode] = useState(false); // Toggle between expert and auto mode, default to auto mode
+  const [isModeToggleVisible, setIsModeToggleVisible] = useState(true); // State for mode toggle panel visibility
   const searchInputRef = useRef<any>(null);
 
   const handleFileSearch = useCallback(async (term: string) => {
@@ -86,19 +87,36 @@ const App: React.FC = () => {
     setIsExpertMode(!isExpertMode);
   };
 
+  // Toggle the visibility of the mode switch panel
+  const togglePanelVisibility = () => {
+    setIsModeToggleVisible(!isModeToggleVisible);
+  };
+
   return (
     <TaskSplittingProvider>
-      <div className="h-screen flex flex-col bg-gray-900">
-      {/* Mode Toggle */}
-      <div className="bg-gray-800 p-2 border-b border-gray-700 flex justify-end items-center space-x-2">
-        <span className="text-gray-400 text-sm">{getMessage('autoMode')}</span>
-        <Switch 
-          checked={isExpertMode} 
-          onChange={toggleMode} 
-          size="small"
-          className="bg-gray-600"
+      <div className="h-screen flex flex-col bg-gray-900 relative">
+      {/* Mode Toggle - Fixed Panel */}
+      <div className="fixed top-0 right-0 z-10 flex items-center">
+        <Button 
+          type="text" 
+          size="small" 
+          onClick={togglePanelVisibility}
+          className="bg-gray-700 text-gray-300 h-8 w-8 flex items-center justify-center rounded-bl-lg"
+          icon={<span className="text-sm">{isModeToggleVisible ? '≫' : '≪'}</span>}
         />
-        <span className="text-gray-400 text-sm">{getMessage('expertMode')}</span>
+        
+        {isModeToggleVisible && (
+          <div className="bg-gray-800 p-2 border-b border-l border-gray-700 flex items-center space-x-2 rounded-bl-lg shadow-md">
+            <span className="text-gray-400 text-sm">{getMessage('autoMode')}</span>
+            <Switch 
+              checked={isExpertMode} 
+              onChange={toggleMode} 
+              size="small"
+              className="bg-gray-600"
+            />
+            <span className="text-gray-400 text-sm">{getMessage('expertMode')}</span>
+          </div>
+        )}
       </div>
 
       {/* Auto Mode Interface */}

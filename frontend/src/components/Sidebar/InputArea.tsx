@@ -277,115 +277,51 @@ const InputArea: React.FC<InputAreaProps> = ({
           <div className="space-y-2 bg-gray-850 p-2 rounded-lg shadow-inner border border-gray-700/50">
             {/* Mode and Shortcuts Row */}
             <div className="flex items-center justify-between px-0.5">
-              <div className="flex items-center space-x-4">
-                {/* Mode Switch with Label */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-[10px] font-medium text-gray-400">Mode:</span>
-                  <Switch
-                    size="small"
-                    checked={isWriteMode}
-                    onChange={setIsWriteMode}
-                    checkedChildren="Write"
-                    unCheckedChildren="Chat"
-                    className="bg-gray-700 hover:bg-gray-600"
-                  />
-                </div>
-                {/* Keyboard Shortcut */}
-                <div className="flex items-center space-x-1">
-                  <kbd className="px-1 py-0.5 text-[10px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
-                    {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
-                  </kbd>
-                  <span className="text-[10px] text-gray-500">to send</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions Row */}
-            <div className="flex items-center justify-between">
-              {/* Left Side - Utility Actions */}
               <div className="flex items-center space-x-2">
-                <Tooltip title={getMessage('clearEventsTooltip')} placement="top">
-                  <button
-                    className="px-3 py-1.5 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 
-                    transition-all duration-200 flex items-center space-x-1.5 group shadow-sm
-                    border border-gray-600/50 hover:border-gray-500"
-                    onClick={async () => {
-                      try {
-                        const response = await fetch('/api/event/clear', {
-                          method: 'POST'
-                        });
-                        if (!response.ok) {
-                          throw new Error('Failed to clear events');
-                        }
-                        AntdMessage.success('Event queue cleared successfully');
-                      } catch (error) {
-                        console.error('Error clearing events:', error);
-                        AntdMessage.error('Failed to clear event queue');
-                      }
-                    }}
-                  >
+                {/* Mode Switch with Label */}
+                <span className="text-[10px] font-medium text-gray-400">Mode:</span>
+                <Switch
+                  size="small"
+                  checked={isWriteMode}
+                  onChange={setIsWriteMode}
+                  checkedChildren="Write"
+                  unCheckedChildren="Chat"
+                  className="bg-gray-700 hover:bg-gray-600"
+                />
+                {/* Keyboard Shortcut */}
+                <kbd className="px-1 py-0.5 ml-3 text-[10px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
+                  {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
+                </kbd>
+                <span className="text-[10px] text-gray-500 inline-flex items-center">to send</span>
+              </div>
+              
+              {/* Send Button (moved from Actions Row) */}
+              <button
+                className="p-2 text-blue-500 hover:text-blue-600 
+                  rounded-md transition-all duration-200
+                  focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
+                  transform hover:-translate-y-0.5"
+                onClick={handleSendMessage}
+                disabled={sendLoading}
+                title={getMessage('send')}
+              >
+                <div className="flex items-center justify-center">
+                  {sendLoading ? (
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" 
-                         className="h-4 w-4 transform group-hover:rotate-180 transition-transform duration-300" 
+                         className="h-5 w-5 transform rotate-45" 
                          fill="none" 
                          viewBox="0 0 24 24" 
                          stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
-                    <span className="text-xs font-medium">{getMessage('clearEvents')}</span>
-                  </button>
-                </Tooltip>
-              </div>
-
-              {/* Right Side - Primary Actions */}
-              <div className="flex items-center space-x-2">
-                <Tooltip title={getMessage('undoTooltip')} placement="top">
-                  <button
-                    className="p-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600
-                      transition-all duration-200 border border-gray-600/50 hover:border-gray-500
-                      focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 
-                      focus:ring-offset-gray-800 shadow-sm group"
-                    onClick={handleRevert}
-                  >
-                    <UndoOutlined className="text-lg group-hover:-translate-x-0.5 transition-transform" />
-                  </button>
-                </Tooltip>
-                <button
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-sm text-white 
-                    rounded-md font-medium transition-all duration-200
-                    hover:from-blue-700 hover:to-indigo-700 
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
-                    focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed
-                    shadow-md hover:shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30
-                    border border-indigo-500/50 hover:border-indigo-400
-                    transform hover:-translate-y-0.5"
-                  onClick={handleSendMessage}
-                  disabled={sendLoading}
-                >
-                  <div className="flex items-center space-x-2">
-                    {sendLoading ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>{getMessage('sending')}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>{getMessage('send')}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" 
-                             className="h-4 w-4 transform rotate-45 group-hover:translate-x-0.5" 
-                             fill="none" 
-                             viewBox="0 0 24 24" 
-                             stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                      </>
-                    )}
-                  </div>
-                </button>
-              </div>
+                  )}
+                </div>
+              </button>
             </div>
           </div>
         </div>
