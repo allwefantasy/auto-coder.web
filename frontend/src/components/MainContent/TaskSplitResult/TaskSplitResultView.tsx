@@ -105,11 +105,22 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     if (result) {
       try {
         // 如果result是字符串，尝试解析
+        let parsedData;
         if (typeof result === 'string') {
-          setParsedResult(JsonExtractor.extract(result) || {});
+          parsedData = JsonExtractor.extract(result) || {};
         } else {
-          setParsedResult(result);
+          parsedData = result;
         }
+        
+        // 确保每个任务都有id字段
+        if (parsedData.tasks && Array.isArray(parsedData.tasks)) {
+          parsedData.tasks = parsedData.tasks.map((task: SubTask, index: number) => ({
+            ...task,
+            id: task.id !== undefined ? task.id : index // 如果没有id，使用索引作为id
+          }));
+        }
+        
+        setParsedResult(parsedData);
       } catch (e) {
         console.error('Error parsing result:', e);
         setError('Failed to parse task split result');
