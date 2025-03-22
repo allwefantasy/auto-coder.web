@@ -72,3 +72,54 @@ code {
   background: #a1a1a1;
 }
 
+/* DiffViewer标签样式 */
+.diff-viewer-tabs .ant-tabs-nav {
+  margin-bottom: 0 !important;
+}
+
+.diff-viewer-tabs .ant-tabs-tab {
+  background-color: #1a2234 !important;
+  border: 1px solid #374151 !important;
+  border-bottom: none !important;
+  padding: 0 !important;
+  margin-right: 2px !important;
+  border-radius: 6px 6px 0 0 !important;
+  transition: all 0.3s;
+}
+
+.diff-viewer-tabs .ant-tabs-tab-active {
+  background-color: #2d3748 !important;
+  border-color: #4b5563 !important;
+}
+
+.diff-viewer-tabs .ant-tabs-content-holder {
+  border-top: 1px solid #374151;
+  background-color: #111827;
+}
+
+.diff-viewer-tabs .ant-tabs-content {
+  height: 100%;
+  background-color: #111827;
+}
+
+.custom-tabs-bar {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* 深色主题滚动条 */
+.bg-\[\#111827\]::-webkit-scrollbar-track,
+.bg-\[#1F2937\]::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.bg-\[\#111827\]::-webkit-scrollbar-thumb,
+.bg-\[#1F2937\]::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.bg-\[\#111827\]::-webkit-scrollbar-thumb:hover,
+.bg-\[#1F2937\]::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+

@@ -24,6 +24,7 @@ class Query(BaseModel):
     response: Optional[str] = None
     urls: Optional[List[str]] = None
     file_number: int
+    is_reverted: bool = False
 
 
 class HistoryResponse(BaseModel):
@@ -37,6 +38,12 @@ class DiffResponse(BaseModel):
     message: Optional[str] = None
     diff: Optional[str] = None
     file_changes: Optional[List[Dict[str, str]]] = None
+
+
+class FileDiffResponse(BaseModel):
+    success: bool
+    message: Optional[str] = None
+    file_diff: Optional[Dict[str, str]] = None
 
 
 async def get_project_path(request: Request) -> str:
@@ -84,6 +91,26 @@ async def validate_and_load_history(
         action_manager = ActionYmlFileManager(project_path)
         chat_action_files = action_manager.get_action_files()
         
+        # 获取Git仓库，用于检查提交是否被撤销
+        repo = get_repo(project_path)
+        
+        # 查找所有撤销提交
+        reverted_commits = {}
+        try:
+            # 遍历所有提交查找撤销提交
+            for commit in repo.iter_commits():
+                message = commit.message.strip()
+                if message.startswith("<revert>"):
+                    # 尝试从撤销提交消息中提取原始提交哈希值
+                    # <revert>原始消息\n原始提交哈希
+                    lines = message.split('\n')
+                    if len(lines) > 1:
+                        original_hash = lines[-1].strip()
+                        reverted_commits[original_hash] = True
+                        logger.info(f"找到撤销提交 {commit.hexsha[:7]} 撤销了 {original_hash[:7]}")
+        except Exception as e:
+            logger.error(f"获取撤销提交信息时出错: {str(e)}")
+        
         queries = []
         for file_path in chat_action_files:
             try:                                                
@@ -104,7 +131,13 @@ async def validate_and_load_history(
                 query_content = action_data.get("query", "")
                 
                 # 提取响应ID（如果有）
-                response_id = action_data.get("response_id")
+                response_id = action_manager.get_commit_id_from_file(file_path)
+                
+                # 检查该提交是否已被撤销
+                is_reverted = False
+                if response_id and response_id in reverted_commits:
+                    logger.info(f"提交 {response_id[:7]} 已被撤销")
+                    is_reverted = True
                 
                 # 提取上下文URL（如果有）
                 context_urls = action_data.get("urls", []) + action_data.get("dynamic_urls", [])
@@ -120,7 +153,8 @@ async def validate_and_load_history(
                     timestamp=timestamp_str,
                     response=response_id,
                     urls=context_urls,
-                    file_number=file_number
+                    file_number=file_number,
+                    is_reverted=is_reverted
                 )
                 
                 queries.append(query)
@@ -202,3 +236,98 @@ async def get_commit_diff(
     except Exception as e:
         logger.error(f"Error getting commit diff: {str(e)}")
         return {"success": False, "message": f"获取差异失败: {str(e)}"}
+
+
+@router.get("/api/history/file-diff/{response_id}", response_model=FileDiffResponse)
+async def get_file_diff(
+    response_id: str,
+    file_path: str,
+    project_path: str = Depends(get_project_path)
+):
+    """
+    获取指定提交中特定文件的差异详情
+    
+    Args:
+        response_id: 响应ID，通常是提交哈希值
+        file_path: 文件路径
+        project_path: 项目路径
+        
+    Returns:
+        文件差异详情
+    """
+    try:
+        repo = get_repo(project_path)
+        
+        # 尝试获取提交
+        try:
+            commit = repo.commit(response_id)
+        except GitCommandError:
+            return {"success": False, "message": f"找不到提交: {response_id}"}
+        
+        # 获取文件差异信息
+        file_status = ""
+        before_content = ""
+        after_content = ""
+        diff_content = ""
+        
+        # 处理父提交
+        if not commit.parents:
+            # 如果没有父提交，这是第一个提交
+            try:
+                # 检查文件是否在提交中
+                blob = commit.tree[file_path]
+                after_content = blob.data_stream.read().decode('utf-8', errors='replace')
+                diff_content = repo.git.show(f"{commit.hexsha} -- {file_path}")
+                file_status = "added"
+            except (KeyError, UnicodeDecodeError, git.GitCommandError) as e:
+                logger.error(f"Error getting file content: {str(e)}")
+                return {"success": False, "message": f"获取文件内容失败: {str(e)}"}
+        else:
+            # 有父提交，获取差异
+            parent = commit.parents[0]
+            
+            # 检查文件在当前提交中是否存在
+            file_in_current = False
+            try:
+                blob = commit.tree[file_path]
+                after_content = blob.data_stream.read().decode('utf-8', errors='replace')
+                file_in_current = True
+            except (KeyError, UnicodeDecodeError):
+                after_content = ""
+            
+            # 检查文件在父提交中是否存在
+            file_in_parent = False
+            try:
+                blob = parent.tree[file_path]
+                before_content = blob.data_stream.read().decode('utf-8', errors='replace')
+                file_in_parent = True
+            except (KeyError, UnicodeDecodeError):
+                before_content = ""
+            
+            # 确定文件状态
+            if file_in_current and file_in_parent:
+                file_status = "modified"
+            elif file_in_current:
+                file_status = "added"
+            else:
+                file_status = "deleted"
+            
+            # 获取文件差异
+            try:
+                diff_content = repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", "--", file_path)
+            except git.GitCommandError as e:
+                logger.error(f"Error getting file diff: {str(e)}")
+                diff_content = ""
+        
+        return {
+            "success": True,
+            "file_diff": {
+                "before_content": before_content,
+                "after_content": after_content,
+                "diff_content": diff_content,
+                "file_status": file_status
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error getting file diff: {str(e)}")
+        return {"success": False, "message": f"获取文件差异失败: {str(e)}"}

@@ -2,9 +2,10 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Input, Button, List, Card, Typography, message, Modal, Space, Radio, Tag, Tabs } from 'antd';
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { MessageOutlined, CodeOutlined, SortAscendingOutlined, SortDescendingOutlined, FileOutlined } from '@ant-design/icons';
+import { MessageOutlined, CodeOutlined, SortAscendingOutlined, SortDescendingOutlined, FileOutlined, UndoOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { Editor, loader } from '@monaco-editor/react';
+import DiffViewer from './DiffViewer';
 
 // 防止Monaco加载多次
 loader.config({
@@ -25,6 +26,7 @@ interface Query {
     response?: string;
     urls?: string[];
     file_number: number;
+    is_reverted?: boolean;
 }
 
 interface FileChange {
@@ -43,304 +45,29 @@ const HistoryPanel: React.FC = () => {
     const [queries, setQueries] = useState<Query[]>([]);
     const [isAscending, setIsAscending] = useState<boolean>(false);
     const [loading, setLoading] = useState(false);
-    const [diffModalVisible, setDiffModalVisible] = useState<boolean>(false);
-    const [currentDiff, setCurrentDiff] = useState<{ diff: string, file_changes?: Array<FileChange> }>({ diff: '' });
     const [contextModalVisible, setContextModalVisible] = useState<boolean>(false);
     const [currentUrls, setCurrentUrls] = useState<string[]>([]);
+    const [viewingCommitId, setViewingCommitId] = useState<string | null>(null);
 
     // 添加滚动状态
     const [scrolled, setScrolled] = useState(false);
     
-    // 新增状态
-    const [selectedFile, setSelectedFile] = useState<string | null>(null);
-    const [fileDiff, setFileDiff] = useState<FileDiff | null>(null);
-    const [fileDiffLoading, setFileDiffLoading] = useState(false);
-    const [diffViewMode, setDiffViewMode] = useState<'split' | 'unified'>('split');
-    const [maximizedView, setMaximizedView] = useState<'before' | 'after' | 'diff' | null>(null);
-    const [currentResponse, setCurrentResponse] = useState<string | null>(null);
+    // 添加撤销相关的状态
+    const [revertConfirmation, setRevertConfirmation] = useState<{
+        show: boolean;
+        commitHash: string;
+        commitMessage: string;
+    }>({ show: false, commitHash: '', commitMessage: '' });
+    const [revertLoading, setRevertLoading] = useState(false);
+    const [revertError, setRevertError] = useState<string | null>(null);
+    const [revertSuccess, setRevertSuccess] = useState<string | null>(null);
     
-    // 编辑器引用
-    const beforeEditorRef = useRef<any>(null);
-    const afterEditorRef = useRef<any>(null);
-    const diffEditorRef = useRef<any>(null);
-    const editorContainerRef = useRef<HTMLDivElement>(null);
-
-    const showDiff = async (response: string | undefined) => {
-        if (!response) return;
-        setCurrentResponse(response);
-        setSelectedFile(null);
-        setFileDiff(null);
-        setMaximizedView(null);
-
-        try {
-            const encodedResponseId = encodeURIComponent(response);
-            const diffResponse = await axios.get(`/api/history/commit-diff/${encodedResponseId}`);
-
-            if (diffResponse.data.success) {
-                setCurrentDiff({
-                    diff: diffResponse.data.diff,
-                    file_changes: diffResponse.data.file_changes
-                });
-                if (diffResponse.data.file_changes) {
-                    setQueries(prevQueries => prevQueries.map(q => {
-                        if (q.response === response) {
-                            return { ...q, file_changes: diffResponse.data.file_changes };
-                        }
-                        return q;
-                    }));
-                }
-                setDiffModalVisible(true);
-            } else {
-                message.error(diffResponse.data.message || '获取diff失败');
-            }
-        } catch (error) {
-            console.error('Error fetching diff:', error);
-            message.error('获取diff失败');
+    const showDiff = (response: string | undefined) => {
+        if (!response) {
+            message.info('该消息没有关联的代码变更');
+            return;
         }
-    };
-
-    // 获取文件差异详情
-    const fetchFileDiff = async (filePath: string) => {
-        if (!currentResponse) return;
-        
-        try {
-            setFileDiffLoading(true);
-            setFileDiff(null);
-            
-            // 清除编辑器实例，防止内存泄漏
-            beforeEditorRef.current = null;
-            afterEditorRef.current = null;
-            diffEditorRef.current = null;
-            
-            const encodedResponseId = encodeURIComponent(currentResponse);
-            const response = await axios.get(`/api/history/file-diff/${encodedResponseId}?file_path=${encodeURIComponent(filePath)}`);
-            
-            if (response.data.success) {
-                setFileDiff(response.data.file_diff);
-            } else {
-                message.error(response.data.message || '获取文件差异失败');
-            }
-        } catch (error) {
-            console.error('Error fetching file diff:', error);
-            message.error('获取文件差异失败');
-        } finally {
-            setFileDiffLoading(false);
-        }
-    };
-
-    const handleFileClick = (filePath: string) => {
-        if (selectedFile === filePath) {
-            setSelectedFile(null);
-            setFileDiff(null);
-            
-            // 清除所有编辑器实例
-            beforeEditorRef.current = null;
-            afterEditorRef.current = null;
-            diffEditorRef.current = null;
-            
-            // 清除最大化状态
-            setMaximizedView(null);
-        } else {
-            setSelectedFile(filePath);
-            fetchFileDiff(filePath);
-            
-            // 清除最大化状态
-            setMaximizedView(null);
-        }
-    };
-
-    // 编辑器挂载处理函数
-    const handleBeforeEditorDidMount = useCallback((editor: any) => {
-        beforeEditorRef.current = editor;
-    }, []);
-    
-    const handleAfterEditorDidMount = useCallback((editor: any) => {
-        afterEditorRef.current = editor;
-    }, []);
-    
-    const handleDiffEditorDidMount = useCallback((editor: any) => {
-        diffEditorRef.current = editor;
-    }, []);
-
-    // 确定文件的语言类型，用于 Monaco Editor 语法高亮
-    const getLanguageForFile = (filename: string): string => {
-        const extension = filename.split('.').pop()?.toLowerCase();
-        const extensionMap: {[key: string]: string} = {
-            'js': 'javascript',
-            'jsx': 'javascript',
-            'ts': 'typescript',
-            'tsx': 'typescript',
-            'py': 'python',
-            'java': 'java',
-            'c': 'c',
-            'cpp': 'cpp',
-            'cs': 'csharp',
-            'go': 'go',
-            'rs': 'rust',
-            'rb': 'ruby',
-            'php': 'php',
-            'html': 'html',
-            'css': 'css',
-            'scss': 'scss',
-            'json': 'json',
-            'md': 'markdown',
-            'yml': 'yaml',
-            'yaml': 'yaml',
-            'xml': 'xml',
-            'sh': 'shell',
-            'bash': 'shell',
-            'txt': 'plaintext'
-        };
-        
-        return extensionMap[extension || ''] || 'plaintext';
-    };
-
-    // 清除最大化状态
-    const clearMaximizedView = () => {
-        setMaximizedView(null);
-    };
-
-    // 渲染文件差异视图
-    const renderFileDiffView = () => {
-        if (!selectedFile || !fileDiff) return null;
-        
-        const language = getLanguageForFile(selectedFile);
-        const diffKey = `diff-${currentResponse}-${selectedFile}-${diffViewMode}`;
-        const beforeKey = `before-${currentResponse}-${selectedFile}`;
-        const afterKey = `after-${currentResponse}-${selectedFile}`;
-        
-        // 基本编辑器选项
-        const editorOptions = {
-            readOnly: true,
-            scrollBeyondLastLine: false,
-            minimap: { enabled: false },
-            lineNumbers: 'on' as const,
-            wordWrap: 'on' as const,
-            automaticLayout: true,
-            scrollbar: {
-                vertical: 'visible' as const,
-                horizontal: 'visible' as const,
-                verticalScrollbarSize: 14,
-                horizontalScrollbarSize: 14
-            }
-        };
-        
-        // 最大化/正常化按钮
-        const MaximizeButton = ({ viewType }: { viewType: 'before' | 'after' | 'diff' }) => {
-            const isMaximized = maximizedView === viewType;
-            
-            return (
-                <button
-                    className="ml-2 text-gray-400 hover:text-white transition-colors"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setMaximizedView(isMaximized ? null : viewType);
-                    }}
-                    title={isMaximized ? "恢复正常视图" : "最大化视图"}
-                >
-                    {isMaximized ? (
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                        </svg>
-                    ) : (
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                        </svg>
-                    )}
-                </button>
-            );
-        };
-        
-        if (diffViewMode === 'unified') {
-            // 统一视图模式 - 只显示差异
-            return (
-                <div ref={editorContainerRef} className="bg-gray-900 rounded-lg border border-gray-700" style={{ height: '500px', width: '100%', overflow: 'hidden' }}>
-                    <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300 flex justify-between items-center">
-                        <span>差异视图</span>
-                        <MaximizeButton viewType="diff" />
-                    </div>
-                    <Editor
-                        key={diffKey}
-                        height="calc(100% - 26px)"
-                        width="100%"
-                        defaultLanguage="diff"
-                        value={fileDiff.diff_content || ''}
-                        theme="vs-dark"
-                        onMount={handleDiffEditorDidMount}
-                        options={editorOptions}
-                        loading={<div className="flex items-center justify-center h-full text-gray-400">加载中...</div>}
-                    />
-                </div>
-            );
-        }
-        
-        // 分割视图模式
-        return (
-            <div ref={editorContainerRef} className="grid grid-cols-3 gap-2" style={{ height: '500px', width: '100%' }}>
-                {/* 根据最大化状态决定是否显示各个视图 */}
-                {(maximizedView === null || maximizedView === 'before') && (
-                    <div className={`bg-gray-900 rounded-lg border border-gray-700 ${maximizedView === 'before' ? 'col-span-3' : ''}`} style={{ overflow: 'hidden' }}>
-                        <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300 flex justify-between items-center">
-                            <span>修改前 ({fileDiff.file_status === 'added' ? '新文件' : selectedFile})</span>
-                            <MaximizeButton viewType="before" />
-                        </div>
-                        <Editor
-                            key={beforeKey}
-                            height="calc(100% - 26px)"
-                            width="100%"
-                            defaultLanguage={language}
-                            value={fileDiff.before_content || ''}
-                            theme="vs-dark"
-                            onMount={handleBeforeEditorDidMount}
-                            options={editorOptions}
-                            loading={<div className="flex items-center justify-center h-full text-gray-400">加载中...</div>}
-                        />
-                    </div>
-                )}
-                
-                {/* 更改后代码 */}
-                {(maximizedView === null || maximizedView === 'after') && (
-                    <div className={`bg-gray-900 rounded-lg border border-gray-700 ${maximizedView === 'after' ? 'col-span-3' : ''}`} style={{ overflow: 'hidden' }}>
-                        <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300 flex justify-between items-center">
-                            <span>修改后 ({fileDiff.file_status === 'deleted' ? '文件已删除' : selectedFile})</span>
-                            <MaximizeButton viewType="after" />
-                        </div>
-                        <Editor
-                            key={afterKey}
-                            height="calc(100% - 26px)"
-                            width="100%"
-                            defaultLanguage={language}
-                            value={fileDiff.after_content || ''}
-                            theme="vs-dark"
-                            onMount={handleAfterEditorDidMount}
-                            options={editorOptions}
-                            loading={<div className="flex items-center justify-center h-full text-gray-400">加载中...</div>}
-                        />
-                    </div>
-                )}
-                
-                {/* 差异视图 */}
-                {(maximizedView === null || maximizedView === 'diff') && (
-                    <div className={`bg-gray-900 rounded-lg border border-gray-700 ${maximizedView === 'diff' ? 'col-span-3' : ''}`} style={{ overflow: 'hidden' }}>
-                        <div className="py-1 px-3 bg-gray-800 border-b border-gray-700 text-xs font-medium text-gray-300 flex justify-between items-center">
-                            <span>差异视图</span>
-                            <MaximizeButton viewType="diff" />
-                        </div>
-                        <Editor
-                            key={`diff-inline-${currentResponse}-${selectedFile}`}
-                            height="calc(100% - 26px)"
-                            width="100%"
-                            defaultLanguage="diff"
-                            value={fileDiff.diff_content || ''}
-                            theme="vs-dark"
-                            onMount={handleDiffEditorDidMount}
-                            options={editorOptions}
-                            loading={<div className="flex items-center justify-center h-full text-gray-400">加载中...</div>}
-                        />
-                    </div>
-                )}
-            </div>
-        );
+        setViewingCommitId(response);
     };
 
     const loadQueries = async () => {
@@ -364,6 +91,71 @@ const HistoryPanel: React.FC = () => {
     React.useEffect(() => {
         loadQueries();
     }, []);
+    
+    // 处理撤销按钮点击
+    const handleRevertClick = (e: React.MouseEvent, commitHash: string, commitMessage: string) => {
+        e.stopPropagation(); // 阻止事件冒泡
+        setRevertConfirmation({
+            show: true,
+            commitHash: commitHash,
+            commitMessage: commitMessage
+        });
+    };
+
+    // 执行撤销操作
+    const confirmRevert = async () => {
+        try {
+            setRevertLoading(true);
+            setRevertError(null);
+            setRevertSuccess(null);
+            
+            const response = await fetch(`/api/commits/${revertConfirmation.commitHash}/revert`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || '撤销提交失败');
+            }
+            
+            const result = await response.json();
+            setRevertSuccess(`成功撤销提交。新的撤销提交: ${result.new_commit_hash.substring(0, 7)}`);
+            
+            // 关闭确认对话框，但保留成功消息一段时间
+            setRevertConfirmation(prev => ({ ...prev, show: false }));
+            
+            // 重新加载数据以更新状态
+            loadQueries();
+            
+            setTimeout(() => {
+                setRevertSuccess(null);
+            }, 5000);
+        } catch (err) {
+            setRevertError(err instanceof Error ? err.message : '撤销提交失败');
+            console.error('Failed to revert commit:', err);
+        } finally {
+            setRevertLoading(false);
+        }
+    };
+
+    // 取消撤销操作
+    const cancelRevert = () => {
+        setRevertConfirmation({ show: false, commitHash: '', commitMessage: '' });
+        setRevertError(null);
+    };
+
+    // 如果当前正在查看变更，则显示DiffViewer组件
+    if (viewingCommitId) {
+        return (
+            <DiffViewer 
+                commitId={viewingCommitId} 
+                onClose={() => setViewingCommitId(null)} 
+            />
+        );
+    }
 
     return (
         <div className="flex flex-col h-full bg-[#111827] overflow-hidden">
@@ -383,6 +175,68 @@ const HistoryPanel: React.FC = () => {
                     </Button>
                 </Space>
             </div>
+
+            {/* 撤销确认对话框 */}
+            {revertConfirmation.show && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 border border-gray-700">
+                        <h3 className="text-xl font-semibold text-white mb-4">确认撤销提交</h3>
+                        <p className="text-gray-300 mb-6">
+                            您确定要撤销此提交吗？这将创建一个新的提交来撤销更改。
+                        </p>
+                        <div className="bg-gray-900 p-3 rounded mb-6 border border-gray-700">
+                            <p className="text-sm text-gray-400 mb-1">提交信息:</p>
+                            <p className="text-white">{revertConfirmation.commitMessage}</p>
+                            <p className="text-xs text-gray-500 mt-2">Commit: {revertConfirmation.commitHash.substring(0, 7)}</p>
+                        </div>
+                        
+                        {revertError && (
+                            <div className="bg-red-900 bg-opacity-25 text-red-400 p-3 rounded mb-4">
+                                {revertError}
+                            </div>
+                        )}
+                        
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                                onClick={cancelRevert}
+                                disabled={revertLoading}
+                            >
+                                取消
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors flex items-center"
+                                onClick={confirmRevert}
+                                disabled={revertLoading}
+                            >
+                                {revertLoading ? (
+                                    <>
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        处理中...
+                                    </>
+                                ) : (
+                                    <>确认撤销</>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 成功消息提示 */}
+            {revertSuccess && (
+                <div className="fixed top-4 right-4 bg-green-800 text-green-100 p-4 rounded-lg shadow-lg z-50 animate-fade-in-out">
+                    <div className="flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{revertSuccess}</span>
+                    </div>
+                </div>
+            )}
 
             <div className="flex-1 overflow-y-auto p-4">
                 <List
@@ -419,17 +273,21 @@ const HistoryPanel: React.FC = () => {
                                                     查看上下文
                                                 </Button>
                                             )}
+                                            {item.response && !item.is_reverted && (
+                                                <Button
+                                                    icon={<UndoOutlined />}
+                                                    type="link"
+                                                    style={{ color: '#F87171' }}
+                                                    onClick={(e) => handleRevertClick(e, item.response as string, item.query)}
+                                                >
+                                                    撤销
+                                                </Button>
+                                            )}
                                             <Button
                                                 icon={<CodeOutlined />}
                                                 type="link"
                                                 style={{ color: item.response ? '#60A5FA' : '#9CA3AF' }}
-                                                onClick={() => {
-                                                    if (item.response) {
-                                                        showDiff(item.response);
-                                                    } else {
-                                                        message.info('该消息没有关联的代码变更');
-                                                    }
-                                                }}
+                                                onClick={() => showDiff(item.response)}
                                                 disabled={!item.response}
                                             >
                                                 查看变更
@@ -438,135 +296,31 @@ const HistoryPanel: React.FC = () => {
                                     </div>
                                 }
                             >
-                                <div style={{
-                                    backgroundColor: '#111827',
-                                    padding: '12px',
-                                    borderRadius: '4px',
-                                    color: '#E5E7EB',
-                                    border: '1px solid #374151',
-                                    maxWidth: '100%',
-                                    fontSize: '14px',
-                                    lineHeight: '1.6',
-                                    whiteSpace: 'normal',
-                                    wordBreak: 'break-word'
-                                }}>
-                                    {item.query}
+                                <div className={`${item.is_reverted ? 'border border-red-500 rounded-lg p-2 relative' : ''}`}>
+                                    {item.is_reverted && (
+                                        <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                            已撤销
+                                        </div>
+                                    )}
+                                    <div style={{
+                                        backgroundColor: '#111827',
+                                        padding: '12px',
+                                        borderRadius: '4px',
+                                        color: '#E5E7EB',
+                                        border: '1px solid #374151',
+                                        maxWidth: '100%',
+                                        fontSize: '14px',
+                                        lineHeight: '1.6',
+                                        whiteSpace: 'normal',
+                                        wordBreak: 'break-word'
+                                    }}>
+                                        {item.query}
+                                    </div>
                                 </div>
                             </Card>
                         </List.Item>
                     )}
                 />
-
-                <Modal
-                    title="代码变更详情"
-                    open={diffModalVisible}
-                    onCancel={() => {
-                        setDiffModalVisible(false);
-                        setSelectedFile(null);
-                        setFileDiff(null);
-                        setMaximizedView(null);
-                    }}
-                    width={1000}
-                    footer={null}
-                    className="dark-theme-modal"
-                    styles={{
-                        content: {
-                            backgroundColor: '#1f2937',
-                            padding: '20px',
-                        },
-                        header: {
-                            backgroundColor: '#1f2937',
-                            borderBottom: '1px solid #374151',
-                        },
-                        body: {
-                            backgroundColor: '#1f2937',
-                        },
-                        mask: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                        },
-                    }}
-                >
-                    <div className="flex flex-col h-full">
-                        <Tabs type="card" className="dark-tabs">
-                            <TabPane tab="文件列表" key="1">
-                                <div className="mb-4">
-                                    {/* 文件列表视图 */}
-                                    <div className="space-y-2 mb-4">
-                                        {currentDiff.file_changes && currentDiff.file_changes.length > 0 ? (
-                                            currentDiff.file_changes.map((file, index) => (
-                                                <div 
-                                                    key={index} 
-                                                    className={`text-sm py-2 px-3 rounded cursor-pointer ${
-                                                        selectedFile === file.path 
-                                                            ? 'bg-gray-700 border-l-2 border-indigo-500' 
-                                                            : 'hover:bg-gray-750 bg-gray-800'
-                                                    }`}
-                                                    onClick={() => handleFileClick(file.path)}
-                                                >
-                                                    <div className="flex items-center">
-                                                        <span className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                                                            file.change_type === 'added' ? 'bg-green-500' :
-                                                            file.change_type === 'modified' ? 'bg-yellow-500' :
-                                                            file.change_type === 'deleted' ? 'bg-red-500' : 'bg-blue-500'
-                                                        }`}></span>
-                                                        <span className={`font-mono ${
-                                                            file.change_type === 'deleted' ? 'line-through text-gray-500' : 'text-gray-300'
-                                                        }`}>
-                                                            {file.path}
-                                                        </span>
-                                                        <FileOutlined className="ml-2 text-gray-400" />
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center text-gray-400 py-8">
-                                                <p>没有文件变更信息</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                
-                                {/* 文件差异加载状态 */}
-                                {fileDiffLoading && (
-                                    <div className="flex items-center justify-center py-10">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-                                    </div>
-                                )}
-                                
-                                {/* 视图模式切换按钮 */}
-                                {selectedFile && fileDiff && !fileDiffLoading && (
-                                    <div className="flex justify-end mb-3">
-                                        <Radio.Group 
-                                            value={diffViewMode} 
-                                            onChange={(e) => setDiffViewMode(e.target.value)}
-                                            buttonStyle="solid"
-                                        >
-                                            <Radio.Button value="split">分割视图</Radio.Button>
-                                            <Radio.Button value="unified">统一视图</Radio.Button>
-                                        </Radio.Group>
-                                    </div>
-                                )}
-                                
-                                {/* 文件差异视图 */}
-                                {selectedFile && fileDiff && !fileDiffLoading && renderFileDiffView()}
-                            </TabPane>
-                            <TabPane tab="原始差异" key="2">
-                                <SyntaxHighlighter
-                                    language="diff"
-                                    style={vscDarkPlus}
-                                    customStyle={{
-                                        padding: '12px',
-                                        borderRadius: '4px',
-                                        overflow: 'auto',
-                                        maxHeight: '600px'
-                                    }}
-                                >
-                                    {currentDiff.diff}
-                                </SyntaxHighlighter>
-                            </TabPane>
-                        </Tabs>
-                    </div>
-                </Modal>
 
                 {/* Context Files Modal */}
                 <Modal
@@ -584,9 +338,11 @@ const HistoryPanel: React.FC = () => {
                         header: {
                             backgroundColor: '#1f2937',
                             borderBottom: '1px solid #374151',
+                            color: '#ffffff',
                         },
                         body: {
                             backgroundColor: '#1f2937',
+                            color: '#ffffff',
                         },
                         mask: {
                             backgroundColor: 'rgba(0, 0, 0, 0.6)',

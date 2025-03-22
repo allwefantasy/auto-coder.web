@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { JsonExtractor } from '../../services/JsonExtractor';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Button, Input, Select, Tag, Modal, Badge, Tooltip, Alert } from 'antd';
-import { PlusOutlined, EditOutlined, SyncOutlined, CodeOutlined, ExpandOutlined, CompressOutlined } from '@ant-design/icons';
+import { Button, Input, Select, Tag, Modal, Badge, Tooltip, Alert, Popconfirm } from 'antd';
+import { PlusOutlined, EditOutlined, SyncOutlined, CodeOutlined, ExpandOutlined, CompressOutlined, DeleteOutlined } from '@ant-design/icons';
 import { ErrorBoundary } from 'react-error-boundary';
 import { getMessage } from '../Sidebar/lang';
 import TodoEditModal from './TodoEditModal';
@@ -57,6 +57,14 @@ const priorityOptions = [
 ];
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+// 添加去重标签的辅助函数
+const deduplicateTags = (tags: string[] = []): string[] => {
+  // 使用filter和indexOf结合实现去重，避免使用Set
+  return tags.filter((tag, index, self) => 
+    self.indexOf(tag) === index
+  );
+};
 
 const TodoPanel: React.FC = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
@@ -443,7 +451,7 @@ const TodoPanel: React.FC = () => {
         body: JSON.stringify({
           title: newTodo.title,
           priority: newTodo.priority || 'P2',
-          tags: newTodo.tags || []
+          tags: deduplicateTags(newTodo.tags) || []  // 使用去重函数
         })
       });
       
@@ -468,10 +476,16 @@ const TodoPanel: React.FC = () => {
 
   const handleSaveTodo = async (updatedTodo: TodoItem) => {
     try {
+      // 确保tags去重
+      const todoWithDeduplicatedTags = {
+        ...updatedTodo,
+        tags: deduplicateTags(updatedTodo.tags)
+      };
+      
       const response = await fetch(`/api/todos/${updatedTodo.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedTodo)
+        body: JSON.stringify(todoWithDeduplicatedTags)
       });
       
       if (!response.ok) {
@@ -484,6 +498,37 @@ const TodoPanel: React.FC = () => {
       console.error(getMessage('failedToSaveTodo'), error);
       setError(getMessage('failedToSaveTodo'));
       throw error;
+    }
+  };
+
+  // 添加删除任务的函数
+  const handleDeleteTodo = async (todoId: string) => {
+    try {
+      const response = await fetch(`/api/todos/${todoId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(getMessage('failedToDeleteTodo'));
+      }
+      
+      // 删除成功后更新UI，从列表中移除该任务
+      setTodos(prev => prev.filter(todo => todo.id !== todoId));
+      
+      // 如果正在显示这个任务的拆分结果或状态，关闭它们
+      if (showSplitResult === todoId) {
+        setShowSplitResult(null);
+        setSplitResultData(null);
+      }
+      
+      if (showTaskStatus === todoId) {
+        setShowTaskStatus(null);
+      }
+      
+    } catch (error) {
+      console.error(getMessage('failedToDeleteTodo'), error);
+      setError(getMessage('failedToDeleteTodo'));
     }
   };
 
@@ -588,6 +633,29 @@ const TodoPanel: React.FC = () => {
             }}
             className="text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center"
           />
+          {/* 在pending、testing和done状态下显示删除按钮 */}
+          {(todo.status === 'pending' || todo.status === 'testing' || todo.status === 'done') && (
+            <Popconfirm
+              title={getMessage('confirmDeleteTask') || "确定要删除这个任务吗?"}
+              okText={getMessage('yes') || "是"}
+              cancelText={getMessage('no') || "否"}
+              onConfirm={(e) => {
+                e?.stopPropagation();
+                handleDeleteTodo(todo.id);
+              }}
+              onCancel={(e) => e?.stopPropagation()}
+            >
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={(e) => e.stopPropagation()}
+                className="text-gray-400 hover:text-red-500 p-0 flex items-center justify-center"
+                title={getMessage('deleteTask') || "删除任务"}
+              />
+            </Popconfirm>
+          )}
           {/* 在 testing 和 done 状态下显示查看任务状态按钮 */}
           {(todo.status === 'testing' || todo.status === 'done') && todo.tasks && todo.tasks.length > 0 && (
             <Button
@@ -757,6 +825,13 @@ const TodoPanel: React.FC = () => {
                                   <div className="todo-execution-status flex items-center gap-1 text-blue-400 text-xs mt-2">
                                     <SyncOutlined spin />
                                     <span>{getMessage('taskExecutingInBackground')}</span>
+                                  </div>
+                                )}
+                                {/* 显示正在拆解任务的状态 - 在pending面板中显示 */}
+                                {todo.status === 'pending' && splittingTodoId && todo.id === splittingTodoId && (
+                                  <div className="todo-splitting-status flex items-center gap-1 text-blue-400 text-xs mt-2">
+                                    <SyncOutlined spin />
+                                    <span>正在后台运行拆解任务...</span>
                                   </div>
                                 )}
                               </div>
