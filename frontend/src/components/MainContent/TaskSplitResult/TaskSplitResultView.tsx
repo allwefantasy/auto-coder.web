@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { JsonExtractor } from '../../../services/JsonExtractor';
 import axios from 'axios';
-import { Collapse, Typography, Alert, Tooltip, message as AntMessage, Badge } from 'antd';
+import { Collapse, Typography, Alert, Tooltip, message as AntMessage, Badge, Button } from 'antd';
 import { getMessage } from '../../Sidebar/lang';
-import { CaretRightOutlined, InfoCircleOutlined, NodeIndexOutlined, BranchesOutlined, LinkOutlined } from '@ant-design/icons';
+import { CaretRightOutlined, InfoCircleOutlined, NodeIndexOutlined, BranchesOutlined, LinkOutlined, CloseOutlined } from '@ant-design/icons';
 
 // Import sub-components
 import TaskAnalysisPanel from './TaskAnalysisPanel';
@@ -15,7 +15,7 @@ import { TaskSplitResult, TaskSplitResultViewProps, SubTask, TaskReference } fro
 
 const { Title } = Typography;
 
-const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, result, todoId }) => {
+const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, result, todoId, onClose }) => {
   const [activeKey, setActiveKey] = useState<string[]>(['1']);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -422,6 +422,26 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
           <Tooltip title={getMessage('taskSplitResultHelp') || 'Task breakdown and analysis'}>
             <InfoCircleOutlined style={{ color: '#60a5fa', fontSize: '18px' }} />
           </Tooltip>
+          {onClose && (
+            <Button
+              type="text"
+              icon={<CloseOutlined />}
+              onClick={() => {
+                // 如果有未保存的更改，先保存
+                if (pendingChanges && parsedResult) {
+                  saveData(parsedResult).then(() => {
+                    // 保存完成后调用onClose回调
+                    onClose();
+                  });
+                } else {
+                  // 没有未保存的更改，直接关闭
+                  onClose();
+                }
+              }}
+              style={{ marginLeft: '8px', color: '#94a3b8' }}
+              size="small"
+            />
+          )}
         </div>
       </div>
       

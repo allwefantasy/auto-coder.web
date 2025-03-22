@@ -534,6 +534,111 @@ const TodoPanel: React.FC = () => {
     }
   };
 
+  // 添加获取单个任务最新数据的函数
+  const fetchSingleTodo = async (todoId: string) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/todos/${todoId}`);
+      if (!response.ok) {
+        throw new Error(getMessage('failedToFetchTodo'));
+      }
+      const data = await response.json();
+      
+      // 更新本地todos列表中的对应任务
+      setTodos(prev => prev.map(todo => 
+        todo.id === todoId ? data : todo
+      ));
+      
+      return data;
+    } catch (error) {
+      console.error(getMessage('failedToFetchTodo'), error);
+      setError(getMessage('failedToLoadTodo'));
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 修改点击查看任务拆分结果的处理函数 - 开发中状态
+  const handleViewSplitResult = async (e: React.MouseEvent<HTMLElement>, todo: TodoItem) => {
+    e.stopPropagation();
+    
+    if (showSplitResult === todo.id) {
+      // 如果当前正在显示，则关闭
+      setShowSplitResult(null);
+      setSplitResultData(null);
+    } else {
+      // 先获取最新的任务数据，确保看到的是最新的拆解结果
+      let latestTodo = todo;
+      const freshData = await fetchSingleTodo(todo.id);
+      if (freshData) {
+        latestTodo = freshData;
+      }
+      
+      // 从Context获取拆分结果并显示
+      if (lastSplitResult && lastSplitTodoId === latestTodo.id) {
+        setSplitResultData(lastSplitResult);
+        setShowSplitResult(latestTodo.id);
+      } else if (latestTodo.tasks && latestTodo.tasks.length > 0) {
+        // 如果没有拆解结果但有tasks，直接构建一个结果对象
+        const constructedResult = {
+          original_task: {
+            title: latestTodo.title,
+            description: latestTodo.description || ''
+          },
+          analysis: latestTodo.analysis || '',
+          tasks: latestTodo.tasks,
+          dependencies: latestTodo.dependencies || []
+        };
+        setSplitResultData(constructedResult);
+        setShowSplitResult(latestTodo.id);
+      }
+    }
+  };
+
+  // 修改点击查看任务拆分结果的处理函数 - 其他状态
+  const handleViewSplitResultForOtherStatus = async (e: React.MouseEvent<HTMLElement>, todo: TodoItem) => {
+    e.stopPropagation();
+    
+    if (showSplitResult === todo.id) {
+      // 如果当前正在显示，则关闭
+      setShowSplitResult(null);
+      setSplitResultData(null);
+    } else {
+      // 先获取最新的任务数据，确保看到的是最新的拆解结果
+      let latestTodo = todo;
+      const freshData = await fetchSingleTodo(todo.id);
+      if (freshData) {
+        latestTodo = freshData;
+      }
+      
+      if (latestTodo.tasks && latestTodo.tasks.length > 0) {
+        // 如果有tasks，直接构建一个结果对象
+        const constructedResult = {
+          original_task: {
+            title: latestTodo.title,
+            description: latestTodo.description || ''
+          },
+          analysis: latestTodo.analysis || '',
+          tasks: latestTodo.tasks,
+          dependencies: latestTodo.dependencies || []
+        };
+        setSplitResultData(constructedResult);
+        setShowSplitResult(latestTodo.id);
+      }
+    }
+  };
+
+  // 添加处理TaskSplitResultView关闭的函数
+  const handleSplitResultViewClose = async (todoId: string) => {
+    // 关闭视图
+    setShowSplitResult(null);
+    setSplitResultData(null);
+    
+    // 刷新单个任务数据，确保UI显示最新状态
+    await fetchSingleTodo(todoId);
+  };
+
   // 在任务卡片中渲染状态和操作按钮
   const renderTodoActions = (todo: TodoItem, handleEditTodo: (todo: TodoItem) => void) => {
     const hasSplitResultTag = todo.tags && todo.tags.includes('正在拆解');
@@ -581,29 +686,7 @@ const TodoPanel: React.FC = () => {
               icon={<CodeOutlined />}
               onClick={(e) => {
                 e.stopPropagation();
-                if (isShowingSplitResult) {
-                  setShowSplitResult(null);
-                  setSplitResultData(null);
-                } else {
-                  // 从Context获取拆分结果并显示
-                  if (lastSplitResult && lastSplitTodoId === todo.id) {
-                    setSplitResultData(lastSplitResult);
-                    setShowSplitResult(todo.id);
-                  } else if (todo.tasks && todo.tasks.length > 0) {
-                    // 如果没有拆解结果但有tasks，直接构建一个结果对象
-                    const constructedResult = {
-                      original_task: {
-                        title: todo.title,
-                        description: todo.description || ''
-                      },
-                      analysis: todo.analysis || '',
-                      tasks: todo.tasks,
-                      dependencies: todo.dependencies || []
-                    };
-                    setSplitResultData(constructedResult);
-                    setShowSplitResult(todo.id);
-                  }
-                }
+                handleViewSplitResult(e, todo);
               }}
               className={`text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center ${isShowingSplitResult ? 'bg-blue-900/30' : ''}`}
               title="查看任务拆解结果"
@@ -679,22 +762,7 @@ const TodoPanel: React.FC = () => {
               icon={<CodeOutlined />}
               onClick={(e) => {
                 e.stopPropagation();
-                if (isShowingSplitResult) {
-                  setShowSplitResult(null);
-                  setSplitResultData(null);
-                } else {
-                  // 从localStorage获取拆分结果并显示
-                  const lastSplitResult = localStorage.getItem('lastSplitResult');
-                  if (lastSplitResult) {
-                    try {
-                      const resultData = JsonExtractor.extract(lastSplitResult);
-                      setSplitResultData(resultData);
-                      setShowSplitResult(todo.id);
-                    } catch (e) {
-                      console.error('Error parsing split result:', e);
-                    }
-                  }
-                }
+                handleViewSplitResultForOtherStatus(e, todo);
               }}
               className={`text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center ${isShowingSplitResult ? 'bg-blue-900/30' : ''}`}
               title={isShowingSplitResult ? getMessage('hideTaskSplitResult') : getMessage('viewTaskSplitResult')}
@@ -845,6 +913,7 @@ const TodoPanel: React.FC = () => {
                               visible={true} 
                               result={splitResultData}
                               todoId={todo.id}
+                              onClose={() => handleSplitResultViewClose(todo.id)}
                             />
                           )}
                           

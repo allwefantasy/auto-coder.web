@@ -167,6 +167,21 @@ async def delete_todo(todo_id: str):
     return {"status": "success"}
 
 
+@router.get("/api/todos/{todo_id}", response_model=TodoItem)
+async def get_single_todo(todo_id: str):
+    """获取单个待办事项的详细信息"""
+    todos = await load_todos()
+    
+    # 查找指定ID的待办事项
+    todo = next((t for t in todos if t.id == todo_id), None)
+    
+    # 如果未找到，返回404错误
+    if not todo:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    
+    return todo
+
+
 @router.post("/api/todos/reorder")
 async def reorder_todos(request: ReorderTodoRequest):
     """处理拖放排序"""

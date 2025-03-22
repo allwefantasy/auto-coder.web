@@ -29,6 +29,7 @@ export interface TaskSplitResultViewProps {
   visible: boolean;
   result?: TaskSplitResult | null;
   todoId?: string; // 添加 todoId 属性，用于更新操作
+  onClose?: () => void; // 添加关闭回调函数
 }
 
 // 添加子组件的Props类型定义
