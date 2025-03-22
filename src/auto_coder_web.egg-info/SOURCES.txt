@@ -140,12 +140,12 @@ src/auto_coder_web/web/monaco-editor/min/vs/language/json/jsonMode.js
 src/auto_coder_web/web/monaco-editor/min/vs/language/json/jsonWorker.js
 src/auto_coder_web/web/monaco-editor/min/vs/language/typescript/tsMode.js
 src/auto_coder_web/web/monaco-editor/min/vs/language/typescript/tsWorker.js
-src/auto_coder_web/web/static/css/main.95277c5f.css
-src/auto_coder_web/web/static/css/main.95277c5f.css.map
+src/auto_coder_web/web/static/css/main.b9764291.css
+src/auto_coder_web/web/static/css/main.b9764291.css.map
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js.map
-src/auto_coder_web/web/static/js/main.66c37ccf.js
-src/auto_coder_web/web/static/js/main.66c37ccf.js.LICENSE.txt
-src/auto_coder_web/web/static/js/main.66c37ccf.js.map
+src/auto_coder_web/web/static/js/main.a707a18c.js
+src/auto_coder_web/web/static/js/main.a707a18c.js.LICENSE.txt
+src/auto_coder_web/web/static/js/main.a707a18c.js.map
 src/expert_routers/__init__.py
 src/expert_routers/history_router.py
