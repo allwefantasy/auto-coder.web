@@ -229,7 +229,12 @@ const InputArea: React.FC<InputAreaProps> = ({
           <div className="h-[1px] bg-gray-700/50 my-0.5"></div>
           <Select
             mode="multiple"
-            style={{ width: '100%' }}
+            style={{ 
+              width: '100%', 
+              background: '#1f2937', 
+              borderColor: '#374151', 
+              color: '#e5e7eb' 
+            }}
             placeholder="Select file groups to work with"
             value={selectedGroups}
             onFocus={fetchFileGroups}
@@ -243,15 +248,17 @@ const InputArea: React.FC<InputAreaProps> = ({
             }}
             optionLabelProp="label"
             className="custom-select"
+            dropdownClassName="bg-gray-800 border border-gray-700"
           >
             {fileGroups.map(group => (
               <Select.Option
                 key={group.name}
                 value={group.name}
                 label={group.name}
+                className="bg-gray-800 hover:bg-gray-700"
               >
                 <div className="flex justify-between items-center">
-                  <span>{group.name}</span>
+                  <span className="text-gray-200">{group.name}</span>
                   <span className="text-gray-400 text-xs">
                     {group.files.length} files
                     </span>
