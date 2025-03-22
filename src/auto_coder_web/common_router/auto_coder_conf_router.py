@@ -1,42 +1,39 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
+from autocoder.auto_coder_runner import get_memory, configure
 
 router = APIRouter()
 
-async def get_auto_coder_runner(request: Request):
-    """获取AutoCoderRunner实例作为依赖"""
-    return request.app.state.auto_coder_runner
 
 @router.get("/api/conf")
-async def get_conf(
-    auto_coder_runner = Depends(get_auto_coder_runner)
-):
+async def get_conf():
     """获取配置信息"""
-    return {"conf": auto_coder_runner.get_config()}
+    memory = get_memory()
+    return {"conf": memory["conf"]}
+
 
 @router.post("/api/conf")
 async def config(
     request: Request,
-    auto_coder_runner = Depends(get_auto_coder_runner)
 ):
     """更新配置信息"""
     data = await request.json()
     try:
         for key, value in data.items():
-            auto_coder_runner.configure(key, str(value))
+            configure(f"{key}:{str(value)}")
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.delete("/api/conf/{key}")
 async def delete_config(
-    key: str,
-    auto_coder_runner = Depends(get_auto_coder_runner)
+    key: str
 ):
     """删除配置项"""
     try:
-        result = auto_coder_runner.drop_config(key)
-        return result
+        configure(f"/drop {key}")
+        return {"status": "success"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e)) 
+        raise HTTPException(status_code=400, detail=str(e))

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Tree, Input, Button, Modal, message, Table, Switch, Checkbox } from 'antd';
+import { Tree, Input, Button, Modal, message, Table, Switch, Checkbox, Empty } from 'antd';
 import { DeleteOutlined, PlusOutlined, SearchOutlined, CheckOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import type { DataNode, EventDataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
 import { getLanguageByFileName } from '../../utils/fileUtils';
+import FileDirectorySelector from './FileDirectorySelector';
+import FileGroupDetail from './FileGroupDetail';
+import './FileGroupPanel.css'; // 假设会创建这个文件
 
 interface FileGroup {
   name: string;
@@ -47,8 +50,6 @@ const FileGroupPanel: React.FC = () => {
   const [skipDiff, setSkipDiff] = useState<boolean>(false);
   const [groupResults, setGroupResults] = useState<Array<{name: string; description: string; selected: boolean}>>([]);
   const [isGroupResultsModalVisible, setIsGroupResultsModalVisible] = useState(false);
-  const [editingDesc, setEditingDesc] = useState(false);
-  const [currentDesc, setCurrentDesc] = useState('');
   const [isExternalFileModalVisible, setIsExternalFileModalVisible] = useState(false);
   const [externalFilePath, setExternalFilePath] = useState('');
 
@@ -139,11 +140,6 @@ const FileGroupPanel: React.FC = () => {
     if (!selectedGroup || checkedKeys.length === 0) return;
 
     try {
-      if (checkedKeys.length === 0) {
-        message.info('No files selected (directories are ignored)');
-        return;
-      }
-
       const response = await fetch(`/api/file-groups/${selectedGroup.name}/files`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -217,15 +213,16 @@ const FileGroupPanel: React.FC = () => {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => setIsModalVisible(true)}
+                className="bg-blue-600 hover:bg-blue-700 border-none"
               />
-              <Button
+              {/* <Button
                 type="primary"
                 icon={<ThunderboltOutlined />}
                 onClick={() => setIsAutoGroupModalVisible(true)}
                 className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 border-none shadow-md hover:shadow-lg transition-all duration-300"
               >
                 Auto Group
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
@@ -239,11 +236,11 @@ const FileGroupPanel: React.FC = () => {
               dataSource={fileGroups}
               rowKey="name"
               rowClassName={(record) =>
-                record.name === selectedGroup?.name ? 'bg-blue-600' : 'bg-gray-800'
+                record.name === selectedGroup?.name ? 'bg-blue-600' : 'bg-transparent'
               }
               onRow={(record) => ({
                 onClick: () => setSelectedGroup(record),
-                className: 'cursor-pointer hover:bg-gray-700'
+                className: 'cursor-pointer hover:bg-gray-800'
               })}
               className="dark-mode-table"
               size="small"
@@ -277,233 +274,90 @@ const FileGroupPanel: React.FC = () => {
                   )
                 }
               ]}
+              locale={{
+                emptyText: (
+                  <div className="py-4">
+                    <Empty 
+                      description={<span className="text-gray-400">No file groups yet</span>}
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      className="custom-empty-state"
+                    />
+                  </div>
+                )
+              }}
             />
           </div>
 
           {/* Group Details Panel */}
           <div className="w-80 bg-gray-900 border-r border-gray-700 overflow-y-auto p-4">
-            {selectedGroup ? (
-              <div className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-white font-medium text-lg">{selectedGroup.name}</h3>
-                  <Button
-                    type="primary"
-                    size="small"
-                    onClick={async () => {
-                      if (editingDesc) {
-                        try {
-                          await fetch(`/api/file-groups/${selectedGroup.name}/files`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ description: currentDesc }),
-                          });
-                          selectedGroup.description = currentDesc;
-                        } catch (error) {
-                          message.error('Failed to update description');
-                        }
-                      }
-                      setEditingDesc(!editingDesc);
-                      setCurrentDesc(selectedGroup.description || '');
-                    }}
-                  >
-                    {editingDesc ? 'Save Description' : 'Edit Description'}
-                  </Button>
-                </div>
-                {editingDesc ? (
-                  <div className="h-48">
-                    <Editor
-                      height="100%"
-                      defaultLanguage="markdown"
-                      theme="vs-dark"
-                      value={currentDesc}
-                      onChange={(value) => setCurrentDesc(value || '')}
-                      options={{
-                        minimap: { enabled: false },
-                        fontSize: 14,
-                        lineNumbers: 'off',
-                        wordWrap: 'on',
-                        automaticLayout: true,
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-gray-400 text-sm">
-                    {selectedGroup.description || 'No description'}
-                  </p>
-                )}
-              </div>
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="text-white font-medium">Files ({selectedGroup.files.length})</h4>
-                    <Button
-                      type="primary"
-                      size="small"
-                      icon={<PlusOutlined />}
-                      onClick={() => setIsExternalFileModalVisible(true)}
-                    >
-                      Add External File
-                    </Button>
-                  </div>
-                  <Table
-                    dataSource={selectedGroup.files.map(file => ({ path: file }))}
-                    rowKey="path"
-                    showHeader={false}
-                    columns={[
-                      {
-                        title: 'Path',
-                        dataIndex: 'path',
-                        key: 'path',
-                        render: (path) => {
-                          const fileName = path.split('/').pop(); // 获取路径的最后一部分
-                          return (
-                            <span
-                              className="text-gray-300 cursor-pointer"
-                              title={path} // 鼠标悬停时显示完整路径
-                              onDoubleClick={(e) => {
-                                e.stopPropagation();
-                                handleFileSelect(path);
-                              }}
-                            >
-                              {fileName}
-                            </span>
-                          );
-                        }
-                      },
-                      {
-                        title: 'Action',
-                        key: 'action',
-                        width: 40,
-                        render: (_, { path }) => (
-                          <DeleteOutlined
-                            className="text-red-400 cursor-pointer hover:text-red-500"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveFile(selectedGroup.name, path);
-                            }}
-                          />
-                        )
-                      }
-                    ]}
-                    pagination={false}
-                    size="small"
-                    className="dark-mode-table"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="text-gray-400 text-center mt-4">
-                Select a group to view details
-              </div>
-            )}
+            <FileGroupDetail 
+              selectedGroup={selectedGroup}
+              onFileSelect={handleFileSelect}
+              onRemoveFile={handleRemoveFile}
+              onUpdateDescription={async (groupName, description) => {
+                try {
+                  const response = await fetch(`/api/file-groups/${groupName}/files`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description }),
+                  });
+                  
+                  if (!response.ok) throw new Error('Failed to update description');
+                  
+                  if (selectedGroup) {
+                    selectedGroup.description = description;
+                  }
+                  
+                  return Promise.resolve();
+                } catch (error) {
+                  return Promise.reject(error);
+                }
+              }}
+              onAddExternalFile={() => setIsExternalFileModalVisible(true)}
+            />
           </div>
 
-          {/* File Tree */}
+          {/* 使用新的 FileDirectorySelector 组件替换原来的 File Tree 部分 */}
           <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto">
-            <div className="p-2">
-              <div className="space-y-4">
-                <Input
-                  prefix={<SearchOutlined className="text-gray-400" />}
-                  placeholder="Filter files by path..."
-                  className="custom-input"
-                  onChange={(e) => {
-                    const searchValue = e.target.value.toLowerCase();
-
-                    if (!searchValue) {
-                      setFilteredTreeData(treeData);
-                      return;
-                    }
-
-                    // Helper function to get all leaf nodes (files) from tree
-                    const getAllFiles = (nodes: DataNode[]): DataNode[] => {
-                      return nodes.reduce((acc: DataNode[], node) => {
-                        if (node.isLeaf) {
-                          acc.push(node);
-                        } else if (node.children) {
-                          acc.push(...getAllFiles(node.children));
-                        }
-                        return acc;
-                      }, []);
-                    };
-
-                    // Get all files that match the search value
-                    const allFiles = getAllFiles(treeData);
-                    const matchingFiles = allFiles.filter(file => {
-                      const fullPath = file.key.toString().toLowerCase();
-                      return fullPath.includes(searchValue);
-                    });
-
-                    // Create a flat tree structure for matching files
-                    const flattenedTree = matchingFiles.map(file => {
-                      const fullPath = file.key.toString();
-                      const fileName = fullPath.split('/').pop() || fullPath;
-                      return {
-                        ...file,
-                        title: fileName, // Show only filename in tree
-                        key: fullPath,   // Keep full path as key for selection
-                      };
-                    });
-
-                    setFilteredTreeData(flattenedTree as DataNode[]);
-                  }}
-                />
-
-                {selectedGroup && (
-                  <div className="flex space-x-2">
-                    <Button
-                      type="primary"
-                      onClick={handleAddFiles}
-                      disabled={checkedKeys.length === 0}
-                      icon={<PlusOutlined />}
-                      block
-                    >
-                      Add Selected ({checkedKeys.length})
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        const allPaths = getAllFilePaths(filteredTreeData);
-                        setCheckedKeys(allPaths);
-                      }}
-                      icon={<CheckOutlined />}
-                      title="Select All Filtered Files"
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="mt-4">
-                <Tree
-                  checkable
-                  treeData={filteredTreeData}
-                  checkedKeys={checkedKeys}
-                  onCheck={(checked) => setCheckedKeys(checked as React.Key[])}
-                  onDoubleClick={(event: any, node: any) => {
-                    if (node.isLeaf) {
-                      handleFileSelect(node.key as string);
-                    }
-                  }}
-                  className="bg-gray-900 text-gray-300"
-                />
-              </div>
-            </div>
+            <FileDirectorySelector
+              treeData={treeData}
+              checkedKeys={checkedKeys}
+              onCheckedKeysChange={setCheckedKeys}
+              onFileSelect={handleFileSelect}
+              onAddFiles={handleAddFiles}
+              selectedGroup={selectedGroup}
+            />
           </div>
 
           {/* File Preview */}
           <div className="flex-1 bg-gray-900">
-            <Editor
-              height="100%"
-              defaultLanguage="plaintext"
-              language={getLanguageByFileName(selectedFile || '')}
-              theme="vs-dark"
-              value={fileContent}
-              options={{
-                readOnly: true,
-                minimap: { enabled: true },
-                fontSize: 14,
-                lineNumbers: 'on',
-                folding: true,
-                automaticLayout: true,
-              }}
-            />
+            {selectedFile ? (
+              <Editor
+                height="100%"
+                defaultLanguage="plaintext"
+                language={getLanguageByFileName(selectedFile || '')}
+                theme="vs-dark"
+                value={fileContent}
+                options={{
+                  readOnly: true,
+                  minimap: { enabled: true },
+                  fontSize: 14,
+                  lineNumbers: 'on',
+                  folding: true,
+                  automaticLayout: true,
+                }}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <Empty 
+                  description={
+                    <span className="text-gray-400">Select a file to preview</span>
+                  }
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  className="custom-empty-state"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -567,12 +421,7 @@ const FileGroupPanel: React.FC = () => {
               value={externalFilePath}
               onChange={(e) => setExternalFilePath(e.target.value)}
               placeholder="Enter full file path or URL (e.g., /absolute/path/to/file or https://example.com/file)"
-              className="dark-theme-input"
-              style={{
-                backgroundColor: '#1f2937',
-                borderColor: '#374151',
-                color: '#e5e7eb',
-              }}
+              className="bg-gray-800 border-gray-700 text-gray-200"
             />
           </div>
         </div>
@@ -610,12 +459,7 @@ const FileGroupPanel: React.FC = () => {
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
               placeholder="Enter group name"
-              className="dark-theme-input"
-              style={{
-                backgroundColor: '#1f2937',
-                borderColor: '#374151',
-                color: '#e5e7eb',
-              }}
+              className="bg-gray-800 border-gray-700 text-gray-200"
             />
           </div>
           <div>
@@ -625,12 +469,7 @@ const FileGroupPanel: React.FC = () => {
               onChange={(e) => setNewGroupDesc(e.target.value)}
               placeholder="Enter group description"
               rows={4}
-              className="dark-theme-input"
-              style={{
-                backgroundColor: '#1f2937',
-                borderColor: '#374151',
-                color: '#e5e7eb',
-              }}
+              className="bg-gray-800 border-gray-700 text-gray-200"
             />
           </div>
         </div>

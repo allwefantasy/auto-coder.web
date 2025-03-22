@@ -1,0 +1,227 @@
+/* FileGroupPanel 暗色主题样式 */
+
+/* 全局暗色主题表格样式 */
+.dark-mode-table .ant-table {
+  background-color: transparent !important;
+  color: #e5e7eb !important;
+}
+
+.dark-mode-table .ant-table-thead > tr > th {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+.dark-mode-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #374151 !important;
+  transition: background 0.2s;
+}
+
+.dark-mode-table .ant-table-tbody > tr:hover > td {
+  background-color: #374151 !important;
+}
+
+.dark-mode-table .ant-table-tbody > tr.ant-table-row-selected > td {
+  background-color: #1e40af !important;
+}
+
+.dark-mode-table .ant-empty-description {
+  color: #9ca3af !important;
+}
+
+/* 修复空表格的样式问题 */
+.dark-mode-table .ant-table-placeholder {
+  background-color: #111827 !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+.dark-mode-table .ant-empty {
+  color: #9ca3af !important;
+}
+
+.dark-mode-table .ant-empty-img-simple-g {
+  stroke: #4b5563 !important;
+}
+
+.dark-mode-table .ant-empty-img-simple-path {
+  fill: #1f2937 !important;
+}
+
+.dark-mode-table .ant-empty-img-simple-ellipse {
+  fill: #374151 !important;
+}
+
+/* 修复空状态的图标颜色 */
+.ant-empty-img-default-path {
+  fill: #1f2937 !important;
+}
+
+.ant-empty-img-default-g {
+  stroke: #4b5563 !important;
+}
+
+.ant-empty-img-default-ellipse {
+  fill: #374151 !important;
+}
+
+/* 自定义空状态图标容器 */
+.custom-empty-container {
+  background-color: #111827 !important;
+  padding: 24px;
+  border-radius: 8px;
+}
+
+/* 暗色模态框样式 */
+.dark-theme-modal .ant-modal-content {
+  background-color: #1f2937 !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark-theme-modal .ant-modal-header {
+  background-color: #1f2937 !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+.dark-theme-modal .ant-modal-title {
+  color: #e5e7eb !important;
+}
+
+.dark-theme-modal .ant-modal-close {
+  color: #9ca3af !important;
+}
+
+.dark-theme-modal .ant-modal-close:hover {
+  color: #e5e7eb !important;
+}
+
+.dark-theme-modal .ant-modal-footer {
+  border-top: 1px solid #374151 !important;
+}
+
+.dark-theme-modal .ant-btn-default {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #e5e7eb !important;
+}
+
+.dark-theme-modal .ant-btn-default:hover {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+.dark-theme-modal .ant-btn-primary {
+  background-color: #2563eb !important;
+  border-color: #1d4ed8 !important;
+}
+
+.dark-theme-modal .ant-btn-primary:hover {
+  background-color: #1d4ed8 !important;
+  border-color: #1e40af !important;
+}
+
+/* 自定义滚动条 */
+div {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937;
+}
+
+div::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+div::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+div::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+  border-radius: 4px;
+  border: 2px solid #1f2937;
+}
+
+div::-webkit-scrollbar-corner {
+  background-color: #1f2937;
+}
+
+/* 表单元素样式 */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number,
+.ant-select-selector,
+.ant-select-dropdown {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-input-number:hover,
+.ant-select-selector:hover {
+  border-color: #4b5563 !important;
+}
+
+.ant-input:focus,
+.ant-input-affix-wrapper-focused,
+.ant-input-number-focused,
+.ant-select-focused .ant-select-selector {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+.ant-input-affix-wrapper .ant-input {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+/* 复选框样式 */
+.ant-checkbox-inner {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+/* 自定义空状态样式 */
+.custom-empty-state .ant-empty-image {
+  filter: invert(20%) sepia(10%) saturate(200%) hue-rotate(180deg) brightness(95%) contrast(80%);
+  opacity: 0.6;
+}
+
+.custom-empty-state .ant-empty-description {
+  color: #9ca3af !important;
+}
+
+/* 空文件列表区域的样式 */
+.empty-files-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background-color: #111827;
+  border-radius: 8px;
+  padding: 24px;
+  color: #9ca3af;
+}
+
+/* 文件列表表格背景 */
+.dark-mode-table .ant-table-container {
+  background-color: transparent !important;
+}
+
+.dark-mode-table .ant-table-content {
+  background-color: transparent !important;
+}
+
+.dark-mode-table .ant-table-cell {
+  background-color: transparent !important;
+}
+
+/* 修复图标样式 */
+.ant-empty-normal .ant-empty-image {
+  height: 60px;
+} 

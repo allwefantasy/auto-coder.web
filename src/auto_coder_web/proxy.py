@@ -43,7 +43,7 @@ import yaml
 import git
 import hashlib
 from datetime import datetime
-from autocoder.utils import operate_config_api
+from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
 from .routers import todo_router, settings_router, auto_router, commit_router, chat_router, coding_router
 from expert_routers import history_router
 from .common_router import completions_router, file_router, auto_coder_conf_router, chat_list_router, file_group_router
@@ -323,10 +323,7 @@ class ProxyServer:
 
         self.setup_static_files()
         self.project_path = project_path
-        
-        self.auto_coder_runner = AutoCoderRunner(project_path, product_mode=product_mode)
-        self.file_group_manager = FileGroupManager(self.auto_coder_runner)
-
+        self.auto_coder_runner = AutoCoderRunnerWrapper(project_path, product_mode=product_mode)        
         self.setup_routes()        
         self.client = httpx.AsyncClient()
 
@@ -353,6 +350,11 @@ class ProxyServer:
 
     def setup_routes(self):
         
+        # Store project_path in app state for dependency injection
+        self.app.state.project_path = self.project_path
+        # Store auto_coder_runner in app state for dependency injection
+        self.app.state.auto_coder_runner = self.auto_coder_runner
+
         self.app.include_router(todo_router.router)
         self.app.include_router(settings_router.router)
         self.app.include_router(auto_router.router)
@@ -364,14 +366,7 @@ class ProxyServer:
         self.app.include_router(file_router.router)
         self.app.include_router(auto_coder_conf_router.router)
         self.app.include_router(chat_list_router.router)
-        self.app.include_router(file_group_router.router)
-        
-        # Store project_path in app state for dependency injection
-        self.app.state.project_path = self.project_path
-        # Store auto_coder_runner in app state for dependency injection
-        self.app.state.auto_coder_runner = self.auto_coder_runner
-        # Store file_group_manager in app state for dependency injection
-        self.app.state.file_group_manager = self.file_group_manager
+        self.app.include_router(file_group_router.router)                        
 
         @self.app.on_event("shutdown")
         async def shutdown_event():

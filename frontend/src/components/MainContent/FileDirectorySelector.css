@@ -1,0 +1,376 @@
+/* FileDirectorySelector 优化暗色主题样式 */
+
+/* 容器样式 */
+.file-directory-selector {
+  background-color: #111827;
+  border-right: 1px solid rgba(75, 85, 99, 0.5);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+/* 搜索区域样式 */
+.search-container {
+  padding: 12px;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+/* 搜索头部样式 */
+.search-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* 视图切换按钮 */
+.view-mode-toggle {
+  flex-shrink: 0;
+}
+
+.view-mode-toggle .ant-radio-button-wrapper {
+  background-color: rgba(31, 41, 55, 0.8) !important;
+  border-color: rgba(75, 85, 99, 0.5) !important;
+  color: #e5e7eb !important;
+}
+
+.view-mode-toggle .ant-radio-button-wrapper-checked {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: white !important;
+}
+
+/* 面包屑导航 */
+.directory-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breadcrumb-item .ant-btn {
+  color: #d1d5db;
+  font-size: 12px;
+  padding: 0 4px;
+  height: auto;
+  min-height: 24px;
+}
+
+.breadcrumb-item .ant-btn:hover {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* 输入框样式优化 */
+.search-input.ant-input-affix-wrapper {
+  background-color: rgba(31, 41, 55, 0.8) !important;
+  border: 1px solid rgba(75, 85, 99, 0.5) !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.filter-icon {
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.filter-icon:hover {
+  color: #d1d5db;
+}
+
+.search-input.ant-input-affix-wrapper:hover,
+.search-input.ant-input-affix-wrapper:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.search-input .ant-input {
+  background-color: transparent !important;
+  color: #e5e7eb !important;
+}
+
+.search-input .ant-input::placeholder {
+  color: rgba(156, 163, 175, 0.8) !important;
+}
+
+/* 按钮样式优化 */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.add-button.ant-btn {
+  background-color: #2563eb !important;
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  height: 32px;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.add-button.ant-btn:hover:not(:disabled) {
+  background-color: #1d4ed8 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.add-button.ant-btn:disabled {
+  background-color: rgba(37, 99, 235, 0.5) !important;
+  border-color: rgba(29, 78, 216, 0.5) !important;
+  color: rgba(229, 231, 235, 0.5) !important;
+}
+
+.select-all-button.ant-btn {
+  background-color: rgba(31, 41, 55, 0.8) !important;
+  border-color: rgba(75, 85, 99, 0.5) !important;
+  color: #e5e7eb !important;
+  transition: all 0.2s ease;
+  height: 32px;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.select-all-button.ant-btn:hover {
+  background-color: rgba(55, 65, 81, 0.8) !important;
+  border-color: rgba(107, 114, 128, 0.5) !important;
+}
+
+/* 树组件容器 */
+.file-tree-container {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+  margin-top: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937;
+}
+
+.file-tree-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.file-tree-container::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.5);
+  border-radius: 6px;
+}
+
+.file-tree-container::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.7);
+  border-radius: 6px;
+  border: 1px solid rgba(31, 41, 55, 0.5);
+}
+
+.file-tree-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+
+/* 树组件样式优化 */
+.custom-dark-tree.ant-tree {
+  background-color: transparent !important;
+  color: #e5e7eb !important;
+  font-size: 13px !important;
+}
+
+.custom-dark-tree .ant-tree-treenode {
+  padding: 2px 0 !important;
+  transition: all 0.15s ease;
+}
+
+.custom-dark-tree .ant-tree-node-content-wrapper {
+  color: #e5e7eb !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  transition: all 0.15s ease;
+}
+
+.custom-dark-tree .ant-tree-node-content-wrapper:hover {
+  background-color: rgba(55, 65, 81, 0.7) !important;
+}
+
+.custom-dark-tree .ant-tree-node-selected {
+  background-color: rgba(30, 64, 175, 0.6) !important;
+}
+
+.custom-dark-tree .ant-tree-checkbox-inner {
+  background-color: rgba(55, 65, 81, 0.5) !important;
+  border-color: rgba(75, 85, 99, 0.7) !important;
+  transition: all 0.15s ease;
+}
+
+.custom-dark-tree .ant-tree-checkbox-checked .ant-tree-checkbox-inner {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+.custom-dark-tree .ant-tree-switcher {
+  color: rgba(156, 163, 175, 0.8) !important;
+  transition: all 0.15s ease;
+}
+
+.custom-dark-tree .ant-tree-switcher:hover {
+  color: rgba(209, 213, 219, 0.9) !important;
+}
+
+.custom-dark-tree .ant-tree-title {
+  color: #e5e7eb !important;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* 右键菜单样式 */
+.file-context-menu {
+  background-color: #1f2937 !important;
+  border: 1px solid rgba(75, 85, 99, 0.6) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  padding: 6px 0 !important;
+  min-width: 160px !important;
+}
+
+.file-context-menu .ant-menu-item {
+  color: #e5e7eb !important;
+  transition: all 0.15s ease !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+}
+
+.file-context-menu .ant-menu-item:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+}
+
+.file-context-menu .ant-menu-item-disabled {
+  color: rgba(229, 231, 235, 0.4) !important;
+}
+
+.file-context-menu .ant-menu-item .anticon {
+  margin-right: 8px !important;
+}
+
+.context-menu-wrapper {
+  z-index: 1050;
+}
+
+/* 文件和文件夹图标样式 */
+.custom-dark-tree .file-icon {
+  margin-right: 6px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.custom-dark-tree .folder-icon {
+  color: #d97706 !important;
+}
+
+.file-node-title {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 搜索高亮样式 */
+.search-highlight {
+  background-color: rgba(234, 179, 8, 0.3);
+  font-weight: bold;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* 列表视图样式 */
+.file-list-view {
+  width: 100%;
+}
+
+.file-list-item {
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  margin-bottom: 2px !important;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border: none !important;
+  background-color: transparent !important;
+}
+
+.file-list-item:hover {
+  background-color: rgba(55, 65, 81, 0.5) !important;
+}
+
+.file-list-item.selected {
+  background-color: rgba(30, 64, 175, 0.5) !important;
+}
+
+.file-list-icon {
+  background-color: transparent !important;
+}
+
+.file-list-title {
+  color: #e5e7eb !important;
+  font-size: 13px !important;
+}
+
+.file-list-item .ant-checkbox-wrapper {
+  color: #e5e7eb !important;
+}
+
+/* 文件类型过滤菜单 */
+.file-type-filter-menu {
+  background-color: #1f2937 !important;
+  border: 1px solid rgba(75, 85, 99, 0.6) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  padding: 6px 0 !important;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.file-type-filter-menu .ant-menu-item-group-title {
+  color: #60a5fa !important;
+  font-size: 12px !important;
+  padding: 6px 12px !important;
+}
+
+.file-type-filter-menu .ant-menu-item {
+  padding: 6px 12px !important;
+}
+
+.file-type-filter-menu .ant-checkbox-wrapper {
+  color: #e5e7eb !important;
+  font-size: 13px !important;
+}
+
+.file-type-filter-menu .ant-checkbox-inner {
+  background-color: rgba(31, 41, 55, 0.8) !important;
+  border-color: rgba(75, 85, 99, 0.6) !important;
+}
+
+.file-type-filter-menu .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+} 

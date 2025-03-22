@@ -37,6 +37,7 @@ async def get_files(
     project_path: str = Depends(get_project_path)
 ):
     tree = get_directory_tree(project_path)
+    # print(tree)
     return {"tree": tree}
 
 @router.put("/api/file/{path:path}")
