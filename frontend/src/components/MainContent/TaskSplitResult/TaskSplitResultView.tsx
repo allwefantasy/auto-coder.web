@@ -21,6 +21,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
   const [error, setError] = useState<string | null>(null);
   const [parsedResult, setParsedResult] = useState<TaskSplitResult | null>(null);
   const [saving, setSaving] = useState(false);
+  // 添加暂存区状态，用于存储编辑中但尚未保存的数据
+  const [pendingChanges, setPendingChanges] = useState<boolean>(false);
 
   // 在组件挂载和result变化时处理数据
   useEffect(() => {
@@ -66,6 +68,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     
     console.log('saveData: Starting save operation', { updatedResult });
     setSaving(true);
+    setPendingChanges(false);
+    
     try {
       // Get todoId from the result object itself
       if (!todoId) {
@@ -127,8 +131,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     }
   };
   
-  // 更新任务数据
-  const updateTaskData = (taskIndex: number, field: string | number | symbol, value: any) => {
+  // 更新本地任务数据状态，不触发保存
+  const updateTaskDataLocal = (taskIndex: number, field: string | number | symbol, value: any) => {
     if (!parsedResult) return;
     
     const updatedResult = { ...parsedResult };
@@ -141,11 +145,23 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     updatedResult.tasks = updatedTasks;
     
     setParsedResult(updatedResult);
-    saveData(updatedResult);
+    setPendingChanges(true);
   };
   
-  // 更新数组类型的字段
-  const updateArrayField = (taskIndex: number, field: string | number | symbol, itemIndex: number, value: string) => {
+  // 当输入框失去焦点时保存更新
+  const saveTaskDataOnBlur = () => {
+    if (pendingChanges && parsedResult) {
+      saveData(parsedResult);
+    }
+  };
+  
+  // 更新任务数据（现在分为变化和保存两步）
+  const updateTaskData = (taskIndex: number, field: string | number | symbol, value: any) => {
+    updateTaskDataLocal(taskIndex, field, value);
+  };
+  
+  // 更新本地数组类型字段，不触发保存
+  const updateArrayFieldLocal = (taskIndex: number, field: string | number | symbol, itemIndex: number, value: string) => {
     if (!parsedResult) return;
     
     const updatedResult = { ...parsedResult };
@@ -162,24 +178,46 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     
     updatedResult.tasks = updatedTasks;
     setParsedResult(updatedResult);
-    saveData(updatedResult);
+    setPendingChanges(true);
   };
   
-  // 原始任务更新函数已移除
+  // 当数组字段输入框失去焦点时保存
+  const saveArrayFieldOnBlur = () => {
+    if (pendingChanges && parsedResult) {
+      saveData(parsedResult);
+    }
+  };
   
-  // 更新分析结果
-  const updateAnalysis = (value: string) => {
+  // 更新数组类型的字段（分为变化和保存两步）
+  const updateArrayField = (taskIndex: number, field: string | number | symbol, itemIndex: number, value: string) => {
+    updateArrayFieldLocal(taskIndex, field, itemIndex, value);
+  };
+  
+  // 本地更新分析结果，不触发保存
+  const updateAnalysisLocal = (value: string) => {
     if (!parsedResult) return;
     
     const updatedResult = { ...parsedResult };
     updatedResult.analysis = value;
     
     setParsedResult(updatedResult);
-    saveData(updatedResult);
+    setPendingChanges(true);
   };
   
-  // 更新依赖关系
-  const updateDependency = (depIndex: number, field: 'task' | 'depends_on', value: any) => {
+  // 当分析文本框失去焦点时保存
+  const saveAnalysisOnBlur = () => {
+    if (pendingChanges && parsedResult) {
+      saveData(parsedResult);
+    }
+  };
+  
+  // 更新分析结果（分为变化和保存两步）
+  const updateAnalysis = (value: string) => {
+    updateAnalysisLocal(value);
+  };
+  
+  // 本地更新依赖关系，不触发保存
+  const updateDependencyLocal = (depIndex: number, field: 'task' | 'depends_on', value: any) => {
     if (!parsedResult || !parsedResult.dependencies) return;
     
     const updatedResult = { ...parsedResult };
@@ -199,11 +237,23 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     
     updatedResult.dependencies = updatedDependencies;
     setParsedResult(updatedResult);
-    saveData(updatedResult);
+    setPendingChanges(true);
   };
   
-  // 编辑依赖项
-  const updateDependencyItem = (depIndex: number, itemIndex: number, value: string) => {
+  // 当依赖关系字段失去焦点时保存
+  const saveDependencyOnBlur = () => {
+    if (pendingChanges && parsedResult) {
+      saveData(parsedResult);
+    }
+  };
+  
+  // 更新依赖关系（分为变化和保存两步）
+  const updateDependency = (depIndex: number, field: 'task' | 'depends_on', value: any) => {
+    updateDependencyLocal(depIndex, field, value);
+  };
+  
+  // 本地更新依赖项，不触发保存
+  const updateDependencyItemLocal = (depIndex: number, itemIndex: number, value: string) => {
     if (!parsedResult || !parsedResult.dependencies) return;
     
     const updatedResult = { ...parsedResult };
@@ -218,10 +268,22 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     
     updatedResult.dependencies = updatedDependencies;
     setParsedResult(updatedResult);
-    saveData(updatedResult);
+    setPendingChanges(true);
+  };
+  
+  // 当依赖项输入框失去焦点时保存
+  const saveDependencyItemOnBlur = () => {
+    if (pendingChanges && parsedResult) {
+      saveData(parsedResult);
+    }
+  };
+  
+  // 更新依赖项（分为变化和保存两步）
+  const updateDependencyItem = (depIndex: number, itemIndex: number, value: string) => {
+    updateDependencyItemLocal(depIndex, itemIndex, value);
   };
 
-  // 添加新的子任务
+  // 添加新的子任务 - 这类操作仍然立即保存
   const addSubTask = () => {
     if (!parsedResult) return;
     
@@ -250,7 +312,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
     AntMessage.success('新子任务添加成功');
   };
   
-  // 删除子任务
+  // 删除子任务 - 这类操作仍然立即保存
   const deleteSubTask = (taskIndex: number) => {
     if (!parsedResult) return;
     
@@ -352,6 +414,11 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
               Saving changes...
             </span>
           )}
+          {pendingChanges && !saving && (
+            <span style={{ color: '#fbbf24', marginRight: '10px', fontSize: '14px' }}>
+              Unsaved changes
+            </span>
+          )}
           <Tooltip title={getMessage('taskSplitResultHelp') || 'Task breakdown and analysis'}>
             <InfoCircleOutlined style={{ color: '#60a5fa', fontSize: '18px' }} />
           </Tooltip>
@@ -383,6 +450,7 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
           <TaskAnalysisPanel 
             analysis={parsedResult.analysis}
             updateAnalysis={updateAnalysis}
+            onBlur={saveAnalysisOnBlur}
           />
         </Collapse.Panel>
         
@@ -413,6 +481,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
             setParsedResult={setParsedResult}
             addSubTask={addSubTask}
             deleteSubTask={deleteSubTask}
+            onTaskDataBlur={saveTaskDataOnBlur}
+            onArrayFieldBlur={saveArrayFieldOnBlur}
           />
         </Collapse.Panel>
         
@@ -434,6 +504,8 @@ const TaskSplitResultView: React.FC<TaskSplitResultViewProps> = ({ visible, resu
               dependencies={parsedResult.dependencies}
               updateDependency={updateDependency}
               updateDependencyItem={updateDependencyItem}
+              onDependencyBlur={saveDependencyOnBlur}
+              onDependencyItemBlur={saveDependencyItemOnBlur}
             />
           </Collapse.Panel>
         )}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Typography, Collapse } from 'antd';
 import { NodeIndexOutlined, EditOutlined } from '@ant-design/icons';
 import { getMessage } from '../../Sidebar/lang';
+import { TaskAnalysisPanelProps } from './types';
 
 const { Panel } = Collapse;
 const { Paragraph } = Typography;
@@ -22,14 +23,10 @@ const cardStyle = {
   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
 };
 
-interface TaskAnalysisPanelProps {
-  analysis: string;
-  updateAnalysis: (value: string) => void;
-}
-
 const TaskAnalysisPanel: React.FC<TaskAnalysisPanelProps> = ({
   analysis,
-  updateAnalysis
+  updateAnalysis,
+  onBlur
 }) => {
 
   return (
@@ -40,6 +37,7 @@ const TaskAnalysisPanel: React.FC<TaskAnalysisPanelProps> = ({
             onChange: updateAnalysis,
             tooltip: 'Click to edit analysis',
             icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
+            onEnd: onBlur
           }}
         >
           {analysis}

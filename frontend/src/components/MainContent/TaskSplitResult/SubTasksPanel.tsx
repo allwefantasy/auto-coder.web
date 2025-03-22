@@ -11,7 +11,7 @@ import {
   PlusOutlined
 } from '@ant-design/icons';
 import { getMessage } from '../../Sidebar/lang';
-import { SubTask } from './types';
+import { SubTask, SubTasksPanelProps } from './types';
 
 const { Panel } = Collapse;
 const { Text, Paragraph } = Typography;
@@ -41,18 +41,6 @@ const priorityColors: Record<string, string> = {
   'P3': '#6b7280', // 灰色
 };
 
-interface SubTasksPanelProps {
-  tasks: SubTask[];
-  tasksCount: number;
-  updateTaskData: (taskIndex: number, field: string | number | symbol, value: any) => void;
-  updateArrayField: (taskIndex: number, field: string | number | symbol, itemIndex: number, value: string) => void;
-  saveData: (updatedResult: any) => void;
-  parsedResult: any;
-  setParsedResult: (result: any) => void;
-  addSubTask?: () => void;
-  deleteSubTask?: (taskIndex: number) => void;
-}
-
 const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
   tasks,
   tasksCount,
@@ -62,7 +50,9 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
   parsedResult,
   setParsedResult,
   addSubTask,
-  deleteSubTask
+  deleteSubTask,
+  onTaskDataBlur,
+  onArrayFieldBlur
 }) => {
   // Render the add task button
   const renderAddTaskButton = () => {
@@ -113,6 +103,7 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                           onChange: (value) => updateTaskData(index, 'title', value),
                           tooltip: 'Click to edit title',
                           icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
+                          onEnd: onTaskDataBlur,
                         }}
                       >
                         {task.title}
@@ -140,6 +131,7 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                           bordered={false}
                           dropdownStyle={{ backgroundColor: '#1e293b', color: '#f8fafc' }}
                           onChange={(value) => updateTaskData(index, 'priority', value)}
+                          onBlur={onTaskDataBlur}
                           options={[
                             { value: 'P0', label: 'P0' },
                             { value: 'P1', label: 'P1' },
@@ -155,6 +147,7 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                           prefix={<ClockCircleOutlined style={{ color: '#0ea5e9' }} />}
                           value={task.estimate || ''}
                           onChange={(e) => updateTaskData(index, 'estimate', e.target.value)}
+                          onBlur={onTaskDataBlur}
                           style={{ 
                             width: 100, 
                             backgroundColor: '#334155',
@@ -182,6 +175,7 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                     onChange: (value) => updateTaskData(index, 'description', value),
                     tooltip: 'Click to edit description',
                     icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
+                    onEnd: onTaskDataBlur,
                   }}
                 >
                   {task.description}
@@ -201,6 +195,7 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                           key={idx}
                           value={ref}
                           onChange={(e) => updateArrayField(index, 'references', idx, e.target.value)}
+                          onBlur={onArrayFieldBlur}
                           style={{ 
                             backgroundColor: '#1e293b',
                             color: '#94a3b8',
@@ -237,11 +232,12 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                           ...task,
                           steps: newSteps
                         };
-                        setParsedResult({
+                        const updatedResult = {
                           ...parsedResult,
                           tasks: newTasks
-                        });
-                        saveData(newTasks);
+                        };
+                        setParsedResult(updatedResult);
+                        saveData(updatedResult);
                       }}
                       style={{ 
                         color: '#0ea5e9'
@@ -274,6 +270,7 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                           <Input.TextArea
                             value={step}
                             onChange={(e) => updateArrayField(index, 'steps', stepIdx, e.target.value)}
+                            onBlur={onArrayFieldBlur}
                             style={{ 
                               backgroundColor: 'transparent',
                               color: '#e2e8f0',
@@ -298,17 +295,17 @@ const SubTasksPanel: React.FC<SubTasksPanelProps> = ({
                                 ...task,
                                 steps: newSteps
                               };
-                              setParsedResult({
+                              const updatedResult = {
                                 ...parsedResult,
                                 tasks: newTasks
-                              });
-                              saveData(newTasks);
+                              };
+                              setParsedResult(updatedResult);
+                              saveData(updatedResult);
                             }}
                             style={{ 
                               position: 'absolute', 
                               right: '-30px', 
-                              top: '0', 
-                              color: '#ef4444' 
+                              top: '0'
                             }}
                           />
                         </div>

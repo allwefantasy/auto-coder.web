@@ -2,7 +2,7 @@ import React from 'react';
 import { Collapse, Card, List, Typography, Badge, Input, Tooltip } from 'antd';
 import { LinkOutlined, EditOutlined } from '@ant-design/icons';
 import { getMessage } from '../../Sidebar/lang';
-import { TaskReference } from './types';
+import { TaskReference, TaskDependenciesPanelProps } from './types';
 
 const { Panel } = Collapse;
 const { Text } = Typography;
@@ -23,16 +23,12 @@ const cardStyle = {
   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
 };
 
-interface TaskDependenciesPanelProps {
-  dependencies: TaskReference[];
-  updateDependency: (depIndex: number, field: 'task' | 'depends_on', value: any) => void;
-  updateDependencyItem: (depIndex: number, itemIndex: number, value: string) => void;
-}
-
 const TaskDependenciesPanel: React.FC<TaskDependenciesPanelProps> = ({
   dependencies,
   updateDependency,
-  updateDependencyItem
+  updateDependencyItem,
+  onDependencyBlur,
+  onDependencyItemBlur
 }) => {
   if (!dependencies || dependencies.length === 0) {
     return null;
@@ -65,6 +61,7 @@ const TaskDependenciesPanel: React.FC<TaskDependenciesPanelProps> = ({
                       onChange: (value) => updateDependency(index, 'task', value),
                       tooltip: 'Click to edit task',
                       icon: <EditOutlined style={{ color: '#0ea5e9' }} />,
+                      onEnd: onDependencyBlur
                     }}
                   >
                     {dep.task}
@@ -79,6 +76,7 @@ const TaskDependenciesPanel: React.FC<TaskDependenciesPanelProps> = ({
                       key={idx}
                       value={depTask}
                       onChange={(e) => updateDependencyItem(index, idx, e.target.value)}
+                      onBlur={onDependencyItemBlur}
                       style={{ 
                         backgroundColor: '#0f172a',
                         color: '#0ea5e9',

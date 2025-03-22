@@ -59,9 +59,11 @@ const priorityOptions = [
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 // 添加去重标签的辅助函数
-const deduplicateTags = (tags: string[] = []): string[] => {
+const deduplicateTags = (tags: string[] | undefined = []): string[] => {
+  // 确保tags是数组
+  const tagsArray = tags || [];
   // 使用filter和indexOf结合实现去重，避免使用Set
-  return tags.filter((tag, index, self) => 
+  return tagsArray.filter((tag, index, self) => 
     self.indexOf(tag) === index
   );
 };
@@ -608,7 +610,7 @@ const TodoPanel: React.FC = () => {
             />
           )}
           <div className="todo-tags flex gap-1">
-            {todo.tags.map(tag => (
+            {deduplicateTags(todo.tags).map(tag => (
               <Tag 
                 key={tag} 
                 className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
@@ -699,7 +701,7 @@ const TodoPanel: React.FC = () => {
             />
           )}
           <div className="todo-tags flex gap-1">
-            {todo.tags.map(tag => (
+            {deduplicateTags(todo.tags).map(tag => (
               <Tag 
                 key={tag} 
                 className="text-xs bg-gray-600 border-none text-gray-300 rounded-full px-2"
