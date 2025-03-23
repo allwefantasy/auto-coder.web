@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { message as AntdMessage, Modal, Input, Select, Button, Layout, Divider, Typography, Space, Dropdown, Menu, Tooltip } from 'antd';
-import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined } from '@ant-design/icons';
+import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined, SaveOutlined } from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
 import './ChatPanel.css';
 import InputArea from './InputArea';
@@ -16,8 +16,6 @@ import { chatService } from '../../services/chatService';
 import { codingService } from '../../services/codingService';
 import { Message as AutoModeMessage } from '../../components/AutoMode/types';
 import MessageList, { MessageProps } from '../../components/AutoMode/MessageList';
-
-const CONFIRMATION_WORDS = ['confirm', '确认'] as const;
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, setActivePanel, setClipboardContent, clipboardContent, projectName = '' }) => {
   const showNewChatModal = () => {
@@ -107,6 +105,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   
   // 添加消息ID计数器，用于生成唯一的消息ID
   const [messageIdCounter, setMessageIdCounter] = useState<number>(0);
+
+  const [shouldSaveMessages, setShouldSaveMessages] = useState<boolean>(false);
 
   // 添加新的 useEffect 用于滚动到最新消息
   useEffect(() => {
@@ -442,6 +442,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     return messages;
   };
 
+  // 添加一个 useEffect 来处理消息保存，当 messages 或 shouldSaveMessages 变化时触发
+  useEffect(() => {
+    // 仅当需要保存且有消息且有聊天名称时保存
+    if (shouldSaveMessages && chatListName && messages.length > 0) {
+      saveChatList(chatListName, messages);
+      console.log('Chat list saved with latest messages:', chatListName);
+      // 重置保存标记
+      setShouldSaveMessages(false);
+    }
+  }, [messages, shouldSaveMessages, chatListName]);
+
   // 处理来自聊天和编码服务的消息事件
   const setupMessageListener = (service: typeof chatService | typeof codingService) => {
     service.on('message', (autoModeMessage: AutoModeMessage) => {
@@ -473,11 +484,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       setSendLoading(false);
       setRequestId("");
       
-      // 在任务完成时保存当前的聊天记录
-      if (chatListName && messages.length > 0) {
-        saveChatList(chatListName, messages);
-        console.log('Chat list saved after task completion:', chatListName);
-      }
+      // 在任务完成时设置标记，表示应该保存消息
+      // 而不是直接保存，让 useEffect 在消息状态更新后处理保存
+      setShouldSaveMessages(true);
     });
   };
 
@@ -531,6 +540,24 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       updateMessageStatus(messageId, 'error');
       addBotMessage(getMessage('processingError'));
       setSendLoading(false);
+    }
+  };
+
+  // 处理停止生成的函数
+  const handleStopGeneration = async () => {
+    try {
+      // 根据当前模式使用适当的服务来取消任务
+      if (isWriteMode) {
+        await codingService.cancelTask();
+      } else {
+        await chatService.cancelTask();
+      }
+      
+      AntdMessage.info(getMessage('generationStopped'));
+      setSendLoading(false);
+    } catch (error) {
+      console.error('Error stopping generation:', error);
+      AntdMessage.error('Failed to stop generation');
     }
   };
 
@@ -631,6 +658,25 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             />
           </Dropdown>
           
+          <Tooltip title="保存当前对话">
+            <Button 
+              icon={<SaveOutlined style={{ fontSize: '10px' }} />} 
+              onClick={() => {
+                if (chatListName && messages.length > 0) {
+                  // 使用与自动保存相同的机制
+                  setShouldSaveMessages(true);
+                  AntdMessage.success('对话已保存');
+                } else if (!chatListName) {
+                  AntdMessage.warning('请先选择或创建一个对话');
+                } else {
+                  AntdMessage.warning('没有消息可保存');
+                }
+              }}
+              className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
+              size="small"
+            />
+          </Tooltip>
+          
           <Tooltip title="设置">
             <Button 
               icon={<SettingOutlined style={{ fontSize: '10px' }} />} 
@@ -724,6 +770,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             setIsWriteMode={setIsWriteMode}
             handleRevert={handleRevert}
             handleSendMessage={handleSendMessage}
+            handleStopGeneration={handleStopGeneration}
             sendLoading={sendLoading}
             setConfig={setConfig}
           />

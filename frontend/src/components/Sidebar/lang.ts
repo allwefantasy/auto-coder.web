@@ -190,8 +190,8 @@ export const messages: { [key: string]: Message } = {
     zh: "代码排序完成"
   },
   rankedCode: {
-    en: "Ranked Code",
-    zh: "排序后的代码"
+    en: "Code Rank Result",
+    zh: "代码排序结果"
   },
   priorityP0: {
     en: "P0 - Urgent",
@@ -789,6 +789,15 @@ export const messages: { [key: string]: Message } = {
   collapseConfig: {
     en: "Collapse",
     zh: "折叠"
+  },
+  // Stop generation related messages
+  stop: {
+    en: "Stop",
+    zh: "停止"
+  },
+  generationStopped: {
+    en: "Generation stopped",
+    zh: "生成已停止"
   },
 };
 

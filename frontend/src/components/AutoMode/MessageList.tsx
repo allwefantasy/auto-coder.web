@@ -49,7 +49,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
     const renderMessageContent = (message: MessageProps) => {        
 
         // For markdown content
-        if (message.contentType === 'markdown' && message.metadata?.stream_out_type !== "command_suggestion") {
+        if (message.contentType === 'markdown' && !message.metadata?.stream_out_type) {
             return <MarkdownMessage message={message} />;
         }
 

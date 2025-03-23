@@ -12,15 +12,15 @@ const OutputPanel: React.FC<OutputPanelProps> = ({ requestId }) => {
       if (!requestId) {
         return;
       }
-      try {
-        const response = await fetch(`/api/output/${requestId}`);
-        const data = await response.json();
-        if (data.logs) {
-          setLogs(prevLogs => [...prevLogs, ...data.logs]);
-        }
-      } catch (error) {
-        console.error('Error fetching logs:', error);
-      }
+      // try {
+      //   const response = await fetch(`/api/output/${requestId}`);
+      //   const data = await response.json();
+      //   if (data.logs) {
+      //     setLogs(prevLogs => [...prevLogs, ...data.logs]);
+      //   }
+      // } catch (error) {
+      //   console.error('Error fetching logs:', error);
+      // }
     };
 
     const interval = setInterval(fetchLogs, 1000);

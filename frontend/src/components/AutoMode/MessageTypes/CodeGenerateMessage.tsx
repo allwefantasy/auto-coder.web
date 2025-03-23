@@ -32,10 +32,8 @@ const StreamingCodeGenerateMessage: React.FC<{ message: MessageProps; isComplete
     const contentLines = messageContent.split('\n');
     const previewLines = 5; // Number of preview lines
     
-    // Content to show when collapsed
-    const collapsedContent = contentLines.length > previewLines
-        ? contentLines.slice(0, previewLines).join('\n') + '...'
-        : messageContent;
+    // Content to show when collapsed - no longer needed as we'll hide content completely
+    // when collapsed
     
     // Determine language for syntax highlighting
     const language = message.language || 'javascript';
@@ -77,21 +75,23 @@ const StreamingCodeGenerateMessage: React.FC<{ message: MessageProps; isComplete
                 <span>{message.isStreaming ? getMessage('generatingCode') || 'Generating code...' : getMessage('codeGenerationComplete') || 'Code generation complete'}</span>
             </div>
             
-            {/* Message content with syntax highlighting */}
-            <div className="bg-gray-800/50 rounded-md border border-gray-700">
-                <SyntaxHighlighter
-                    language={language}
-                    style={vscDarkPlus}
-                    customStyle={{
-                        margin: 0,
-                        padding: '1rem',
-                        borderRadius: '0.375rem',
-                        backgroundColor: 'transparent'
-                    }}
-                >
-                    {isCollapsed ? collapsedContent : messageContent}
-                </SyntaxHighlighter>
-            </div>
+            {/* Message content with syntax highlighting - only show when not collapsed */}
+            {!isCollapsed && (
+                <div className="bg-gray-800/50 rounded-md border border-gray-700">
+                    <SyntaxHighlighter
+                        language={language}
+                        style={vscDarkPlus}
+                        customStyle={{
+                            margin: 0,
+                            padding: '1rem',
+                            borderRadius: '0.375rem',
+                            backgroundColor: 'transparent'
+                        }}
+                    >                        
+                        {messageContent}
+                    </SyntaxHighlighter>
+                </div>
+            )}
         </div>
     );
 };
@@ -111,8 +111,7 @@ const RegularCodeGenerateMessage: React.FC<{ message: MessageProps }> = ({ messa
                     </svg>
                 </div>
                 <div className="text-green-400 font-semibold">{getMessage('generatedCode') || 'Generated Code'}</div>
-            </div>
-
+            </div>            
             {/* File name section if available */}
             {message.metadata?.fileName && (
                 <div className="px-4 py-2 bg-gray-800/50 border-b border-gray-700 flex items-center">
@@ -124,7 +123,7 @@ const RegularCodeGenerateMessage: React.FC<{ message: MessageProps }> = ({ messa
             )}
 
             {/* Code content section */}
-            <div className="p-0 bg-gray-800/20">
+            <div className="p-0 bg-gray-800/20">            
                 <SyntaxHighlighter
                     language={language}
                     style={vscDarkPlus}
@@ -135,7 +134,7 @@ const RegularCodeGenerateMessage: React.FC<{ message: MessageProps }> = ({ messa
                     }}
                     wrapLines={true}
                     wrapLongLines={true}
-                >
+                >                    
                     {message.content}
                 </SyntaxHighlighter>
             </div>
