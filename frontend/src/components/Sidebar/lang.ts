@@ -782,6 +782,14 @@ export const messages: { [key: string]: Message } = {
     en: "Restore Panel",
     zh: "恢复面板"
   },
+  expandConfig: {
+    en: "Expand",
+    zh: "展开"
+  },
+  collapseConfig: {
+    en: "Collapse",
+    zh: "折叠"
+  },
 };
 
 // 当前语言设置

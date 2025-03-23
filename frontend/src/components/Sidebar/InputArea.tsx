@@ -4,6 +4,7 @@ import { UndoOutlined } from '@ant-design/icons';
 import EditorComponent from './EditorComponent';
 import { getMessage } from './lang';
 import { FileGroup, ConfigState } from './types';
+import FileGroupSelect from './FileGroupSelect';
 
 interface InputAreaProps {
   showConfig: boolean;
@@ -46,6 +47,8 @@ const InputArea: React.FC<InputAreaProps> = ({
   sendLoading,
   setConfig
 }) => {
+  const [showCustomConfig, setShowCustomConfig] = useState<boolean>(false);
+
   return (
     <div className="bg-gray-800 border-t border-gray-700">
       {/* Configuration and Groups Section */}
@@ -78,184 +81,157 @@ const InputArea: React.FC<InputAreaProps> = ({
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* Project Type - Changed to vertical layout */}
+            <div className="flex flex-col space-y-1">
               <Tooltip title={getMessage('projectTypeTooltip')}>
                 <span className="text-gray-300 text-[10px]">{getMessage('projectType')}</span>
               </Tooltip>
               <Select
                 mode="tags"
                 size="small"
-                style={{ width: '60%' }}
+                style={{ width: '100%' }}
                 placeholder="e.g. .py,.ts"
                 value={config.project_type ? config.project_type.split(',') : []}
                 onChange={(values) => updateConfig('project_type', values.join(','))}
                 className="custom-select"
                 tokenSeparators={[',']}
-              >
-                {['.py', '.ts', '.tsx', '.js', '.jsx'].map(ext => (
-                  <Select.Option key={ext} value={ext}>
-                    {ext}
-                  </Select.Option>
-                ))}
+                maxTagCount="responsive"
+              >                
               </Select>
             </div>
 
             {/* Custom Configuration */}
             <div className="space-y-1 mt-1">
-              {/* Heading */}
+              {/* Heading with Toggle Button */}
               <div className="flex items-center justify-between">
                 <span className="text-gray-300 text-[10px] font-medium">{getMessage('customConfig')}</span>
-                <button
-                  onClick={() => {
-                    const newExtraConf = { ...config.extra_conf };
-                    newExtraConf[`custom_key_${Object.keys(config.extra_conf).length}`] = '';
-                    setConfig((prev: ConfigState): ConfigState => ({
-                      ...prev,
-                      extra_conf: newExtraConf
-                    }));
-                  }}
-                  className="px-1.5 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                >
-                  {getMessage('addConfig')}
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setShowCustomConfig(!showCustomConfig)}
+                    className="text-[10px] text-gray-400 hover:text-gray-300 focus:outline-none"
+                  >
+                    {showCustomConfig ? getMessage('collapseConfig') : getMessage('expandConfig')}
+                  </button>
+                  {showCustomConfig && (
+                    <button
+                      onClick={() => {
+                        const newExtraConf = { ...config.extra_conf };
+                        newExtraConf[`custom_key_${Object.keys(config.extra_conf).length}`] = '';
+                        setConfig((prev: ConfigState): ConfigState => ({
+                          ...prev,
+                          extra_conf: newExtraConf
+                        }));
+                      }}
+                      className="px-1.5 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                      {getMessage('addConfig')}
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Config Items */}
-              <div className="space-y-1">
-                {Object.entries(config.extra_conf).map(([key, value], index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Select
-                      showSearch
-                      size="small"
-                      value={key}
-                      style={{ width: '40%' }}
-                      placeholder="Key"
-                      className="custom-select"
-                      onChange={(newKey) => {
-                        const newExtraConf = { ...config.extra_conf };
-                        delete newExtraConf[key];
-                        newExtraConf[newKey] = value;
-                        setConfig((prev: ConfigState): ConfigState => ({
-                          ...prev,
-                          extra_conf: newExtraConf
-                        }));
-                      }}
-                      optionLabelProp="label"
-                    >
-                      {config.available_keys.map(configKey => (
-                        <Select.Option
-                          key={configKey.key}
-                          value={configKey.key}
-                          label={configKey.key}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span>{configKey.key}</span>
-                            <span className="text-gray-400 text-xs">
-                              {configKey.type}
-                            </span>
-                          </div>
-                        </Select.Option>
-                      ))}
-                    </Select>
-                    <input
-                      type="text"
-                      value={value}
-                      onChange={(e) => {
-                        const newExtraConf = { ...config.extra_conf };
-                        newExtraConf[key] = e.target.value;
-                        setConfig((prev: ConfigState): ConfigState => ({
-                          ...prev,
-                          extra_conf: newExtraConf
-                        }));
-                      }}
-                      onBlur={() => {
-                        if (key && config.extra_conf[key] !== '') {
-                          updateConfig(key, config.extra_conf[key]);
-                        }
-                      }}
-                      className="flex-1 bg-gray-700 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:border-blue-500 focus:outline-none"
-                      placeholder="Value"
-                    />
-                    <button
-                      onClick={async () => {
-                        try {
-                          const response = await fetch(`/api/conf/${key}`, {
-                            method: 'DELETE'
-                          });
-
-                          if (!response.ok) {
-                            throw new Error('Failed to delete configuration');
-                          }
-
+              {/* Config Items - Only shown when showCustomConfig is true */}
+              {showCustomConfig && (
+                <div className="space-y-1">
+                  {Object.entries(config.extra_conf).map(([key, value], index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <Select
+                        showSearch
+                        size="small"
+                        value={key}
+                        style={{ width: '40%' }}
+                        placeholder="Key"
+                        className="custom-select"
+                        onChange={(newKey) => {
                           const newExtraConf = { ...config.extra_conf };
                           delete newExtraConf[key];
+                          newExtraConf[newKey] = value;
                           setConfig((prev: ConfigState): ConfigState => ({
                             ...prev,
                             extra_conf: newExtraConf
                           }));
+                        }}
+                        optionLabelProp="label"
+                      >
+                        {config.available_keys.map(configKey => (
+                          <Select.Option
+                            key={configKey.key}
+                            value={configKey.key}
+                            label={configKey.key}
+                          >
+                            <div className="flex justify-between items-center">
+                              <span>{configKey.key}</span>
+                              <span className="text-gray-400 text-xs">
+                                {configKey.type}
+                              </span>
+                            </div>
+                          </Select.Option>
+                        ))}
+                      </Select>
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => {
+                          const newExtraConf = { ...config.extra_conf };
+                          newExtraConf[key] = e.target.value;
+                          setConfig((prev: ConfigState): ConfigState => ({
+                            ...prev,
+                            extra_conf: newExtraConf
+                          }));
+                        }}
+                        onBlur={() => {
+                          if (key && config.extra_conf[key] !== '') {
+                            updateConfig(key, config.extra_conf[key]);
+                          }
+                        }}
+                        className="flex-1 bg-gray-700 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                        placeholder="Value"
+                      />
+                      <button
+                        onClick={async () => {
+                          try {
+                            const response = await fetch(`/api/conf/${key}`, {
+                              method: 'DELETE'
+                            });
 
-                          AntdMessage.success('Configuration deleted successfully');
-                        } catch (error) {
-                          console.error('Error deleting configuration:', error);
-                          AntdMessage.error('Failed to delete configuration');
-                        }
-                      }}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
+                            if (!response.ok) {
+                              throw new Error('Failed to delete configuration');
+                            }
+
+                            const newExtraConf = { ...config.extra_conf };
+                            delete newExtraConf[key];
+                            setConfig((prev: ConfigState): ConfigState => ({
+                              ...prev,
+                              extra_conf: newExtraConf
+                            }));
+
+                            AntdMessage.success('Configuration deleted successfully');
+                          } catch (error) {
+                            console.error('Error deleting configuration:', error);
+                            AntdMessage.error('Failed to delete configuration');
+                          }
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* File Groups Select */}
-        <div className="px-1">
-          <div className="h-[1px] bg-gray-700/50 my-0.5"></div>
-          <Select
-            mode="multiple"
-            style={{ 
-              width: '100%', 
-              background: '#1f2937', 
-              borderColor: '#374151', 
-              color: '#e5e7eb' 
-            }}
-            placeholder="Select file groups to work with"
-            value={selectedGroups}
-            onFocus={fetchFileGroups}
-            onChange={(values) => {
-              console.log('Selected groups:', values);
-              setSelectedGroups(values);
-              fetch('/api/file-groups/switch', {
-                method: 'POST',
-                body: JSON.stringify({ group_names: values })
-              });
-            }}
-            optionLabelProp="label"
-            className="custom-select"
-            dropdownClassName="bg-gray-800 border border-gray-700"
-          >
-            {fileGroups.map(group => (
-              <Select.Option
-                key={group.name}
-                value={group.name}
-                label={group.name}
-                className="bg-gray-800 hover:bg-gray-700"
-              >
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-200">{group.name}</span>
-                  <span className="text-gray-400 text-xs">
-                    {group.files.length} files
-                    </span>
-                </div>
-              </Select.Option>
-            ))}
-          </Select>
-        </div>
+        {/* File Groups Select - Using the new component */}
+        <FileGroupSelect
+          fileGroups={fileGroups}
+          selectedGroups={selectedGroups}
+          setSelectedGroups={setSelectedGroups}
+          fetchFileGroups={fetchFileGroups}
+        />
       </div>
 
       {/* Message Input */}
