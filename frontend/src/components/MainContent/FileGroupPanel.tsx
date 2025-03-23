@@ -203,7 +203,7 @@ const FileGroupPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col" style={{ height: '650px' }}>
       <div className="bg-gray-800 p-2 border-b border-gray-700">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">

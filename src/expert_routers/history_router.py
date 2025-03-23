@@ -149,7 +149,7 @@ async def validate_and_load_history(
                 
                 # 创建查询对象
                 query = Query(
-                    query=query_content,
+                    query=query_content[-200:],
                     timestamp=timestamp_str,
                     response=response_id,
                     urls=context_urls,

@@ -158,7 +158,7 @@ const HistoryPanel: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col h-full bg-[#111827] overflow-hidden">
+        <div className="flex flex-col bg-[#111827] overflow-hidden" style={{ height: '650px' }}>
             <div className="flex justify-between items-center p-4 bg-[#1F2937] border-b border-[#374151] sticky top-0 z-10 shadow-md">
                 <Space>
                     <Button

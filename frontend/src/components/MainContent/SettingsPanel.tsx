@@ -109,7 +109,7 @@ const SettingsPanel: React.FC = () => {
   };
 
   return (
-    <div className="h-full bg-gray-900 p-6 overflow-y-auto">
+    <div className="bg-gray-900 p-6 overflow-y-auto" style={{ height: '650px' }}>
       <Card className="bg-gray-800 border-gray-700">
         <h2 className="text-xl font-semibold text-white mb-6">{getMessage('settingsTitle')}</h2>
         
