@@ -162,12 +162,22 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         const fileMatches = [];
         const symbolMatches = [];
         
+        // 用于跟踪当前文本中存在的所有 mention
+        const currentMentions = new Set<string>();
+        
+        // 记录是否有新的 mention 被检测到但不在映射中
+        let newMentionsDetected = false;
+        
         let fileMatch;
         while ((fileMatch = fileMentionRegex.exec(text)) !== null) {
           // 确保不是 @@ 的开头
           if (text.charAt(fileMatch.index - 1) !== '@') {
             const startPos = model.getPositionAt(fileMatch.index);
             const endPos = model.getPositionAt(fileMatch.index + fileMatch[0].length);
+            
+            // 将此 mention 添加到当前存在的集合中
+            const mentionName = fileMatch[1];
+            currentMentions.add(mentionName);            
             
             fileMatches.push({
               range: new monaco.Range(
@@ -177,8 +187,23 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 endPos.column
               ),
               text: fileMatch[0],
-              name: fileMatch[1]
+              name: mentionName
             });
+            
+            // 对于手动输入的 mention，如果不在映射中，创建一个基本项
+            if (!mentionItemsMap.has(mentionName)) {
+              // 创建一个基本的 CompletionItem 作为占位符
+              const placeholderItem: EnhancedCompletionItem = {
+                display: mentionName,
+                path: mentionName,
+                location: '',  // 没有具体位置信息
+                mentionType: 'file',
+                name: mentionName  // 添加缺少的 name 属性
+              };
+              mentionItemsMap.set(mentionName, placeholderItem);
+              newMentionsDetected = true;
+              console.log(`添加手动输入的文件 mention: ${mentionName}`);
+            }
           }
         }
         
@@ -186,6 +211,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         while ((symbolMatch = symbolMentionRegex.exec(text)) !== null) {
           const startPos = model.getPositionAt(symbolMatch.index);
           const endPos = model.getPositionAt(symbolMatch.index + symbolMatch[0].length);
+          
+          // 将此 mention 添加到当前存在的集合中
+          const mentionName = symbolMatch[1];
+          currentMentions.add(mentionName);
           
           symbolMatches.push({
             range: new monaco.Range(
@@ -195,8 +224,37 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               endPos.column
             ),
             text: symbolMatch[0],
-            name: symbolMatch[1]
+            name: mentionName
           });
+          
+          // 对于手动输入的 mention，如果不在映射中，创建一个基本项
+          if (!mentionItemsMap.has(mentionName)) {
+            // 创建一个基本的 CompletionItem 作为占位符
+            const placeholderItem: EnhancedCompletionItem = {
+              display: mentionName,
+              path: mentionName,
+              location: '',  // 没有具体位置信息
+              mentionType: 'symbol',
+              name: mentionName  // 添加缺少的 name 属性
+            };
+            mentionItemsMap.set(mentionName, placeholderItem);
+            newMentionsDetected = true;
+            console.log(`添加手动输入的符号 mention: ${mentionName}`);
+          }
+        }
+        
+        // 清理 mentionItemsMap 中不再存在于当前文本中的项
+        // 创建键的列表以避免在迭代过程中修改集合
+        const mapKeys = Array.from(mentionItemsMap.keys());
+        let removedKeys = 0;
+        
+        for (const key of mapKeys) {
+          // 如果当前文本中不存在这个 mention，则从映射中移除
+          if (!currentMentions.has(key)) {
+            mentionItemsMap.delete(key);
+            removedKeys++;
+            console.log(`从映射中移除不存在的 mention: ${key}`);
+          }
         }
         
         // 更新文件 mention 装饰器
@@ -218,6 +276,20 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
           }
         })));
+        
+        // 打印更详细的调试信息
+        console.log(
+          `当前 mentionItemsMap 大小: ${mentionItemsMap.size}, ` +
+          `当前文档 mention 数量: ${currentMentions.size}, ` +
+          `新增: ${newMentionsDetected ? '是' : '否'}, ` +
+          `移除: ${removedKeys}`
+        );
+        
+        // 打印映射中的所有键，帮助调试
+        if (mentionItemsMap.size > 0) {
+          console.log('映射中的所有键:', Array.from(mentionItemsMap.keys()));
+        }
+        
       } finally {
         // 标记为不再更新装饰器
         isUpdatingDecorations = false;
@@ -335,8 +407,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         if (prefix === "@" && double_prefix === "@") {
           // 符号补全
           const query = wordText;
+          console.log(`请求符号自动完成，查询: "${query}"`);
+          
           const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
           const data = await response.json();
+          
+          console.log(`接收到符号自动完成结果: ${data.completions.length} 项`);
+          
           return {
             suggestions: data.completions.map((item: CompletionItem) => {
               // 创建增强版 CompletionItem 并存储到映射中
@@ -347,6 +424,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               
               // 在处理完成项时，记录这个项目（用路径作为键）
               mentionItemsMap.set(item.path, enhancedItem);
+              console.log(`添加符号到映射: ${item.path}`);
               
               return {
                 label: item.display,
@@ -370,8 +448,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         } else if (prefix === "@") {
           // 文件补全
           const query = wordText;
+          console.log(`请求文件自动完成，查询: "${query}"`);
+          
           const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
           const data = await response.json();
+          
+          console.log(`接收到文件自动完成结果: ${data.completions.length} 项`);
+          
           return {
             suggestions: data.completions.map((item: CompletionItem) => {
               // 创建增强版 CompletionItem 并存储到映射中
@@ -382,6 +465,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               
               // 在处理完成项时，记录这个项目（用路径作为键）
               mentionItemsMap.set(item.path, enhancedItem);
+              console.log(`添加文件到映射: ${item.path}`);
               
               return {
                 label: item.display,
