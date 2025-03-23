@@ -50,6 +50,32 @@ html, body {
   color: white !important;
 }
 
+/* 添加特定样式以确保多选标签在暗色主题下可见 */
+.custom-select.ant-select-multiple .ant-select-selection-item {
+  background-color: #4B5563 !important;
+  border-color: #6B7280 !important;
+  color: white !important;
+  margin-top: 2px !important;
+  margin-bottom: 2px !important;
+}
+
+/* 确保标签文本在Ant Design 4.x和5.x版本中都可见 */
+.custom-select .ant-select-selection-item-content,
+.custom-select .ant-select-selection-item-remove,
+.custom-select .ant-select-selection-item .anticon,
+.custom-select .ant-select-selection-item span {
+  color: white !important;
+}
+
+/* 修复标签关闭按钮的样式 */
+.custom-select .ant-select-selection-item .ant-select-selection-item-remove {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.custom-select .ant-select-selection-item .ant-select-selection-item-remove:hover {
+  color: white !important;
+}
+
 .custom-select .ant-select-dropdown {
   background-color: #374151 !important;
   border: 1px solid #4B5563 !important;
@@ -201,4 +227,23 @@ html, body {
 
 .dark-mode-table .nested-table .ant-table-tbody > tr:hover > td {
   background-color: #374151 !important;
+}
+
+/* 为Ant Design 5.x添加额外兼容样式 */
+.custom-select .ant-select-selection-overflow-item .ant-select-selection-item {
+  background-color: #4B5563 !important;
+  border-color: #6B7280 !important;
+  color: white !important;
+}
+
+.custom-select .ant-select-selection-overflow-item .ant-select-selection-item-content {
+  color: white !important;
+}
+
+.custom-select .ant-select-selection-overflow-item .ant-select-selection-item-remove {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.custom-select .ant-select-selection-overflow-item .ant-select-selection-item-remove:hover {
+  color: white !important;
 }

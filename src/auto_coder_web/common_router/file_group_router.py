@@ -64,12 +64,20 @@ def _get_groups(project_path: str):
     ]
     return v
 
-def _switch_groups(group_names: List[str]):
+def _switch_groups(group_names: List[str], file_paths: List[str] = None):
     memory = get_memory()
     new_files = []
     for group_name in group_names:
         files = memory["current_files"]["groups"][group_name]
         new_files.extend(files)
+    
+    # Add individual file paths if provided
+    if file_paths:
+        for file_path in file_paths:
+            # Only add unique paths
+            if file_path not in new_files:
+                new_files.append(file_path)
+    
     memory["current_files"]["files"] = new_files
     memory["current_files"]["current_groups"] = group_names
     save_memory()
@@ -139,12 +147,21 @@ async def auto_create_groups(
 
 @router.post("/api/file-groups/switch")
 async def switch_file_groups(
-    request: Request
+    request: Request,
+    project_path: str = Depends(get_project_path)
 ):
     data = await request.json()
     group_names = data.get("group_names", [])
-    await asyncio.to_thread(_switch_groups, group_names)
-    return {"status": "success", "message": f"Switched to groups: {group_names}"}
+    file_paths = data.get("file_paths", [])
+    
+    # Convert relative file paths to absolute paths
+    absolute_file_paths = []
+    for file_path in file_paths:
+        absolute_path = os.path.join(project_path, file_path)
+        absolute_file_paths.append(absolute_path)
+    
+    await asyncio.to_thread(_switch_groups, group_names, absolute_file_paths)
+    return {"status": "success", "message": f"Switched to groups: {group_names} and additional files"}
 
 
 @router.delete("/api/file-groups/{name}")

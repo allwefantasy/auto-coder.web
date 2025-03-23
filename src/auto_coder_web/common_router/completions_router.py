@@ -160,7 +160,7 @@ async def get_symbol_completions(
                 symbol.file_name, project_path)
             matches.append(CompletionItem(
                 name=symbol.symbol_name,
-                path=f"{symbol.symbol_name} ({relative_path}/{symbol.symbol_type.value})",
+                path=relative_path,
                 display=f"{symbol.symbol_name}(location: {relative_path})"
             ))
     return CompletionResponse(completions=matches) 
