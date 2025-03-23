@@ -15,6 +15,7 @@ from autocoder.events.event_types import EventType
 from byzerllm.utils.langutil import asyncfy_with_semaphore
 from autocoder.common.global_cancel import global_cancel, CancelRequestedException 
 from loguru import logger
+import byzerllm
 
 router = APIRouter()
 
@@ -54,6 +55,25 @@ def ensure_task_dir(project_path: str) -> str:
     os.makedirs(task_dir, exist_ok=True)
     return task_dir
 
+@byzerllm.prompt()
+def coding_prompt(messages: List[Dict[str, Any]], request: CodingCommandRequest):
+    '''
+    下面是我们已经产生的一个消息列表,其中 USER_RESPONSE 表示用户的输入，RESULT 你的输出：
+    <messages>
+    {% for message in messages %}
+    <message>
+    <type>{{ message.type }}</type>
+    <content>{{ message.content }}</content>
+    </message>
+    {% endfor %}
+    </messages>
+    
+    下面是用户的最新需求：
+    <request>
+    {{ request.command }}    
+    </request>
+    '''
+
 @router.post("/api/coding-command")
 async def coding_command(request: CodingCommandRequest, project_path: str = Depends(get_project_path)):
     """
@@ -70,8 +90,54 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
             wrapper = AutoCoderRunnerWrapper(project_path)
             wrapper.configure_wrapper(f"event_file:{event_file}")
 
-            # 调用coding方法
-            result = wrapper.coding_wapper(request.command)            
+            # 获取当前会话名称
+            current_session_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "current-session.json")
+            current_session_name = ""
+            if os.path.exists(current_session_file):
+                try:
+                    with open(current_session_file, 'r') as f:
+                        session_data = json.load(f)
+                        current_session_name = session_data.get("session_name", "")
+                except Exception as e:
+                    logger.error(f"Error reading current session: {str(e)}")
+            
+            # 获取历史消息
+            messages = []
+            if current_session_name:
+                chat_list_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "chat-lists", f"{current_session_name}.json")
+                if os.path.exists(chat_list_file):
+                    try:
+                        with open(chat_list_file, 'r', encoding="utf-8") as f:
+                            chat_data = json.load(f)
+                            # 从聊天历史中提取消息
+                            for msg in chat_data.get("messages", []):
+                                # 只保留用户和中间结果信息
+                                if msg.get("type","") not in ["USER_RESPONSE","RESULT"]:
+                                    continue     
+
+                                if msg.get("contentType","") in ["token_stat"]:
+                                    continue                            
+                                
+                                messages.append(msg)
+                    except Exception as e:
+                        logger.error(f"Error reading chat history: {str(e)}")
+            
+            # 构建提示信息
+            prompt_text = ""
+            if messages:
+                # 调用coding_prompt生成包含历史消息的提示
+                prompt_text = coding_prompt.prompt(messages, request)
+                logger.info(prompt_text)
+            
+            # 调用coding方法，如果有历史消息，传递包含历史的提示
+            if prompt_text:
+                logger.info(f"Using conversation history with {len(messages)} messages for coding command")
+                result = wrapper.coding_wapper(prompt_text)
+            else:
+                # 如果没有历史消息或获取失败，直接传递原始命令
+                logger.info("Using original command without conversation history")
+                result = wrapper.coding_wapper(request.command)            
+            
             get_event_manager(event_file).write_completion(
                 EventContentCreator.create_completion(
                     "200", "completed", result).to_dict()
