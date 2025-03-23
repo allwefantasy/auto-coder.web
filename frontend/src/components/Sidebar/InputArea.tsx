@@ -52,6 +52,7 @@ const InputArea: React.FC<InputAreaProps> = ({
 
   const handleMentionMapChange = (items: EnhancedCompletionItem[]) => {
     console.log("Mention map changed:", items.length, "items");
+    console.log(JSON.stringify(items));
     setMentionItems(items);
   };
 
