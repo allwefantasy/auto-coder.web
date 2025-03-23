@@ -49,6 +49,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       // Save the new empty chat list
       await saveChatList(newChatName, []);
       
+      // 设置当前会话名称
+      await setCurrentSessionName(newChatName);
+      
       // Send a /new command to the chat router
       try {
         const response = await fetch('/api/chat-command', {
@@ -189,6 +192,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
   useEffect(() => {
     fetchChatLists();
+    // 初始化时尝试获取当前会话名称
+    getCurrentSessionName();
   }, []);
 
   const fetchChatLists = async () => {
@@ -211,6 +216,56 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     } catch (error) {
       console.error('Error fetching chat lists:', error);
       AntdMessage.error('Failed to fetch chat lists');
+    }
+  };
+
+  // 获取当前会话名称
+  const getCurrentSessionName = async () => {
+    try {
+      const response = await fetch('/api/chat-session/name');
+      if (!response.ok) {
+        throw new Error('Failed to fetch current session name');
+      }
+      const data = await response.json();
+      if (data.session_name) {
+        setChatListName(data.session_name);
+        // 如果会话名称有效，加载该会话的消息
+        if (!chatLists.includes(data.session_name)) {
+          setChatLists(prev => [data.session_name, ...prev]);
+        }
+        await loadChatList(data.session_name);
+      }
+    } catch (error) {
+      console.error('Error getting current session name:', error);
+      // 如果获取失败，不向用户显示错误，而是使用默认行为
+    }
+  };
+
+  // 设置当前会话名称
+  const setCurrentSessionName = async (name: string) => {
+    if (!name.trim()) {
+      return false;
+    }
+
+    try {
+      const response = await fetch('/api/chat-session/name', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_name: name,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to set current session name');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error setting current session name:', error);
+      return false;
     }
   };
 
@@ -238,6 +293,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         setShowChatListInput(false);
         setChatListName('');
         fetchChatLists();
+        
+        // 同步更新当前会话名称
+        await setCurrentSessionName(name);
       } else {
         console.error('Failed to save chat list', response.json());
       }
@@ -636,12 +694,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
           <Dropdown 
             menu={{ 
               items: chatListMenuItems,
-              onClick: ({ key }) => {
+              onClick: async ({ key }) => {
                 if (key === 'new-chat') {
                   showNewChatModal();
                 } else {
                   setChatListName(key);
-                  loadChatList(key);
+                  await loadChatList(key);
+                  // 当切换会话时，更新当前会话名称
+                  await setCurrentSessionName(key);
                 }
               },
               style: { backgroundColor: '#1F2937', borderColor: '#4B5563', color: '#FFFFFF' }

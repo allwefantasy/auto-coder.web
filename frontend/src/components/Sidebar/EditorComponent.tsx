@@ -97,6 +97,9 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   onMentionClick,
   onMentionMapChange
 }) => {
+  // 添加一个ref来跟踪提供者是否已经注册
+  const providerRegistered = React.useRef(false);
+  
   React.useEffect(() => {
     // 在组件挂载时注入样式
     const styleElement = document.createElement('style');
@@ -384,110 +387,118 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     updateDecorations();    
     
     // 注册自动完成提供者
-    monaco.languages.registerCompletionItemProvider('markdown', {
-      triggerCharacters: ['@'],
-      provideCompletionItems: async (model: any, position: any) => {
-        // 获取当前行的文本内容
-        const textUntilPosition = model.getValueInRange({
-          startLineNumber: position.lineNumber,
-          startColumn: 1,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column
-        });
+    if (!providerRegistered.current) {
+      monaco.languages.registerCompletionItemProvider('markdown', {
+        triggerCharacters: ['@'],
+        provideCompletionItems: async (model: any, position: any) => {
+          // 在每次请求开始时清空临时存储，防止重复项累积
+          temporaryCompletionItems.clear();
+          
+          // 获取当前行的文本内容
+          const textUntilPosition = model.getValueInRange({
+            startLineNumber: position.lineNumber,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column
+          });
 
-        // 获取当前词和前缀
-        const word = model.getWordUntilPosition(position);
-        const prefix = textUntilPosition.charAt(word.startColumn - 2); // 获取触发字符
-        const double_prefix = textUntilPosition.charAt(word.startColumn - 3); // 获取触发字符
+          // 获取当前词和前缀
+          const word = model.getWordUntilPosition(position);
+          const prefix = textUntilPosition.charAt(word.startColumn - 2); // 获取触发字符
+          const double_prefix = textUntilPosition.charAt(word.startColumn - 3); // 获取触发字符
 
-        //获取当前词
-        const wordText = word.word;
+          //获取当前词
+          const wordText = word.word;
 
-        console.log('prefix:', prefix, 'word:', wordText);
+          console.log('prefix:', prefix, 'word:', wordText);
 
-        if (prefix === "@" && double_prefix === "@") {
-          // 符号补全
-          const query = wordText;
-          console.log(`请求符号自动完成，查询: "${query}"`);
-          
-          const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
-          const data = await response.json();
-          
-          console.log(`接收到符号自动完成结果: ${data.completions.length} 项`);
-          
-          return {
-            suggestions: data.completions.map((item: CompletionItem) => {
-              // 创建增强版 CompletionItem
-              const enhancedItem: EnhancedCompletionItem = {
-                ...item,
-                mentionType: 'symbol'
-              };
-              
-              // 存储到临时映射中，而不是直接添加到 mentionItemsMap
-              temporaryCompletionItems.set(item.path, enhancedItem);
-              console.log(`添加符号到临时映射: ${item.path}`);
-              
-              return {
-                label: item.display,
-                kind: monaco.languages.CompletionItemKind.Function,
-                insertText: item.name,
-                detail: "",
-                documentation: `Location: ${item.path}`,
-                // 设置自定义命令，在选择后执行
-                command: {
-                  id: 'editor.acceptedCompletion',
-                  title: '选择完成',
-                  arguments: [item.name,item.path, 'symbol']  // 传递必要信息
-                },
-                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-              };
-            }),
-            incomplete: true
-          };
-        } else if (prefix === "@") {
-          // 文件补全
-          const query = wordText;
-          console.log(`请求文件自动完成，查询: "${query}"`);
-          
-          const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
-          const data = await response.json();
-          
-          console.log(`接收到文件自动完成结果: ${data.completions.length} 项`);
-          
-          return {
-            suggestions: data.completions.map((item: CompletionItem) => {
-              // 创建增强版 CompletionItem
-              const enhancedItem: EnhancedCompletionItem = {
-                ...item,
-                mentionType: 'file'
-              };
-              
-              // 存储到临时映射中，而不是直接添加到 mentionItemsMap
-              temporaryCompletionItems.set(item.path, enhancedItem);
-              console.log(`添加文件到临时映射: ${item.path}`);
-              
-              return {
-                label: item.display,
-                kind: monaco.languages.CompletionItemKind.File,
-                insertText: item.path,
-                detail: "",
-                documentation: `Location: ${item.location}`,
-                // 设置自定义命令，在选择后执行
-                command: {
-                  id: 'editor.acceptedCompletion',
-                  title: '选择完成',
-                  arguments: [item.name,item.path, 'file']  // 传递必要信息
-                },
-                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-              };
-            }),
-            incomplete: true
-          };
+          if (prefix === "@" && double_prefix === "@") {
+            // 符号补全
+            const query = wordText;
+            console.log(`请求符号自动完成，查询: "${query}"`);
+            
+            const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            console.log(`接收到符号自动完成结果: ${data.completions.length} 项`);
+            
+            return {
+              suggestions: data.completions.map((item: CompletionItem) => {
+                // 创建增强版 CompletionItem
+                const enhancedItem: EnhancedCompletionItem = {
+                  ...item,
+                  mentionType: 'symbol'
+                };
+                
+                // 存储到临时映射中，而不是直接添加到 mentionItemsMap
+                temporaryCompletionItems.set(item.path, enhancedItem);
+                console.log(`添加符号到临时映射: ${item.path}`);
+                
+                return {
+                  label: item.display,
+                  kind: monaco.languages.CompletionItemKind.Function,
+                  insertText: item.name,
+                  detail: "",
+                  documentation: `Location: ${item.path}`,
+                  // 设置自定义命令，在选择后执行
+                  command: {
+                    id: 'editor.acceptedCompletion',
+                    title: '选择完成',
+                    arguments: [item.name,item.path, 'symbol']  // 传递必要信息
+                  },
+                  insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                };
+              }),
+              incomplete: true
+            };
+          } else if (prefix === "@") {
+            // 文件补全
+            const query = wordText;
+            console.log(`请求文件自动完成，查询: "${query}"`);
+            
+            const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            console.log(`接收到文件自动完成结果: ${data.completions.length} 项`);
+            
+            return {
+              suggestions: data.completions.map((item: CompletionItem) => {
+                // 创建增强版 CompletionItem
+                const enhancedItem: EnhancedCompletionItem = {
+                  ...item,
+                  mentionType: 'file'
+                };
+                
+                // 存储到临时映射中，而不是直接添加到 mentionItemsMap
+                temporaryCompletionItems.set(item.path, enhancedItem);
+                console.log(`添加文件到临时映射: ${item.path}`);
+                
+                return {
+                  label: item.display,
+                  kind: monaco.languages.CompletionItemKind.File,
+                  insertText: item.path,
+                  detail: "",
+                  documentation: `Location: ${item.location}`,
+                  // 设置自定义命令，在选择后执行
+                  command: {
+                    id: 'editor.acceptedCompletion',
+                    title: '选择完成',
+                    arguments: [item.name,item.path, 'file']  // 传递必要信息
+                  },
+                  insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                };
+              }),
+              incomplete: true
+            };
+          }
+
+          return { suggestions: [] };
         }
-
-        return { suggestions: [] };
-      }
-    });
+      });
+      
+      // 标记为提供者已经注册
+      providerRegistered.current = true;
+    }
     
     // 不再需要通过键盘事件或光标位置变化来间接检测自动完成选择
     // 因为我们现在使用 command 机制直接获取选择事件

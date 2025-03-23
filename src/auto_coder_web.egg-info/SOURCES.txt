@@ -6,6 +6,7 @@ src/auto_coder_web/auto_coder_runner_wrapper.py
 src/auto_coder_web/file_group.py
 src/auto_coder_web/file_manager.py
 src/auto_coder_web/json_file_storage.py
+src/auto_coder_web/lang.py
 src/auto_coder_web/proxy.py
 src/auto_coder_web/terminal.py
 src/auto_coder_web/types.py
@@ -140,12 +141,12 @@ src/auto_coder_web/web/monaco-editor/min/vs/language/json/jsonMode.js
 src/auto_coder_web/web/monaco-editor/min/vs/language/json/jsonWorker.js
 src/auto_coder_web/web/monaco-editor/min/vs/language/typescript/tsMode.js
 src/auto_coder_web/web/monaco-editor/min/vs/language/typescript/tsWorker.js
-src/auto_coder_web/web/static/css/main.b9764291.css
-src/auto_coder_web/web/static/css/main.b9764291.css.map
+src/auto_coder_web/web/static/css/main.8a602674.css
+src/auto_coder_web/web/static/css/main.8a602674.css.map
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js.map
-src/auto_coder_web/web/static/js/main.a707a18c.js
-src/auto_coder_web/web/static/js/main.a707a18c.js.LICENSE.txt
-src/auto_coder_web/web/static/js/main.a707a18c.js.map
+src/auto_coder_web/web/static/js/main.c14e8b91.js
+src/auto_coder_web/web/static/js/main.c14e8b91.js.LICENSE.txt
+src/auto_coder_web/web/static/js/main.c14e8b91.js.map
 src/expert_routers/__init__.py
 src/expert_routers/history_router.py
