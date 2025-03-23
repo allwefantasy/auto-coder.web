@@ -3,7 +3,7 @@ import { Switch, Select, Tooltip, message as AntdMessage } from 'antd';
 import { UndoOutlined } from '@ant-design/icons';
 import EditorComponent from './EditorComponent';
 import { getMessage } from './lang';
-import { FileGroup, ConfigState } from './types';
+import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
 import FileGroupSelect from './FileGroupSelect';
 
 interface InputAreaProps {
@@ -48,6 +48,12 @@ const InputArea: React.FC<InputAreaProps> = ({
   setConfig
 }) => {
   const [showCustomConfig, setShowCustomConfig] = useState<boolean>(false);
+  const [mentionItems, setMentionItems] = useState<EnhancedCompletionItem[]>([]);
+
+  const handleMentionMapChange = (items: EnhancedCompletionItem[]) => {
+    console.log("Mention map changed:", items.length, "items");
+    setMentionItems(items);
+  };
 
   return (
     <div className="bg-gray-800 border-t border-gray-700">
@@ -231,6 +237,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           selectedGroups={selectedGroups}
           setSelectedGroups={setSelectedGroups}
           fetchFileGroups={fetchFileGroups}
+          mentionItems={mentionItems}
         />
       </div>
 
@@ -242,6 +249,7 @@ const InputArea: React.FC<InputAreaProps> = ({
             onEditorDidMount={handleEditorDidMount}
             onShouldSendMessage={() => setShouldSendMessage(true)}
             onToggleMaximize={() => setIsMaximized((prev: boolean): boolean => !prev)}
+            onMentionMapChange={handleMentionMapChange}
           />
         </div>
         <div className="flex flex-col mt-1 gap-1">

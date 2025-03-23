@@ -90,6 +90,10 @@ export interface CompletionItem {
   location?: string;
 }
 
+export interface EnhancedCompletionItem extends CompletionItem {
+  mentionType: 'file' | 'symbol';
+}
+
 export interface CompletionData {
   completions: Array<CompletionItem>;
 }

@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select } from 'antd';
-import { FileGroup } from './types';
+import { FileGroup, EnhancedCompletionItem } from './types';
 
 interface FileGroupSelectProps {
   fileGroups: FileGroup[];
   selectedGroups: string[];
   setSelectedGroups: (values: string[]) => void;
   fetchFileGroups: () => void;
+  mentionItems?: EnhancedCompletionItem[];
 }
 
 interface FileCompletion {
@@ -20,13 +21,26 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   fileGroups,
   selectedGroups,
   setSelectedGroups,
-  fetchFileGroups
+  fetchFileGroups,
+  mentionItems = []
 }) => {
   const [fileCompletions, setFileCompletions] = useState<FileCompletion[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
+  
+  const [mentionFiles, setMentionFiles] = useState<{path: string, display: string}[]>([]);
+  
+  useEffect(() => {
+    const files = mentionItems      
+      .map(item => ({
+        path: item.path,
+        display: item.display || item.name || item.path.split('/').pop() || item.path
+      }));
+    
+    setMentionFiles(files);
+    console.log("Updated mention files:", files.length);
+  }, [mentionItems]);
 
-  // Fetch file completions when user types
   const fetchFileCompletions = async (searchValue: string) => {
     if (searchValue.length < 2) {
       setFileCompletions([]);
@@ -42,7 +56,6 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     }
   };
 
-  // Function to send selected groups and files to the backend
   const updateSelection = (groupValues: string[], fileValues: string[]) => {
     setSelectedGroups(groupValues);
     setSelectedFiles(fileValues);
@@ -80,7 +93,6 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           fetchFileCompletions(value);
         }}
         onChange={(values) => {
-          // Split values into groups and files
           const groupValues = values.filter(value => 
             fileGroups.some(group => group.name === value)
           );
@@ -96,7 +108,6 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         className="custom-select"
         dropdownClassName="bg-gray-800 border border-gray-700"
       >
-        {/* Group options */}
         {fileGroups.map(group => (
           <Select.Option
             key={group.name}
@@ -113,20 +124,41 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           </Select.Option>
         ))}
         
-        {/* File completion options */}
-        {fileCompletions.map(file => (
-          <Select.Option
-            key={file.path}
-            value={file.path}
-            label={file.display}
-            className="bg-gray-800 hover:bg-gray-700"
-          >
-            <div className="flex justify-between items-center">
-              <span className="text-gray-200">{file.display}</span>
-              <span className="text-gray-400 text-xs">File</span>
-            </div>
-          </Select.Option>
-        ))}
+        {mentionFiles.length > 0 && searchText.length < 2 && (
+          <Select.OptGroup label="Mentioned Files">
+            {mentionFiles.map(file => (
+              <Select.Option
+                key={`mention-${file.path}`}
+                value={file.path}
+                label={file.display}
+                className="bg-gray-800 hover:bg-gray-700"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-200">{file.display}</span>
+                  <span className="text-blue-400 text-xs">Mentioned</span>
+                </div>
+              </Select.Option>
+            ))}
+          </Select.OptGroup>
+        )}
+        
+        {fileCompletions.length > 0 && (
+          <Select.OptGroup label="Search Results">
+            {fileCompletions.map(file => (
+              <Select.Option
+                key={file.path}
+                value={file.path}
+                label={file.display}
+                className="bg-gray-800 hover:bg-gray-700"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-200">{file.display}</span>
+                  <span className="text-gray-400 text-xs">File</span>
+                </div>
+              </Select.Option>
+            ))}
+          </Select.OptGroup>
+        )}
       </Select>
     </div>
   );

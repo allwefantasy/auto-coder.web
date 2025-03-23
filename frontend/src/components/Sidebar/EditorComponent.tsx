@@ -1,6 +1,6 @@
 import React from 'react';
 import { Editor, loader } from '@monaco-editor/react';
-import { CompletionItem } from './types';
+import { CompletionItem, EnhancedCompletionItem } from './types';
 // 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
 
@@ -67,11 +67,6 @@ const mentionStyles = `
 }
 `;
 
-// 扩展 CompletionItem 类型，添加 mentionType 字段
-interface EnhancedCompletionItem extends CompletionItem {
-  mentionType: 'file' | 'symbol';
-}
-
 interface EditorComponentProps {
   isMaximized: boolean;
   onEditorDidMount: (editor: any, monaco: any) => void;
@@ -84,6 +79,8 @@ interface EditorComponentProps {
   onToggleMaximize: () => void;
   /** 当点击 mention 项时的回调 */
   onMentionClick?: (type: 'file' | 'symbol', text: string, item?: EnhancedCompletionItem) => void;
+  /** 当 mention 映射发生变化时的回调 */
+  onMentionMapChange?: (mentionItems: EnhancedCompletionItem[]) => void;
 }
 
 /**
@@ -97,7 +94,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   defaultValue = '',
   onChange,
   onToggleMaximize,
-  onMentionClick
+  onMentionClick,
+  onMentionMapChange
 }) => {
   React.useEffect(() => {
     // 在组件挂载时注入样式
@@ -137,6 +135,15 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     let isUpdatingDecorations = false;
     let decorationUpdateScheduled = false;
     
+    // 定义一个函数，用于通知映射变化
+    const notifyMentionMapChange = () => {
+      if (onMentionMapChange) {
+        // 将 Map 转换为数组传递给回调
+        const mentionItems = Array.from(mentionItemsMap.values());
+        onMentionMapChange(mentionItems);
+      }
+    };
+    
     // 更新装饰器函数
     const updateDecorations = () => {
       // 如果正在更新，则只标记需要再次更新，避免递归调用
@@ -167,6 +174,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         
         // 记录是否有新的 mention 被检测到但不在映射中
         let newMentionsDetected = false;
+        let mapChanged = false;
         
         let fileMatch;
         while ((fileMatch = fileMentionRegex.exec(text)) !== null) {
@@ -202,6 +210,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               };
               mentionItemsMap.set(mentionName, placeholderItem);
               newMentionsDetected = true;
+              mapChanged = true;
               console.log(`添加手动输入的文件 mention: ${mentionName}`);
             }
           }
@@ -239,12 +248,12 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             };
             mentionItemsMap.set(mentionName, placeholderItem);
             newMentionsDetected = true;
+            mapChanged = true;
             console.log(`添加手动输入的符号 mention: ${mentionName}`);
           }
         }
         
         // 清理 mentionItemsMap 中不再存在于当前文本中的项
-        // 创建键的列表以避免在迭代过程中修改集合
         const mapKeys = Array.from(mentionItemsMap.keys());
         let removedKeys = 0;
         
@@ -253,6 +262,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           if (!currentMentions.has(key)) {
             mentionItemsMap.delete(key);
             removedKeys++;
+            mapChanged = true;
             console.log(`从映射中移除不存在的 mention: ${key}`);
           }
         }
@@ -288,6 +298,11 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         // 打印映射中的所有键，帮助调试
         if (mentionItemsMap.size > 0) {
           console.log('映射中的所有键:', Array.from(mentionItemsMap.keys()));
+        }
+        
+        // 如果映射发生了变化，通知父组件
+        if (mapChanged) {
+          notifyMentionMapChange();
         }
         
       } finally {
@@ -426,6 +441,9 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               mentionItemsMap.set(item.path, enhancedItem);
               console.log(`添加符号到映射: ${item.path}`);
               
+              // 通知映射变化
+              notifyMentionMapChange();
+              
               return {
                 label: item.display,
                 kind: monaco.languages.CompletionItemKind.Function,
@@ -466,6 +484,9 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               // 在处理完成项时，记录这个项目（用路径作为键）
               mentionItemsMap.set(item.path, enhancedItem);
               console.log(`添加文件到映射: ${item.path}`);
+              
+              // 通知映射变化
+              notifyMentionMapChange();
               
               return {
                 label: item.display,
