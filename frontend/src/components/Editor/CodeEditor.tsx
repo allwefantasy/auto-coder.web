@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { message } from 'antd';
 import type { DataNode } from 'antd/es/tree';
+import Split from 'react-split';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 import FileTree from './components/FileTree';
 import MonacoEditor from './components/MonacoEditor';
@@ -127,7 +128,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) =>
         </div>
       </div>
 
-      <div className="code-editor-content">
+      <Split 
+        className="code-editor-content"
+        sizes={[20, 80]} 
+        minSize={100}
+        expandToMin={false}
+        gutterSize={10}
+        gutterAlign="center"
+        snapOffset={30}
+        dragInterval={1}
+        direction="horizontal"
+      >
         <div className="file-tree-panel">
           <FileTree 
             treeData={treeData} 
@@ -142,7 +153,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) =>
             onChange={(value) => setCode(value || '')}
           />
         </div>
-      </div>
+      </Split>
     </div>
   );
 };

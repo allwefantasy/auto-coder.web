@@ -7,7 +7,7 @@ current version: v0.1.276
 增量构建:
 
 ```bash
-./build-with-retry.sh -c app,local -v v0.1.277
+./build-with-retry.sh -c local -v v0.1.313
 ```
 
 新增的自动构建脚本支持一次性构建所有组件，并具有自动重试功能：

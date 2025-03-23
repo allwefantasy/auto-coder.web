@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-height: 650px;
   background-color: #1e1e1e;
 }
 
@@ -58,15 +59,39 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  height: calc(100% - 49px); /* Subtract header height */
 }
 
 .file-tree-panel {
-  width: 250px;
+  height: 100%;
+  overflow: auto;
+  background-color: #252526;
+}
+
+.editor-panel {
   height: 100%;
   overflow: hidden;
 }
 
-.editor-panel {
-  flex: 1;
+/* Split.js gutter styles */
+.gutter {
+  background-color: #333;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+}
+
+/* Ensure split containers take full height */
+.split {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+
+.split > div {
   height: 100%;
 }
