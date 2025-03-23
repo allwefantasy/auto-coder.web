@@ -67,6 +67,11 @@ const mentionStyles = `
 }
 `;
 
+// 扩展 CompletionItem 类型，添加 mentionType 字段
+interface EnhancedCompletionItem extends CompletionItem {
+  mentionType: 'file' | 'symbol';
+}
+
 interface EditorComponentProps {
   isMaximized: boolean;
   onEditorDidMount: (editor: any, monaco: any) => void;
@@ -78,7 +83,7 @@ interface EditorComponentProps {
   /** 切换编辑器最大化/最小化状态 */
   onToggleMaximize: () => void;
   /** 当点击 mention 项时的回调 */
-  onMentionClick?: (type: 'file' | 'symbol', text: string) => void;
+  onMentionClick?: (type: 'file' | 'symbol', text: string, item?: EnhancedCompletionItem) => void;
 }
 
 /**
@@ -124,6 +129,9 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     // mention 块装饰器实现
     let fileMentionDecorations: string[] = [];
     let symbolMentionDecorations: string[] = [];
+    
+    // 添加映射存储，用于存储 mention 文本与 CompletionItem 的映射关系
+    const mentionItemsMap = new Map<string, EnhancedCompletionItem>();
     
     // 添加标志位和防抖机制，避免递归调用
     let isUpdatingDecorations = false;
@@ -256,14 +264,17 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           const mentionText = model.getValueInRange(range);
           // 移除 @ 前缀
           const fileName = mentionText.substring(1);
+          
+          // 检查是否有对应的 CompletionItem
+          const completionItem = mentionItemsMap.get(fileName);
+          
           if (onMentionClick) {
-            onMentionClick('file', fileName);
+            onMentionClick('file', fileName, completionItem);
           } else {
             // 默认行为：打开文件或显示文件信息
-            console.log('文件被点击:', fileName);
+            console.log('文件被点击:', fileName, completionItem);
             // 这里可以添加默认的文件打开逻辑
           }
-          // 简单返回，不继续处理其他点击操作
           return;
         }
       }
@@ -275,14 +286,17 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           const mentionText = model.getValueInRange(range);
           // 移除 @@ 前缀
           const symbolName = mentionText.substring(2);
+          
+          // 检查是否有对应的 CompletionItem
+          const completionItem = mentionItemsMap.get(symbolName);
+          
           if (onMentionClick) {
-            onMentionClick('symbol', symbolName);
+            onMentionClick('symbol', symbolName, completionItem);
           } else {
             // 默认行为：显示符号信息或跳转到符号定义
-            console.log('符号被点击:', symbolName);
+            console.log('符号被点击:', symbolName, completionItem);
             // 这里可以添加默认的符号导航逻辑
           }
-          // 简单返回，不继续处理其他点击操作
           return;
         }
       }
@@ -324,22 +338,33 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
           const data = await response.json();
           return {
-            suggestions: data.completions.map((item: CompletionItem) => ({
-              label: item.display,
-              kind: monaco.languages.CompletionItemKind.Function,
-              insertText: item.path,
-              detail: "",
-              documentation: `Location: ${item.path}`,
-              // 添加自定义 CSS 类用于后续样式应用
-              additionalTextEdits: [],
-              command: {
-                id: 'editor.action.triggerSuggest',
-                title: 'Re-trigger completions...',
-                arguments: []
-              },
-              // 添加一个后处理钩子，在插入完成后触发装饰器更新
-              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-            })),
+            suggestions: data.completions.map((item: CompletionItem) => {
+              // 创建增强版 CompletionItem 并存储到映射中
+              const enhancedItem: EnhancedCompletionItem = {
+                ...item,
+                mentionType: 'symbol'
+              };
+              
+              // 在处理完成项时，记录这个项目（用路径作为键）
+              mentionItemsMap.set(item.path, enhancedItem);
+              
+              return {
+                label: item.display,
+                kind: monaco.languages.CompletionItemKind.Function,
+                insertText: item.path,
+                detail: "",
+                documentation: `Location: ${item.path}`,
+                // 添加自定义 CSS 类用于后续样式应用
+                additionalTextEdits: [],
+                command: {
+                  id: 'editor.action.triggerSuggest',
+                  title: 'Re-trigger completions...',
+                  arguments: []
+                },
+                // 添加一个后处理钩子，在插入完成后触发装饰器更新
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+              };
+            }),
             incomplete: true
           };
         } else if (prefix === "@") {
@@ -348,28 +373,45 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
           const data = await response.json();
           return {
-            suggestions: data.completions.map((item: CompletionItem) => ({
-              label: item.display,
-              kind: monaco.languages.CompletionItemKind.File,
-              insertText: item.path,
-              detail: "",
-              documentation: `Location: ${item.location}`,
-              // 添加自定义 CSS 类用于后续样式应用
-              additionalTextEdits: [],
-              command: {
-                id: 'editor.action.triggerSuggest',
-                title: 'Re-trigger completions...',
-                arguments: []
-              },
-              // 添加一个后处理钩子，在插入完成后触发装饰器更新
-              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-            })),
+            suggestions: data.completions.map((item: CompletionItem) => {
+              // 创建增强版 CompletionItem 并存储到映射中
+              const enhancedItem: EnhancedCompletionItem = {
+                ...item,
+                mentionType: 'file'
+              };
+              
+              // 在处理完成项时，记录这个项目（用路径作为键）
+              mentionItemsMap.set(item.path, enhancedItem);
+              
+              return {
+                label: item.display,
+                kind: monaco.languages.CompletionItemKind.File,
+                insertText: item.path,
+                detail: "",
+                documentation: `Location: ${item.location}`,
+                // 添加自定义 CSS 类用于后续样式应用
+                additionalTextEdits: [],
+                command: {
+                  id: 'editor.action.triggerSuggest',
+                  title: 'Re-trigger completions...',
+                  arguments: []
+                },
+                // 添加一个后处理钩子，在插入完成后触发装饰器更新
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+              };
+            }),
             incomplete: true
           };
         }
 
         return { suggestions: [] };
       },
+      
+      // 添加自动完成选择事件处理
+      onDidAccept: (completionItem: any) => {
+        // 当选择了一个自动完成项时，更新装饰器
+        debouncedUpdateDecorations();
+      }
     });
     
     // 监听自动完成项选择事件，确保在选择后立即应用样式 - 使用防抖
