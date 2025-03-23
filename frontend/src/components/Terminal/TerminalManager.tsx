@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Terminal from './Terminal';
-import Split from 'react-split';
 import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
 import { Tooltip, Dropdown, Menu, Modal } from 'antd';
 
@@ -14,7 +13,7 @@ const TerminalManager: React.FC = () => {
     { id: '1', name: 'Terminal 1' }
   ]);
   
-  // 在组件挂载和分栏大小变化时触发resize事件
+  // 在组件挂载时触发resize事件
   useEffect(() => {
     const handleResize = () => {
       window.dispatchEvent(new Event('resize'));
@@ -49,16 +48,9 @@ const TerminalManager: React.FC = () => {
   };
 
   return (
-    <Split
-      className="flex h-full"
-      sizes={[80, 20]}
-      minSize={[400, 150]}
-      gutterSize={4}
-      cursor="col-resize"
-    >
-      {/* Left Panel - Terminal Management */}
-      {/* Left Panel - Active Terminal */}
-      <div className="h-full">
+    <div className="flex h-full">
+      {/* Left Panel - Terminal */}
+      <div className="h-full flex-grow" style={{ minWidth: '400px' }}>
         {terminals.map((terminal) => (
           <div
             key={terminal.id}
@@ -70,7 +62,7 @@ const TerminalManager: React.FC = () => {
       </div>
 
       {/* Right Panel - Terminal Management */}
-      <div className="bg-gray-900 flex flex-col">
+      <div className="bg-gray-900 flex flex-col" style={{ width: '20%', minWidth: '150px' }}>
         <div className="p-2 border-b border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
@@ -131,8 +123,6 @@ const TerminalManager: React.FC = () => {
         </div>
       </div>
 
-
-
       {/* Settings Modal */}
       <Modal
         title="Terminal Settings"
@@ -162,7 +152,7 @@ const TerminalManager: React.FC = () => {
           </div>
         </div>
       </Modal>
-    </Split>
+    </div>
   );
 };
 

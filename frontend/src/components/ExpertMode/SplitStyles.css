@@ -1,0 +1,63 @@
+/* Split 组件的自定义样式 */
+
+/* 垂直分割的容器 */
+.split-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* 垂直分隔条(gutter)的样式 */
+.split-vertical > .gutter {
+  height: 5px !important;
+  width: 100% !important; /* 确保宽度为100% */
+  background-color: #4B5563; /* Tailwind 的 gray-600 */
+  cursor: row-resize !important;
+  margin: 0 !important;
+  z-index: 10 !important;
+  transition: background-color 0.2s;
+  position: relative !important;
+  left: 0 !important; /* 确保从左边开始 */
+  right: 0 !important; /* 确保延伸到右边 */
+}
+
+.split-vertical > .gutter:hover,
+.split-vertical > .gutter.dragging {
+  background-color: #3B82F6; /* Tailwind 的 blue-500 */
+}
+
+/* 添加一个小拖动手柄图标 */
+.split-vertical > .gutter::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 1px;
+  box-shadow: 0 -2px 0 rgba(255, 255, 255, 0.6), 0 2px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* 水平分割的容器 (如果需要) */
+.split-horizontal {
+  display: flex !important;
+  height: 100% !important;
+}
+
+/* 水平分隔条的样式 (如果需要) */
+.split-horizontal > .gutter {
+  width: 5px !important;
+  background-color: #4B5563;
+  cursor: col-resize !important;
+  margin: 0 !important;
+  z-index: 10 !important;
+  transition: background-color 0.2s;
+}
+
+.split-horizontal > .gutter:hover,
+.split-horizontal > .gutter.dragging {
+  background-color: #3B82F6;
+} 
