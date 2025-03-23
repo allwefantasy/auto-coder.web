@@ -111,6 +111,51 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
 
   const [shouldSaveMessages, setShouldSaveMessages] = useState<boolean>(false);
 
+  // 添加累计token统计状态
+  const [accumulatedStats, setAccumulatedStats] = useState({
+    inputTokens: 0,
+    outputTokens: 0,
+    totalCost: 0,
+    contextWindowUsage: 0,
+    maxContextWindow: 100, // 默认值
+    cacheHits: 0,
+    cacheMisses: 0
+  });
+
+  // 当messages变化时更新累计统计
+  useEffect(() => {
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let totalCost = 0;
+    let contextWindowUsage = 0;
+    let maxContextWindow = 100;
+    let cacheHits = 0;
+    let cacheMisses = 0;
+
+    // 遍历所有消息，累计token统计
+    messages.forEach(message => {
+      if (message.contentType === 'token_stat' && message.metadata) {
+        inputTokens += message.metadata.input_tokens || 0;
+        outputTokens += message.metadata.output_tokens || 0;
+        totalCost += (message.metadata.input_cost || 0) + (message.metadata.output_cost || 0);
+        contextWindowUsage = Math.max(contextWindowUsage, message.metadata.context_window || 0);
+        maxContextWindow = message.metadata.max_context_window || maxContextWindow;
+        cacheHits += message.metadata.cache_hit || 0;
+        cacheMisses += message.metadata.cache_miss || 0;
+      }
+    });
+
+    setAccumulatedStats({
+      inputTokens,
+      outputTokens,
+      totalCost,
+      contextWindowUsage,
+      maxContextWindow,
+      cacheHits,
+      cacheMisses
+    });
+  }, [messages]);
+
   // 添加新的 useEffect 用于滚动到最新消息
   useEffect(() => {
     // 只有当用户在查看底部时，才自动滚动到新消息
@@ -582,7 +627,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       if (isWriteMode) {
         // 编码模式
         console.log('ChatPanel: Sending message to codingService');
-        const result = await codingService.executeCommand(`/apply ${trimmedText}`);
+        const result = await codingService.executeCommand(`${trimmedText}`);
         console.log('ChatPanel: Received result from codingService:', result);
         setRequestId(result.event_file_id);
       } else {
@@ -651,8 +696,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
     ...chatLists.map(name => ({
       key: name,
       label: (
-        <div className="flex justify-between items-center w-full group">
-          <span className="truncate max-w-[180px] text-white">{name}</span>
+        <div className={`flex justify-between items-center w-full group ${chatListName === name ? 'bg-indigo-700/40 rounded-sm' : ''}`}>
+          <span className={`truncate max-w-[180px] ${chatListName === name ? 'text-white font-medium' : 'text-gray-200'}`}>{name}</span>
           <Button 
             type="text" 
             size="small" 
@@ -710,12 +755,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             placement="bottomRight"
             arrow={{ pointAtCenter: true }}
           >
-            <Button 
-              icon={<MessageOutlined style={{ fontSize: '12px' }} />}
-              size="small" 
-              className="flex items-center justify-center text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6"
-              title={getChatTitle()}
-            />
+            <Tooltip title={chatListName || getChatTitle()}>
+              <Button 
+                icon={<MessageOutlined style={{ fontSize: '12px' }} />}
+                size="small" 
+                className={`flex items-center justify-center text-gray-300 border-gray-600 ${chatListName ? 'bg-indigo-600 hover:bg-indigo-700 border-indigo-500' : 'bg-gray-700 hover:bg-gray-600'} px-1 py-0 h-6 w-6`}
+              />
+            </Tooltip>
           </Dropdown>
           
           <Tooltip title="保存当前对话">
@@ -758,6 +804,30 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
             backgroundSize: '20px 20px'
           }}
         >
+          {/* Token统计组件 */}
+          {messages.length > 0 && (
+            <div className="sticky top-0 right-0 float-right bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-md p-2 m-1 shadow-md z-10">
+              <div className="font-mono text-xs text-gray-400 flex flex-col items-end gap-1 text-[11px]">
+                <div className="flex items-center">
+                  <span>{getMessage('tokens')}: </span>
+                  <span className="text-green-500 ml-1">↑ {accumulatedStats.inputTokens}</span>
+                  <span className="text-red-500 ml-1">↓ {accumulatedStats.outputTokens}</span>
+                </div>
+                {(accumulatedStats.cacheHits > 0 || accumulatedStats.cacheMisses > 0) && (
+                  <div className="flex items-center">
+                    <span>{getMessage('cache')}: </span>
+                    <span className="text-white ml-1">⊕ {accumulatedStats.cacheHits}</span>
+                    <span className="text-white ml-1">→ {accumulatedStats.cacheMisses}</span>
+                  </div>
+                )}
+                <div className="flex items-center">
+                  <span>{getMessage('apiCost')}: </span>
+                  <span className="text-white ml-1">${accumulatedStats.totalCost.toFixed(5)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-gray-400 animate-fade-in">
               <MessageOutlined style={{ fontSize: '36px', marginBottom: '10px', opacity: 0.5 }} />

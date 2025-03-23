@@ -123,10 +123,10 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
                         logger.error(f"Error reading chat history: {str(e)}")
             
             # 构建提示信息
-            prompt_text = ""
+            prompt_text = "/apply "
             if messages:
                 # 调用coding_prompt生成包含历史消息的提示
-                prompt_text = coding_prompt.prompt(messages, request)
+                prompt_text = prompt_text + coding_prompt.prompt(messages, request)
                 logger.info(prompt_text)
             
             # 调用coding方法，如果有历史消息，传递包含历史的提示
@@ -136,7 +136,7 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
             else:
                 # 如果没有历史消息或获取失败，直接传递原始命令
                 logger.info("Using original command without conversation history")
-                result = wrapper.coding_wapper(request.command)            
+                result = wrapper.coding_wapper(prompt_text + request.command)            
             
             get_event_manager(event_file).write_completion(
                 EventContentCreator.create_completion(
