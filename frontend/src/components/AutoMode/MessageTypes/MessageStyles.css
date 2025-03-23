@@ -1,0 +1,48 @@
+/* 通用消息组件样式 */
+.message-font {
+  font-size: 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.message-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.message-title-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+}
+
+.message-title-text {
+  font-weight: 600;
+}
+
+.message-toggle-button {
+  margin-right: 0.5rem;
+  padding: 0.125rem;
+  border-radius: 0.25rem;
+  transition-property: background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.message-toggle-button:hover {
+  background-color: rgba(55, 65, 81, 1);
+}
+
+.message-toggle-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.message-content-container {
+  margin-top: 0.5rem;
+  background-color: rgba(31, 41, 55, 0.5);
+  border-radius: 0.375rem;
+  overflow: hidden;
+  border: 1px solid rgba(55, 65, 81, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+} 

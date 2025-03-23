@@ -38,7 +38,7 @@ const StreamingContextMessage: React.FC<{ message: MessageProps; isCompleted: bo
     // when collapsed
     
     return (
-        <div className="font-mono text-xs">
+        <div className="font-mono text-[14px]">
             <div className={`flex items-center ${message.isStreaming ? 'text-white' : 'text-blue-400'} font-semibold mb-2`}>
                 {/* Toggle button for collapse/expand when message is complete and content exceeds preview lines */}
                 {isCompleted && contentLines.length > previewLines && (
@@ -90,7 +90,7 @@ const RegularContextMessage: React.FC<{ message: MessageProps }> = ({ message })
     const [isCollapsed, setIsCollapsed] = useState(true);
 
     return (
-        <div className="font-mono text-xs">
+        <div className="font-mono text-[14px]">
             {/* Header section with simple style matching the StreamingContextMessage */}            
             <div className="flex items-center">
                 {/* Toggle button for collapse/expand */}
@@ -126,17 +126,17 @@ const RegularContextMessage: React.FC<{ message: MessageProps }> = ({ message })
                     {/* Title section if available */}
                     {message.metadata?.title && (
                         <div className="px-3 py-2 bg-gray-800/50 border-b border-gray-700">
-                            <h3 className="text-white font-medium text-xs">{message.metadata.title}</h3>
+                            <h3 className="text-white font-medium text-[14px]">{message.metadata.title}</h3>
                         </div>
                     )}
 
                     {/* Context items section if available */}
                     {message.metadata?.contextItems && message.metadata.contextItems.length > 0 && (
                         <div className="px-3 py-2 bg-gray-800/30 border-b border-gray-700">
-                            <div className="text-gray-400 text-2xs mb-1">{getMessage('relevantContext')}:</div>
+                            <div className="text-gray-400 text-[14px] mb-1">{getMessage('relevantContext')}:</div>
                             <div className="flex flex-col gap-0.5 max-h-[150px] overflow-y-auto">
                                 {message.metadata.contextItems.map((item: string, index: number) => (
-                                    <div key={index} className="flex items-center text-xs">
+                                    <div key={index} className="flex items-center text-[14px]">
                                         <svg className="w-2.5 h-2.5 mr-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
@@ -151,7 +151,7 @@ const RegularContextMessage: React.FC<{ message: MessageProps }> = ({ message })
                     <div className="p-3 bg-gray-800/20">            
                         <div className="prose prose-invert prose-xs max-w-none">
                             <ReactMarkdown
-                                className="text-gray-200 break-words text-xs"
+                                className="text-gray-200 break-words text-[14px]"
                                 components={{
                                     code: ({ className, children, ...props }: any) => {
                                         const match = /language-(\w+)/.exec(className || '');
@@ -167,13 +167,13 @@ const RegularContextMessage: React.FC<{ message: MessageProps }> = ({ message })
                                                     borderRadius: '0.25rem',
                                                     marginTop: '0.375rem',
                                                     marginBottom: '0.375rem',
-                                                    fontSize: '0.75rem'
+                                                    fontSize: '14px'
                                                 }}
                                             >
                                                 {String(children).replace(/\n$/, '')}
                                             </SyntaxHighlighter>
                                         ) : (
-                                            <code className={`${className} bg-gray-700/50 px-1 rounded text-xs`} {...props}>
+                                            <code className={`${className} bg-gray-700/50 px-1 rounded text-[14px]`} {...props}>
                                                 {children}
                                             </code>
                                         );

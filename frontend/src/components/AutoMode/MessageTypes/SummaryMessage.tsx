@@ -4,6 +4,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import type { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
+import './MessageStyles.css';
 
 interface SummaryMessageProps {
     message: MessageProps;
@@ -11,15 +12,15 @@ interface SummaryMessageProps {
 
 const SummaryMessage: React.FC<SummaryMessageProps> = ({ message }) => {
     return (
-        <div className="font-mono text-sm bg-gray-850 rounded-lg overflow-hidden border border-gray-700 shadow-md">
+        <div className="message-font message-content-container">
             {/* Header section with gradient background */}
             <div className="bg-gradient-to-r from-purple-800 to-purple-700 px-4 py-3 border-b border-gray-700 flex items-center">
-                <div className="flex-shrink-0 mr-2">
+                <span className="message-title-icon">
                     <svg className="w-5 h-5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                </div>
-                <div className="text-purple-300 font-semibold">{getMessage('summary')}</div>
+                </span>
+                <span className="text-purple-300 message-title-text">{getMessage('summary')}</span>
             </div>
 
             {/* Summary content with markdown rendering */}

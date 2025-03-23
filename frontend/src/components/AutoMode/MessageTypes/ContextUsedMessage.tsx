@@ -4,6 +4,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import type { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
+import './MessageStyles.css';
 
 interface ContextUsedMessageProps {
     message: MessageProps;
@@ -14,53 +15,53 @@ const ContextUsedMessage: React.FC<ContextUsedMessageProps> = ({ message }) => {
     const [isCollapsed, setIsCollapsed] = useState(true);
     
     return (
-        <div className="font-mono text-xs">
+        <div className="message-font">
             {/* Header section with simple style */}            
-            <div className="flex items-center">
+            <div className="message-title">
                 {/* Toggle button for collapse/expand */}
                 <button 
                     onClick={() => setIsCollapsed(!isCollapsed)} 
-                    className="mr-2 p-0.5 rounded hover:bg-gray-700 transition-colors"
+                    className="message-toggle-button"
                 >
                     {isCollapsed ? (
-                        <svg className="w-3 h-3 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <svg className="message-toggle-icon text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
                     ) : (
-                        <svg className="w-3 h-3 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <svg className="message-toggle-icon text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
                         </svg>
                     )}
                 </button>
                 
                 {/* Info icon */}
-                <span className="mr-2">
+                <span className="message-title-icon">
                     <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                 </span>
                 
                 {/* Title */}
-                <span className="text-blue-400 font-semibold">{getMessage('contextUsed')}</span>
+                <span className="text-blue-400 message-title-text">{getMessage('contextUsed')}</span>
             </div>
 
             {/* Only show content when not collapsed */}
             {!isCollapsed && (
-                <div className="mt-2 bg-gray-850 rounded-lg overflow-hidden border border-gray-700 shadow-md">
+                <div className="message-content-container">
                     {/* Title section */}
                     {message.metadata?.title && (
                         <div className="px-3 py-2 bg-gray-800/50 border-b border-gray-700">
-                            <h3 className="text-white font-medium text-xs">{message.metadata?.title}</h3>
+                            <h3 className="text-white font-medium">{message.metadata?.title}</h3>
                         </div>
                     )}
 
                     {/* Files section */}
                     {message.metadata?.files && message.metadata.files.length > 0 && (
                         <div className="px-3 py-2 bg-gray-800/30 border-b border-gray-700">
-                            <div className="text-gray-400 text-2xs mb-1">{getMessage('filesReferenced')}:</div>
+                            <div className="text-gray-400 mb-1">{getMessage('filesReferenced')}:</div>
                             <div className="flex flex-col gap-0.5 max-h-[150px] overflow-y-auto">
                                 {message.metadata.files.map((file: string, index: number) => (
-                                    <div key={index} className="flex items-center text-xs">
+                                    <div key={index} className="flex items-center">
                                         <svg className="w-2.5 h-2.5 mr-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
@@ -75,7 +76,7 @@ const ContextUsedMessage: React.FC<ContextUsedMessageProps> = ({ message }) => {
                     <div className="p-3 bg-gray-800/20">
                         <div className="prose prose-invert prose-xs max-w-none">
                             <ReactMarkdown
-                                className="text-gray-200 break-words text-xs"
+                                className="text-gray-200 break-words"
                                 components={{
                                     code: ({ className, children, ...props }: any) => {
                                         const match = /language-(\w+)/.exec(className || '');
@@ -91,13 +92,13 @@ const ContextUsedMessage: React.FC<ContextUsedMessageProps> = ({ message }) => {
                                                     borderRadius: '0.25rem',
                                                     marginTop: '0.375rem',
                                                     marginBottom: '0.375rem',
-                                                    fontSize: '0.75rem'
+                                                    fontSize: '14px'
                                                 }}
                                             >
                                                 {String(children).replace(/\n$/, '')}
                                             </SyntaxHighlighter>
                                         ) : (
-                                            <code className={`${className} bg-gray-700/50 px-1 rounded text-xs`} {...props}>
+                                            <code className={`${className} bg-gray-700/50 px-1 rounded`} {...props}>
                                                 {children}
                                             </code>
                                         );

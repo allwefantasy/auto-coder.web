@@ -6,6 +6,7 @@ import type { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
 import { parseFilesFromText, ParsedFile } from './fileParsingUtils';
 import ExpandableEditor from '../ExpandableEditor';
+import './MessageStyles.css';
 
 interface CommandExecuteMessageProps {
     message: MessageProps;
@@ -51,19 +52,19 @@ const CommandExecuteMessage: React.FC<CommandExecuteMessageProps> = ({ message }
     }, []);
 
     return (
-        <div className="font-mono text-sm bg-gray-850 rounded-lg overflow-hidden border border-gray-700 shadow-md">
+        <div className="message-font message-content-container">
             {/* Header section with gradient background */}
             <div 
                 className="bg-gradient-to-r from-gray-800 to-gray-750 px-4 py-3 border-b border-gray-700 flex items-center justify-between cursor-pointer"
                 onClick={toggleExpand}
             >
                 <div className="flex items-center">
-                    <div className="flex-shrink-0 mr-2">
+                    <span className="message-title-icon">
                         <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
-                    </div>
-                    <div className="text-indigo-400 font-semibold">{getMessage('commandExecution')}</div>
+                    </span>
+                    <span className="text-indigo-400 message-title-text">{getMessage('commandExecution')}</span>
                 </div>
                 <div className="text-gray-400">
                     <svg 
@@ -95,7 +96,7 @@ const CommandExecuteMessage: React.FC<CommandExecuteMessageProps> = ({ message }
                         <div className="text-gray-200">
                             {/* File list */}
                             <div className="mb-4">
-                                <h3 className="text-sm font-medium text-gray-300 mb-2">{getMessage('files')}:</h3>
+                                <h3 className="font-medium text-gray-300 mb-2">{getMessage('files')}:</h3>
                                 <div className="space-y-1">
                                     {parsedFiles.map((file, index) => (
                                         <div 
@@ -106,7 +107,7 @@ const CommandExecuteMessage: React.FC<CommandExecuteMessageProps> = ({ message }
                                             <svg className="w-4 h-4 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                             </svg>
-                                            <span className="text-sm truncate">{file.file}</span>
+                                            <span className="truncate">{file.file}</span>
                                             <svg 
                                                 className={`w-4 h-4 ml-auto transition-transform duration-200 ${selectedFileIndex === index ? 'transform rotate-180' : ''}`}
                                                 fill="none" 
@@ -150,14 +151,13 @@ const CommandExecuteMessage: React.FC<CommandExecuteMessageProps> = ({ message }
                                                 wrapLongLines={true}
                                                 customStyle={{
                                                     borderRadius: '0.375rem',
-                                                    marginTop: '0.5rem',
-                                                    marginBottom: '0.5rem'
+                                                    fontSize: '14px'
                                                 }}
                                             >
                                                 {String(children).replace(/\n$/, '')}
                                             </SyntaxHighlighter>
                                         ) : (
-                                            <code className={`${className} bg-gray-700/50 px-1 rounded`} {...props}>
+                                            <code className={className} {...props}>
                                                 {children}
                                             </code>
                                         );
