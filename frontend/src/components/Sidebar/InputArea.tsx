@@ -68,17 +68,6 @@ const InputArea: React.FC<InputAreaProps> = ({
         {showConfig && (
           <div className="space-y-0.5 mb-0.5">
             <div className="flex items-center justify-between">
-              <Tooltip title={getMessage('humanAsModelTooltip')}>
-                <span className="text-gray-300 text-[10px]">{getMessage('humanAsModel')}</span>
-              </Tooltip>
-              <Switch
-                size="small"
-                checked={config.human_as_model}
-                onChange={(checked) => updateConfig('human_as_model', checked)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
               <Tooltip title={getMessage('skipBuildIndexTooltip')}>
                 <span className="text-gray-300 text-[10px]">{getMessage('skipBuildIndex')}</span>
               </Tooltip>

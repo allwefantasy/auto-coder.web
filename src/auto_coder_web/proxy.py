@@ -28,6 +28,7 @@ from expert_routers import history_router
 from .common_router import completions_router, file_router, auto_coder_conf_router, chat_list_router, file_group_router
 from rich.console import Console
 from loguru import logger
+from auto_coder_web.lang import get_message
 
 class ProxyServer:
     def __init__(self, project_path: str, quick: bool = False, product_mode: str = "pro"):
@@ -40,8 +41,8 @@ class ProxyServer:
         # Check if project is initialized
         self.is_initialized = self.check_project_initialization()
         if not self.is_initialized:
-            logger.warning("Warning: Project not initialized.")
-            logger.warning("Please run 'auto-coder.chat' to initialize the project first.")
+            logger.warning(get_message("project_not_initialized"))
+            logger.warning(get_message("run_auto_coder_chat"))
             sys.exit(1)            
 
         self.auto_coder_runner = AutoCoderRunnerWrapper(project_path, product_mode=product_mode)        
@@ -110,10 +111,10 @@ class ProxyServer:
                     
                     # If project is not initialized, inject a warning banner
                     if not self.is_initialized:
-                        init_warning = """
+                        init_warning = f"""
                         <div style="background-color: #fff3cd; color: #856404; padding: 15px; margin: 15px; border-radius: 5px; text-align: center; font-weight: bold;">
-                            <p>⚠️ Project not initialized!</p>
-                            <p>Please run <code>auto-coder.chat</code> in the terminal to initialize this project first.</p>
+                            <p>⚠️ {get_message("project_not_initialized")}</p>
+                            <p>{get_message("run_auto_coder_chat")}</p>
                         </div>
                         """
                         # Insert the warning after the body tag
@@ -219,6 +220,14 @@ class ProxyServer:
                     success=False, 
                     message=f"读取文件出错: {str(e)}"
                 )
+
+        @self.app.get("/api/initialization-status")
+        async def get_initialization_status():
+            """Get the project initialization status"""
+            return {
+                "initialized": self.is_initialized,
+                "message": None if self.is_initialized else get_message("run_auto_coder_chat")
+            }
     
     def check_project_initialization(self) -> bool:
         """Check if the project has been initialized with auto-coder.chat"""
@@ -229,7 +238,7 @@ class ProxyServer:
     def check_project_conf(self):
         conf = self.auto_coder_runner.get_conf_wrapper()
         if conf.get("human_as_model","false") in ["true","True","TRUE"]:
-            logger.warning("Warning: Project is configured to use human as model, auto-coder.web will not work, we will set human_as_model to false")            
+            logger.warning(get_message("human_as_model_warning"))            
             self.auto_coder_runner.configure_wrapper("human_as_model=false")            
 
 
