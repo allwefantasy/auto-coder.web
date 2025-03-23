@@ -125,7 +125,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     });
 
     // 注册自定义命令，用于处理自动完成选择事件
-    monaco.editor.registerCommand('editor.acceptedCompletion', (editor: any, path: string, mentionType: 'file' | 'symbol') => {
+    monaco.editor.registerCommand('editor.acceptedCompletion', (editor: any, name: string, path: string, mentionType: 'file' | 'symbol') => {
       console.log(`用户选择了自动完成项: ${path}, 类型: ${mentionType}`);
       
       // 从临时存储中获取完整项信息
@@ -133,9 +133,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       console.log(`临时存储中的项: ${item}`);
       if (item) {
         // 将选中项添加到正式映射中
-        mentionItemsMap.set(path, item);
-        temporaryCompletionItems.delete(path);
-        
+        mentionItemsMap.set(path, item); 
+        symbolNameToPathMap.set(name, path)       
         // 通知父组件映射已更新
         notifyMentionMapChange();
       }
@@ -153,6 +152,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     
     // 添加映射存储，用于存储 mention 文本与 CompletionItem 的映射关系
     const mentionItemsMap = new Map<string, EnhancedCompletionItem>();
+    const symbolNameToPathMap = new Map<string, string>();
     const temporaryCompletionItems = new Map<string, EnhancedCompletionItem>();
     
     // 添加标志位和防抖机制，避免递归调用
@@ -245,10 +245,19 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           
         }
 
-        //mentionItemsMap 在 currentMentions 不存在的key 要删掉
-        // 遍历 mentionItemsMap，删除不在 currentMentions 中的键
+        
+        // 先遍历currentMentions，从 symbolNameToPathMap 将里面的名字转化为path
+        const newCurrentMentions = Array.from(currentMentions).map(name => {
+          const path = symbolNameToPathMap.get(name);
+          if (path) {
+            return path
+          }
+          return name
+        });
+        
+        // 然后从 mentionItemsMap 中删除不在 currentMentions 中的键
         Array.from(mentionItemsMap.keys()).forEach(key => {
-          if (!currentMentions.has(key)) {
+          if (!newCurrentMentions.includes(key)) {
             mentionItemsMap.delete(key);
             mapChanged = true;
           }
@@ -352,10 +361,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           const symbolName = mentionText.substring(2);
           
           // 检查是否有对应的 CompletionItem
-          const completionItem = temporaryCompletionItems.get(symbolName);
-          if(completionItem) {
-            mentionItemsMap.set(symbolName, completionItem);
-          }
+          const completionItem = temporaryCompletionItems.get(symbolName);          
           
           if (onMentionClick) {
             onMentionClick('symbol', symbolName, completionItem);
@@ -424,14 +430,14 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               return {
                 label: item.display,
                 kind: monaco.languages.CompletionItemKind.Function,
-                insertText: item.path,
+                insertText: item.name,
                 detail: "",
                 documentation: `Location: ${item.path}`,
                 // 设置自定义命令，在选择后执行
                 command: {
                   id: 'editor.acceptedCompletion',
                   title: '选择完成',
-                  arguments: [item.path, 'symbol']  // 传递必要信息
+                  arguments: [item.name,item.path, 'symbol']  // 传递必要信息
                 },
                 insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
               };
@@ -470,7 +476,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 command: {
                   id: 'editor.acceptedCompletion',
                   title: '选择完成',
-                  arguments: [item.path, 'file']  // 传递必要信息
+                  arguments: [item.name,item.path, 'file']  // 传递必要信息
                 },
                 insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
               };
