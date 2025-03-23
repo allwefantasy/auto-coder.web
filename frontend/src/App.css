@@ -247,3 +247,47 @@ html, body {
 .custom-select .ant-select-selection-overflow-item .ant-select-selection-item-remove:hover {
   color: white !important;
 }
+
+/* 下拉菜单深色主题样式 */
+.dark-dropdown-menu {
+  background-color: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  color: #e5e7eb !important;
+}
+
+.dark-dropdown-menu .ant-select-item {
+  color: #e5e7eb !important;
+  background-color: #1f2937 !important;
+}
+
+.dark-dropdown-menu .ant-select-item-option-active {
+  background-color: #374151 !important;
+}
+
+.dark-dropdown-menu .ant-select-item-option-selected {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+
+.dark-dropdown-menu .ant-select-item-empty {
+  color: #9ca3af !important;
+}
+
+.dark-dropdown-menu .ant-select-item-group {
+  color: #9ca3af !important;
+  font-weight: bold;
+  padding: 8px 12px;
+}
+
+/* 文件选项样式 */
+.file-option {
+  transition: background-color 0.2s;
+}
+
+.dark-dropdown-menu .file-option {
+  background-color: transparent !important;
+}
+
+.dark-dropdown-menu .file-option:hover {
+  background-color: #374151 !important;
+}

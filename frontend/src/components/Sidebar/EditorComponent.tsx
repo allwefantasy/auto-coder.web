@@ -124,12 +124,36 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       onShouldSendMessage();
     });
 
+    // 注册自定义命令，用于处理自动完成选择事件
+    monaco.editor.registerCommand('editor.acceptedCompletion', (editor: any, path: string, mentionType: 'file' | 'symbol') => {
+      console.log(`用户选择了自动完成项: ${path}, 类型: ${mentionType}`);
+      
+      // 从临时存储中获取完整项信息
+      const item = temporaryCompletionItems.get(path);
+      console.log(`临时存储中的项: ${item}`);
+      if (item) {
+        // 将选中项添加到正式映射中
+        mentionItemsMap.set(path, item);
+        temporaryCompletionItems.delete(path);
+        
+        // 通知父组件映射已更新
+        notifyMentionMapChange();
+      }
+      
+      // 立即更新装饰器
+      updateDecorations();
+      
+      // 返回 null 表示命令执行完成
+      return null;
+    });
+
     // mention 块装饰器实现
     let fileMentionDecorations: string[] = [];
     let symbolMentionDecorations: string[] = [];
     
     // 添加映射存储，用于存储 mention 文本与 CompletionItem 的映射关系
     const mentionItemsMap = new Map<string, EnhancedCompletionItem>();
+    const temporaryCompletionItems = new Map<string, EnhancedCompletionItem>();
     
     // 添加标志位和防抖机制，避免递归调用
     let isUpdatingDecorations = false;
@@ -172,8 +196,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         // 用于跟踪当前文本中存在的所有 mention
         const currentMentions = new Set<string>();
         
-        // 记录是否有新的 mention 被检测到但不在映射中
-        let newMentionsDetected = false;
+        // 记录是否有新的 mention 被检测到但不在映射中        
         let mapChanged = false;
         
         let fileMatch;
@@ -196,23 +219,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               ),
               text: fileMatch[0],
               name: mentionName
-            });
-            
-            // 对于手动输入的 mention，如果不在映射中，创建一个基本项
-            if (!mentionItemsMap.has(mentionName)) {
-              // 创建一个基本的 CompletionItem 作为占位符
-              const placeholderItem: EnhancedCompletionItem = {
-                display: mentionName,
-                path: mentionName,
-                location: '',  // 没有具体位置信息
-                mentionType: 'file',
-                name: mentionName  // 添加缺少的 name 属性
-              };
-              mentionItemsMap.set(mentionName, placeholderItem);
-              newMentionsDetected = true;
-              mapChanged = true;
-              console.log(`添加手动输入的文件 mention: ${mentionName}`);
-            }
+            });            
           }
         }
         
@@ -234,38 +241,18 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             ),
             text: symbolMatch[0],
             name: mentionName
-          });
+          });                  
           
-          // 对于手动输入的 mention，如果不在映射中，创建一个基本项
-          if (!mentionItemsMap.has(mentionName)) {
-            // 创建一个基本的 CompletionItem 作为占位符
-            const placeholderItem: EnhancedCompletionItem = {
-              display: mentionName,
-              path: mentionName,
-              location: '',  // 没有具体位置信息
-              mentionType: 'symbol',
-              name: mentionName  // 添加缺少的 name 属性
-            };
-            mentionItemsMap.set(mentionName, placeholderItem);
-            newMentionsDetected = true;
-            mapChanged = true;
-            console.log(`添加手动输入的符号 mention: ${mentionName}`);
-          }
         }
-        
-        // 清理 mentionItemsMap 中不再存在于当前文本中的项
-        const mapKeys = Array.from(mentionItemsMap.keys());
-        let removedKeys = 0;
-        
-        for (const key of mapKeys) {
-          // 如果当前文本中不存在这个 mention，则从映射中移除
+
+        //mentionItemsMap 在 currentMentions 不存在的key 要删掉
+        // 遍历 mentionItemsMap，删除不在 currentMentions 中的键
+        Array.from(mentionItemsMap.keys()).forEach(key => {
           if (!currentMentions.has(key)) {
             mentionItemsMap.delete(key);
-            removedKeys++;
             mapChanged = true;
-            console.log(`从映射中移除不存在的 mention: ${key}`);
           }
-        }
+        });
         
         // 更新文件 mention 装饰器
         fileMentionDecorations = editor.deltaDecorations(fileMentionDecorations, fileMatches.map(match => ({
@@ -286,20 +273,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
           }
         })));
-        
-        // 打印更详细的调试信息
-        console.log(
-          `当前 mentionItemsMap 大小: ${mentionItemsMap.size}, ` +
-          `当前文档 mention 数量: ${currentMentions.size}, ` +
-          `新增: ${newMentionsDetected ? '是' : '否'}, ` +
-          `移除: ${removedKeys}`
-        );
-        
-        // 打印映射中的所有键，帮助调试
-        if (mentionItemsMap.size > 0) {
-          console.log('映射中的所有键:', Array.from(mentionItemsMap.keys()));
-        }
-        
+                                        
         // 如果映射发生了变化，通知父组件
         if (mapChanged) {
           notifyMentionMapChange();
@@ -353,7 +327,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           const fileName = mentionText.substring(1);
           
           // 检查是否有对应的 CompletionItem
-          const completionItem = mentionItemsMap.get(fileName);
+          const completionItem = temporaryCompletionItems.get(fileName);
+          if(completionItem) {
+            mentionItemsMap.set(fileName, completionItem);            
+          }
           
           if (onMentionClick) {
             onMentionClick('file', fileName, completionItem);
@@ -375,7 +352,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           const symbolName = mentionText.substring(2);
           
           // 检查是否有对应的 CompletionItem
-          const completionItem = mentionItemsMap.get(symbolName);
+          const completionItem = temporaryCompletionItems.get(symbolName);
+          if(completionItem) {
+            mentionItemsMap.set(symbolName, completionItem);
+          }
           
           if (onMentionClick) {
             onMentionClick('symbol', symbolName, completionItem);
@@ -395,8 +375,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     });
     
     // 初始化装饰器 - 直接调用，因为此时还没有其他事件监听器
-    updateDecorations();
-
+    updateDecorations();    
+    
     // 注册自动完成提供者
     monaco.languages.registerCompletionItemProvider('markdown', {
       triggerCharacters: ['@'],
@@ -431,18 +411,15 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           
           return {
             suggestions: data.completions.map((item: CompletionItem) => {
-              // 创建增强版 CompletionItem 并存储到映射中
+              // 创建增强版 CompletionItem
               const enhancedItem: EnhancedCompletionItem = {
                 ...item,
                 mentionType: 'symbol'
               };
               
-              // 在处理完成项时，记录这个项目（用路径作为键）
-              mentionItemsMap.set(item.path, enhancedItem);
-              console.log(`添加符号到映射: ${item.path}`);
-              
-              // 通知映射变化
-              notifyMentionMapChange();
+              // 存储到临时映射中，而不是直接添加到 mentionItemsMap
+              temporaryCompletionItems.set(item.path, enhancedItem);
+              console.log(`添加符号到临时映射: ${item.path}`);
               
               return {
                 label: item.display,
@@ -450,14 +427,12 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 insertText: item.path,
                 detail: "",
                 documentation: `Location: ${item.path}`,
-                // 添加自定义 CSS 类用于后续样式应用
-                additionalTextEdits: [],
+                // 设置自定义命令，在选择后执行
                 command: {
-                  id: 'editor.action.triggerSuggest',
-                  title: 'Re-trigger completions...',
-                  arguments: []
+                  id: 'editor.acceptedCompletion',
+                  title: '选择完成',
+                  arguments: [item.path, 'symbol']  // 传递必要信息
                 },
-                // 添加一个后处理钩子，在插入完成后触发装饰器更新
                 insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
               };
             }),
@@ -475,18 +450,15 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           
           return {
             suggestions: data.completions.map((item: CompletionItem) => {
-              // 创建增强版 CompletionItem 并存储到映射中
+              // 创建增强版 CompletionItem
               const enhancedItem: EnhancedCompletionItem = {
                 ...item,
                 mentionType: 'file'
               };
               
-              // 在处理完成项时，记录这个项目（用路径作为键）
-              mentionItemsMap.set(item.path, enhancedItem);
-              console.log(`添加文件到映射: ${item.path}`);
-              
-              // 通知映射变化
-              notifyMentionMapChange();
+              // 存储到临时映射中，而不是直接添加到 mentionItemsMap
+              temporaryCompletionItems.set(item.path, enhancedItem);
+              console.log(`添加文件到临时映射: ${item.path}`);
               
               return {
                 label: item.display,
@@ -494,14 +466,12 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 insertText: item.path,
                 detail: "",
                 documentation: `Location: ${item.location}`,
-                // 添加自定义 CSS 类用于后续样式应用
-                additionalTextEdits: [],
+                // 设置自定义命令，在选择后执行
                 command: {
-                  id: 'editor.action.triggerSuggest',
-                  title: 'Re-trigger completions...',
-                  arguments: []
+                  id: 'editor.acceptedCompletion',
+                  title: '选择完成',
+                  arguments: [item.path, 'file']  // 传递必要信息
                 },
-                // 添加一个后处理钩子，在插入完成后触发装饰器更新
                 insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
               };
             }),
@@ -510,19 +480,12 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         }
 
         return { suggestions: [] };
-      },
-      
-      // 添加自动完成选择事件处理
-      onDidAccept: (completionItem: any) => {
-        // 当选择了一个自动完成项时，更新装饰器
-        debouncedUpdateDecorations();
       }
     });
     
-    // 监听自动完成项选择事件，确保在选择后立即应用样式 - 使用防抖
-    editor.onDidChangeCursorSelection(() => {
-      debouncedUpdateDecorations();
-    });
+    // 不再需要通过键盘事件或光标位置变化来间接检测自动完成选择
+    // 因为我们现在使用 command 机制直接获取选择事件
+    
   };
 
   return (

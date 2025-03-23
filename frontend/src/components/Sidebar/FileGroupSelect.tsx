@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Select } from 'antd';
 import { FileGroup, EnhancedCompletionItem } from './types';
 
@@ -29,6 +29,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   const [searchText, setSearchText] = useState('');
   
   const [mentionFiles, setMentionFiles] = useState<{path: string, display: string}[]>([]);
+  const processedMentionPaths = useRef<Set<string>>(new Set());
   
   useEffect(() => {
     const files = mentionItems      
@@ -39,7 +40,32 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     
     setMentionFiles(files);
     console.log("Updated mention files:", files.length);
-  }, [mentionItems]);
+    
+    // 只有当有提到的文件时才处理
+    if (files.length > 0) {
+      // 找出未处理过的新文件路径
+      const newFilePaths = files
+        .map(file => file.path)
+        .filter(path => !processedMentionPaths.current.has(path));
+      
+      // 如果有新文件要添加
+      if (newFilePaths.length > 0) {
+        // 标记为已处理
+        newFilePaths.forEach(path => processedMentionPaths.current.add(path));
+        
+        // 更新选中文件，避免重复
+        setSelectedFiles(prevSelectedFiles => {
+          const combinedFiles = [...prevSelectedFiles, ...newFilePaths];
+          const uniqueFiles = Array.from(new Set(combinedFiles));
+          
+          // 直接在这里调用一次，避免依赖于状态更新后的回调
+          updateSelection(selectedGroups, uniqueFiles);
+          
+          return uniqueFiles;
+        });
+      }
+    }
+  }, [mentionItems, selectedGroups]);
 
   const fetchFileCompletions = async (searchValue: string) => {
     if (searchValue.length < 2) {
@@ -106,14 +132,18 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         filterOption={false}
         optionLabelProp="label"
         className="custom-select"
-        dropdownClassName="bg-gray-800 border border-gray-700"
+        popupClassName="dark-dropdown-menu"
+        dropdownStyle={{ 
+          backgroundColor: '#1f2937', 
+          borderColor: '#374151' 
+        }}
       >
         {fileGroups.map(group => (
           <Select.Option
             key={group.name}
             value={group.name}
             label={group.name}
-            className="bg-gray-800 hover:bg-gray-700"
+            className="file-option"
           >
             <div className="flex justify-between items-center">
               <span className="text-gray-200">{group.name}</span>
@@ -131,7 +161,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 key={`mention-${file.path}`}
                 value={file.path}
                 label={file.display}
-                className="bg-gray-800 hover:bg-gray-700"
+                className="file-option"
               >
                 <div className="flex justify-between items-center">
                   <span className="text-gray-200">{file.display}</span>
@@ -149,7 +179,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 key={file.path}
                 value={file.path}
                 label={file.display}
-                className="bg-gray-800 hover:bg-gray-700"
+                className="file-option"
               >
                 <div className="flex justify-between items-center">
                   <span className="text-gray-200">{file.display}</span>
