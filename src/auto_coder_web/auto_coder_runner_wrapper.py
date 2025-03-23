@@ -45,7 +45,11 @@ class AutoCoderRunnerWrapper:
         return auto_command(command,params)
     
     def configure_wrapper(self,conf: str, skip_print=False ):
-        return configure(conf, skip_print)
+        return configure(conf, skip_print)    
+
+    def get_conf_wrapper(self):
+        memory = get_memory()
+        return memory["conf"]
 
 
     def coding_wapper(self,query):
