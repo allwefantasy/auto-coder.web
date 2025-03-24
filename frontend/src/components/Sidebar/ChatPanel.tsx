@@ -131,6 +131,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     cacheMisses: 0
   });
 
+  // 添加 ref 来跟踪 localRequestId 的最新值
+  const localRequestIdRef = useRef<string>('');
+
+  // 当 localRequestId 更新时，同步更新 ref
+  useEffect(() => {
+    localRequestIdRef.current = localRequestId;
+  }, [localRequestId]);
+
   // 当messages变化时更新累计统计
   useEffect(() => {
     let inputTokens = 0;
@@ -456,6 +464,60 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
 
+  // 处理任务完成后的逻辑
+  const handleTaskCompletion = useCallback(async (hasError: boolean) => {
+    if (hasError) {
+      AntdMessage.error('Task completed with errors');
+    } else {
+      AntdMessage.success('Task completed successfully');
+      
+      // 使用 ref 中的最新值
+      const currentRequestId = localRequestIdRef.current;
+      console.log('ChatPanel: Task completed successfully');
+      console.log('ChatPanel: isWriteMode:', isWriteMode);
+      console.log('ChatPanel: currentRequestId:', currentRequestId);
+      
+      // 如果是编码模式且有eventFileId，获取变更文件并打开
+      if (isWriteMode && currentRequestId) {
+        try {
+          const response = await fetch(`/api/current-changes?event_file_id=${currentRequestId}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch current changes');
+          }
+          const data = await response.json();
+          console.log('ChatPanel: Received current changes:', data);
+          if (data.commits && data.commits.length > 0) {
+            const commit_id = data.commits[0]["hash"]
+            const response = await fetch(`/api/commits/${commit_id}`);
+            if (!response.ok) {
+              throw new Error('Failed to fetch commit details');
+            }
+            const commit_data = await response.json();            
+            const changed_files = commit_data["files"]
+            console.log('ChatPanel: Changed files:', changed_files);
+            // Convert changed_files to FileMetadata format
+            const fileMetadataList: FileMetadata[] = changed_files.map((file: {filename: string}) => ({
+              path: file.filename,
+              isSelected: true,
+              modifiedBy: 'expert_chat_box'
+            }));
+            setSelectedFiles(fileMetadataList);
+            setActivePanel('code');            
+          }                    
+        } catch (error) {
+          console.error('Error fetching current changes:', error);
+          AntdMessage.error('Failed to fetch changed files');
+        }
+      }
+    }
+    setSendLoading(false);
+    setRequestId("");
+    setLocalRequestId("");
+    // 在任务完成时设置标记，表示应该保存消息
+    // 而不是直接保存，让 useEffect 在消息状态更新后处理保存
+    setShouldSaveMessages(true);
+  }, [isWriteMode, setSelectedFiles, setActivePanel, setSendLoading, setRequestId, setLocalRequestId, setShouldSaveMessages]);
+
   const fetchFileGroups = useCallback(async () => {
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTime;
@@ -587,38 +649,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       });
     });
 
-    service.on('taskComplete', async (hasError: boolean) => {
-      if (hasError) {
-        AntdMessage.error('Task completed with errors');
-      } else {
-        AntdMessage.success('Task completed successfully');
-        
-        // 如果是编码模式且有eventFileId，获取变更文件并打开
-        if (isWriteMode && localRequestId) {
-          try {
-            const response = await fetch(`/api/commit/current-changes?event_file_id=${requestId}`);
-            if (!response.ok) {
-              throw new Error('Failed to fetch current changes');
-            }
-            const data = await response.json();
-            console.log('ChatPanel: Received current changes:', data);
-            // 设置选中的文件
-            setSelectedFiles(data.commits[0].stats.files_changed);
-            // 切换到代码视图
-            setActivePanel('code');
-          } catch (error) {
-            console.error('Error fetching current changes:', error);
-            AntdMessage.error('Failed to fetch changed files');
-          }
-        }
-      }
-      setSendLoading(false);
-      setRequestId("");
-      setLocalRequestId("");
-      // 在任务完成时设置标记，表示应该保存消息
-      // 而不是直接保存，让 useEffect 在消息状态更新后处理保存
-      setShouldSaveMessages(true);
-    });
+    service.on('taskComplete', handleTaskCompletion);
   };
 
   // 在组件挂载时设置事件监听器
