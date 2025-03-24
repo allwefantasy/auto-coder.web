@@ -277,7 +277,7 @@ const TodoPanel: React.FC = () => {
     }
   };
 
-  // 任务执行函数
+  // 执行 todo 里的子任务集合
   const startTaskExecution = async (todo: TodoItem) => {
     setIsExecuting(true);
     
@@ -399,21 +399,7 @@ const TodoPanel: React.FC = () => {
             };
           }
           return task;
-        });
-        
-        // 检查是否所有任务已完成或有任务失败
-        const allCompleted = statusData.tasks.every((task: any) => task.status === 'completed');
-        const anyFailed = statusData.tasks.some((task: any) => task.status === 'failed');
-        
-        // 如果所有任务已完成或有任务失败，延迟关闭任务状态视图
-        if (allCompleted || anyFailed) {
-          // 延迟5秒后关闭任务状态视图，让用户有时间查看最终状态
-          setTimeout(() => {
-            if (showTaskStatus === todoId) {
-              setShowTaskStatus(null);
-            }
-          }, 5000);
-        }
+        });                
         
         return {
           ...todo,

@@ -307,21 +307,7 @@ async def update_task_status(todo_id: str, task_index: int, new_status: str, eve
             todos[todo_index].tasks[task_index].status = new_status
             if event_file_id:
                 todos[todo_index].tasks[task_index].event_file_id = event_file_id
-
-            # 如果当前任务完成，且有下一个任务，则自动开始下一个任务
-            if new_status == "completed" and task_index + 1 < len(todos[todo_index].tasks):
-                next_task = todos[todo_index].tasks[task_index + 1]
-                if next_task.status == "pending":
-                    # 任务完成后，启动下一个任务（通过API）
-                    # 注意：这里不直接执行，而是记录一个标志，由前端轮询检测并触发
-                    todos[todo_index].tasks[task_index].next_task_ready = True
-
-            # 检查所有任务状态，更新整体状态
-            all_completed = all(
-                task.status == "completed" for task in todos[todo_index].tasks)
-            if all_completed:
-                todos[todo_index].status = "done"
-
+                        
             # 保存更新后的待办事项
             await save_todos(todos)
 
@@ -481,17 +467,22 @@ async def execute_todo_tasks(todo_id: str, project_path: str = Depends(get_proje
 
     # 定义执行单个任务的函数
     async def execute_single_task(task_index: int):
-        task = todo.tasks[task_index]        
+        # 获取最新的todos数据
+        current_todos = await load_todos()
+        current_todo_index = next((i for i, t in enumerate(current_todos) if t.id == todo_id), None)
+        
+        if current_todo_index is None or task_index >= len(current_todos[current_todo_index].tasks):
+            raise Exception(f"Todo {todo_id} or task {task_index} not found")
+            
+        task = current_todos[current_todo_index].tasks[task_index]
 
         # 生成事件文件路径
         event_file, file_id = gengerate_event_file_path()
 
-        # 更新任务状态
-        todo.tasks[task_index].status = "executing"
-        todo.tasks[task_index].event_file_id = file_id
-
-        # 保存更新后的待办事项
-        await save_todos(todos)
+        # 更新任务状态为执行中
+        current_todos[current_todo_index].tasks[task_index].status = "executing"
+        current_todos[current_todo_index].tasks[task_index].event_file_id = file_id
+        await save_todos(current_todos)
 
         return task, event_file, file_id
 
@@ -512,23 +503,24 @@ async def execute_todo_tasks(todo_id: str, project_path: str = Depends(get_proje
                     command = generate_command_from_task(current_task, todo)
                     result = wrapper.coding_wapper(command)
 
+                    # 更新任务状态为已完成 - 获取最新的todos数据
+                    current_todos = asyncio.run(load_todos())
+                    current_todo_index = next((idx for idx, t in enumerate(current_todos) if t.id == todo_id), None)
+                    
+                    if current_todo_index is not None and i < len(current_todos[current_todo_index].tasks):
+                        current_todos[current_todo_index].tasks[i].status = "completed"
+                        current_todos[current_todo_index].tasks[i].event_file_id = file_id
+                        asyncio.run(save_todos(current_todos))
+                    
+                    logger.info(
+                        f"Task {i+1}/{len(todo.tasks)} (ID: {file_id}) for todo {todo_id} completed successfully")
+
                     # 标记任务完成
                     get_event_manager(event_file).write_completion(
                         EventContentCreator.create_completion(
                             "200", "completed", result).to_dict()
                     )
-
-                    # 更新任务状态
-                    asyncio.run(update_task_status(
-                        todo_id, i, "completed", file_id))
-
-                    # 如果还有下一个任务，标记它准备好执行
-                    if i < len(todo.tasks) - 1:
-                        asyncio.run(mark_next_task_ready(todo_id, i))
-
-                    logger.info(
-                        f"Task {i+1}/{len(todo.tasks)} (ID: {file_id}) for todo {todo_id} completed successfully")
-
+                                                            
                     # 添加到结果列表
                     task_execution_results.append({
                         "task_index": i,
@@ -548,10 +540,15 @@ async def execute_todo_tasks(todo_id: str, project_path: str = Depends(get_proje
                                 "500", "error", str(e)).to_dict()
                         )
 
-                    # 更新任务状态为失败
+                    # 更新任务状态为失败 - 获取最新的todos数据
                     if 'file_id' in locals():
-                        asyncio.run(update_task_status(
-                            todo_id, i, "failed", file_id))
+                        current_todos = asyncio.run(load_todos())
+                        current_todo_index = next((idx for idx, t in enumerate(current_todos) if t.id == todo_id), None)
+                        
+                        if current_todo_index is not None and i < len(current_todos[current_todo_index].tasks):
+                            current_todos[current_todo_index].tasks[i].status = "failed"
+                            current_todos[current_todo_index].tasks[i].event_file_id = file_id
+                            asyncio.run(save_todos(current_todos))
 
                     # 添加到结果列表
                     task_execution_results.append({
@@ -564,11 +561,15 @@ async def execute_todo_tasks(todo_id: str, project_path: str = Depends(get_proje
                     # 如果一个任务失败，停止执行后续任务
                     break
 
-            # 所有任务执行完成后，更新todo状态
-            all_completed = all(result.get("status") ==
-                                "completed" for result in task_execution_results)
-            final_status = "testing" if all_completed else "pending"
-            asyncio.run(update_todo_status(todo_id, final_status))
+            # 所有任务执行完成后，更新todo状态 - 获取最新的todos数据
+            current_todos = asyncio.run(load_todos())
+            current_todo_index = next((idx for idx, t in enumerate(current_todos) if t.id == todo_id), None)
+            
+            if current_todo_index is not None:
+                all_completed = all(result.get("status") == "completed" for result in task_execution_results)
+                final_status = "testing" if all_completed else "pending"
+                current_todos[current_todo_index].status = final_status
+                asyncio.run(save_todos(current_todos))
 
             # 记录状态变更
             logger.info(
