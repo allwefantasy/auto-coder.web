@@ -1,14 +1,13 @@
 .code-editor-container {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  max-height: 650px;
   background-color: #1e1e1e;
 }
 
 .code-editor-header {
+  padding: 8px;
   background-color: #252526;
-  padding: 8px 12px;
   border-bottom: 1px solid #333;
 }
 
@@ -19,30 +18,21 @@
 }
 
 .file-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.file-path {
-  color: #ddd;
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #cccccc;
+  font-size: 12px;
 }
 
 .save-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 4px;
+  padding: 4px 8px;
   background-color: #0e639c;
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 3px;
   cursor: pointer;
+  font-size: 12px;
   transition: background-color 0.2s;
 }
 
@@ -51,38 +41,121 @@
 }
 
 .save-button:disabled {
-  opacity: 0.5;
+  background-color: #2d2d2d;
+  color: #666;
   cursor: not-allowed;
 }
 
 .code-editor-content {
-  display: flex;
   flex: 1;
-  overflow: hidden;
-  height: calc(100% - 49px); /* Subtract header height */
+  display: flex;
 }
 
 .file-tree-panel {
-  height: 100%;
-  overflow: auto;
   background-color: #252526;
+  padding: 8px;
+  overflow: auto;
 }
 
 .editor-panel {
-  height: 100%;
+  flex: 1;
+  background-color: #1e1e1e;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Split.js gutter styles */
+/* Custom Tab Styles */
+.editor-panel .ant-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+}
+
+.editor-panel .ant-tabs-content {
+  height: 100%;
+  flex: 1;
+}
+
+.editor-panel .ant-tabs-tabpane {
+  height: 100%;
+}
+
+.editor-panel .ant-tabs-nav {
+  margin: 0 !important;
+  background-color: #252526;
+  border-bottom: 1px solid #333;
+}
+
+.editor-panel .ant-tabs-tab {
+  background: #2d2d2d !important;
+  border: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 4px 16px !important;
+  color: #969696 !important;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.editor-panel .ant-tabs-tab:not(:first-child) {
+  border-left: 1px solid #333 !important;
+}
+
+.editor-panel .ant-tabs-tab:hover {
+  background: #383838 !important;
+  color: #ffffff !important;
+}
+
+.editor-panel .ant-tabs-tab-active {
+  background: #1e1e1e !important;
+  color: #ffffff !important;
+}
+
+.editor-panel .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+}
+
+.editor-panel .ant-tabs-tab-btn {
+  color: #969696;
+}
+
+.editor-panel .ant-tabs-tab-remove {
+  color: #666 !important;
+  margin-left: 8px;
+}
+
+.editor-panel .ant-tabs-tab-remove:hover {
+  color: #ff6b6b !important;
+}
+
+.editor-panel .ant-tabs-nav-add {
+  background-color: #2d2d2d !important;
+  border: none !important;
+  color: #969696 !important;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.editor-panel .ant-tabs-nav-add:hover {
+  background-color: #383838 !important;
+  color: #ffffff !important;
+}
+
+/* Split Gutter Style */
 .gutter {
   background-color: #333;
-  background-repeat: no-repeat;
-  background-position: 50%;
+}
+
+.gutter:hover {
+  background-color: #454545;
 }
 
 .gutter.gutter-horizontal {
   cursor: col-resize;
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+}
+
+.gutter.gutter-vertical {
+  cursor: row-resize;
 }
 
 /* Ensure split containers take full height */

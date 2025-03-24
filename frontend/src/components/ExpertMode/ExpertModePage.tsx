@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Editor } from '@monaco-editor/react';
 import Split from 'react-split';
 import ChatPanel from '../Sidebar/ChatPanel';
-import CodeEditor from '../MainContent/CodeEditor';
+import CodeEditorPanel from '../MainContent/CodeEditorPanel';
 import FileGroupPanel from '../MainContent/FileGroupPanel';
 import SettingsPanel from '../MainContent/SettingsPanel';
 import HistoryPanel from '../MainContent/HistoryPanel';
@@ -23,7 +23,7 @@ interface ExpertModePageProps {
   setPreviewFiles: (files: { path: string, content: string }[]) => void;
   requestId: string;
   setRequestId: (id: string) => void;
-  selectedFile: string | null;
+  selectedFiles: string[];
   onSwitchToAutoMode: () => void;
 }
 
@@ -37,7 +37,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   setPreviewFiles,
   requestId,
   setRequestId,
-  selectedFile,
+  selectedFiles,
   onSwitchToAutoMode
 }) => {
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
@@ -235,7 +235,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
               {/* Dynamic Content Area */}
               <div className="flex-1 overflow-hidden">
                 <div className={`h-full ${activePanel === 'code' ? 'block' : 'hidden'}`}>
-                  <CodeEditor selectedFile={selectedFile} />
+                  <CodeEditorPanel selectedFiles={selectedFiles} />
                 </div>
                 <div className={`h-full ${activePanel === 'filegroup' ? 'block' : 'hidden'}`}>
                   <FileGroupPanel />

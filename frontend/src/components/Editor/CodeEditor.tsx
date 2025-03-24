@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { message } from 'antd';
+import { message, Tabs } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import Split from 'react-split';
 import { getLanguageByFileName } from '../../utils/fileUtils';
@@ -8,21 +8,33 @@ import MonacoEditor from './components/MonacoEditor';
 import './CodeEditor.css';
 
 interface CodeEditorProps {
-  selectedFile?: string | null;
+  selectedFiles?: string[];
 }
 
-const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) => {
-  const [selectedFile, setSelectedFile] = useState<string | null>(initialFile || null);
-  const [code, setCode] = useState<string>('// Select a file to edit');
+interface FileTab {
+  key: string;
+  label: string;
+  content: string;
+}
+
+const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) => {
+  const [selectedFiles, setSelectedFiles] = useState<string[]>(initialFiles || []);
+  const [activeFile, setActiveFile] = useState<string | null>(null);
+  const [fileTabs, setFileTabs] = useState<FileTab[]>([]);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
   const [saving, setSaving] = useState<boolean>(false);
 
   useEffect(() => {
-    if (initialFile) {
-      setSelectedFile(initialFile);
-      loadFileContent(initialFile);
+    if (initialFiles) {
+      setSelectedFiles(initialFiles);
+      initialFiles.forEach(file => {
+        loadFileContent(file);
+      });
+      if (initialFiles.length > 0) {
+        setActiveFile(initialFiles[0]);
+      }
     }
-  }, [initialFile]);
+  }, [initialFiles]);
 
   useEffect(() => {
     fetchFileTree();
@@ -35,10 +47,23 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) =>
         throw new Error('Failed to fetch file content');
       }
       const data = await response.json();
-      setCode(data.content);
+      
+      setFileTabs(prev => {
+        const existingTab = prev.find(tab => tab.key === filePath);
+        if (existingTab) {
+          return prev.map(tab => 
+            tab.key === filePath ? { ...tab, content: data.content } : tab
+          );
+        }
+        return [...prev, {
+          key: filePath,
+          label: filePath.split('/').pop() || filePath,
+          content: data.content
+        }];
+      });
     } catch (error) {
       console.error('Error fetching file content:', error);
-      setCode('// Error loading file content');
+      message.error(`Failed to load ${filePath}`);
     }
   };
 
@@ -50,7 +75,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) =>
       }
       const data = await response.json();
       
-      // Transform the tree data to include icons
       const transformNode = (node: any): DataNode => {
         const isLeaf = node.isLeaf;
         return {
@@ -70,16 +94,19 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) =>
   };
 
   const handleSave = async () => {
-    if (!selectedFile || saving) return;
+    if (!activeFile || saving) return;
     
     try {
       setSaving(true);
-      const response = await fetch(`/api/file/${selectedFile}`, {
+      const currentTab = fileTabs.find(tab => tab.key === activeFile);
+      if (!currentTab) return;
+
+      const response = await fetch(`/api/file/${activeFile}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ content: code })
+        body: JSON.stringify({ content: currentTab.content })
       });
 
       if (!response.ok) {
@@ -98,8 +125,27 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) =>
   const handleSelect = async (selectedKeys: React.Key[], info: any) => {
     const key = selectedKeys[0] as string;
     if (key && info.node.isLeaf) {
-      setSelectedFile(key);
+      if (!selectedFiles.includes(key)) {
+        setSelectedFiles(prev => [...prev, key]);
+      }
+      setActiveFile(key);
       loadFileContent(key);
+    }
+  };
+
+  const handleTabChange = (key: string) => {
+    setActiveFile(key);
+  };
+
+  const handleTabEdit = (targetKey: any, action: 'add' | 'remove') => {
+    if (typeof targetKey !== 'string') return;
+    
+    if (action === 'remove') {
+      setFileTabs(prev => prev.filter(tab => tab.key !== targetKey));
+      setSelectedFiles(prev => prev.filter(file => file !== targetKey));
+      if (activeFile === targetKey && fileTabs.length > 0) {
+        setActiveFile(fileTabs[0].key);
+      }
     }
   };
 
@@ -109,13 +155,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) =>
         <div className="code-editor-header-content">
           <div className="file-info">
             <span className="file-path">
-              {selectedFile || 'No file selected'}
+              {activeFile || 'No file selected'}
             </span>
           </div>
-          {selectedFile && (
+          {activeFile && (
             <button
               onClick={handleSave}
-              disabled={!code}
+              disabled={!activeFile}
               className="save-button"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,11 +193,32 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFile: initialFile }) =>
           />
         </div>
         <div className="editor-panel">
-          <MonacoEditor
-            code={code}
-            language={getLanguageByFileName(selectedFile || '')}
-            onChange={(value) => setCode(value || '')}
-          />
+          <Tabs
+            type="editable-card"
+            onChange={handleTabChange}
+            onEdit={handleTabEdit}
+            activeKey={activeFile || undefined}
+          >
+            {fileTabs.map(tab => (
+              <Tabs.TabPane
+                key={tab.key}
+                tab={tab.label}
+                closable={true}
+              >
+                <MonacoEditor
+                  code={tab.content}
+                  language={getLanguageByFileName(tab.key)}
+                  onChange={(value) => {
+                    setFileTabs(prev => 
+                      prev.map(t => 
+                        t.key === tab.key ? { ...t, content: value || '' } : t
+                      )
+                    );
+                  }}
+                />
+              </Tabs.TabPane>
+            ))}
+          </Tabs>
         </div>
       </Split>
     </div>

@@ -7,6 +7,7 @@ import { getMessage, initLanguage } from './components/Sidebar/lang';
 import FileSearch from './components/FileSearch';
 import './App.css';
 import { TaskSplittingProvider } from './contexts/TaskSplittingContext';
+import { FileMetadata } from './types/file_meta';
 
 
 const App: React.FC = () => {
@@ -17,12 +18,12 @@ const App: React.FC = () => {
   const [previewFiles, setPreviewFiles] = useState<{ path: string, content: string }[]>([]);
   const [requestId, setRequestId] = useState<string>('');
   const [isFileSearchOpen, setIsFileSearchOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<string | null>(null); // State for selected file
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]); // State for selected files
   const [isExpertMode, setIsExpertMode] = useState(false); // Toggle between expert and auto mode, default to auto mode
   const [isModeToggleVisible, setIsModeToggleVisible] = useState(true); // State for mode toggle panel visibility
 
   const openFileInEditor = useCallback((path: string) => {
-    setSelectedFile(path);
+    setSelectedFiles([path]);
     setActivePanel('code');
   }, []);
 
@@ -111,7 +112,7 @@ const App: React.FC = () => {
           setPreviewFiles={setPreviewFiles}
           requestId={requestId}
           setRequestId={setRequestId}
-          selectedFile={selectedFile}
+          selectedFiles={selectedFiles}
           onSwitchToAutoMode={() => setIsExpertMode(false)}
         />
       )}
