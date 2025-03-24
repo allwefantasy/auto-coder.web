@@ -3,3 +3,14 @@
   width: 100%;
   background-color: #1e1e1e;
 }
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  color: #888;
+  font-size: 14px;
+  background-color: #1e1e1e;
+}
