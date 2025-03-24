@@ -51,6 +51,20 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
   
   const eventListenerRef = useRef<boolean>(false);
   
+  const isValidTaskSplitResponse = (msgEvent: any): boolean => {
+    return msgEvent.contentType === 'summary' || msgEvent.metadata?.command === 'response_user';
+  };
+
+  const parseTaskSplitResult = (msgEvent: any): any => {
+    if (msgEvent.contentType === 'summary' && typeof msgEvent.content === 'string') {
+      return JsonExtractor.extract(msgEvent.content) || msgEvent.content;
+    } else if (msgEvent.contentType === 'summary' && typeof msgEvent.content === 'object') {
+      return msgEvent.content;
+    } else {
+      return msgEvent.metadata?.parameters.response;
+    }
+  };
+  
   useEffect(() => {
     if (todo) {
       setEditedTodo(todo);
@@ -61,7 +75,8 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
 
   useEffect(() => {
     const handleTaskSplitResult = (msgEvent: any) => {
-      if (msgEvent.contentType === 'summary') {
+      
+      if (isValidTaskSplitResponse(msgEvent)) {
         console.log('Task split result:', msgEvent);
         AntMessage.success(getMessage('taskSplitSuccess', { count: '0' }));
         setSplitLoading(false);
@@ -217,20 +232,15 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
       }
       
       // 设置事件监听器
-      const handleTaskSplitResult = (msgEvent: any) => {
-        if (msgEvent.contentType === 'summary') {
+      const handleTaskSplitResult = (msgEvent: any) => {        
+        if (isValidTaskSplitResponse(msgEvent)) {
           console.log('Task split result:', msgEvent);
           let tasksCount = 0;
           let splitResult: any = null;
           
-          try {
-            // 使用JsonExtractor工具类解析消息内容
-            if (typeof msgEvent.content === 'string') {
-              splitResult = JsonExtractor.extract(msgEvent.content) || msgEvent.content;
-            } else {
-              splitResult = msgEvent.content;
-            }
-            
+          try {            
+            splitResult = parseTaskSplitResult(msgEvent);
+             
             // 保存完整的拆分结果到Context
             if (splitResult) {
               setLastSplitResult(splitResult);
@@ -321,6 +331,9 @@ const TodoEditModal: React.FC<TodoEditModalProps> = ({
         if (hasError) {
           AntMessage.error(getMessage('failedToSplitTask'));
         }
+        
+        // 清除拆分中的任务ID
+        setSplittingTodoId(null);
         
         // 清理所有事件监听
         autoCommandService.removeListener('message', handleTaskSplitResult);

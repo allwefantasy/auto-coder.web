@@ -481,10 +481,7 @@ async def execute_todo_tasks(todo_id: str, project_path: str = Depends(get_proje
 
     # 定义执行单个任务的函数
     async def execute_single_task(task_index: int):
-        task = todo.tasks[task_index]
-
-        # 构建执行命令
-        command = generate_command_from_task(task, todo)
+        task = todo.tasks[task_index]        
 
         # 生成事件文件路径
         event_file, file_id = gengerate_event_file_path()
