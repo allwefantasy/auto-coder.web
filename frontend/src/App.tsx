@@ -18,12 +18,12 @@ const App: React.FC = () => {
   const [previewFiles, setPreviewFiles] = useState<{ path: string, content: string }[]>([]);
   const [requestId, setRequestId] = useState<string>('');
   const [isFileSearchOpen, setIsFileSearchOpen] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<string[]>([]); // State for selected files
-  const [isExpertMode, setIsExpertMode] = useState(false); // Toggle between expert and auto mode, default to auto mode
-  const [isModeToggleVisible, setIsModeToggleVisible] = useState(true); // State for mode toggle panel visibility
+  const [selectedFiles, setSelectedFiles] = useState<FileMetadata[]>([]);
+  const [isExpertMode, setIsExpertMode] = useState(false);
+  const [isModeToggleVisible, setIsModeToggleVisible] = useState(true);
 
   const openFileInEditor = useCallback((path: string) => {
-    setSelectedFiles([path]);
+    setSelectedFiles([{ path, isSelected: true }]);
     setActivePanel('code');
   }, []);
 

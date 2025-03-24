@@ -11,6 +11,7 @@ import OutputPanel from '../Terminal/OutputPanel';
 import PreviewPanel from '../MainContent/PreviewPanel';
 import TodoPanel from '../MainContent/TodoPanel';
 import { getMessage } from '../Sidebar/lang';
+import { FileMetadata } from '../../types/file_meta';
 import './SplitStyles.css';
 
 interface ExpertModePageProps {
@@ -23,7 +24,7 @@ interface ExpertModePageProps {
   setPreviewFiles: (files: { path: string, content: string }[]) => void;
   requestId: string;
   setRequestId: (id: string) => void;
-  selectedFiles: string[];
+  selectedFiles: FileMetadata[];
   onSwitchToAutoMode: () => void;
 }
 

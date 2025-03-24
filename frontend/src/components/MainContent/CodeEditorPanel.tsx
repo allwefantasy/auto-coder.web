@@ -3,7 +3,7 @@ import CodeEditor from '../Editor/CodeEditor';
 import { FileMetadata } from '../../types/file_meta';
 
 interface CodeEditorPanelProps {
-  selectedFiles?: string[];
+  selectedFiles?: FileMetadata[];
 }
 
 const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({ selectedFiles }) => {

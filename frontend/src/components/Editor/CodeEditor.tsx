@@ -5,10 +5,11 @@ import Split from 'react-split';
 import { getLanguageByFileName } from '../../utils/fileUtils';
 import FileTree from './components/FileTree';
 import MonacoEditor from './components/MonacoEditor';
+import { FileMetadata } from '../../types/file_meta';
 import './CodeEditor.css';
 
 interface CodeEditorProps {
-  selectedFiles?: string[];
+  selectedFiles?: FileMetadata[];
 }
 
 interface FileTab {
@@ -18,7 +19,7 @@ interface FileTab {
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) => {
-  const [selectedFiles, setSelectedFiles] = useState<string[]>(initialFiles || []);
+  const [selectedFiles, setSelectedFiles] = useState<FileMetadata[]>(initialFiles || []);
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [fileTabs, setFileTabs] = useState<FileTab[]>([]);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
@@ -28,10 +29,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
     if (initialFiles) {
       setSelectedFiles(initialFiles);
       initialFiles.forEach(file => {
-        loadFileContent(file);
+        loadFileContent(file.path);
       });
       if (initialFiles.length > 0) {
-        setActiveFile(initialFiles[0]);
+        setActiveFile(initialFiles[0].path);
       }
     }
   }, [initialFiles]);
@@ -125,8 +126,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
   const handleSelect = async (selectedKeys: React.Key[], info: any) => {
     const key = selectedKeys[0] as string;
     if (key && info.node.isLeaf) {
-      if (!selectedFiles.includes(key)) {
-        setSelectedFiles(prev => [...prev, key]);
+      const newFile: FileMetadata = { path: key, isSelected: true };
+      if (!selectedFiles.some(f => f.path === key)) {
+        setSelectedFiles(prev => [...prev, newFile]);
       }
       setActiveFile(key);
       loadFileContent(key);
@@ -142,7 +144,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
     
     if (action === 'remove') {
       setFileTabs(prev => prev.filter(tab => tab.key !== targetKey));
-      setSelectedFiles(prev => prev.filter(file => file !== targetKey));
+      setSelectedFiles(prev => prev.filter(file => file.path !== targetKey));
       if (activeFile === targetKey && fileTabs.length > 0) {
         setActiveFile(fileTabs[0].key);
       }
