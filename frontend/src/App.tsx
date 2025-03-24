@@ -19,7 +19,7 @@ const App: React.FC = () => {
   const [requestId, setRequestId] = useState<string>('');
   const [isFileSearchOpen, setIsFileSearchOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileMetadata[]>([]);
-  const [isExpertMode, setIsExpertMode] = useState(false);
+  const [isExpertMode, setIsExpertMode] = useState<boolean>(false);
   const [isModeToggleVisible, setIsModeToggleVisible] = useState(true);
 
   const openFileInEditor = useCallback((path: string) => {
@@ -113,6 +113,7 @@ const App: React.FC = () => {
           requestId={requestId}
           setRequestId={setRequestId}
           selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
           onSwitchToAutoMode={() => setIsExpertMode(false)}
         />
       )}

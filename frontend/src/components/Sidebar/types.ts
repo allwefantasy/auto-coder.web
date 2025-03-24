@@ -1,3 +1,5 @@
+import { FileMetadata } from '../../types/file_meta';
+
 export interface FileGroup {
   id: string;
   name: string;
@@ -75,12 +77,13 @@ export interface Message {
 }
 
 export interface ChatPanelProps {
-  setPreviewFiles: (files: { path: string; content: string }[]) => void;
-  setActivePanel: (panel: 'code' | 'filegroup' | 'preview' | 'clipboard') => void;
+  setPreviewFiles: (files: { path: string, content: string }[]) => void;
+  setActivePanel: (panel: 'todo' | 'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings') => void;
   setClipboardContent: (content: string) => void;
   clipboardContent: string;
-  setRequestId: (requestId: string) => void;
+  setRequestId: (id: string) => void;
   projectName?: string;
+  setSelectedFiles: (files: FileMetadata[]) => void;
 }
 
 export interface CompletionItem {

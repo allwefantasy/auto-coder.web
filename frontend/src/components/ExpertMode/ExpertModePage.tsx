@@ -26,6 +26,7 @@ interface ExpertModePageProps {
   setRequestId: (id: string) => void;
   selectedFiles: FileMetadata[];
   onSwitchToAutoMode: () => void;
+  setSelectedFiles: (files: FileMetadata[]) => void;
 }
 
 const ExpertModePage: React.FC<ExpertModePageProps> = ({
@@ -39,7 +40,8 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   requestId,
   setRequestId,
   selectedFiles,
-  onSwitchToAutoMode
+  onSwitchToAutoMode,
+  setSelectedFiles
 }) => {
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
@@ -78,8 +80,9 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
           setActivePanel={setActivePanel}
           setClipboardContent={setClipboardContent}
           clipboardContent={clipboardContent}
-          setRequestId={setRequestId}
+          setRequestId={setRequestId}          
           projectName={projectName}
+          setSelectedFiles={setSelectedFiles}
         />
       </div>
 

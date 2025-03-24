@@ -11,12 +11,21 @@ import {
   CodingEvent,
   ChatPanelProps,
 } from './types';
+import { FileMetadata } from '../../types/file_meta';
 import { chatService } from '../../services/chatService';
 import { codingService } from '../../services/codingService';
 import { Message as AutoModeMessage } from '../../components/AutoMode/types';
 import MessageList, { MessageProps } from '../../components/AutoMode/MessageList';
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, setActivePanel, setClipboardContent, clipboardContent, projectName = '' }) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({ 
+  setPreviewFiles, 
+  setRequestId, 
+  setActivePanel, 
+  setClipboardContent, 
+  clipboardContent, 
+  projectName = '',
+  setSelectedFiles 
+}) => {
   const showNewChatModal = () => {
     // 清空当前对话内容
     setMessages([]);
@@ -82,6 +91,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
   const [messages, setMessages] = useState<AutoModeMessage[]>([]);
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [showConfig, setShowConfig] = useState(false);
+  const [localRequestId, setLocalRequestId] = useState<string>('');
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [config, setConfig] = useState<ConfigState>({
     human_as_model: false,
@@ -577,15 +587,34 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
       });
     });
 
-    service.on('taskComplete', (hasError: boolean) => {
+    service.on('taskComplete', async (hasError: boolean) => {
       if (hasError) {
         AntdMessage.error('Task completed with errors');
       } else {
         AntdMessage.success('Task completed successfully');
+        
+        // 如果是编码模式且有eventFileId，获取变更文件并打开
+        if (isWriteMode && localRequestId) {
+          try {
+            const response = await fetch(`/api/commit/current-changes?event_file_id=${requestId}`);
+            if (!response.ok) {
+              throw new Error('Failed to fetch current changes');
+            }
+            const data = await response.json();
+            console.log('ChatPanel: Received current changes:', data);
+            // 设置选中的文件
+            setSelectedFiles(data.commits[0].stats.files_changed);
+            // 切换到代码视图
+            setActivePanel('code');
+          } catch (error) {
+            console.error('Error fetching current changes:', error);
+            AntdMessage.error('Failed to fetch changed files');
+          }
+        }
       }
       setSendLoading(false);
       setRequestId("");
-      
+      setLocalRequestId("");
       // 在任务完成时设置标记，表示应该保存消息
       // 而不是直接保存，让 useEffect 在消息状态更新后处理保存
       setShouldSaveMessages(true);
@@ -629,12 +658,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ setPreviewFiles, setRequestId, se
         const result = await codingService.executeCommand(`${trimmedText}`);
         console.log('ChatPanel: Received result from codingService:', result);
         setRequestId(result.event_file_id);
+        setLocalRequestId(result.event_file_id);
       } else {
         // 聊天模式
         console.log('ChatPanel: Sending message to chatService');
         const result = await chatService.executeCommand(trimmedText);
         console.log('ChatPanel: Received result from chatService:', result);
         setRequestId(result.event_file_id);
+        setLocalRequestId(result.event_file_id);
       }
     } catch (error) {
       console.error('Error sending message:', error);
