@@ -123,7 +123,7 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
                         logger.error(f"Error reading chat history: {str(e)}")
             
             # 构建提示信息
-            prompt_text = "/apply "
+            prompt_text = ""
             if messages:
                 # 调用coding_prompt生成包含历史消息的提示
                 prompt_text = prompt_text + coding_prompt.prompt(messages, request)
