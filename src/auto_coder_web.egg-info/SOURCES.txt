@@ -145,8 +145,8 @@ src/auto_coder_web/web/static/css/main.307a74c8.css
 src/auto_coder_web/web/static/css/main.307a74c8.css.map
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js.map
-src/auto_coder_web/web/static/js/main.1ce477bc.js
-src/auto_coder_web/web/static/js/main.1ce477bc.js.LICENSE.txt
-src/auto_coder_web/web/static/js/main.1ce477bc.js.map
+src/auto_coder_web/web/static/js/main.99a7408f.js
+src/auto_coder_web/web/static/js/main.99a7408f.js.LICENSE.txt
+src/auto_coder_web/web/static/js/main.99a7408f.js.map
 src/expert_routers/__init__.py
 src/expert_routers/history_router.py
