@@ -201,25 +201,34 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
             onEdit={handleTabEdit}
             activeKey={activeFile || undefined}
           >
-            {fileTabs.map(tab => (
-              <Tabs.TabPane
-                key={tab.key}
-                tab={tab.label}
-                closable={true}
-              >
-                <MonacoEditor
-                  code={tab.content}
-                  language={getLanguageByFileName(tab.key)}
-                  onChange={(value) => {
-                    setFileTabs(prev => 
-                      prev.map(t => 
-                        t.key === tab.key ? { ...t, content: value || '' } : t
-                      )
-                    );
-                  }}
-                />
-              </Tabs.TabPane>
-            ))}
+            {fileTabs.map(tab => {
+              const fileMeta = selectedFiles.find(f => f.path === tab.key);
+              return (
+                <Tabs.TabPane
+                  key={tab.key}
+                  tab={
+                    <span style={{ 
+                      color: fileMeta?.modifiedBy === 'expert_chat_box' ? '#ff4d4f' : 'inherit'
+                    }}>
+                      {tab.label}
+                    </span>
+                  }
+                  closable={true}
+                >
+                  <MonacoEditor
+                    code={tab.content}
+                    language={getLanguageByFileName(tab.key)}
+                    onChange={(value) => {
+                      setFileTabs(prev => 
+                        prev.map(t => 
+                          t.key === tab.key ? { ...t, content: value || '' } : t
+                        )
+                      );
+                    }}
+                  />
+                </Tabs.TabPane>
+              );
+            })}
           </Tabs>
         </div>
       </Split>
