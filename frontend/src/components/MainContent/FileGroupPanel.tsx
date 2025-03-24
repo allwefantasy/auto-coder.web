@@ -318,15 +318,17 @@ const FileGroupPanel: React.FC = () => {
           </div>
 
           {/* 使用新的 FileDirectorySelector 组件替换原来的 File Tree 部分 */}
-          <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto">
-            <FileDirectorySelector
-              treeData={treeData}
-              checkedKeys={checkedKeys}
-              onCheckedKeysChange={setCheckedKeys}
-              onFileSelect={handleFileSelect}
-              onAddFiles={handleAddFiles}
-              selectedGroup={selectedGroup}
-            />
+          <div className="min-w-[16rem] max-w-[16rem] bg-gray-900 border-r border-gray-700 overflow-hidden">
+            <div className="h-full w-full overflow-x-auto overflow-y-auto">
+              <FileDirectorySelector
+                treeData={treeData}
+                checkedKeys={checkedKeys}
+                onCheckedKeysChange={setCheckedKeys}
+                onFileSelect={handleFileSelect}
+                onAddFiles={handleAddFiles}
+                selectedGroup={selectedGroup}
+              />
+            </div>
           </div>
 
           {/* File Preview */}

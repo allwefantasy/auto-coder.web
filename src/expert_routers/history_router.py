@@ -1,7 +1,10 @@
 import os
 import re
+import asyncio
 from datetime import datetime
 from typing import Dict, List, Optional, Any
+from concurrent.futures import ThreadPoolExecutor
+import functools
 
 from fastapi import APIRouter, HTTPException, Request, Depends, Query
 from pydantic import BaseModel
@@ -16,6 +19,9 @@ from autocoder.events.event_types import EventType
 from autocoder.common.action_yml_file_manager import ActionYmlFileManager
 
 router = APIRouter()
+
+# 创建线程池
+thread_pool = ThreadPoolExecutor(max_workers=4)
 
 
 class Query(BaseModel):
@@ -80,95 +86,105 @@ async def validate_and_load_history(
     Returns:
         历史记录查询列表
     """
-    try:
-        # # 获取事件管理器
-        # event_manager = get_event_manager()
-        
-        # # 获取所有事件文件
-        # event_files = event_manager.get_all_event_files()
-        
-        # 过滤出聊天动作事件
-        action_manager = ActionYmlFileManager(project_path)
-        chat_action_files = action_manager.get_action_files()
-        
-        # 获取Git仓库，用于检查提交是否被撤销
-        repo = get_repo(project_path)
-        
-        # 查找所有撤销提交
-        reverted_commits = {}
+    # 定义在线程中执行的函数
+    def load_history_task(project_path, max_history_count=50):
         try:
-            # 遍历所有提交查找撤销提交
-            for commit in repo.iter_commits():
-                message = commit.message.strip()
-                if message.startswith("<revert>"):
-                    # 尝试从撤销提交消息中提取原始提交哈希值
-                    # <revert>原始消息\n原始提交哈希
-                    lines = message.split('\n')
-                    if len(lines) > 1:
-                        original_hash = lines[-1].strip()
-                        reverted_commits[original_hash] = True
-                        logger.info(f"找到撤销提交 {commit.hexsha[:7]} 撤销了 {original_hash[:7]}")
-        except Exception as e:
-            logger.error(f"获取撤销提交信息时出错: {str(e)}")
-        
-        queries = []
-        for file_path in chat_action_files:
-            try:                                                
-                # 获取文件内容                        
-                action_data = action_manager.load_yaml_content(file_path)
-                timestamp = os.path.getmtime(os.path.join(action_manager.actions_dir, file_path))
-                
-                if not action_data:
-                    continue
-                                
-                # 提取查询内容
-                file_number_str = file_path.split("_")[0]
-                try:
-                    file_number = int(file_number_str)
-                except ValueError:
-                    file_number = 0
-                    
-                query_content = action_data.get("query", "")
-                
-                # 提取响应ID（如果有）
-                response_id = action_manager.get_commit_id_from_file(file_path)
-                
-                # 检查该提交是否已被撤销
-                is_reverted = False
-                if response_id and response_id in reverted_commits:
-                    logger.info(f"提交 {response_id[:7]} 已被撤销")
-                    is_reverted = True
-                
-                # 提取上下文URL（如果有）
-                context_urls = action_data.get("urls", []) + action_data.get("dynamic_urls", [])
-                if context_urls is None:
-                    context_urls = []
-                
-                # 格式化时间戳为字符串
-                timestamp_str = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-                
-                # 创建查询对象
-                query = Query(
-                    query=query_content[-200:],
-                    timestamp=timestamp_str,
-                    response=response_id,
-                    urls=context_urls,
-                    file_number=file_number,
-                    is_reverted=is_reverted
-                )
-                
-                queries.append(query)
+            # 过滤出聊天动作事件
+            action_manager = ActionYmlFileManager(project_path)
+            chat_action_files = action_manager.get_action_files()
+            
+            # 获取Git仓库，用于检查提交是否被撤销
+            repo = get_repo(project_path)
+            
+            # 查找所有撤销提交
+            reverted_commits = {}
+
+            commit_inter_count = 0
+            try:
+                # 遍历所有提交查找撤销提交
+                for commit in repo.iter_commits():
+                    message = commit.message.strip()
+                    if message.startswith("<revert>"):
+                        # 尝试从撤销提交消息中提取原始提交哈希值
+                        # <revert>原始消息\n原始提交哈希
+                        lines = message.split('\n')
+                        if len(lines) > 1:
+                            original_hash = lines[-1].strip()
+                            reverted_commits[original_hash] = True
+                            logger.info(f"找到撤销提交 {commit.hexsha[:7]} 撤销了 {original_hash[:7]}")                            
+                    if commit_inter_count > 2*max_history_count:
+                        break
+                    commit_inter_count += 1
             except Exception as e:
-                logger.error(f"Error processing file {file_path}: {str(e)}")
-                continue
-        
-        # 按文件编号降序排序
-        queries.sort(key=lambda x: x.file_number, reverse=True)
-        
-        return {"success": True, "queries": queries}
-    except Exception as e:
-        logger.error(f"Error loading history: {str(e)}")
-        return {"success": False, "message": f"加载历史记录失败: {str(e)}"}
+                logger.error(f"获取撤销提交信息时出错: {str(e)}")
+            
+            queries = []
+            for file_path in chat_action_files:
+                try:                                                
+                    # 获取文件内容                        
+                    action_data = action_manager.load_yaml_content(file_path)
+                    timestamp = os.path.getmtime(os.path.join(action_manager.actions_dir, file_path))
+                    
+                    if not action_data:
+                        continue
+                                    
+                    # 提取查询内容
+                    file_number_str = file_path.split("_")[0]
+                    try:
+                        file_number = int(file_number_str)
+                    except ValueError:
+                        file_number = 0
+                        
+                    query_content = action_data.get("query", "")
+                    
+                    # 提取响应ID（如果有）
+                    response_id = action_manager.get_commit_id_from_file(file_path)
+                    
+                    # 检查该提交是否已被撤销
+                    is_reverted = False
+                    if response_id and response_id in reverted_commits:
+                        logger.info(f"提交 {response_id[:7]} 已被撤销")
+                        is_reverted = True
+                    
+                    # 提取上下文URL（如果有）
+                    context_urls = action_data.get("urls", []) + action_data.get("dynamic_urls", [])
+                    if context_urls is None:
+                        context_urls = []
+                    
+                    # 格式化时间戳为字符串
+                    timestamp_str = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    # 创建查询对象
+                    query = Query(
+                        query=query_content[-200:],
+                        timestamp=timestamp_str,
+                        response=response_id,
+                        urls=context_urls,
+                        file_number=file_number,
+                        is_reverted=is_reverted
+                    )
+                    
+                    queries.append(query)
+                except Exception as e:
+                    logger.error(f"Error processing file {file_path}: {str(e)}")
+                    continue
+            
+            # 按文件编号降序排序
+            queries.sort(key=lambda x: x.file_number, reverse=True)
+            
+            return {"success": True, "queries": queries[:max_history_count]}
+        except Exception as e:
+            logger.error(f"Error loading history: {str(e)}")
+            return {"success": False, "message": f"加载历史记录失败: {str(e)}"}
+    
+    # 使用线程池提交任务并等待结果
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        thread_pool,
+        functools.partial(load_history_task, project_path)
+    )
+    
+    return result
 
 
 @router.get("/api/history/commit-diff/{response_id}", response_model=DiffResponse)

@@ -9,7 +9,9 @@ import {
   FileOutlined,
   FilterOutlined,
   CopyOutlined,
-  FolderOpenOutlined
+  FolderOpenOutlined,
+  UndoOutlined,
+  SwapOutlined
 } from '@ant-design/icons';
 import type { DataNode } from 'antd/es/tree';
 import './FileDirectorySelector.css';
@@ -89,6 +91,8 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
   const [allowDrop, setAllowDrop] = useState<boolean>(true);
   const [filterDropdownVisible, setFilterDropdownVisible] = useState<boolean>(false);
   const [fileTypeFilters, setFileTypeFilters] = useState<string[]>([]);
+  // 新增状态：跟踪当前是全选模式还是反选模式
+  const [isSelectAllMode, setIsSelectAllMode] = useState<boolean>(true);
 
   // 当treeData变化时更新filteredTreeData
   useEffect(() => {
@@ -207,7 +211,7 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
       const enhancedNode: DataNode = {
         ...node,
         title: (
-          <span className="file-node-title">
+          <span className="file-node-title" title={nodePath}>
             {icon}
             <span className="file-name">{highlightTitle()}</span>
           </span>
@@ -438,6 +442,30 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
     return checkedKeys.length;
   };
 
+  // 获取所有可选文件（当前过滤条件下的文件）
+  const getAllSelectableFiles = (): React.Key[] => {
+    return getAllFilePaths(filteredTreeData);
+  };
+
+  // 修改：处理全选/反选切换功能
+  const handleSelectionToggle = () => {
+    const allFiles = getAllSelectableFiles();
+    
+    if (isSelectAllMode) {
+      // 全选模式
+      onCheckedKeysChange(allFiles);
+      message.success(`已选择 ${allFiles.length} 个文件`);
+    } else {
+      // 反选模式
+      const invertedSelection = allFiles.filter(file => !checkedKeys.includes(file));
+      onCheckedKeysChange(invertedSelection);
+      message.success(`已反选 ${invertedSelection.length} 个文件`);
+    }
+    
+    // 切换模式
+    setIsSelectAllMode(!isSelectAllMode);
+  };
+
   // 渲染过滤下拉菜单
   const renderFilterDropdown = () => {
     return (
@@ -492,14 +520,11 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
             >
               Add Selected ({getProcessedFileCount()})
             </Button>
-            <Tooltip title="Select All Filtered Files">
+            <Tooltip title={isSelectAllMode ? "全选当前可见文件" : "反选当前可见文件"}>
               <Button
-                onClick={() => {
-                  const allFilePaths = getAllFilePaths(filteredTreeData);
-                  onCheckedKeysChange(allFilePaths);
-                }}
-                icon={<CheckOutlined />}
-                className="select-all-button"
+                onClick={handleSelectionToggle}
+                icon={isSelectAllMode ? <CheckOutlined /> : <SwapOutlined />}
+                className={`selection-toggle-button ${isSelectAllMode ? "select-all-mode" : "invert-mode"}`}
               />
             </Tooltip>
           </div>
@@ -530,10 +555,11 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
           draggable={allowDrop}
           onDrop={onDrop}
           className="custom-dark-tree"
-          height={500}
           showIcon={false} // 使用自定义图标
           showLine={{ showLeafIcon: false }}
           blockNode
+          autoExpandParent={false}
+          virtual={false}
         />
 
         {/* 右键菜单 */}
