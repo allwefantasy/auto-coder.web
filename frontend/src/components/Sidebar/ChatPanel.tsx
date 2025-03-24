@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import './ChatPanel.css';
 import InputArea from './InputArea';
 import { getMessage } from './lang';
-import { pollEvents, pollStreamResult } from './polling';
 import {
   FileGroup,
   ConfigState,
