@@ -7,15 +7,15 @@ router = APIRouter()
 
 class Model(BaseModel):
     name: str
-    description: str
+    description: str = ""
     model_name: str
     model_type: str
     base_url: str
     api_key_path: str
-    is_reasoning: bool
-    input_price: float
-    output_price: float
-    average_speed: float
+    is_reasoning: bool = False
+    input_price: float = 0.0
+    output_price: float = 0.0
+    average_speed: float = 0.0
 
 @router.get("/models", response_model=List[Model])
 async def get_models():

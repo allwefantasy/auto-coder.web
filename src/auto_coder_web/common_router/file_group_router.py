@@ -59,7 +59,7 @@ def _get_groups(project_path: str):
         {
             "name": group_name,
             "files": memory["current_files"]["groups"][group_name],
-            "description": memory["current_files"]["groups_info"][group_name]["query_prefix"]
+            "description": memory["current_files"]["groups_info"].get(group_name,{}).get("query_prefix", "")
         } for group_name in memory["current_files"]["groups"]
     ]
     return v
