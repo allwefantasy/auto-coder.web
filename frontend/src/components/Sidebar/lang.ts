@@ -778,6 +778,10 @@ export const messages: { [key: string]: Message } = {
     en: "Maximize Panel",
     zh: "最大化面板"
   },
+  languageSettings: {
+    en: "Language",
+    zh: "语言设置"
+  },
   restorePanel: {
     en: "Restore Panel",
     zh: "恢复面板"
