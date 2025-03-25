@@ -50,7 +50,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     availableKeys.forEach(key => {
       if (key.key === 'model' || key.key === 'code_model' || 
           key.key === 'chat_model' || key.key === 'generate_rerank_model') {
-        initialModels[key.key] = key.value || '';
+        initialModels[key.key] = (key as any).value || '';
       }
     });
     setSelectedModels(initialModels);
