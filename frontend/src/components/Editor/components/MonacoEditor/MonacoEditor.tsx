@@ -134,14 +134,24 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
     // 定义主题
     defineMonacoThemes(monaco);
     
-    // 配置常用语言
+    // 禁用所有语言的语法校验
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
-      noSyntaxValidation: false,
+      noSyntaxValidation: true,
+      noSuggestionDiagnostics: true
     });
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
-      noSyntaxValidation: false,
+      noSyntaxValidation: true,
+      noSuggestionDiagnostics: true
+    });
+    
+    // 全局禁用诊断功能
+    monaco.languages.onLanguage('*', () => {
+      monaco.languages.setLanguageConfiguration('*', {
+        // 设置空的验证规则
+        wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
+      });
     });
   };
 
@@ -202,7 +212,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
         height="100%"
         defaultLanguage="plaintext"
         language={language}
-        theme="vs-dark"
+        theme="customVsDarkTheme"
         value={code}
         onChange={onChange}
         beforeMount={handleEditorWillMount}
@@ -213,6 +223,10 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
           contextmenu: true,
           fixedOverflowWidgets: true,
           colorDecorators: true,
+          // 禁用各种验证和提示
+          formatOnType: false,
+          formatOnPaste: false,
+          parameterHints: { enabled: false }
         }}
       />      
     </div>
