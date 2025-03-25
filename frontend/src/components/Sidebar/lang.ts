@@ -795,6 +795,10 @@ export const messages: { [key: string]: Message } = {
     en: "Stop",
     zh: "停止"
   },
+  more: {
+    en: "More",
+    zh: "更多"
+  },
   generationStopped: {
     en: "Generation stopped",
     zh: "生成已停止"
