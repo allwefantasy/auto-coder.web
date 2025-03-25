@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Select, message } from 'antd';
+import { Select, message, Skeleton } from 'antd';
 import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
+import './ModelConfig.css';
 
 interface ModelConfigProps {
   availableKeys: AutoCoderArgs[];
@@ -17,6 +18,7 @@ interface Model {
 const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange }) => {
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(false);
+  const [configLoading, setConfigLoading] = useState(false);
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>({
     model: '',
     code_model: '',
@@ -24,6 +26,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     generate_rerank_model: ''
   });
 
+  // Fetch available models
   useEffect(() => {
     const fetchModels = async () => {
       setLoading(true);
@@ -44,12 +47,56 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     fetchModels();
   }, []);
 
+  // Fetch current configuration
   useEffect(() => {
-    // Initialize selected models from available keys
-    const initialModels: Record<string, string> = {};
+    const fetchCurrentConfig = async () => {
+      setConfigLoading(true);
+      try {
+        const response = await fetch('/api/conf');
+        if (!response.ok) {
+          throw new Error('Failed to fetch configuration');
+        }
+        const data = await response.json();
+        const currentConfig = data.conf;
+        
+        // Update selected models with current configuration
+        const updatedModels = { ...selectedModels };
+        
+        if (currentConfig.model) {
+          updatedModels.model = currentConfig.model;
+        }
+        
+        if (currentConfig.code_model) {
+          updatedModels.code_model = currentConfig.code_model;
+        }
+        
+        if (currentConfig.chat_model) {
+          updatedModels.chat_model = currentConfig.chat_model;
+        }
+        
+        if (currentConfig.generate_rerank_model) {
+          updatedModels.generate_rerank_model = currentConfig.generate_rerank_model;
+        }
+        
+        setSelectedModels(updatedModels);
+      } catch (error) {
+        console.error('Error fetching current configuration:', error);
+      } finally {
+        setConfigLoading(false);
+      }
+    };
+    
+    fetchCurrentConfig();
+  }, []);
+
+  // Initialize selected models from available keys as fallback
+  useEffect(() => {
+    // Only initialize from availableKeys if we don't have a value from config
+    const initialModels: Record<string, string> = { ...selectedModels };
     availableKeys.forEach(key => {
-      if (key.key === 'model' || key.key === 'code_model' || 
-          key.key === 'chat_model' || key.key === 'generate_rerank_model') {
+      if ((key.key === 'model' || key.key === 'code_model' || 
+          key.key === 'chat_model' || key.key === 'generate_rerank_model') && 
+          !initialModels[key.key]) {
         initialModels[key.key] = (key as any).value || '';
       }
     });
@@ -61,65 +108,85 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     onModelChange(key, value);
   };
 
+  const selectProps = {
+    loading: loading || configLoading,
+    className: "custom-select",
+    popupClassName: "custom-select-dropdown",
+    style: { 
+      width: '100%'
+    }
+  };
+
+  if (loading || configLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton.Input active block style={{ height: 32, backgroundColor: '#1e293b' }} />
+        <Skeleton.Input active block style={{ height: 32, backgroundColor: '#1e293b' }} />
+        <Skeleton.Input active block style={{ height: 32, backgroundColor: '#1e293b' }} />
+        <Skeleton.Input active block style={{ height: 32, backgroundColor: '#1e293b' }} />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-white mb-6">{getMessage('modelName')}</h3>
+    <div>
+      <h3 className="settings-title">{getMessage('modelName') || '模型配置'}</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-gray-300 mb-2">Default Model</label>
+      <div className="space-y-3">
+        <div className="model-config-item">
+          <label className="model-config-label">Default Model</label>
           <Select
-            loading={loading}
+            {...selectProps}
             value={selectedModels.model}
             onChange={(value) => handleModelChange('model', value)}
-            className="custom-select w-full"
             options={models.map(model => ({
-              value: model.model_name,
-              label: `${model.name} (${model.model_type})`
+              value: model.name,
+              label: model.name
             }))}
           />
+          <p className="model-config-description">Used for general purpose tasks</p>
         </div>
 
-        <div>
-          <label className="block text-gray-300 mb-2">Code Model</label>
+        <div className="model-config-item">
+          <label className="model-config-label">Code Model</label>
           <Select
-            loading={loading}
+            {...selectProps}
             value={selectedModels.code_model}
             onChange={(value) => handleModelChange('code_model', value)}
-            className="custom-select w-full"
             options={models.map(model => ({
-              value: model.model_name,
-              label: `${model.name} (${model.model_type})`
+              value: model.name,
+              label: model.name
             }))}
           />
+          <p className="model-config-description">Used for code generation and analysis</p>
         </div>
 
-        <div>
-          <label className="block text-gray-300 mb-2">Chat Model</label>
+        <div className="model-config-item">
+          <label className="model-config-label">Chat Model</label>
           <Select
-            loading={loading}
+            {...selectProps}
             value={selectedModels.chat_model}
             onChange={(value) => handleModelChange('chat_model', value)}
-            className="custom-select w-full"
             options={models.map(model => ({
-              value: model.model_name,
-              label: `${model.name} (${model.model_type})`
+              value: model.name,
+              label: model.name
             }))}
           />
+          <p className="model-config-description">Used for conversational responses</p>
         </div>
 
-        <div>
-          <label className="block text-gray-300 mb-2">Rerank Model</label>
+        <div className="model-config-item">
+          <label className="model-config-label">Rerank Model</label>
           <Select
-            loading={loading}
+            {...selectProps}
             value={selectedModels.generate_rerank_model}
             onChange={(value) => handleModelChange('generate_rerank_model', value)}
-            className="w-full"
             options={models.map(model => ({
-              value: model.model_name,
-              label: `${model.name} (${model.model_type})`
+              value: model.name,
+              label: model.name
             }))}
           />
+          <p className="model-config-description">Used for reranking generated content</p>
         </div>
       </div>
     </div>
