@@ -400,8 +400,8 @@ export const messages: { [key: string]: Message } = {
     zh: "模型消费统计"
   },
   modelName: {
-    en: "Model",
-    zh: "模型"
+    en: "Model Configuration",
+    zh: "模型配置"
   },
   totalTime: {
     en: "Total Time",

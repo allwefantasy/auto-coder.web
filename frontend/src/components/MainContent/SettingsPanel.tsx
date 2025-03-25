@@ -3,6 +3,7 @@ import { Switch, Input, message, Card, Select } from 'antd';
 import { Editor } from '@monaco-editor/react';
 import { getMessage, setLanguage, getCurrentLanguage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
+import ModelConfig from './ModelConfig';
 
 const SettingsPanel: React.FC = () => {
   const [config, setConfig] = useState<{
@@ -269,6 +270,11 @@ const SettingsPanel: React.FC = () => {
               </div>
             )}
           </div>
+
+          <ModelConfig 
+            availableKeys={config.available_keys} 
+            onModelChange={updateConfig}
+          />
         </div>
       </Card>
     </div>
