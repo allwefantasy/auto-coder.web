@@ -62,10 +62,12 @@ const ContextUsedMessage: React.FC<ContextUsedMessageProps> = ({ message }) => {
                             <div className="flex flex-col gap-0.5 max-h-[150px] overflow-y-auto">
                                 {message.metadata.files.map((file: string, index: number) => (
                                     <div key={index} className="flex items-center">
-                                        <svg className="w-2.5 h-2.5 mr-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <svg className="w-2.5 h-2.5 mr-1 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
-                                        <span className="text-blue-300 font-mono truncate">{file}</span>
+                                        <div className="overflow-x-auto whitespace-nowrap" style={{ width: 'calc(100% - 1rem)', scrollbarWidth: 'thin' }}>
+                                            <span className="text-blue-300 font-mono">{file}</span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
