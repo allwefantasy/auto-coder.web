@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Switch, Input, message, Card, Select } from 'antd';
+import { Switch, Input, message, Card, Select, Divider } from 'antd';
+import ModelConfig from './ModelConfig';
 import { Editor } from '@monaco-editor/react';
 import { getMessage, setLanguage, getCurrentLanguage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
@@ -19,6 +20,10 @@ const SettingsPanel: React.FC = () => {
     index_build_workers: string;
     available_keys: AutoCoderArgs[];
     language: string;
+    model: string;
+    code_model: string;
+    chat_model: string;
+    generate_rerank_model: string;
   }>({
     rag: false,
     rag_url: '',
@@ -32,7 +37,11 @@ const SettingsPanel: React.FC = () => {
     index_filter_file_num: '10',
     index_build_workers: '100',
     available_keys: [],
-    language: 'zh'
+    language: 'zh',
+    model: '',
+    code_model: '',
+    chat_model: '',
+    generate_rerank_model: ''
   });
 
   // 获取当前语言设置
@@ -268,6 +277,38 @@ const SettingsPanel: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+
+          <Divider className="border-gray-700" />
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              {getMessage('modelConfigurationTitle')}
+            </h3>
+            
+            <ModelConfig 
+              modelType="model" 
+              currentValue={config.model} 
+              onChange={(value) => updateConfig('model', value)} 
+            />
+            
+            <ModelConfig 
+              modelType="code_model" 
+              currentValue={config.code_model} 
+              onChange={(value) => updateConfig('code_model', value)} 
+            />
+            
+            <ModelConfig 
+              modelType="chat_model" 
+              currentValue={config.chat_model} 
+              onChange={(value) => updateConfig('chat_model', value)} 
+            />
+            
+            <ModelConfig 
+              modelType="generate_rerank" 
+              currentValue={config.generate_rerank_model} 
+              onChange={(value) => updateConfig('generate_rerank_model', value)} 
+            />
           </div>
         </div>
       </Card>

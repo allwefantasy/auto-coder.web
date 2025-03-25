@@ -849,3 +849,44 @@ export const getMessage = (key: keyof typeof messages, params: { [key: string]: 
     String(message)
   );
 };
+
+  modelConfigurationTitle: {
+    en: 'Model Configuration',
+    zh: '模型配置'
+  },
+  modelModelLabel: {
+    en: 'Default Model',
+    zh: '默认模型'
+  },
+  codeModelLabel: {
+    en: 'Code Model',
+    zh: '代码模型'
+  },
+  chatModelLabel: {
+    en: 'Chat Model',
+    zh: '聊天模型'
+  },
+  generateRerankModelLabel: {
+    en: 'Generate & Rerank Model',
+    zh: '生成与重排模型'
+  },
+  modelModelPlaceholder: {
+    en: 'Select default model',
+    zh: '选择默认模型'
+  },
+  codeModelPlaceholder: {
+    en: 'Select code model',
+    zh: '选择代码模型'
+  },
+  chatModelPlaceholder: {
+    en: 'Select chat model',
+    zh: '选择聊天模型'
+  },
+  generateRerankModelPlaceholder: {
+    en: 'Select generate & rerank model',
+    zh: '选择生成与重排模型'
+  },
+  modelFetchError: {
+    en: 'Failed to load models',
+    zh: '加载模型失败'
+  }
