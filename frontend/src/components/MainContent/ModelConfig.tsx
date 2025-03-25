@@ -62,17 +62,17 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
   };
 
   return (
-    <div className="space-y-4 mt-6">
-      <h3 className="text-lg font-medium text-gray-300">{getMessage('modelName')}</h3>
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold text-white mb-6">{getMessage('modelName')}</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-gray-300 mb-2">Default Model</label>
           <Select
             loading={loading}
             value={selectedModels.model}
             onChange={(value) => handleModelChange('model', value)}
-            className="w-full"
+            className="custom-select w-full"
             options={models.map(model => ({
               value: model.model_name,
               label: `${model.name} (${model.model_type})`
@@ -86,7 +86,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             loading={loading}
             value={selectedModels.code_model}
             onChange={(value) => handleModelChange('code_model', value)}
-            className="w-full"
+            className="custom-select w-full"
             options={models.map(model => ({
               value: model.model_name,
               label: `${model.name} (${model.model_type})`
@@ -100,7 +100,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             loading={loading}
             value={selectedModels.chat_model}
             onChange={(value) => handleModelChange('chat_model', value)}
-            className="w-full"
+            className="custom-select w-full"
             options={models.map(model => ({
               value: model.model_name,
               label: `${model.name} (${model.model_type})`
