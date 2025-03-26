@@ -31,24 +31,28 @@ from loguru import logger
 from auto_coder_web.lang import get_message
 
 class ProxyServer:
-    def __init__(self, project_path: str, quick: bool = False, product_mode: str = "pro"):
+    def __init__(self, project_path: str, quick: bool = False, product_mode: str = "pro"):    
         self.app = FastAPI()                        
-        self.setup_middleware()
+        self.setup_middleware()        
 
         self.setup_static_files()
         self.project_path = project_path
+        self.product_mode = product_mode
         self.auto_coder_runner = None                
         # Check if project is initialized
-        # self.is_initialized = self.check_project_initialization()
-        # if not self.is_initialized:
-        #     logger.warning(get_message("project_not_initialized"))
-        #     logger.warning(get_message("run_auto_coder_chat"))
-        #     sys.exit(1)            
+        self.is_initialized = self.check_project_initialization()
+        if not self.is_initialized and product_mode == "pro":
+            logger.warning(get_message("project_not_initialized"))
+            logger.warning(get_message("run_auto_coder_chat"))
+            sys.exit(1) 
+
+        if self.is_initialized:
+            self._initialize()                    
         
+        self.setup_routes()        
 
     def _initialize(self):
-        self.auto_coder_runner = AutoCoderRunnerWrapper(self.project_path, product_mode=self.product_mode)                 
-        self.setup_routes()        
+        self.auto_coder_runner = AutoCoderRunnerWrapper(self.project_path, product_mode=self.product_mode)        
         self.client = httpx.AsyncClient()
 
 
@@ -128,10 +132,7 @@ class ProxyServer:
 
         @self.app.get("/api/project-path")
         async def get_project_path():
-            return {"project_path": self.project_path}
-
-        def get_project_runner(project_path: str) -> AutoCoderRunner:
-            return self.projects[project_path]
+            return {"project_path": self.project_path}        
 
         @self.app.get("/api/os")
         async def get_os():
@@ -163,65 +164,33 @@ class ProxyServer:
                     "default": field.default
                 })
             return {"keys": keys}
+        
+        
+        @self.app.post("/api/initialization-project")
+        async def initialization_project():
+            """Get the project initialization status"""
+            from auto_coder_web.init_project import init_project
+            init_project(self.project_path)
+            base_persist_dir = os.path.join(self.project_path,".auto-coder", "plugins", "chat-auto-coder")
+            os.makedirs(base_persist_dir, exist_ok=True)
+            self.is_initialized = True
+            self._initialize()
+            return {"success": True}
+        
+        @self.app.get("/api/guess/project_type")
+        async def get_project_type():
+            v = self.auto_coder_runner.get_all_extensions_wrapper()
+            return {
+                "project_type":v
+            }
+        
+        @self.app.put("/api/congigure/project_type")
+        async def configure_project_type(project_type:str):
+            self.auto_coder_runner.configure_wrapper(f"project_type:{project_type}")
+            return {
+                "succcess": True
+            }
 
-        @self.app.post("/api/revert")
-        async def revert():
-            try:
-                result = self.auto_coder_runner.revert()
-                return result
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-
-        @self.app.get("/api/active-files")
-        async def get_active_files():
-            """获取当前活动文件列表"""
-            active_files = self.auto_coder_runner.get_active_files()
-            return active_files
-
-        @self.app.post("/api/commit")
-        async def commit():
-            try:
-                result = self.auto_coder_runner.commit()
-                return result
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))        
-
-        @self.app.get("/api/last-yaml")
-        async def get_last_yaml():
-            """Get information about the last YAML file"""
-            return JSONResponse(content=self.auto_coder_runner.get_last_yaml_info())
-
-        @self.app.get("/api/history/file-content/{file_number}", response_model=FileContentResponse)
-        async def get_file_content(file_number: int):
-            """获取指定编号文件的完整内容"""
-            auto_coder_dir = "actions"
-            file_name = f"{file_number}_chat_action.yml"
-            file_path = ""
-            
-            # 搜索文件
-            for root, _, files in os.walk(auto_coder_dir):
-                if file_name in files:
-                    file_path = os.path.join(root, file_name)
-                    break
-                    
-            if not file_path:
-                return FileContentResponse(
-                    success=False,
-                    message=f"找不到文件: {file_name}"
-                )
-                
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                return FileContentResponse(
-                    success=True,
-                    content=content
-                )
-            except Exception as e:
-                return FileContentResponse(
-                    success=False, 
-                    message=f"读取文件出错: {str(e)}"
-                )
 
         @self.app.get("/api/initialization-status")
         async def get_initialization_status():

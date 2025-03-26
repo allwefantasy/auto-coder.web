@@ -1,0 +1,68 @@
+/* Initialization Page Styles */
+.initialization-page {
+  min-height: 100vh;
+  background-color: #111827;
+  color: white;
+}
+
+.initialization-card {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: white !important;
+  width: 100%;
+  max-width: 640px;
+}
+
+.initialization-title {
+  color: white !important;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.initialization-description {
+  color: #e5e7eb !important;
+  margin-bottom: 1.5rem;
+}
+
+/* Custom AntD Steps styling for dark mode */
+.ant-steps-item-title {
+  color: white !important;
+}
+
+.ant-steps-item-description {
+  color: #e5e7eb !important;
+}
+
+.ant-card-body {
+  color: white !important;
+}
+
+.ant-steps-item-wait .ant-steps-item-icon {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.ant-steps-item-wait .ant-steps-item-icon > .ant-steps-icon {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.ant-spin-dot-item {
+  background-color: #fff !important;
+}
+
+.ant-steps-item-process .ant-steps-item-icon {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.ant-steps-icon {
+  color: white !important;
+}
+
+.ant-steps-item-finish .ant-steps-item-icon {
+  border-color: #3b82f6 !important;
+}
+
+.ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon {
+  color: #3b82f6 !important;
+} 

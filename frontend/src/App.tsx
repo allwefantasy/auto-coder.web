@@ -5,6 +5,7 @@ import AutoModePage from './components/AutoMode';
 import { ExpertModePage } from './components/ExpertMode';
 import { getMessage, initLanguage } from './components/Sidebar/lang';
 import FileSearch from './components/FileSearch';
+import InitializationPage from './components/InitializationPage';
 import './App.css';
 import { TaskSplittingProvider } from './contexts/TaskSplittingContext';
 import { FileMetadata } from './types/file_meta';
@@ -21,6 +22,8 @@ const App: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<FileMetadata[]>([]);
   const [isExpertMode, setIsExpertMode] = useState<boolean>(false);
   const [isModeToggleVisible, setIsModeToggleVisible] = useState(true);
+  const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
+  const [isCheckingInitialization, setIsCheckingInitialization] = useState(true);
 
   const openFileInEditor = useCallback((path: string) => {
     setSelectedFiles([{ path, isSelected: true }]);
@@ -52,8 +55,26 @@ const App: React.FC = () => {
           setProjectName(name);
         })
         .catch(error => console.error('Error fetching project path:', error));
+      
+      // Check initialization status
+      checkInitializationStatus();
     });
   }, []);
+
+  // Check if project is initialized
+  const checkInitializationStatus = async () => {
+    try {
+      setIsCheckingInitialization(true);
+      const response = await fetch('/api/initialization-status');
+      const data = await response.json();
+      setIsInitialized(data.initialized);
+    } catch (error) {
+      console.error('Error checking initialization status:', error);
+      setIsInitialized(false);
+    } finally {
+      setIsCheckingInitialization(false);
+    }
+  };
 
   // Toggle between expert and auto modes
   const toggleMode = () => {
@@ -64,6 +85,28 @@ const App: React.FC = () => {
   const togglePanelVisibility = () => {
     setIsModeToggleVisible(!isModeToggleVisible);
   };
+  
+  // Handle initialization complete
+  const handleInitializationComplete = () => {
+    setIsInitialized(true);
+  };
+
+  // Render loading state while checking initialization
+  if (isCheckingInitialization) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+          <p>{getMessage('loadingProject') || 'Loading project...'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Render initialization page if not initialized
+  if (!isInitialized) {
+    return <InitializationPage onInitializationComplete={handleInitializationComplete} />;
+  }
 
   return (
     <TaskSplittingProvider>

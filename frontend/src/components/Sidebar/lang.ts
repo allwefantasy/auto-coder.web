@@ -944,6 +944,59 @@ export const messages: { [key: string]: Message } = {
     en: "Generation stopped",
     zh: "生成已停止"
   },
+  // Initialization page keys
+  initializeProject: {
+    en: "Initialize Project",
+    zh: "初始化项目"
+  },
+  projectNeedsInitialization: {
+    en: "This project needs to be initialized",
+    zh: "该项目需要初始化"
+  },
+  initializationExplanation: {
+    en: "Initialize the project to set up necessary files and configurations",
+    zh: "初始化项目以设置必要的文件和配置"
+  },
+  initializeNow: {
+    en: "Initialize Now",
+    zh: "立即初始化"
+  },
+  configureProjectType: {
+    en: "Configure Project Type",
+    zh: "配置项目类型"
+  },
+  configureProjectTypeTitle: {
+    en: "Configure Project Type",
+    zh: "配置项目类型"
+  },
+  projectTypeExplanation: {
+    en: "Project type defines file extensions AI should focus on",
+    zh: "项目类型定义了AI应关注的文件扩展名"
+  },
+  projectTypePlaceholder: {
+    en: "e.g. js,ts,jsx,tsx",
+    zh: "例如：js,ts,jsx,tsx"
+  },
+  saveConfiguration: {
+    en: "Save Configuration",
+    zh: "保存配置"
+  },
+  failedToInitialize: {
+    en: "Failed to initialize project",
+    zh: "项目初始化失败"
+  },
+  projectConfigurationComplete: {
+    en: "Project configuration complete",
+    zh: "项目配置完成"
+  },
+  failedToConfigureProjectType: {
+    en: "Failed to configure project type",
+    zh: "配置项目类型失败"
+  },
+  loadingProject: {
+    en: "Loading project...",
+    zh: "加载项目中..."
+  }
 };
 
 // 当前语言设置

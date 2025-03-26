@@ -33,13 +33,18 @@ from autocoder.auto_coder_runner import (
     completer,
     summon,
     get_memory,
+    get_all_extensions
 )
 
 class AutoCoderRunnerWrapper:
     def __init__(self, project_path: str, product_mode: str = "lite"):
+        self.project_path = project_path
+        self.product_mode = product_mode
         load_memory()
         load_tokenizer()
-
+    
+    def get_all_extensions_wrapper(self):
+        return get_all_extensions(self.project_path)
 
     def auto_command_wrapper(self, command: str, params: Dict[str, Any]) -> Dict[str, str]:
         return auto_command(command,params)
