@@ -251,18 +251,21 @@ const ModelManagement: React.FC = () => {
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
             title={getMessage('editModel')}
+            className="dark-button"
           />
           <Popconfirm
             title={getMessage('confirmDeleteModel')}
             onConfirm={() => handleDelete(record.name)}
             okText={getMessage('confirm')}
             cancelText={getMessage('cancel')}
+            overlayClassName="dark-popconfirm"
           >
             <Button
               type="text"
               danger
               icon={<DeleteOutlined />}
               title={getMessage('deleteModel')}
+              className="dark-button"
             />
           </Popconfirm>
         </div>
@@ -278,6 +281,7 @@ const ModelManagement: React.FC = () => {
           type="primary" 
           icon={<PlusOutlined />} 
           onClick={handleAdd}
+          className="dark-button"
         >
           {getMessage('addModel')}
         </Button>
@@ -289,15 +293,18 @@ const ModelManagement: React.FC = () => {
         rowKey="name"
         loading={loading}
         pagination={{ pageSize: 10 }}
-        className="model-table"
+        className="model-table dark-table"
+        rowClassName="dark-table-row"
       />
 
       <Modal
-        title={editingModel ? getMessage('editModel') : getMessage('addModel')}
+        title={<span className="text-white">{editingModel ? getMessage('editModel') : getMessage('addModel')}</span>}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
         width={700}
+        className="dark-modal"
+        closeIcon={<span className="text-white">×</span>}
       >
         <Form
           form={form}
@@ -307,28 +314,29 @@ const ModelManagement: React.FC = () => {
             is_reasoning: false,
             average_speed: 0,
           }}
+          className="dark-form"
         >
           <Form.Item
             name="name"
-            label={getMessage('modelName')}
+            label={<span className="text-white">{getMessage('modelName')}</span>}
             rules={[{ required: true, message: 'Please input model name' }]}
           >
-            <Input />
+            <Input className="dark-input" />
           </Form.Item>
 
           <Form.Item
             name="description"
-            label={getMessage('modelDescription')}
+            label={<span className="text-white">{getMessage('modelDescription')}</span>}
           >
-            <Input.TextArea rows={2} />
+            <Input.TextArea rows={2} className="dark-input" />
           </Form.Item>
 
           <Form.Item
             name="provider"
-            label={getMessage('modelProvider')}
+            label={<span className="text-white">{getMessage('modelProvider')}</span>}
             rules={[{ required: true, message: 'Please select provider' }]}
           >
-            <Select onChange={handleProviderChange}>
+            <Select onChange={handleProviderChange} className="dark-select">
               {providers.map(provider => (
                 <Select.Option key={provider.name} value={provider.name}>
                   {getMessage(provider.name) || provider.name}
@@ -339,12 +347,13 @@ const ModelManagement: React.FC = () => {
 
           <Form.Item
             name="model_name"
-            label={getMessage('modelType')}
+            label={<span className="text-white">{getMessage('modelType')}</span>}
             rules={[{ required: true, message: 'Please select model type' }]}
           >
             <Select 
               onChange={handleModelChange}
               disabled={!selectedProvider}
+              className="dark-select"
             >
               {selectedProvider && 
                 providers
@@ -359,57 +368,57 @@ const ModelManagement: React.FC = () => {
 
           <Form.Item
             name="base_url"
-            label={getMessage('modelBaseUrl')}
+            label={<span className="text-white">{getMessage('modelBaseUrl')}</span>}
             rules={[{ required: true, message: 'Please input base URL' }]}
           >
-            <Input disabled />
+            <Input disabled className="dark-input" />
           </Form.Item>
 
           <Form.Item
             name="api_key_path"
-            label={getMessage('modelApiKey')}
+            label={<span className="text-white">{getMessage('modelApiKey')}</span>}
           >
-            <Input placeholder="Path to API key file (optional)" />
+            <Input placeholder="Path to API key file (optional)" className="dark-input" />
           </Form.Item>
 
           <div className="grid grid-cols-2 gap-4">
             <Form.Item
               name="input_price"
-              label={getMessage('modelInputPrice')}
+              label={<span className="text-white">{getMessage('modelInputPrice')}</span>}
               rules={[{ required: true, message: 'Please input price' }]}
             >
-              <Input type="number" step="0.1" min="0" />
+              <Input type="number" step="0.1" min="0" className="dark-input" />
             </Form.Item>
 
             <Form.Item
               name="output_price"
-              label={getMessage('modelOutputPrice')}
+              label={<span className="text-white">{getMessage('modelOutputPrice')}</span>}
               rules={[{ required: true, message: 'Please input price' }]}
             >
-              <Input type="number" step="0.1" min="0" />
+              <Input type="number" step="0.1" min="0" className="dark-input" />
             </Form.Item>
           </div>
 
           <Form.Item
             name="average_speed"
-            label={getMessage('modelAverageSpeed')}
+            label={<span className="text-white">{getMessage('modelAverageSpeed')}</span>}
           >
-            <Input type="number" step="0.1" min="0" />
+            <Input type="number" step="0.1" min="0" className="dark-input" />
           </Form.Item>
 
           <Form.Item
             name="is_reasoning"
-            label={getMessage('modelIsReasoning')}
+            label={<span className="text-white">{getMessage('modelIsReasoning')}</span>}
             valuePropName="checked"
           >
-            <Switch />
+            <Switch className="dark-switch" />
           </Form.Item>
 
           <div className="flex justify-end gap-2 mt-4">
-            <Button onClick={() => setModalVisible(false)}>
+            <Button onClick={() => setModalVisible(false)} className="dark-button">
               {getMessage('cancelModelEdit')}
             </Button>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" className="dark-button">
               {getMessage('saveModel')}
             </Button>
           </div>
