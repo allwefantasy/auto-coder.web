@@ -291,3 +291,269 @@ html, body {
 .dark-dropdown-menu .file-option:hover {
   background-color: #374151 !important;
 }
+
+/* ================ 全局 Ant Design 暗色主题样式 ================ */
+
+/* 暗色主题表格样式 */
+.dark-table.ant-table-wrapper {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-radius: 6px;
+}
+
+.dark-table .ant-table {
+  background-color: #1e1e1e !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-table .ant-table-container {
+  background-color: #1e1e1e !important;
+  border-radius: 6px;
+}
+
+.dark-table .ant-table-thead > tr > th {
+  background-color: #2c2c2c !important;
+  color: #e0e0e0 !important;
+  border-bottom: 1px solid #383838 !important;
+}
+
+.dark-table .ant-table-tbody > tr > td {
+  background-color: #1e1e1e !important;
+  border-bottom: 1px solid #383838 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-table .ant-table-tbody > tr.ant-table-row:hover > td {
+  background-color: #2c2c2c !important;
+}
+
+/* 表格空状态 */
+.dark-table .ant-empty {
+  color: #a0a0a0 !important;
+}
+
+.dark-table .ant-empty-image svg {
+  fill: #333333 !important;
+}
+
+.dark-table .ant-empty-description {
+  color: #a0a0a0 !important;
+}
+
+.dark-table .ant-empty-footer {
+  color: #a0a0a0 !important;
+}
+
+/* 修复空表格状态下的颜色 */
+.model-table .ant-table-placeholder .ant-table-cell {
+  background-color: #1e1e1e !important;
+  color: #a0a0a0 !important;
+  border-bottom: none !important;
+}
+
+.model-table .ant-empty-normal .ant-empty-image {
+  height: 40px;
+  margin-bottom: 8px;
+}
+
+/* 确保分页组件也使用暗色主题 */
+.dark-table .ant-pagination {
+  background-color: transparent !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-table .ant-pagination-item {
+  background-color: #2c2c2c !important;
+  border-color: #383838 !important;
+}
+
+.dark-table .ant-pagination-item a {
+  color: #e0e0e0 !important;
+}
+
+.dark-table .ant-pagination-item-active {
+  background-color: #177ddc !important;
+  border-color: #177ddc !important;
+}
+
+.dark-table .ant-pagination-item-active a {
+  color: white !important;
+}
+
+.dark-table .ant-pagination-prev button,
+.dark-table .ant-pagination-next button {
+  color: #e0e0e0 !important;
+  background-color: #2c2c2c !important;
+  border-color: #383838 !important;
+}
+
+/* 暗色主题模态框样式 */
+.dark-modal .ant-modal-content {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.6);
+}
+
+.dark-modal .ant-modal-header {
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #383838;
+  border-radius: 6px 6px 0 0;
+}
+
+.dark-modal .ant-modal-title {
+  color: #e0e0e0;
+}
+
+.dark-modal .ant-modal-close {
+  color: #a0a0a0;
+}
+
+.dark-modal .ant-modal-footer {
+  border-top: 1px solid #383838;
+}
+
+/* 暗色主题表单样式 */
+.dark-form .ant-form-item-label > label {
+  color: #e0e0e0;
+}
+
+.dark-input {
+  background-color: #2c2c2c;
+  border-color: #434343;
+  color: #e0e0e0;
+}
+
+.dark-input:hover, .dark-input:focus {
+  border-color: #177ddc;
+}
+
+.dark-input::placeholder {
+  color: #6c6c6c;
+}
+
+.dark-input[disabled] {
+  background-color: #3a3a3a;
+  color: #a0a0a0;
+}
+
+/* 暗色主题选择器样式 */
+.dark-select .ant-select-selector {
+  background-color: #2c2c2c !important;
+  border-color: #434343 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-select.ant-select-disabled .ant-select-selector {
+  background-color: #3a3a3a !important;
+  color: #a0a0a0 !important;
+}
+
+.dark-select .ant-select-arrow {
+  color: #a0a0a0 !important;
+}
+
+/* 黑暗主题下拉菜单 - 全局覆盖 */
+.ant-select-dropdown {
+  background-color: #1e1e1e !important;
+  border: 1px solid #383838 !important;
+}
+
+.ant-select-item {
+  color: #e0e0e0 !important;
+}
+
+.ant-select-item-option-selected {
+  background-color: #111b26 !important;
+}
+
+.ant-select-item-option-active {
+  background-color: #2a2a2a !important;
+}
+
+/* 暗色主题按钮样式 */
+.dark-button.ant-btn {
+  border-color: #434343;
+  background-color: #2c2c2c;
+  color: #e0e0e0;
+}
+
+.dark-button.ant-btn:hover {
+  border-color: #177ddc;
+  color: #177ddc;
+}
+
+.dark-button.ant-btn-primary {
+  background-color: #177ddc;
+  border-color: #177ddc;
+  color: #ffffff;
+}
+
+.dark-button.ant-btn-primary:hover {
+  background-color: #1884e0;
+  border-color: #1884e0;
+}
+
+.dark-button.ant-btn-dangerous {
+  color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.dark-button.ant-btn-dangerous:hover {
+  background-color: #2c2c2c;
+  color: #ff7875;
+  border-color: #ff7875;
+}
+
+/* 暗色主题开关样式 */
+.dark-switch.ant-switch {
+  background-color: #434343;
+}
+
+.dark-switch.ant-switch-checked {
+  background-color: #177ddc;
+}
+
+/* 暗色主题确认框 */
+.dark-popconfirm .ant-popover-inner {
+  background-color: #1e1e1e;
+  border: 1px solid #383838;
+}
+
+.dark-popconfirm .ant-popover-title,
+.dark-popconfirm .ant-popover-inner-content {
+  color: #e0e0e0;
+}
+
+.dark-popconfirm .ant-popover-arrow-content {
+  background-color: #1e1e1e;
+}
+
+/* 设置面板的选项卡样式 */
+.settings-tabs .ant-tabs-nav {
+  margin-bottom: 16px !important;
+  background-color: #111827 !important;
+  border-bottom: 1px solid #1e293b !important;
+}
+
+.settings-tabs .ant-tabs-tab {
+  color: #a0a0a0 !important;
+  padding: 8px 16px !important;
+}
+
+.settings-tabs .ant-tabs-tab:hover {
+  color: #3b82f6 !important;
+}
+
+.settings-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #3b82f6 !important;
+  font-weight: 500 !important;
+}
+
+.settings-tabs .ant-tabs-ink-bar {
+  background-color: #3b82f6 !important;
+}
+
+.settings-tabs .ant-tabs-content {
+  background-color: transparent !important;
+}

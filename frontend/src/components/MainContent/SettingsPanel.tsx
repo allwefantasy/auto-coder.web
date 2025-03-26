@@ -103,13 +103,13 @@ const SettingsPanel: React.FC = () => {
   return (
     <div className="settings-container p-2 overflow-y-auto h-full bg-gray-900">
       <div className="settings-section pb-2">
-        <h3 className="settings-title">{getMessage('languageSettings') || 'Language'}</h3>
+        <h3 className="settings-title text-white">{getMessage('languageSettings') || 'Language'}</h3>
         <div className="language-selector">
-          <label className="language-label">Language / 语言</label>
+          <label className="language-label text-gray-300">Language / 语言</label>
           <Select
             value={config.language}
             onChange={updateLanguage}
-            className="custom-select"
+            className="custom-select dark-select"
             popupClassName="custom-select-dropdown"
             options={[
               { value: 'en', label: 'English' },
@@ -122,13 +122,13 @@ const SettingsPanel: React.FC = () => {
       <Divider className="border-gray-700 my-2" />
       
       <Tabs defaultActiveKey="general" className="settings-tabs">
-        <TabPane tab={getMessage('modelConfiguration')} key="general">
+        <TabPane tab={<span className="text-gray-300">{getMessage('modelConfiguration')}</span>} key="general">
           <ModelConfig 
             availableKeys={config.available_keys} 
             onModelChange={updateConfig}
           />
         </TabPane>
-        <TabPane tab={getMessage('modelManagement')} key="models">
+        <TabPane tab={<span className="text-gray-300">{getMessage('modelManagement')}</span>} key="models">
           <ModelManagement />
         </TabPane>
       </Tabs>

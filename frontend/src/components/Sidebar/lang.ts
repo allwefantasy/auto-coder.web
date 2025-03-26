@@ -314,6 +314,10 @@ export const messages: { [key: string]: Message } = {
     en: "Volcano Engine",
     zh: "火山引擎"
   },
+  openrouter: {
+    en: "OpenRouter",
+    zh: "OpenRouter"
+  },
   summary: {
     en: "Reply",
     zh: "答案"

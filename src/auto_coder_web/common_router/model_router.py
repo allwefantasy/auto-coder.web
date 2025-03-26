@@ -17,7 +17,7 @@ class Model(BaseModel):
     output_price: float = 0.0
     average_speed: float = 0.0
 
-@router.get("/models", response_model=List[Model])
+@router.get("/api/models", response_model=List[Model])
 async def get_models():
     """
     Get all available models
@@ -28,7 +28,7 @@ async def get_models():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/models/{model_name}", response_model=Model)
+@router.get("/api/models/{model_name}", response_model=Model)
 async def get_model(model_name: str):
     """
     Get a specific model by name
@@ -39,13 +39,13 @@ async def get_model(model_name: str):
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@router.post("/models", response_model=Model)
+@router.post("/api/models", response_model=Model)
 async def add_model(model: Model):
     """
     Add a new model
     """
     try:
-        existing_models = models.load_models()
+        existing_models = model_utils.load_models()
         if any(m["name"] == model.name for m in existing_models):
             raise HTTPException(status_code=400, detail="Model with this name already exists")
         
@@ -55,7 +55,7 @@ async def add_model(model: Model):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/models/{model_name}", response_model=Model)
+@router.put("/api/models/{model_name}", response_model=Model)
 async def update_model(model_name: str, model: Model):
     """
     Update an existing model
@@ -78,7 +78,7 @@ async def update_model(model_name: str, model: Model):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.delete("/models/{model_name}")
+@router.delete("/api/models/{model_name}")
 async def delete_model(model_name: str):
     """
     Delete a model by name
@@ -95,7 +95,7 @@ async def delete_model(model_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/models/{model_name}/api_key")
+@router.put("/api/models/{model_name}/api_key")
 async def update_model_api_key(model_name: str, api_key: str):
     """
     Update the API key for a specific model
@@ -109,7 +109,7 @@ async def update_model_api_key(model_name: str, api_key: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/models/{model_name}/input_price")
+@router.put("/api/models/{model_name}/input_price")
 async def update_model_input_price(model_name: str, price: float):
     """
     Update the input price for a specific model
@@ -125,7 +125,7 @@ async def update_model_input_price(model_name: str, price: float):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/models/{model_name}/output_price")
+@router.put("/api/models/{model_name}/output_price")
 async def update_model_output_price(model_name: str, price: float):
     """
     Update the output price for a specific model
@@ -141,7 +141,7 @@ async def update_model_output_price(model_name: str, price: float):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/models/{model_name}/speed")
+@router.put("/api/models/{model_name}/speed")
 async def update_model_speed(model_name: str, speed: float):
     """
     Update the average speed for a specific model

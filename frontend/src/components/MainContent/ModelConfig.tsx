@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Select, message, Skeleton } from 'antd';
 import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
+import '../../styles/custom_antd.css';
 import './ModelConfig.css';
 
 interface ModelConfigProps {
@@ -31,7 +32,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     const fetchModels = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/models');
+        const response = await fetch('/api/models');
         if (!response.ok) {
           throw new Error('Failed to fetch models');
         }

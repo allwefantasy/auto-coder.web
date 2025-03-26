@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Select, Switch, Modal, Table, message, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
+import '../../styles/custom_antd.css';
 import './ModelConfig.css';
 
 // 定义模型数据结构
@@ -50,6 +51,26 @@ const providers: ProviderConfig[] = [
         input_price: 2.0,
         output_price: 8.0,
         is_reasoning: true
+      }
+    ]
+  },
+  {
+    name: 'openrouter',
+    base_url: 'https://openrouter.ai/api/v1',
+    models: [
+      {
+        id: 'anthropic/claude-3.7-sonnet:thinking',
+        name: 'Claude 3.7 Sonnet Thinking',
+        input_price: 22.0,
+        output_price: 111.0,
+        is_reasoning: true
+      },
+      {
+        id: 'anthropic/claude-3.7-sonnet',
+        name: 'Claude 3.7 Sonnet',
+        input_price: 22.0,
+        output_price: 111.0,
+        is_reasoning: false
       }
     ]
   }
@@ -294,7 +315,9 @@ const ModelManagement: React.FC = () => {
         loading={loading}
         pagination={{ pageSize: 10 }}
         className="model-table dark-table"
-        rowClassName="dark-table-row"
+        locale={{
+          emptyText: <div className="text-gray-400 py-8">No data</div>
+        }}
       />
 
       <Modal

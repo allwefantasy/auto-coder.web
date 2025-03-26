@@ -1,0 +1,452 @@
+/* 
+ * Custom Ant Design (antd) Component Styles - Dark Theme
+ * 这个文件包含所有 antd 组件的自定义暗色主题样式
+ */
+
+/* ============ 通用变量 ============ */
+:root {
+  --dark-bg-primary: #111827;
+  --dark-bg-secondary: #1f2937;
+  --dark-bg-tertiary: #0d1829;
+  --dark-border: #1e293b;
+  --dark-border-light: rgba(75, 85, 99, 0.5);
+  --dark-text-primary: #f8fafc;
+  --dark-text-secondary: #e5e7eb;
+  --dark-text-tertiary: #94a3b8;
+  --dark-text-disabled: rgba(229, 231, 235, 0.4);
+  --dark-primary: #3b82f6;
+  --dark-primary-hover: #2563eb;
+  --dark-primary-active: #1d4ed8;
+  --dark-success: #10b981;
+  --dark-warning: #f59e0b;
+  --dark-error: #ef4444;
+  --dark-highlight: rgba(234, 179, 8, 0.3);
+}
+
+/* ============ Button 组件 ============ */
+.dark-button.ant-btn {
+  background-color: var(--dark-bg-secondary) !important;
+  border-color: var(--dark-border-light) !important;
+  color: var(--dark-text-secondary) !important;
+  transition: all 0.2s ease;
+  height: 32px;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.dark-button.ant-btn:hover:not(:disabled) {
+  background-color: rgba(55, 65, 81, 0.8) !important;
+  border-color: rgba(107, 114, 128, 0.5) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.dark-button.ant-btn-primary {
+  background-color: var(--dark-primary) !important;
+  border-color: var(--dark-primary-active) !important;
+}
+
+.dark-button.ant-btn-primary:hover:not(:disabled) {
+  background-color: var(--dark-primary-hover) !important;
+}
+
+.dark-button.ant-btn:disabled {
+  background-color: rgba(37, 99, 235, 0.5) !important;
+  border-color: rgba(29, 78, 216, 0.5) !important;
+  color: rgba(229, 231, 235, 0.5) !important;
+}
+
+/* ============ Input 组件 ============ */
+.dark-input.ant-input,
+.dark-input.ant-input-affix-wrapper {
+  background-color: var(--dark-bg-primary) !important;
+  border: 1px solid var(--dark-border) !important;
+  color: var(--dark-text-primary) !important;
+  border-radius: 0.25rem !important;
+  transition: all 0.2s ease;
+}
+
+.dark-input.ant-input:hover,
+.dark-input.ant-input-affix-wrapper:hover {
+  border-color: rgba(75, 85, 99, 0.7) !important;
+}
+
+.dark-input.ant-input:focus,
+.dark-input.ant-input-affix-wrapper:focus,
+.dark-input.ant-input-affix-wrapper-focused {
+  border-color: var(--dark-primary) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+}
+
+.dark-input.ant-input::placeholder {
+  color: rgba(156, 163, 175, 0.8) !important;
+}
+
+.dark-input.ant-input-affix-wrapper .ant-input {
+  background-color: transparent !important;
+  color: var(--dark-text-secondary) !important;
+}
+
+.dark-input.ant-input-affix-wrapper .anticon {
+  color: var(--dark-text-tertiary) !important;
+}
+
+.dark-input.ant-input-textarea .ant-input {
+  background-color: var(--dark-bg-primary) !important;
+  color: var(--dark-text-secondary) !important;
+}
+
+/* ============ Select 组件 ============ */
+.dark-select.ant-select .ant-select-selector,
+.custom-select .ant-select-selector {
+  background-color: var(--dark-bg-primary) !important;
+  border: 1px solid var(--dark-border) !important;
+  color: var(--dark-text-primary) !important;
+  height: 2rem !important;
+  border-radius: 0.25rem !important;
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem !important;
+}
+
+.dark-select.ant-select .ant-select-selection-item,
+.custom-select .ant-select-selection-item {
+  color: var(--dark-text-primary) !important;
+  font-size: 0.8rem;
+}
+
+.dark-select.ant-select .ant-select-selection-placeholder,
+.custom-select .ant-select-selection-placeholder {
+  color: var(--dark-text-tertiary) !important;
+}
+
+.dark-select-dropdown,
+.custom-select-dropdown {
+  background-color: var(--dark-bg-primary) !important;
+  border: 1px solid var(--dark-border) !important;
+  border-radius: 0.25rem !important;
+  padding: 0.1rem 0 !important;
+}
+
+.dark-select-dropdown .ant-select-item,
+.custom-select-dropdown .ant-select-item {
+  color: var(--dark-text-primary) !important;
+  padding: 0.3rem 0.5rem !important;
+  font-size: 0.8rem;
+}
+
+.dark-select-dropdown .ant-select-item-option-selected,
+.custom-select-dropdown .ant-select-item-option-selected {
+  background-color: var(--dark-border) !important;
+  font-weight: 500;
+}
+
+.dark-select-dropdown .ant-select-item-option-active,
+.custom-select-dropdown .ant-select-item-option-active {
+  background-color: #334155 !important;
+}
+
+.dark-select .ant-select-arrow,
+.custom-select .ant-select-arrow {
+  color: var(--dark-text-tertiary) !important;
+}
+
+.dark-select:not(.ant-select-disabled):hover .ant-select-selector,
+.custom-select:not(.ant-select-disabled):hover .ant-select-selector {
+  border-color: #475569 !important;
+}
+
+.dark-select.ant-select-focused .ant-select-selector,
+.dark-select .ant-select-selector:focus,
+.dark-select .ant-select-selector:active,
+.custom-select.ant-select-focused .ant-select-selector,
+.custom-select .ant-select-selector:focus,
+.custom-select .ant-select-selector:active {
+  border-color: var(--dark-primary) !important;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* ============ Checkbox 组件 ============ */
+.dark-checkbox .ant-checkbox-inner {
+  background-color: rgba(31, 41, 55, 0.8) !important;
+  border-color: rgba(75, 85, 99, 0.6) !important;
+  transition: all 0.15s ease;
+}
+
+.dark-checkbox .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: var(--dark-primary) !important;
+  border-color: var(--dark-primary) !important;
+}
+
+.dark-checkbox .ant-checkbox-wrapper {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* ============ Switch 组件 ============ */
+.dark-switch.ant-switch {
+  background-color: rgba(75, 85, 99, 0.5) !important;
+}
+
+.dark-switch.ant-switch.ant-switch-checked {
+  background-color: var(--dark-primary) !important;
+}
+
+/* ============ Radio 组件 ============ */
+.dark-radio-button .ant-radio-button-wrapper {
+  background-color: rgba(31, 41, 55, 0.8) !important;
+  border-color: rgba(75, 85, 99, 0.5) !important;
+  color: var(--dark-text-secondary) !important;
+}
+
+.dark-radio-button .ant-radio-button-wrapper-checked {
+  background-color: var(--dark-primary) !important;
+  border-color: var(--dark-primary) !important;
+  color: white !important;
+}
+
+/* ============ Table 组件 ============ */
+.dark-table.ant-table {
+  background-color: transparent;
+}
+
+.dark-table .ant-table-thead > tr > th {
+  background-color: var(--dark-bg-secondary) !important;
+  color: var(--dark-text-secondary) !important;
+  border-bottom: 1px solid var(--dark-border) !important;
+}
+
+.dark-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--dark-border) !important;
+  color: var(--dark-text-secondary) !important;
+  background-color: var(--dark-bg-primary) !important;
+}
+
+.dark-table .ant-table-tbody > tr:hover > td {
+  background-color: rgba(55, 65, 81, 0.5) !important;
+}
+
+.dark-table .ant-pagination-item {
+  background-color: var(--dark-bg-secondary) !important;
+  border-color: var(--dark-border) !important;
+}
+
+.dark-table .ant-pagination-item-active {
+  border-color: var(--dark-primary) !important;
+}
+
+.dark-table .ant-pagination-item a {
+  color: var(--dark-text-secondary) !important;
+}
+
+.dark-table .ant-pagination-item-active a {
+  color: var(--dark-primary) !important;
+}
+
+.dark-table .ant-pagination-prev .ant-pagination-item-link,
+.dark-table .ant-pagination-next .ant-pagination-item-link {
+  background-color: var(--dark-bg-secondary) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text-secondary) !important;
+}
+
+/* ============ Tree 组件 ============ */
+.dark-tree.ant-tree {
+  background-color: transparent !important;
+  color: var(--dark-text-secondary) !important;
+  font-size: 13px !important;
+}
+
+.dark-tree .ant-tree-treenode {
+  padding: 2px 0 !important;
+  transition: all 0.15s ease;
+}
+
+.dark-tree .ant-tree-node-content-wrapper {
+  color: var(--dark-text-secondary) !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  transition: all 0.15s ease;
+}
+
+.dark-tree .ant-tree-node-content-wrapper:hover {
+  background-color: rgba(55, 65, 81, 0.7) !important;
+}
+
+.dark-tree .ant-tree-node-selected {
+  background-color: rgba(30, 64, 175, 0.6) !important;
+}
+
+.dark-tree .ant-tree-checkbox-inner {
+  background-color: rgba(55, 65, 81, 0.5) !important;
+  border-color: rgba(75, 85, 99, 0.7) !important;
+  transition: all 0.15s ease;
+}
+
+.dark-tree .ant-tree-checkbox-checked .ant-tree-checkbox-inner {
+  background-color: var(--dark-primary) !important;
+  border-color: var(--dark-primary) !important;
+}
+
+.dark-tree .ant-tree-switcher {
+  color: rgba(156, 163, 175, 0.8) !important;
+  transition: all 0.15s ease;
+}
+
+.dark-tree .ant-tree-switcher:hover {
+  color: rgba(209, 213, 219, 0.9) !important;
+}
+
+.dark-tree .ant-tree-title {
+  color: var(--dark-text-secondary) !important;
+  transition: all 0.15s ease;
+}
+
+/* ============ Modal 组件 ============ */
+.dark-modal .ant-modal-content {
+  background-color: var(--dark-bg-secondary) !important;
+  border: 1px solid var(--dark-border) !important;
+  border-radius: 8px !important;
+}
+
+.dark-modal .ant-modal-header {
+  background-color: var(--dark-bg-secondary) !important;
+  border-bottom: 1px solid var(--dark-border) !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.dark-modal .ant-modal-title {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark-modal .ant-modal-body {
+  color: var(--dark-text-secondary) !important;
+}
+
+.dark-modal .ant-modal-footer {
+  border-top: 1px solid var(--dark-border) !important;
+}
+
+.dark-modal .ant-modal-close-icon {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* ============ Form 组件 ============ */
+.dark-form .ant-form-item-label > label {
+  color: var(--dark-text-secondary) !important;
+}
+
+.dark-form .ant-form-item-explain-error {
+  color: var(--dark-error) !important;
+}
+
+/* ============ Message 组件 ============ */
+.dark-message.ant-message .ant-message-notice-content {
+  background-color: var(--dark-bg-secondary) !important;
+  border: 1px solid var(--dark-border) !important;
+  color: var(--dark-text-secondary) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ============ Popconfirm 组件 ============ */
+.dark-popconfirm .ant-popover-inner {
+  background-color: var(--dark-bg-secondary) !important;
+  border: 1px solid var(--dark-border) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-popconfirm .ant-popover-title {
+  color: var(--dark-text-secondary) !important;
+  background-color: var(--dark-bg-secondary) !important;
+  border-bottom: 1px solid var(--dark-border) !important;
+}
+
+.dark-popconfirm .ant-popover-inner-content {
+  color: var(--dark-text-secondary) !important;
+}
+
+.dark-popconfirm .ant-popover-buttons .ant-btn {
+  background-color: var(--dark-bg-secondary) !important;
+  border-color: var(--dark-border-light) !important;
+  color: var(--dark-text-secondary) !important;
+}
+
+.dark-popconfirm .ant-popover-buttons .ant-btn-primary {
+  background-color: var(--dark-primary) !important;
+  border-color: var(--dark-primary) !important;
+  color: white !important;
+}
+
+/* ============ Menu 组件 ============ */
+.dark-menu.ant-menu {
+  background-color: var(--dark-bg-secondary) !important;
+  color: var(--dark-text-secondary) !important;
+  border-right: 1px solid var(--dark-border) !important;
+}
+
+.dark-menu .ant-menu-item {
+  color: var(--dark-text-secondary) !important;
+  transition: all 0.15s ease !important;
+}
+
+.dark-menu .ant-menu-item:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: var(--dark-primary) !important;
+}
+
+.dark-menu .ant-menu-item-selected {
+  background-color: rgba(30, 64, 175, 0.6) !important;
+  color: white !important;
+}
+
+.dark-menu .ant-menu-item-disabled {
+  color: var(--dark-text-disabled) !important;
+}
+
+/* ============ Dropdown 组件 ============ */
+.dark-dropdown .ant-dropdown-menu {
+  background-color: var(--dark-bg-secondary) !important;
+  border: 1px solid var(--dark-border) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-dropdown .ant-dropdown-menu-item {
+  color: var(--dark-text-secondary) !important;
+  transition: all 0.15s ease !important;
+}
+
+.dark-dropdown .ant-dropdown-menu-item:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: var(--dark-primary) !important;
+}
+
+/* ============ Tabs 组件 ============ */
+.dark-tabs .ant-tabs-nav {
+  border-bottom: 1px solid var(--dark-border) !important;
+}
+
+.dark-tabs .ant-tabs-tab {
+  color: var(--dark-text-tertiary) !important;
+}
+
+.dark-tabs .ant-tabs-tab:hover {
+  color: var(--dark-primary) !important;
+}
+
+.dark-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--dark-primary) !important;
+}
+
+.dark-tabs .ant-tabs-ink-bar {
+  background-color: var(--dark-primary) !important;
+}
+
+/* ============ Skeleton 组件 ============ */
+.dark-skeleton .ant-skeleton-input,
+.dark-skeleton .ant-skeleton-button,
+.dark-skeleton .ant-skeleton-avatar,
+.dark-skeleton .ant-skeleton-title,
+.dark-skeleton .ant-skeleton-paragraph > li {
+  background-color: #1e293b !important;
+} 
