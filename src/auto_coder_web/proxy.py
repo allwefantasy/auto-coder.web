@@ -37,19 +37,20 @@ class ProxyServer:
 
         self.setup_static_files()
         self.project_path = project_path
-        
+        self.auto_coder_runner = None                
         # Check if project is initialized
-        self.is_initialized = self.check_project_initialization()
-        if not self.is_initialized:
-            logger.warning(get_message("project_not_initialized"))
-            logger.warning(get_message("run_auto_coder_chat"))
-            sys.exit(1)            
+        # self.is_initialized = self.check_project_initialization()
+        # if not self.is_initialized:
+        #     logger.warning(get_message("project_not_initialized"))
+        #     logger.warning(get_message("run_auto_coder_chat"))
+        #     sys.exit(1)            
+        
 
-        self.auto_coder_runner = AutoCoderRunnerWrapper(project_path, product_mode=product_mode)        
-         
-
+    def _initialize(self):
+        self.auto_coder_runner = AutoCoderRunnerWrapper(self.project_path, product_mode=self.product_mode)                 
         self.setup_routes()        
         self.client = httpx.AsyncClient()
+
 
     def setup_middleware(self):
         self.app.add_middleware(

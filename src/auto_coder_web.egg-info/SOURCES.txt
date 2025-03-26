@@ -148,6 +148,6 @@ src/auto_coder_web/web/static/css/main.0ef9afe0.css
 src/auto_coder_web/web/static/css/main.0ef9afe0.css.map
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js.map
-src/auto_coder_web/web/static/js/main.2922014a.js
-src/auto_coder_web/web/static/js/main.2922014a.js.LICENSE.txt
-src/auto_coder_web/web/static/js/main.2922014a.js.map
+src/auto_coder_web/web/static/js/main.c3e68e66.js
+src/auto_coder_web/web/static/js/main.c3e68e66.js.LICENSE.txt
+src/auto_coder_web/web/static/js/main.c3e68e66.js.map
