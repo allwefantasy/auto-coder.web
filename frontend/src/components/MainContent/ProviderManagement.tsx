@@ -30,7 +30,7 @@ const ProviderManagement: React.FC = () => {
 
   // 获取所有供应商
   const fetchProviders = async () => {
-    setLoading(true);
+  setLoading(true);
     try {
       const response = await fetch('/api/providers');
       if (!response.ok) {
