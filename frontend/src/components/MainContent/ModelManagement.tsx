@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Input, Select, Switch, Modal, Table, message, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Form, Input, Select, Switch, Modal, Table, message, Popconfirm, Spin } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';
@@ -32,54 +32,12 @@ interface ProviderConfig {
   }[];
 }
 
-// 初始供应商配置
-const providers: ProviderConfig[] = [
-  {
-    name: 'volcanoEngine',
-    base_url: 'https://ark.cn-beijing.volces.com/api/v3',
-    models: [
-      {
-        id: 'deepseek-v3-241226',
-        name: 'Deepseek V3',
-        input_price: 1.0,
-        output_price: 4.0,
-        is_reasoning: false
-      },
-      {
-        id: 'deepseek-r1-250120',
-        name: 'Deepseek R1',
-        input_price: 2.0,
-        output_price: 8.0,
-        is_reasoning: true
-      }
-    ]
-  },
-  {
-    name: 'openrouter',
-    base_url: 'https://openrouter.ai/api/v1',
-    models: [
-      {
-        id: 'anthropic/claude-3.7-sonnet:thinking',
-        name: 'Claude 3.7 Sonnet Thinking',
-        input_price: 22.0,
-        output_price: 111.0,
-        is_reasoning: true
-      },
-      {
-        id: 'anthropic/claude-3.7-sonnet',
-        name: 'Claude 3.7 Sonnet',
-        input_price: 22.0,
-        output_price: 111.0,
-        is_reasoning: false
-      }
-    ]
-  }
-];
-
 const ModelManagement: React.FC = () => {
   const [form] = Form.useForm();
   const [models, setModels] = useState<Model[]>([]);
+  const [providers, setProviders] = useState<ProviderConfig[]>([]);
   const [loading, setLoading] = useState(false);
+  const [providersLoading, setProvidersLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingModel, setEditingModel] = useState<Model | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<string>('');
@@ -102,9 +60,28 @@ const ModelManagement: React.FC = () => {
     }
   };
 
+  // 获取所有供应商
+  const fetchProviders = async () => {
+    setProvidersLoading(true);
+    try {
+      const response = await fetch('/api/providers');
+      if (!response.ok) {
+        throw new Error('Failed to fetch providers');
+      }
+      const data = await response.json();
+      setProviders(data);
+    } catch (error) {
+      console.error('Error fetching providers:', error);
+      message.error(getMessage('modelOperationFailed', { message: String(error) }));
+    } finally {
+      setProvidersLoading(false);
+    }
+  };
+
   // 初始加载
   useEffect(() => {
     fetchModels();
+    fetchProviders();
   }, []);
 
   // 处理表单提交
@@ -203,6 +180,12 @@ const ModelManagement: React.FC = () => {
     }
   };
 
+  // 刷新供应商列表
+  const refreshProviders = () => {
+    fetchProviders();
+    message.success(getMessage('modelOperationFailed', { message: 'Providers refreshed' }));
+  };
+
   // 处理模型变更
   const handleModelChange = (value: string) => {
     const provider = providers.find(p => p.name === selectedProvider);
@@ -298,14 +281,27 @@ const ModelManagement: React.FC = () => {
     <div className="model-management-container p-2 overflow-y-auto h-full bg-gray-900">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl text-white">{getMessage('modelManagement')}</h2>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
-          onClick={handleAdd}
-          className="dark-button"
-        >
-          {getMessage('addModel')}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            icon={<ReloadOutlined />} 
+            onClick={() => {
+              fetchModels();
+              fetchProviders();
+            }}
+            className="dark-button"
+          >
+            {providersLoading || loading ? <Spin size="small" /> : null}
+            {getMessage('more')}
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={handleAdd}
+            className="dark-button"
+          >
+            {getMessage('addModel')}
+          </Button>
+        </div>
       </div>
 
       <Table
@@ -359,13 +355,25 @@ const ModelManagement: React.FC = () => {
             label={<span className="text-white">{getMessage('modelProvider')}</span>}
             rules={[{ required: true, message: 'Please select provider' }]}
           >
-            <Select onChange={handleProviderChange} className="dark-select">
-              {providers.map(provider => (
-                <Select.Option key={provider.name} value={provider.name}>
-                  {getMessage(provider.name) || provider.name}
-                </Select.Option>
-              ))}
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select 
+                onChange={handleProviderChange} 
+                className="dark-select flex-1"
+                loading={providersLoading}
+              >
+                {providers.map(provider => (
+                  <Select.Option key={provider.name} value={provider.name}>
+                    {getMessage(provider.name) || provider.name}
+                  </Select.Option>
+                ))}
+              </Select>
+              <Button 
+                icon={<ReloadOutlined />} 
+                onClick={refreshProviders}
+                className="dark-button"
+                title={getMessage('more')}
+              />
+            </div>
           </Form.Item>
 
           <Form.Item
