@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Select, message, Skeleton, Button } from 'antd';
-import { SyncOutlined } from '@ant-design/icons';
+import { Select, message, Skeleton } from 'antd';
 import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 import '../../styles/custom_antd.css';
@@ -28,7 +27,9 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     generate_rerank_model: ''
   });
 
-  const fetchModels = async () => {
+  // Fetch available models
+  useEffect(() => {
+    const fetchModels = async () => {
       setLoading(true);
       try {
         const response = await fetch('/api/models');
@@ -46,11 +47,6 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     };
     fetchModels();
   }, []);
-
-  const handleRefresh = async () => {
-    await fetchModels();
-    message.success(getMessage('refreshSuccess') || 'Models refreshed successfully');
-  };
 
   // Fetch current configuration
   useEffect(() => {
@@ -135,16 +131,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="settings-title">{getMessage('modelName') || '模型配置'}</h3>
-        <Button 
-          icon={<SyncOutlined />} 
-          onClick={handleRefresh}
-          loading={loading}
-        >
-          {getMessage('refresh') || 'Refresh'}
-        </Button>
-      </div>
+      <h3 className="settings-title">{getMessage('modelName') || '模型配置'}</h3>
       
       <div className="space-y-3">
         <div className="model-config-item">
