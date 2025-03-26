@@ -91,7 +91,7 @@ async def validate_and_load_history(
         try:
             # 过滤出聊天动作事件
             action_manager = ActionYmlFileManager(project_path)
-            chat_action_files = action_manager.get_action_files()
+            chat_action_files = action_manager.get_action_files(limit=max_history_count)
             
             # 获取Git仓库，用于检查提交是否被撤销
             repo = get_repo(project_path)

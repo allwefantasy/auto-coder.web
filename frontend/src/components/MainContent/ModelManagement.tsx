@@ -23,6 +23,7 @@ interface Model {
 interface ProviderConfig {
   name: string;
   base_url: string;
+  model_type: string;
   models: {
     id: string;
     name: string;
@@ -226,9 +227,14 @@ const ModelManagement: React.FC = () => {
       },
     },
     {
-      title: getMessage('modelType'),
+      title: getMessage('modelType'), // This refers to the specific model ID like 'gpt-4'
       dataIndex: 'model_name',
       key: 'model_name',
+    },
+    {
+      title: getMessage('modelTypeInterface'), // This refers to the backend interface type like 'saas/openai'
+      dataIndex: 'model_type',
+      key: 'model_type',
     },
     {
       title: getMessage('modelInputPrice'),
