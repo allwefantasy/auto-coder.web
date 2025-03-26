@@ -21,9 +21,10 @@ class Model(BaseModel):
     name: str
     description: str = ""
     model_name: str
-    model_type: str
+    model_type: str = "saas/openai"
     base_url: str
-    api_key_path: str
+    api_key: str = ""
+    api_key_path:str = ""
     is_reasoning: bool = False
     input_price: float = 0.0
     output_price: float = 0.0
@@ -60,9 +61,8 @@ async def add_model(model: Model):
         existing_models = model_utils.load_models()
         if any(m["name"] == model.name for m in existing_models):
             raise HTTPException(status_code=400, detail="Model with this name already exists")
-        
-        existing_models.append(model.model_dump())
-        model_utils.save_models(existing_models)
+                
+        model_utils.add_and_activate_models([model.model_dump()])
         return model
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -178,6 +178,7 @@ class ModelInfo(BaseModel):
 class ProviderConfig(BaseModel):
     name: str
     base_url: str
+    model_type: str = "saas/openai"
     models: List[ModelInfo]
 
 def load_providers() -> List[Dict]:
@@ -187,19 +188,20 @@ def load_providers() -> List[Dict]:
         {
             "name": "volcanoEngine",
             "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+            "model_type": "saas/openai",
             "models": [
                 {
                     "id": "deepseek-v3-241226",
                     "name": "Deepseek V3",
-                    "input_price": 1.0,
-                    "output_price": 4.0,
+                    "input_price": 2.0,
+                    "output_price": 8.0,
                     "is_reasoning": False
                 },
                 {
                     "id": "deepseek-r1-250120",
                     "name": "Deepseek R1",
-                    "input_price": 2.0,
-                    "output_price": 8.0,
+                    "input_price": 4.0,
+                    "output_price": 16.0,
                     "is_reasoning": True
                 }
             ]
@@ -207,6 +209,7 @@ def load_providers() -> List[Dict]:
         {
             "name": "openrouter",
             "base_url": "https://openrouter.ai/api/v1",
+            "model_type": "saas/openai",
             "models": [
                 {
                     "id": "anthropic/claude-3.7-sonnet:thinking",

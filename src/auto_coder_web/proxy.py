@@ -16,10 +16,6 @@ import argparse
 import aiofiles
 import pkg_resources
 import sys
-from auto_coder_web.auto_coder_runner import AutoCoderRunner
-from .types import (        
-    FileContentResponse,    
-)
 from .terminal import terminal_manager
 from autocoder.common import AutoCoderArgs
 from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper

@@ -274,6 +274,10 @@ export const messages: { [key: string]: Message } = {
     en: "Model Type",
     zh: "模型类型"
   },
+  modelTypeInterface: {
+    en: "Interface Type",
+    zh: "接口类型"
+  },
   modelBaseUrl: {
     en: "Base URL",
     zh: "基础URL"

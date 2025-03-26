@@ -177,6 +177,7 @@ const ModelManagement: React.FC = () => {
     const provider = providers.find(p => p.name === value);
     if (provider) {
       form.setFieldValue('base_url', provider.base_url);
+      form.setFieldValue('provider', value); 
     }
   };
 
@@ -406,8 +407,9 @@ const ModelManagement: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            name="api_key_path"
+            name="api_key"
             label={<span className="text-white">{getMessage('modelApiKey')}</span>}
+            rules={[{ required: true, message: 'Please input API key' }]}
           >
             <Input placeholder="Path to API key file (optional)" className="dark-input" />
           </Form.Item>
