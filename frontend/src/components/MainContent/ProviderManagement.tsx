@@ -18,7 +18,6 @@ interface ModelInfo {
 interface ProviderConfig {
   name: string;
   base_url: string;
-  model_type: string; // Added interface type for the provider
   models: ModelInfo[];
 }
 
@@ -58,7 +57,6 @@ const ProviderManagement: React.FC = () => {
       const providerData: ProviderConfig = {
         name: values.name,
         base_url: values.base_url,
-        model_type: values.model_type || 'saas/openai', // Include model_type, default if not provided
         models: values.models || [],
       };
 
@@ -127,7 +125,6 @@ const ProviderManagement: React.FC = () => {
     setEditingProvider(null);
     form.resetFields();
     form.setFieldsValue({
-      model_type: 'saas/openai', // Default value for new providers
       models: [{ id: '', name: '', input_price: 0, output_price: 0, is_reasoning: false }]
     });
     setModalVisible(true);
@@ -230,20 +227,7 @@ const ProviderManagement: React.FC = () => {
             label={<span className="text-white">{getMessage('providerName')}</span>}
             rules={[{ required: true, message: 'Please input provider name' }]}
           >
-            <Input className="dark-input" disabled={!!editingProvider} /> {/* Disable name editing for existing providers */}
-          </Form.Item>
-
-          <Form.Item
-            name="model_type"
-            label={<span className="text-white">{getMessage('modelTypeInterface')}</span>}
-            rules={[{ required: true, message: 'Please select interface type' }]}
-            initialValue="saas/openai" // Default value
-          >
-            <Select className="dark-select">
-              <Select.Option value="saas/openai">saas/openai</Select.Option>
-              <Select.Option value="saas/gemini">saas/gemini</Select.Option>
-              {/* Add other types as needed */}
-            </Select>
+            <Input className="dark-input" />
           </Form.Item>
 
           <Form.Item
