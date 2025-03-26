@@ -225,6 +225,95 @@ export const messages: { [key: string]: Message } = {
     en: "Done",
     zh: "已完成"
   },
+  // Model Management
+  modelManagement: {
+    en: "Model Management",
+    zh: "模型管理"
+  },
+  addModel: {
+    en: "Add Model",
+    zh: "添加模型"
+  },
+  editModel: {
+    en: "Edit Model",
+    zh: "编辑模型"
+  },
+  deleteModel: {
+    en: "Delete Model",
+    zh: "删除模型"
+  },
+  modelName: {
+    en: "Model Name",
+    zh: "模型名称"
+  },
+  modelDescription: {
+    en: "Description",
+    zh: "描述"
+  },
+  modelProvider: {
+    en: "Provider",
+    zh: "供应商"
+  },
+  modelType: {
+    en: "Model Type",
+    zh: "模型类型"
+  },
+  modelBaseUrl: {
+    en: "Base URL",
+    zh: "基础URL"
+  },
+  modelApiKey: {
+    en: "API Key",
+    zh: "API密钥"
+  },
+  modelInputPrice: {
+    en: "Input Price",
+    zh: "输入价格"
+  },
+  modelOutputPrice: {
+    en: "Output Price",
+    zh: "输出价格"
+  },
+  modelAverageSpeed: {
+    en: "Average Speed",
+    zh: "平均速度"
+  },
+  modelIsReasoning: {
+    en: "Reasoning Model",
+    zh: "推理模型"
+  },
+  saveModel: {
+    en: "Save Model",
+    zh: "保存模型"
+  },
+  cancelModelEdit: {
+    en: "Cancel",
+    zh: "取消"
+  },
+  modelAddSuccess: {
+    en: "Model added successfully",
+    zh: "模型添加成功"
+  },
+  modelUpdateSuccess: {
+    en: "Model updated successfully",
+    zh: "模型更新成功"
+  },
+  modelDeleteSuccess: {
+    en: "Model deleted successfully",
+    zh: "模型删除成功"
+  },
+  modelOperationFailed: {
+    en: "Operation failed: {message}",
+    zh: "操作失败：{message}"
+  },
+  confirmDeleteModel: {
+    en: "Are you sure you want to delete this model?",
+    zh: "确定要删除此模型吗？"
+  },
+  volcanoEngine: {
+    en: "Volcano Engine",
+    zh: "火山引擎"
+  },
   summary: {
     en: "Reply",
     zh: "答案"
