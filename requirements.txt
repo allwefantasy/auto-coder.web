@@ -1,4 +1,4 @@
-auto-coder>=0.1.319
+auto-coder>=0.1.320
 aiofiles
 psutil
 sse-starlette

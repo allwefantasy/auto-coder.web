@@ -109,8 +109,14 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           width: '100%', 
           background: '#1f2937', 
           borderColor: '#374151', 
-          color: '#e5e7eb' 
+          color: '#e5e7eb',
+          minHeight: '28px',
+          height: 'auto',
+          fontSize: '12px'
         }}
+        maxTagCount={20}
+        maxTagTextLength={30}
+        maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} more...`}
         placeholder="Select file groups or search for files"
         value={[...selectedGroups, ...selectedFiles]}
         onFocus={fetchFileGroups}
@@ -131,11 +137,37 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         }}
         filterOption={false}
         optionLabelProp="label"
-        className="custom-select"
+        className="custom-select multi-line-select"
         popupClassName="dark-dropdown-menu"
         dropdownStyle={{ 
           backgroundColor: '#1f2937', 
-          borderColor: '#374151' 
+          borderColor: '#374151',
+          fontSize: '12px'
+        }}
+        tagRender={(props) => {
+          const { label, value, closable, onClose } = props;
+          return (
+            <span 
+              className="inline-flex items-center m-0.5 px-1 py-0.5 rounded bg-gray-700 text-gray-200 text-xs"
+              style={{
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                lineHeight: '1.2'
+              }}
+            >
+              <span className="mr-0.5">{label}</span>
+              {closable && (
+                <span 
+                  className="cursor-pointer text-gray-400 hover:text-gray-200 ml-0.5"
+                  onClick={onClose}
+                >
+                  ×
+                </span>
+              )}
+            </span>
+          );
         }}
       >
         {fileGroups.map(group => (
@@ -146,8 +178,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             className="file-option"
           >
             <div className="flex justify-between items-center">
-              <span className="text-gray-200">{group.name}</span>
-              <span className="text-gray-400 text-xs">
+              <span className="text-gray-200 text-xs">{group.name}</span>
+              <span className="text-gray-400 text-[10px]">
                 {group.files.length} files
               </span>
             </div>
@@ -164,8 +196,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 className="file-option"
               >
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-200">{file.display}</span>
-                  <span className="text-blue-400 text-xs">Mentioned</span>
+                  <span className="text-gray-200 text-xs">{file.display}</span>
+                  <span className="text-blue-400 text-[10px]">Mentioned</span>
                 </div>
               </Select.Option>
             ))}
@@ -182,14 +214,52 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 className="file-option"
               >
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-200">{file.display}</span>
-                  <span className="text-gray-400 text-xs">File</span>
+                  <span className="text-gray-200 text-xs">{file.display}</span>
+                  <span className="text-gray-400 text-[10px]">File</span>
                 </div>
               </Select.Option>
             ))}
           </Select.OptGroup>
         )}
       </Select>
+      
+      <style>
+        {`
+          .multi-line-select .ant-select-selector {
+            height: auto !important;
+            min-height: 28px !important;
+            padding: 1px 4px !important;
+            border-width: 1px !important;
+          }
+          
+          .multi-line-select .ant-select-selection-overflow {
+            flex-wrap: wrap;
+            max-height: none !important;
+            overflow: auto !important;
+            gap: 1px !important;
+          }
+          
+          .multi-line-select .ant-select-selection-item {
+            margin: 1px !important;
+          }
+          
+          .multi-line-select .ant-select-selection-overflow-item {
+            margin: 0 !important;
+          }
+
+          .multi-line-select .ant-select-selection-placeholder {
+            font-size: 12px !important;
+          }
+
+          .multi-line-select .ant-select-selection-search {
+            font-size: 12px !important;
+          }
+
+          .ant-select-dropdown {
+            font-size: 12px !important;
+          }
+        `}
+      </style>
     </div>
   );
 };
