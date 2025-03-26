@@ -178,14 +178,58 @@ class ProviderConfig(BaseModel):
 
 def load_providers() -> List[Dict]:
     """Load providers from JSON file"""
+    # Default providers if file doesn't exist
+    default_providers = [
+        {
+            "name": "volcanoEngine",
+            "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+            "models": [
+                {
+                    "id": "deepseek-v3-241226",
+                    "name": "Deepseek V3",
+                    "input_price": 1.0,
+                    "output_price": 4.0,
+                    "is_reasoning": False
+                },
+                {
+                    "id": "deepseek-r1-250120",
+                    "name": "Deepseek R1",
+                    "input_price": 2.0,
+                    "output_price": 8.0,
+                    "is_reasoning": True
+                }
+            ]
+        },
+        {
+            "name": "openrouter",
+            "base_url": "https://openrouter.ai/api/v1",
+            "models": [
+                {
+                    "id": "anthropic/claude-3.7-sonnet:thinking",
+                    "name": "Claude 3.7 Sonnet Thinking",
+                    "input_price": 22.0,
+                    "output_price": 111.0,
+                    "is_reasoning": True
+                },
+                {
+                    "id": "anthropic/claude-3.7-sonnet",
+                    "name": "Claude 3.7 Sonnet",
+                    "input_price": 22.0,
+                    "output_price": 111.0,
+                    "is_reasoning": False
+                }
+            ]
+        }
+    ]
+    
     if not os.path.exists(PROVIDERS_FILE):
-        return []
+        return default_providers
     try:
         with open(PROVIDERS_FILE, 'r') as f:
             return json.load(f)
     except Exception as e:
         print(f"Error loading providers: {e}")
-        return []
+        return default_providers
 
 def save_providers(providers: List[Dict]) -> None:
     """Save providers to JSON file"""
