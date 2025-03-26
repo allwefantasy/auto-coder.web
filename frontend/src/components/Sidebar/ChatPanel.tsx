@@ -477,6 +477,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       console.log('ChatPanel: isWriteMode:', isWriteMode);
       console.log('ChatPanel: currentRequestId:', currentRequestId);
       
+      // 在任务完成时设置标记，表示应该保存消息
+      // 而不是直接保存，让 useEffect 在消息状态更新后处理保存
+      setShouldSaveMessages(true);
+      // 等待一个渲染周期
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
       // 如果是编码模式且有eventFileId，获取变更文件并打开
       if (isWriteMode && currentRequestId) {
         try {
@@ -512,10 +518,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
     setSendLoading(false);
     setRequestId("");
-    setLocalRequestId("");
-    // 在任务完成时设置标记，表示应该保存消息
-    // 而不是直接保存，让 useEffect 在消息状态更新后处理保存
-    setShouldSaveMessages(true);
+    setLocalRequestId("");    
   }, [isWriteMode, setSelectedFiles, setActivePanel, setSendLoading, setRequestId, setLocalRequestId, setShouldSaveMessages]);
 
   const fetchFileGroups = useCallback(async () => {
