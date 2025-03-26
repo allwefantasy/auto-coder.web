@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Select, message, Skeleton } from 'antd';
+import { Select, message, Skeleton, Button } from 'antd';
+import { ReloadOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 import '../../styles/custom_antd.css';
@@ -28,23 +29,24 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
   });
 
   // Fetch available models
-  useEffect(() => {
-    const fetchModels = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch('/api/models');
-        if (!response.ok) {
-          throw new Error('Failed to fetch models');
-        }
-        const data = await response.json();
-        setModels(data);
-      } catch (error) {
-        console.error('Error fetching models:', error);
-        message.error(getMessage('processingError'));
-      } finally {
-        setLoading(false);
+  const fetchModels = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/models');
+      if (!response.ok) {
+        throw new Error('Failed to fetch models');
       }
-    };
+      const data = await response.json();
+      setModels(data);
+    } catch (error) {
+      console.error('Error fetching models:', error);
+      message.error(getMessage('processingError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchModels();
   }, []);
 
@@ -131,7 +133,18 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
 
   return (
     <div>
-      <h3 className="settings-title">{getMessage('modelName') || '模型配置'}</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="settings-title">{getMessage('modelName') || '模型配置'}</h3>
+        <Button 
+          type="text" 
+          icon={<ReloadOutlined />} 
+          onClick={() => {
+            fetchModels();            
+          }}
+          loading={loading}
+          className="text-gray-400 hover:text-white"
+        />
+      </div>
       
       <div className="space-y-3">
         <div className="model-config-item">
