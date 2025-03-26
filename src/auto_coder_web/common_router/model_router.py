@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from typing import List, Dict, Optional
 import json
 import os
@@ -7,8 +7,12 @@ from autocoder import models as model_utils
 
 router = APIRouter()
 
+async def get_project_path(request: Request):
+    """获取项目路径作为依赖"""
+    return request.app.state.project_path
+
 # Path for providers JSON file
-PROVIDERS_FILE = os.path.expanduser("~/.auto-coder/auto-coder.web/models_provider.json")
+PROVIDERS_FILE = os.path.expanduser("~/.auto-coder/keys/models_providers.json")
 
 # Ensure directory exists
 os.makedirs(os.path.dirname(PROVIDERS_FILE), exist_ok=True)
@@ -225,16 +229,26 @@ def load_providers() -> List[Dict]:
     if not os.path.exists(PROVIDERS_FILE):
         return default_providers
     try:
-        with open(PROVIDERS_FILE, 'r') as f:
-            return json.load(f)
+        with open(PROVIDERS_FILE, 'r',encoding='utf-8') as f:
+            # 根据名字去重，优先保留文件中的提供商配置
+            loaded_providers = json.load(f)
+            providers_map = {provider["name"]: provider for provider in loaded_providers}
+            
+            # 只添加名字不重复的默认提供商
+            for default_provider in default_providers:
+                if default_provider["name"] not in providers_map:
+                    providers_map[default_provider["name"]] = default_provider
+            
+            return list(providers_map.values())
     except Exception as e:
         print(f"Error loading providers: {e}")
         return default_providers
 
 def save_providers(providers: List[Dict]) -> None:
     """Save providers to JSON file"""
-    with open(PROVIDERS_FILE, 'w') as f:
-        json.dump(providers, f, indent=2)
+    with open(PROVIDERS_FILE, 'w',encoding='utf-8') as f:
+        # 根据名字去重，然后再统一保存        
+        json.dump(providers, f, indent=2,ensure_ascii=False)
 
 @router.get("/api/providers", response_model=List[ProviderConfig])
 async def get_providers():
