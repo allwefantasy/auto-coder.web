@@ -23,7 +23,7 @@ interface Model {
 interface ProviderConfig {
   name: string;
   base_url: string;
-  model_type: string;
+  model_type: string; // Added interface type for the provider
   models: {
     id: string;
     name: string;
@@ -88,12 +88,13 @@ const ModelManagement: React.FC = () => {
   // 处理表单提交
   const handleSubmit = async (values: any) => {
     try {
+      // Ensure model_type is included from the form values
       const modelData: Model = {
         ...values,
         input_price: Number(values.input_price),
         output_price: Number(values.output_price),
         average_speed: Number(values.average_speed || 0),
-        model_type: 'saas/openai', // 默认类型
+        // model_type is now part of the form values, populated automatically
       };
 
       const url = editingModel 
@@ -178,7 +179,22 @@ const ModelManagement: React.FC = () => {
     const provider = providers.find(p => p.name === value);
     if (provider) {
       form.setFieldValue('base_url', provider.base_url);
-      form.setFieldValue('provider', value); 
+      // Auto-fill model_type (interface type), default to 'saas/openai' if not specified
+      form.setFieldValue('model_type', provider.model_type || 'saas/openai'); 
+      form.setFieldValue('provider', value);
+      // Reset model specific fields when provider changes
+      form.setFieldValue('model_name', undefined);
+      form.setFieldValue('input_price', undefined);
+      form.setFieldValue('output_price', undefined);
+      form.setFieldValue('is_reasoning', false);
+    } else {
+       // Clear fields if provider is deselected
+       form.setFieldValue('base_url', undefined);
+       form.setFieldValue('model_type', undefined);
+       form.setFieldValue('model_name', undefined);
+       form.setFieldValue('input_price', undefined);
+       form.setFieldValue('output_price', undefined);
+       form.setFieldValue('is_reasoning', false);
     }
   };
 
@@ -357,34 +373,46 @@ const ModelManagement: React.FC = () => {
             <Input.TextArea rows={2} className="dark-input" />
           </Form.Item>
 
-          <Form.Item
-            name="provider"
-            label={<span className="text-white">{getMessage('modelProvider')}</span>}
-            rules={[{ required: true, message: 'Please select provider' }]}
-          >
-            <div className="flex items-center gap-2">
-              <Select 
-                onChange={handleProviderChange} 
-                className="dark-select flex-1"
-                loading={providersLoading}
-              >
-                {providers.map(provider => (
-                  <Select.Option key={provider.name} value={provider.name}>
-                    {getMessage(provider.name) || provider.name}
-                  </Select.Option>
-                ))}
-              </Select>
-              <Button 
-                icon={<ReloadOutlined />} 
-                onClick={refreshProviders}
-                className="dark-button"
-                title={getMessage('more')}
-              />
-            </div>
-          </Form.Item>
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item
+              name="provider"
+              label={<span className="text-white">{getMessage('modelProvider')}</span>}
+              rules={[{ required: true, message: 'Please select provider' }]}
+            >
+              <div className="flex items-center gap-2">
+                <Select 
+                  onChange={handleProviderChange} 
+                  className="dark-select flex-1"
+                  loading={providersLoading}
+                  allowClear // Allow clearing selection
+                >
+                  {providers.map(provider => (
+                    <Select.Option key={provider.name} value={provider.name}>
+                      {getMessage(provider.name) || provider.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+                <Button 
+                  icon={<ReloadOutlined />} 
+                  onClick={refreshProviders}
+                  className="dark-button"
+                  title={getMessage('more')}
+                />
+              </div>
+            </Form.Item>
+
+            <Form.Item
+              name="model_type"
+              label={<span className="text-white">{getMessage('modelTypeInterface')}</span>}
+              rules={[{ required: true, message: 'Interface type is required' }]}
+            >
+              <Input disabled className="dark-input" />
+            </Form.Item>
+          </div>
 
           <Form.Item
             name="model_name"
+
             label={<span className="text-white">{getMessage('modelType')}</span>}
             rules={[{ required: true, message: 'Please select model type' }]}
           >

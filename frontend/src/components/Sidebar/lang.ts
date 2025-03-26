@@ -272,11 +272,11 @@ export const messages: { [key: string]: Message } = {
   },
   modelType: {
     en: "Model Type",
-    zh: "模型类型"
+    zh: "模型类型" // Specific model like 'gpt-4'
   },
   modelTypeInterface: {
     en: "Interface Type",
-    zh: "接口类型"
+    zh: "接口类型" // Backend interface like 'saas/openai'
   },
   modelBaseUrl: {
     en: "Base URL",
