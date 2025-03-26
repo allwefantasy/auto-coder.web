@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Input, Table, message, Popconfirm, Modal, Space } from 'antd';
+import { Button, Form, Input, Table, message, Popconfirm, Modal, Space, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
 import '../../styles/custom_antd.css';
@@ -18,6 +18,7 @@ interface ModelInfo {
 interface ProviderConfig {
   name: string;
   base_url: string;
+  model_type: string;
   models: ModelInfo[];
 }
 
@@ -57,6 +58,7 @@ const ProviderManagement: React.FC = () => {
       const providerData: ProviderConfig = {
         name: values.name,
         base_url: values.base_url,
+        model_type: values.model_type,
         models: values.models || [],
       };
 
@@ -236,6 +238,17 @@ const ProviderManagement: React.FC = () => {
             rules={[{ required: true, message: 'Please input base URL' }]}
           >
             <Input className="dark-input" />
+          </Form.Item>
+
+          <Form.Item
+            name="model_type"
+            label={<span className="text-white">{getMessage('modelTypeInterface')}</span>}
+            initialValue="saas/openai"
+          >
+            <Select className="dark-select">
+              <Select.Option value="saas/openai">saas/openai</Select.Option>
+              <Select.Option value="saas/gemini">saas/gemini</Select.Option>
+            </Select>
           </Form.Item>
 
           <div className="mb-4">
