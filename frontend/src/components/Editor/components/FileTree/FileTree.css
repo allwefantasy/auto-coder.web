@@ -218,7 +218,9 @@
 /* Ensure the Tree component itself has proper overflow behavior */
 .file-tree {
   height: 100%;
-  overflow: auto;
+  /* overflow: auto; */ /* Replaced by specific overflow properties */
+  overflow-y: auto; /* Vertical scrollbar appears when needed */
+  overflow-x: scroll; /* Horizontal scrollbar is always visible */
   position: absolute;
   top: 0;
   left: 0;
