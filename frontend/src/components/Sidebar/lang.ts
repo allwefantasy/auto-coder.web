@@ -488,7 +488,7 @@ export const messages: { [key: string]: Message } = {
     en: "Model Consumption Statistics",
     zh: "模型消费统计"
   },
-  modelName: {
+  modelConfiguration: {
     en: "Model Configuration",
     zh: "模型配置"
   },
