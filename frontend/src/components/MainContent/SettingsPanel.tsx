@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Select, message, Divider } from 'antd';
+import { Select, message, Divider, Tabs } from 'antd';
 import { getMessage, setLanguage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 import ModelConfig from './ModelConfig';
+import ModelManagement from './ModelManagement';
 import './ModelConfig.css';
+
+const { TabPane } = Tabs;
 
 const SettingsPanel: React.FC = () => {
   const [config, setConfig] = useState<{
@@ -118,10 +121,17 @@ const SettingsPanel: React.FC = () => {
       
       <Divider className="border-gray-700 my-2" />
       
-      <ModelConfig 
-        availableKeys={config.available_keys} 
-        onModelChange={updateConfig}
-      />
+      <Tabs defaultActiveKey="general" className="settings-tabs">
+        <TabPane tab={getMessage('settings')} key="general">
+          <ModelConfig 
+            availableKeys={config.available_keys} 
+            onModelChange={updateConfig}
+          />
+        </TabPane>
+        <TabPane tab={getMessage('modelManagement')} key="models">
+          <ModelManagement />
+        </TabPane>
+      </Tabs>
     </div>
   );
 };
