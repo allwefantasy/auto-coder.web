@@ -1,9 +1,17 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Optional
+import json
+import os
 from pydantic import BaseModel
 from autocoder import models as model_utils
 
 router = APIRouter()
+
+# Path for providers JSON file
+PROVIDERS_FILE = os.path.expanduser("~/.auto-coder/auto-coder.web/models_provider.json")
+
+# Ensure directory exists
+os.makedirs(os.path.dirname(PROVIDERS_FILE), exist_ok=True)
 
 class Model(BaseModel):
     name: str
@@ -152,5 +160,95 @@ async def update_model_speed(model_name: str, speed: float):
             return {"message": f"Speed for model {model_name} updated successfully"}
         else:
             raise HTTPException(status_code=404, detail="Model not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Provider management endpoints
+class ModelInfo(BaseModel):
+    id: str
+    name: str
+    input_price: float
+    output_price: float
+    is_reasoning: bool
+
+class ProviderConfig(BaseModel):
+    name: str
+    base_url: str
+    models: List[ModelInfo]
+
+def load_providers() -> List[Dict]:
+    """Load providers from JSON file"""
+    if not os.path.exists(PROVIDERS_FILE):
+        return []
+    try:
+        with open(PROVIDERS_FILE, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading providers: {e}")
+        return []
+
+def save_providers(providers: List[Dict]) -> None:
+    """Save providers to JSON file"""
+    with open(PROVIDERS_FILE, 'w') as f:
+        json.dump(providers, f, indent=2)
+
+@router.get("/api/providers", response_model=List[ProviderConfig])
+async def get_providers():
+    """Get all available providers"""
+    try:
+        providers = load_providers()
+        return providers
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/api/providers", response_model=ProviderConfig)
+async def add_provider(provider: ProviderConfig):
+    """Add a new provider"""
+    try:
+        providers = load_providers()
+        
+        # Check if provider with same name already exists
+        if any(p["name"] == provider.name for p in providers):
+            raise HTTPException(status_code=400, detail="Provider with this name already exists")
+        
+        providers.append(provider.model_dump())
+        save_providers(providers)
+        return provider
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/api/providers/{provider_name}", response_model=ProviderConfig)
+async def update_provider(provider_name: str, provider: ProviderConfig):
+    """Update an existing provider"""
+    try:
+        providers = load_providers()
+        updated = False
+        
+        for p in providers:
+            if p["name"] == provider_name:
+                p.update(provider.model_dump())
+                updated = True
+                break
+        
+        if not updated:
+            raise HTTPException(status_code=404, detail="Provider not found")
+            
+        save_providers(providers)
+        return provider
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/api/providers/{provider_name}")
+async def delete_provider(provider_name: str):
+    """Delete a provider by name"""
+    try:
+        providers = load_providers()
+        providers_list = [p for p in providers if p["name"] != provider_name]
+        
+        if len(providers) == len(providers_list):
+            raise HTTPException(status_code=404, detail="Provider not found")
+            
+        save_providers(providers_list)
+        return {"message": f"Provider {provider_name} deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

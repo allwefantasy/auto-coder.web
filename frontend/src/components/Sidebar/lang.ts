@@ -230,17 +230,33 @@ export const messages: { [key: string]: Message } = {
     en: "Model Management",
     zh: "模型管理"
   },
+  providerManagement: {
+    en: "Provider Management",
+    zh: "供应商管理"
+  },
   addModel: {
     en: "Add Model",
     zh: "添加模型"
+  },
+  addProvider: {
+    en: "Add Provider",
+    zh: "添加供应商"
   },
   editModel: {
     en: "Edit Model",
     zh: "编辑模型"
   },
+  editProvider: {
+    en: "Edit Provider",
+    zh: "编辑供应商"
+  },
   deleteModel: {
     en: "Delete Model",
     zh: "删除模型"
+  },
+  deleteProvider: {
+    en: "Delete Provider",
+    zh: "删除供应商"
   },
   modelName: {
     en: "Model Name",
@@ -265,6 +281,18 @@ export const messages: { [key: string]: Message } = {
   modelApiKey: {
     en: "API Key",
     zh: "API密钥"
+  },
+  providerName: {
+    en: "Provider Name",
+    zh: "供应商名称"
+  },
+  providerBaseUrl: {
+    en: "Provider Base URL",
+    zh: "供应商基础URL"
+  },
+  providerModels: {
+    en: "Provider Models",
+    zh: "供应商模型"
   },
   modelInputPrice: {
     en: "Input Price",
@@ -309,6 +337,22 @@ export const messages: { [key: string]: Message } = {
   confirmDeleteModel: {
     en: "Are you sure you want to delete this model?",
     zh: "确定要删除此模型吗？"
+  },
+  confirmDeleteProvider: {
+    en: "Are you sure you want to delete this provider?",
+    zh: "确定要删除此供应商吗？"
+  },
+  providerAddSuccess: {
+    en: "Provider added successfully",
+    zh: "供应商添加成功"
+  },
+  providerUpdateSuccess: {
+    en: "Provider updated successfully",
+    zh: "供应商更新成功"
+  },
+  providerDeleteSuccess: {
+    en: "Provider deleted successfully",
+    zh: "供应商删除成功"
   },
   volcanoEngine: {
     en: "Volcano Engine",

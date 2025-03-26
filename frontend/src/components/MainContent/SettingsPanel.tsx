@@ -4,6 +4,7 @@ import { getMessage, setLanguage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 import ModelConfig from './ModelConfig';
 import ModelManagement from './ModelManagement';
+import ProviderManagement from './ProviderManagement';
 import './ModelConfig.css';
 
 const { TabPane } = Tabs;
@@ -130,6 +131,9 @@ const SettingsPanel: React.FC = () => {
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('modelManagement')}</span>} key="models">
           <ModelManagement />
+        </TabPane>
+        <TabPane tab={<span className="text-gray-300">{getMessage('providerManagement')}</span>} key="providers">
+          <ProviderManagement />
         </TabPane>
       </Tabs>
     </div>
