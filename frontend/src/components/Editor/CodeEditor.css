@@ -49,12 +49,16 @@
 .code-editor-content {
   flex: 1;
   display: flex;
+  overflow: hidden;
 }
 
 .file-tree-panel {
   background-color: #252526;
-  padding: 8px;
-  overflow: auto;
+  height: 100%;
+  overflow: hidden;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
 .editor-panel {
@@ -160,11 +164,14 @@
 
 /* Ensure split containers take full height */
 .split {
-  display: flex;
-  flex-direction: row;
-  height: 100%;
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
 }
 
 .split > div {
-  height: 100%;
+  height: 100% !important;
+  overflow: hidden !important;
 }

@@ -276,14 +276,16 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
           </div>
         ) : (
           <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
-            <Tree
-              showIcon={false} // We're using custom icons
-              defaultExpandAll
-              onSelect={onSelect}
-              onRightClick={handleRightClick}
-              treeData={processedTreeData}
-              className="file-tree"
-            />
+            <div className="file-tree">
+              <Tree
+                showIcon={false}
+                defaultExpandAll
+                onSelect={onSelect}
+                onRightClick={handleRightClick}
+                treeData={processedTreeData}
+                height={999999}
+              />
+            </div>
           </Dropdown>
         )}
       </div>

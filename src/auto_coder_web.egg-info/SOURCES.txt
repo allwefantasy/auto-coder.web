@@ -144,10 +144,10 @@ src/auto_coder_web/web/monaco-editor/min/vs/language/json/jsonMode.js
 src/auto_coder_web/web/monaco-editor/min/vs/language/json/jsonWorker.js
 src/auto_coder_web/web/monaco-editor/min/vs/language/typescript/tsMode.js
 src/auto_coder_web/web/monaco-editor/min/vs/language/typescript/tsWorker.js
-src/auto_coder_web/web/static/css/main.d58ae48e.css
-src/auto_coder_web/web/static/css/main.d58ae48e.css.map
+src/auto_coder_web/web/static/css/main.3f486fef.css
+src/auto_coder_web/web/static/css/main.3f486fef.css.map
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js
 src/auto_coder_web/web/static/js/453.d855a71b.chunk.js.map
-src/auto_coder_web/web/static/js/main.0fc8391d.js
-src/auto_coder_web/web/static/js/main.0fc8391d.js.LICENSE.txt
-src/auto_coder_web/web/static/js/main.0fc8391d.js.map
+src/auto_coder_web/web/static/js/main.1ffdcb0b.js
+src/auto_coder_web/web/static/js/main.1ffdcb0b.js.LICENSE.txt
+src/auto_coder_web/web/static/js/main.1ffdcb0b.js.map
