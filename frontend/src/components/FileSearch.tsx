@@ -11,17 +11,21 @@ interface FileSearchProps {
 const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{name: string, path: string, display: string}>>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const searchInputRef = useRef<any>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const handleFileSearch = useCallback(async (term: string) => {
     if (!term) {
       setSearchResults([]);
+      setSelectedIndex(-1);
       return;
     }
     try {
       const response = await fetch(`/api/completions/files?name=${encodeURIComponent(term)}`);
       const data = await response.json();
       setSearchResults(data.completions);
+      setSelectedIndex(data.completions.length > 0 ? 0 : -1);
     } catch (error) {
       console.error('Error fetching file completions:', error);
     }
@@ -35,8 +39,36 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
   const handleClose = () => {
     setSearchTerm('');
     setSearchResults([]);
+    setSelectedIndex(-1);
     onClose();
   };
+
+  const handleKeyNavigation = (e: React.KeyboardEvent) => {
+    if (searchResults.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex((prevIndex) => 
+        prevIndex < searchResults.length - 1 ? prevIndex + 1 : prevIndex
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : 0));
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      handleSelectFile(searchResults[selectedIndex].path);
+    }
+  };
+
+  // Scroll selected item into view
+  useEffect(() => {
+    if (selectedIndex >= 0 && listRef.current) {
+      const selectedElement = listRef.current.querySelector(`[data-index="${selectedIndex}"]`);
+      if (selectedElement) {
+        selectedElement.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [selectedIndex]);
 
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
@@ -86,6 +118,8 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
               handleClose();
+            } else {
+              handleKeyNavigation(e);
             }
           }}
           className="dark-theme-input bg-gray-800 text-gray-200 border-gray-700"
@@ -96,21 +130,25 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
           }}
         />
       </div>
-      <List
-        dataSource={searchResults}
-        className="dark-theme-list max-h-96 overflow-y-auto"
-        renderItem={(item) => (
-          <List.Item
-            className="cursor-pointer hover:bg-gray-700 text-gray-200 border-gray-700"
-            onClick={() => handleSelectFile(item.path)}
-          >
-            <div className="flex flex-col">
-              <span className="text-white">{item.display}</span>
-              <span className="text-gray-400 text-sm">{item.path}</span>
-            </div>
-          </List.Item>
-        )}          
-      />
+      <div ref={listRef} className="dark-theme-list max-h-96 overflow-y-auto">
+        <List
+          dataSource={searchResults}
+          renderItem={(item, index) => (
+            <List.Item
+              data-index={index}
+              className={`cursor-pointer text-gray-200 border-gray-700 ${
+                selectedIndex === index ? 'bg-gray-700' : 'hover:bg-gray-700'
+              }`}
+              onClick={() => handleSelectFile(item.path)}
+            >
+              <div className="flex flex-col">
+                <span className="text-white">{item.display}</span>
+                <span className="text-gray-400 text-sm">{item.path}</span>
+              </div>
+            </List.Item>
+          )}          
+        />
+      </div>
     </Modal>
   );
 };
