@@ -1000,6 +1000,14 @@ export const messages: { [key: string]: Message } = {
   loadingProject: {
     en: "Loading project...",
     zh: "加载项目中..."
+  },
+  searchFilesAndSymbols: {
+    en: "Search Files and Symbols",
+    zh: "搜索文件和符号"
+  },
+  searchFilesAndSymbolsPlaceholder: {
+    en: "Enter file name or symbol to search...",
+    zh: "输入文件名或符号进行搜索..."
   }
 };
 
