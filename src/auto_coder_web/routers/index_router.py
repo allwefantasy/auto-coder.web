@@ -3,8 +3,32 @@ import json
 from threading import Thread
 import time as import_time
 from fastapi import APIRouter, HTTPException, Request, Depends
+from pydantic import BaseModel
+from typing import Optional, Any, Dict, Union
 from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
 from loguru import logger
+
+# 定义Pydantic模型
+class IndexBuildResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+
+class IndexStatusCompleted(BaseModel):
+    status: str = "completed"
+    result: Any
+    timestamp: float
+
+class IndexStatusError(BaseModel):
+    status: str = "error"
+    error: str
+    timestamp: float
+
+class IndexStatusUnknown(BaseModel):
+    status: str = "unknown"
+    message: str = "No index build status available"
+
+# 组合类型
+IndexStatus = Union[IndexStatusCompleted, IndexStatusError, IndexStatusUnknown]
 
 router = APIRouter()
 
@@ -46,12 +70,14 @@ async def build_index(project_path: str = Depends(get_project_path)):
                 project_path, ".auto-coder", "auto-coder.web", "index-status.json")
             os.makedirs(os.path.dirname(status_file), exist_ok=True)
 
+            # 使用Pydantic模型创建状态数据
+            status_data = IndexStatusCompleted(
+                result=result,
+                timestamp=import_time.time()
+            )
+
             with open(status_file, 'w') as f:
-                json.dump({
-                    "status": "completed",
-                    "result": result,
-                    "timestamp": import_time.time()
-                }, f)
+                f.write(status_data.model_dump_json())
 
         except Exception as e:
             logger.error(f"Error building index: {str(e)}")
@@ -61,12 +87,14 @@ async def build_index(project_path: str = Depends(get_project_path)):
                 project_path, ".auto-coder", "auto-coder.web", "index-status.json")
             os.makedirs(os.path.dirname(status_file), exist_ok=True)
 
+            # 使用Pydantic模型创建错误状态数据
+            status_data = IndexStatusError(
+                error=str(e),
+                timestamp=import_time.time()
+            )
+
             with open(status_file, 'w') as f:
-                json.dump({
-                    "status": "error",
-                    "error": str(e),
-                    "timestamp": import_time.time()
-                }, f)
+                f.write(status_data.model_dump_json())
 
     try:
         # 创建并启动线程
@@ -75,7 +103,10 @@ async def build_index(project_path: str = Depends(get_project_path)):
         thread.start()
 
         logger.info("Started index build in background thread")
-        return {"status": "started", "message": "Index build started in background"}
+        return IndexBuildResponse(
+            status="started", 
+            message="Index build started in background"
+        )
     except Exception as e:
         logger.error(f"Error starting index build thread: {str(e)}")
         raise HTTPException(
@@ -100,12 +131,18 @@ async def get_index_status(project_path: str = Depends(get_project_path)):
             project_path, ".auto-coder", "auto-coder.web", "index-status.json")
 
         if not os.path.exists(status_file):
-            return {"status": "unknown", "message": "No index build status available"}
+            return IndexStatusUnknown()
 
         with open(status_file, 'r') as f:
-            status_data = json.load(f)
-
-        return status_data
+            status_data_dict = json.load(f)
+        
+        # 根据状态类型返回相应的Pydantic模型
+        if status_data_dict["status"] == "completed":
+            return IndexStatusCompleted(**status_data_dict)
+        elif status_data_dict["status"] == "error":
+            return IndexStatusError(**status_data_dict)
+        else:
+            return IndexStatusUnknown()
     except Exception as e:
         logger.error(f"Error getting index status: {str(e)}")
         raise HTTPException(
