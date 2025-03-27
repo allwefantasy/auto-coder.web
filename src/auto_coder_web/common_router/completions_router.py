@@ -60,12 +60,14 @@ def find_files_in_project(patterns: List[str], project_path: str) -> List[str]:
                     if not any(
                         exclude_dir in abs_path.split(os.sep)
                         for exclude_dir in final_exclude_dirs
+                    ) and not any(
+                        dir.startswith('.') for dir in abs_path.split(os.sep)
                     ):
                         matched_files.append(abs_path)
         else:
             is_added = False
             for root, dirs, files in os.walk(project_root, followlinks=True):
-                dirs[:] = [d for d in dirs if d not in final_exclude_dirs]
+                dirs[:] = [d for d in dirs if d not in final_exclude_dirs and not d.startswith('.')]
                 if pattern in files:
                     matched_files.append(os.path.join(root, pattern))
                     is_added = True
