@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { message as AntdMessage, Modal, Input, Select, Button, Layout, Divider, Typography, Space, Dropdown, Menu, Tooltip } from 'antd';
 import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined, SaveOutlined } from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
+import ChatListDropdown from './ChatListDropdown';
 import './ChatPanel.css';
 import InputArea from './InputArea';
 import { getMessage } from './lang';
@@ -800,33 +801,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         </div>
         
         <div className="flex items-center space-x-1 flex-shrink-0">
-          <Dropdown 
-            menu={{ 
-              items: chatListMenuItems,
-              onClick: async ({ key }) => {
-                if (key === 'new-chat') {
-                  showNewChatModal();
-                } else {
-                  setChatListName(key);
-                  await loadChatList(key);
-                  // 当切换会话时，更新当前会话名称
-                  await setCurrentSessionName(key);
-                }
-              },
-              style: { backgroundColor: '#1F2937', borderColor: '#4B5563', color: '#FFFFFF' }
-            }} 
-            trigger={['click']}
-            placement="bottomRight"
-            arrow={{ pointAtCenter: true }}
-          >
-            <Tooltip title={chatListName || getChatTitle()}>
-              <Button 
-                icon={<MessageOutlined style={{ fontSize: '12px' }} />}
-                size="small" 
-                className={`flex items-center justify-center text-gray-300 border-gray-600 ${chatListName ? 'bg-indigo-600 hover:bg-indigo-700 border-indigo-500' : 'bg-gray-700 hover:bg-gray-600'} px-1 py-0 h-6 w-6`}
-              />
-            </Tooltip>
-          </Dropdown>
+          <ChatListDropdown
+            chatListName={chatListName}
+            chatLists={chatLists}
+            setChatListName={setChatListName}
+            loadChatList={loadChatList}
+            setCurrentSessionName={setCurrentSessionName}
+            showNewChatModal={showNewChatModal}
+            deleteChatList={deleteChatList}
+            getChatTitle={getChatTitle}
+          />
           
           <Tooltip title="保存当前对话">
             <Button 
