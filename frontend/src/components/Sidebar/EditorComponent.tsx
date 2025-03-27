@@ -435,7 +435,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 console.log(`添加符号到临时映射: ${item.path}`);
                 
                 return {
-                  label: item.display,
+                  label: item.name,
                   kind: monaco.languages.CompletionItemKind.Function,
                   insertText: item.name,
                   detail: "",
@@ -474,7 +474,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 console.log(`添加文件到临时映射: ${item.path}`);
                 
                 return {
-                  label: item.display,
+                  label: item.name,
                   kind: monaco.languages.CompletionItemKind.File,
                   insertText: item.path,
                   detail: "",

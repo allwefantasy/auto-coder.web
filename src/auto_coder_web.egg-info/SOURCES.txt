@@ -32,6 +32,7 @@ src/auto_coder_web/routers/chat_router.py
 src/auto_coder_web/routers/coding_router.py
 src/auto_coder_web/routers/commit_router.py
 src/auto_coder_web/routers/config_router.py
+src/auto_coder_web/routers/index_router.py
 src/auto_coder_web/routers/settings_router.py
 src/auto_coder_web/routers/todo_router.py
 src/auto_coder_web/web/asset-manifest.json
