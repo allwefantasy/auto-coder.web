@@ -191,13 +191,13 @@ const InputArea: React.FC<InputAreaProps> = ({
       <div className="px-0.5 pt-0">
         <div className="space-y-0">
           <div className="flex items-center justify-between">
+            <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
             <div className="flex items-center">
-              <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
               <Tooltip title={indexBuilding ? "Building index..." : "Build index"}>
                 <button 
                   onClick={buildIndex}
                   disabled={indexBuilding}
-                  className={`ml-1 p-0.5 rounded-md transition-all duration-200 
+                  className={`mr-1 p-0.5 rounded-md transition-all duration-200 
                     ${indexBuilding ? 'text-gray-500 cursor-not-allowed' : 'text-blue-500 hover:text-blue-400 hover:bg-gray-700'}`}
                 >
                   {indexBuilding ? (
@@ -209,21 +209,21 @@ const InputArea: React.FC<InputAreaProps> = ({
               </Tooltip>
               {indexStatus === 'completed' && (
                 <Tooltip title="Index built successfully">
-                  <span className="ml-1 text-green-500 text-xs">✓</span>
+                  <span className="mr-1 text-green-500 text-xs">✓</span>
                 </Tooltip>
               )}
               {indexStatus === 'error' && (
                 <Tooltip title="Index build failed">
-                  <span className="ml-1 text-red-500 text-xs">✗</span>
+                  <span className="mr-1 text-red-500 text-xs">✗</span>
                 </Tooltip>
               )}
-            </div>
-            <Switch
-              size="small"
-              checked={showConfig}
-              onChange={setShowConfig}
-              className="ml-0.5"
-            />             
+              <Switch
+                size="small"
+                checked={showConfig}
+                onChange={setShowConfig}
+                className="ml-0.5"
+              />
+            </div>           
           </div>
          
         </div>
