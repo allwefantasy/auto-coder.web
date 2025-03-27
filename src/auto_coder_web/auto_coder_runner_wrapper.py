@@ -50,7 +50,10 @@ class AutoCoderRunnerWrapper:
         return auto_command(command,params)
     
     def configure_wrapper(self,conf: str, skip_print=False ):
-        return configure(conf, skip_print)    
+        return configure(conf, skip_print)  
+
+    def build_index_wrapper(self):
+        return index_build()  
 
     def get_conf_wrapper(self):
         memory = get_memory()
