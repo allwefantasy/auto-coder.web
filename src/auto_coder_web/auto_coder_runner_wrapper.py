@@ -54,6 +54,9 @@ class AutoCoderRunnerWrapper:
 
     def build_index_wrapper(self):
         return index_build()  
+    
+    def query_index_wrapper(self,query: str):
+        return index_query(query)
 
     def get_conf_wrapper(self):
         memory = get_memory()
