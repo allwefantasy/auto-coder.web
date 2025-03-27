@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dropdown, Button, Tooltip, message as AntdMessage, Modal } from 'antd';
-import { MessageOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { MessageOutlined, PlusOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons';
 import { getMessage } from './lang';
 
 interface ChatListDropdownProps {
@@ -24,6 +24,9 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
   deleteChatList,
   getChatTitle
 }) => {
+  const [showAllChats, setShowAllChats] = useState(false);
+  const MAX_DEFAULT_CHATS = 10;
+  const MAX_TOTAL_CHATS = 100;
   const handleDeleteChat = async (name: string) => {
     Modal.confirm({
       title: '确认删除',
@@ -38,6 +41,14 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
     });
   };
 
+  // 决定显示哪些聊天记录
+  const visibleChatLists = showAllChats 
+    ? chatLists.slice(0, MAX_TOTAL_CHATS) 
+    : chatLists.slice(0, MAX_DEFAULT_CHATS);
+  
+  // 是否需要显示"更多"选项
+  const hasMoreChats = chatLists.length > MAX_DEFAULT_CHATS;
+
   const chatListMenuItems = [
     {
       key: 'new-chat',
@@ -48,8 +59,8 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
         </div>
       ),
     },
-    ...(chatLists.length > 0 ? [{ type: 'divider' as const }] : []),
-    ...chatLists.map(name => ({
+    ...(visibleChatLists.length > 0 ? [{ type: 'divider' as const }] : []),
+    ...visibleChatLists.map(name => ({
       key: name,
       label: (
         <div className={`flex justify-between items-center w-full group ${chatListName === name ? 'bg-indigo-700/40 rounded-sm' : ''}`}>
@@ -67,6 +78,29 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
         </div>
       ),
     })),
+    // 如果有更多聊天记录且当前未显示全部，则添加"更多"选项
+    ...(hasMoreChats && !showAllChats ? [
+      {
+        key: 'show-more',
+        label: (
+          <div className="flex items-center justify-center w-full text-gray-300 hover:text-white py-1 border-t border-gray-700 mt-1">
+            <DownOutlined className="mr-1" style={{ fontSize: '10px' }} />
+            <span>显示更多 ({Math.min(chatLists.length - MAX_DEFAULT_CHATS, MAX_TOTAL_CHATS - MAX_DEFAULT_CHATS)})</span>
+          </div>
+        ),
+      }
+    ] : []),
+    // 如果当前显示全部，则添加"收起"选项
+    ...(showAllChats && hasMoreChats ? [
+      {
+        key: 'show-less',
+        label: (
+          <div className="flex items-center justify-center w-full text-gray-300 hover:text-white py-1 border-t border-gray-700 mt-1">
+            <span>收起</span>
+          </div>
+        ),
+      }
+    ] : []),
   ];
 
   return (
@@ -76,6 +110,10 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
         onClick: async ({ key }) => {
           if (key === 'new-chat') {
             showNewChatModal();
+          } else if (key === 'show-more') {
+            setShowAllChats(true);
+          } else if (key === 'show-less') {
+            setShowAllChats(false);
           } else {
             setChatListName(key);
             await loadChatList(key);
