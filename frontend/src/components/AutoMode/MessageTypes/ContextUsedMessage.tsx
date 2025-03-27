@@ -11,8 +11,8 @@ interface ContextUsedMessageProps {
 }
 
 const ContextUsedMessage: React.FC<ContextUsedMessageProps> = ({ message }) => {
-    // Initialize collapsed state to true (collapsed by default)
-    const [isCollapsed, setIsCollapsed] = useState(true);
+    // Initialize collapsed state to false (expanded by default)
+    const [isCollapsed, setIsCollapsed] = useState(false);
     
     return (
         <div className="message-font">
@@ -36,49 +36,49 @@ const ContextUsedMessage: React.FC<ContextUsedMessageProps> = ({ message }) => {
                 
                 {/* Info icon */}
                 <span className="message-title-icon">
-                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                 </span>
                 
                 {/* Title */}
-                <span className="text-blue-400 message-title-text">{getMessage('contextUsed')}</span>
+                <span className="text-blue-400 message-title-text text-xs">{getMessage('contextUsed')}</span>
             </div>
 
             {/* Only show content when not collapsed */}
             {!isCollapsed && (
-                <div className="message-content-container">
+                <div className="message-content-container border border-gray-800">
                     {/* Title section */}
                     {message.metadata?.title && (
-                        <div className="px-3 py-2 bg-gray-800/50 border-b border-gray-700">
+                        <div className="px-2 py-1 bg-gray-800/50 border-b border-gray-800 text-sm">
                             <h3 className="text-white font-medium">{message.metadata?.title}</h3>
                         </div>
                     )}
 
                     {/* Files section */}
                     {message.metadata?.files && message.metadata.files.length > 0 && (
-                        <div className="px-3 py-2 bg-gray-800/30 border-b border-gray-700">
-                            <div className="text-gray-400 mb-1">{getMessage('filesReferenced')}:</div>
-                            <div className="flex flex-col gap-0.5 max-h-[150px] overflow-y-auto">
-                                {message.metadata.files.map((file: string, index: number) => (
-                                    <div key={index} className="flex items-center">
-                                        <svg className="w-2.5 h-2.5 mr-1 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                        </svg>
-                                        <div className="overflow-x-auto whitespace-nowrap" style={{ width: 'calc(100% - 1rem)', scrollbarWidth: 'thin' }}>
-                                            <span className="text-blue-300 font-mono">{file}</span>
+                        <div className="px-2 py-1 bg-gray-800/30 border-b border-gray-800">
+                            <div className="text-gray-400 mb-0.5 text-xs">{getMessage('filesReferenced')}:</div>
+                            <div className="overflow-x-auto" style={{ scrollbarWidth: 'thin' }}>
+                                <div className="flex flex-col gap-0.5 max-h-[120px] overflow-y-auto">
+                                    {message.metadata.files.map((file: string, index: number) => (
+                                        <div key={index} className="flex items-center">
+                                            <svg className="w-2 h-2 mr-1 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                            <span className="text-blue-300 font-mono whitespace-nowrap text-xs">{file}</span>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {/* Description section */}
-                    <div className="p-3 bg-gray-800/20">
+                    <div className="p-2 bg-gray-800/20">
                         <div className="prose prose-invert prose-xs max-w-none">
                             <ReactMarkdown
-                                className="text-gray-200 break-words"
+                                className="text-gray-200 break-words text-xs"
                                 components={{
                                     code: ({ className, children, ...props }: any) => {
                                         const match = /language-(\w+)/.exec(className || '');

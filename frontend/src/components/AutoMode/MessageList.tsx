@@ -42,8 +42,22 @@ interface MessageListProps {
 const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) => {
     // Function to filter and organize messages before rendering
     const filterMessages = (messages: MessageProps[]): MessageProps[] => {
-        // Filter out command_prepare_stat messages and any other messages we don't want to display        
-        return messages.filter(message => message.contentType !== 'command_prepare_stat');
+        if (messages.length === 0) return [];
+        
+        // Get all messages except the last one
+        const messagesWithoutLast = messages.slice(0, -1);
+        
+        // Get the last message
+        const lastMessage = messages[messages.length - 1];
+        
+        // Filter out command_prepare_stat messages and STREAM messages with code_generate type
+        const filteredMessages = messagesWithoutLast.filter(message => 
+            message.contentType !== 'command_prepare_stat' && 
+            !(message.type === "STREAM" && message.metadata?.stream_out_type === "code_generate")
+        );
+        
+        // Add the last message back to the filtered results
+        return [...filteredMessages, lastMessage];
     };
     // Function to render message content based on content type
     const renderMessageContent = (message: MessageProps) => {        

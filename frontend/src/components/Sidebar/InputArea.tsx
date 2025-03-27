@@ -91,24 +91,22 @@ const InputArea: React.FC<InputAreaProps> = ({
   return (
     <div className="bg-gray-800 border-t border-gray-700">
       {/* Configuration and Groups Section */}
-      <div className="px-1 pt-0.5">
-        <div className="space-y-0.5">
+      <div className="px-0.5 pt-0">
+        <div className="space-y-0">
           <div className="flex items-center justify-between">
             <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
             <Switch
               size="small"
               checked={showConfig}
               onChange={setShowConfig}
-              className="ml-2"
-            />
+              className="ml-0.5"
+            />             
           </div>
-          <div className="text-gray-400 text-[9px]">
-            {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize
-          </div>
+         
         </div>
 
         {showConfig && (
-          <div className="space-y-0.5 mb-0.5">
+          <div className="space-y-0 -mb-0.5">
             <div className="flex items-center justify-between">
               <Tooltip title={getMessage('skipBuildIndexTooltip')}>
                 <span className="text-gray-300 text-[10px]">{getMessage('skipBuildIndex')}</span>
@@ -121,7 +119,7 @@ const InputArea: React.FC<InputAreaProps> = ({
             </div>
 
             {/* Project Type - Changed to vertical layout */}
-            <div className="flex flex-col space-y-1">
+            <div className="flex flex-col space-y-0">
               <Tooltip title={getMessage('projectTypeTooltip')}>
                 <span className="text-gray-300 text-[10px]">{getMessage('projectType')}</span>
               </Tooltip>
@@ -140,11 +138,11 @@ const InputArea: React.FC<InputAreaProps> = ({
             </div>
 
             {/* Custom Configuration */}
-            <div className="space-y-1 mt-1">
+            <div className="space-y-0 mt-0">
               {/* Heading with Toggle Button */}
               <div className="flex items-center justify-between">
                 <span className="text-gray-300 text-[10px] font-medium">{getMessage('customConfig')}</span>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-0.5">
                   <button
                     onClick={() => setShowCustomConfig(!showCustomConfig)}
                     className="text-[10px] text-gray-400 hover:text-gray-300 focus:outline-none"
@@ -161,7 +159,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                           extra_conf: newExtraConf
                         }));
                       }}
-                      className="px-1.5 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                      className="px-0.5 py-0 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                     >
                       {getMessage('addConfig')}
                     </button>
@@ -171,9 +169,9 @@ const InputArea: React.FC<InputAreaProps> = ({
 
               {/* Config Items - Only shown when showCustomConfig is true */}
               {showCustomConfig && (
-                <div className="space-y-1">
+                <div className="space-y-0">
                   {Object.entries(config.extra_conf).map(([key, value], index) => (
-                    <div key={index} className="flex items-center space-x-2">
+                    <div key={index} className="flex items-center space-x-0.5">
                       <Select
                         showSearch
                         size="small"
@@ -223,7 +221,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                             updateConfig(key, config.extra_conf[key]);
                           }
                         }}
-                        className="flex-1 bg-gray-700 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                        className="flex-1 bg-gray-700 text-white text-xs rounded px-0.5 py-0 border border-gray-600 focus:border-blue-500 focus:outline-none"
                         placeholder="Value"
                       />
                       <button
@@ -250,9 +248,9 @@ const InputArea: React.FC<InputAreaProps> = ({
                             AntdMessage.error('Failed to delete configuration');
                           }
                         }}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        className="p-0 text-gray-400 hover:text-red-500 transition-colors"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
@@ -275,8 +273,8 @@ const InputArea: React.FC<InputAreaProps> = ({
       </div>
 
       {/* Message Input */}
-      <div className={`p-4 flex flex-col space-y-2 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}>
-        <div className="flex-1 min-h-[120px] h-full">
+      <div className={`px-1 py-0.5 flex flex-col space-y-0.5 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}>
+        <div className="flex-1 min-h-[80px] h-full">
           <EditorComponent
             isMaximized={isMaximized}
             onEditorDidMount={handleEditorDidMount}
@@ -285,14 +283,14 @@ const InputArea: React.FC<InputAreaProps> = ({
             onMentionMapChange={handleMentionMapChange}
           />
         </div>
-        <div className="flex flex-col mt-1 gap-1">
+        <div className="flex flex-col mt-0 gap-0">
           {/* Bottom Actions Container */}
-          <div className="space-y-2 bg-gray-850 p-2 rounded-lg shadow-inner border border-gray-700/50">
+          <div className="space-y-0 bg-gray-850 p-0.5 rounded-lg shadow-inner border border-gray-700/50">
             {/* Mode and Shortcuts Row */}
-            <div className="flex items-center justify-between px-0.5">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-between px-0">
+              <div className="flex items-center space-x-0.5">
                 {/* Mode Switch with Label */}
-                <span className="text-[10px] font-medium text-gray-400">Mode:</span>
+                <span className="text-[9px] font-medium text-gray-400">Mode:</span>
                 <Switch
                   size="small"
                   checked={isWriteMode}
@@ -302,15 +300,18 @@ const InputArea: React.FC<InputAreaProps> = ({
                   className="bg-gray-700 hover:bg-gray-600"
                 />
                 {/* Keyboard Shortcut */}
-                <kbd className="px-1 py-0.5 ml-3 text-[10px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
+                <kbd className="px-0.5 py-0 ml-1 text-[8px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
                   {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
-                </kbd>
-                <span className="text-[10px] text-gray-500 inline-flex items-center">to send</span>
+                </kbd>                
+                <span className="text-[8px] text-gray-500 inline-flex items-center">to send</span>
+                <div className="text-gray-400 text-[8px]">
+                    /{navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize
+                </div>
               </div>
               
               {/* Send Button (moved from Actions Row) */}
               <button
-                className={`p-2 rounded-md transition-all duration-200
+                className={`p-0.5 rounded-md transition-all duration-200
                   focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
                   ${sendLoading 
                     ? 'text-gray-400 hover:text-gray-300' 
@@ -324,19 +325,19 @@ const InputArea: React.FC<InputAreaProps> = ({
                   {sendLoading ? (
                     <div className="relative">
                       {isCancelling ? (
-                        <svg className="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                       ) : (
-                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       )}
                     </div>
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" 
-                         className="h-5 w-5 transform rotate-45" 
+                         className="h-3.5 w-3.5 transform rotate-45" 
                          fill="none" 
                          viewBox="0 0 24 24" 
                          stroke="currentColor">
