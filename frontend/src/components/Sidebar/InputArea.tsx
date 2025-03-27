@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Switch, Select, Tooltip, message as AntdMessage } from 'antd';
-import { UndoOutlined } from '@ant-design/icons';
+import { Switch, Select, Tooltip, message as AntdMessage, Spin } from 'antd';
+import { UndoOutlined, BuildOutlined, LoadingOutlined } from '@ant-design/icons';
 import EditorComponent from './EditorComponent';
 import { getMessage } from './lang';
 import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
@@ -54,8 +54,13 @@ const InputArea: React.FC<InputAreaProps> = ({
 }) => {
   const [mentionItems, setMentionItems] = useState<EnhancedCompletionItem[]>([]);
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
+  const [indexBuilding, setIndexBuilding] = useState<boolean>(false);
+  const [indexStatus, setIndexStatus] = useState<string>('');
 
   useEffect(() => {
+    // Check index status on component mount
+    checkIndexStatus();
+    
     const handleTaskComplete = () => {
       setIsCancelling(false);
     };
@@ -88,13 +93,131 @@ const InputArea: React.FC<InputAreaProps> = ({
     setMentionItems(items);
   };
 
+  // Function to build index
+  const buildIndex = async () => {
+    if (indexBuilding) return;
+    
+    try {
+      setIndexBuilding(true);
+      setIndexStatus('starting');
+      
+      const response = await fetch('/api/index/build', {
+        method: 'POST',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to build index: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setIndexStatus('building');
+      AntdMessage.success('Index build started');
+      
+      // Start polling for status
+      pollIndexStatus();
+    } catch (error) {
+      console.error('Error building index:', error);
+      AntdMessage.error('Failed to build index');
+      setIndexBuilding(false);
+      setIndexStatus('error');
+    }
+  };
+
+  // Function to check index status
+  const checkIndexStatus = async () => {
+    try {
+      const response = await fetch('/api/index/status');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to get index status: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 'completed') {
+        setIndexBuilding(false);
+        setIndexStatus('completed');
+      } else if (data.status === 'error') {
+        setIndexBuilding(false);
+        setIndexStatus('error');
+      } else if (data.status === 'unknown') {
+        setIndexBuilding(false);
+        setIndexStatus('');
+      }
+    } catch (error) {
+      console.error('Error checking index status:', error);
+      setIndexBuilding(false);
+    }
+  };
+
+  // Function to poll index status
+  const pollIndexStatus = () => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch('/api/index/status');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to get index status: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.status === 'completed') {
+          setIndexBuilding(false);
+          setIndexStatus('completed');
+          AntdMessage.success('Index build completed');
+          clearInterval(interval);
+        } else if (data.status === 'error') {
+          setIndexBuilding(false);
+          setIndexStatus('error');
+          AntdMessage.error(`Index build failed: ${data.error}`);
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error('Error polling index status:', error);
+        setIndexBuilding(false);
+        setIndexStatus('error');
+        clearInterval(interval);
+      }
+    }, 2000); // Poll every 2 seconds
+
+    // Clean up interval on component unmount
+    return () => clearInterval(interval);
+  };
+
   return (
     <div className="bg-gray-800 border-t border-gray-700">
       {/* Configuration and Groups Section */}
       <div className="px-0.5 pt-0">
         <div className="space-y-0">
           <div className="flex items-center justify-between">
-            <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
+            <div className="flex items-center">
+              <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
+              <Tooltip title={indexBuilding ? "Building index..." : "Build index"}>
+                <button 
+                  onClick={buildIndex}
+                  disabled={indexBuilding}
+                  className={`ml-1 p-0.5 rounded-md transition-all duration-200 
+                    ${indexBuilding ? 'text-gray-500 cursor-not-allowed' : 'text-blue-500 hover:text-blue-400 hover:bg-gray-700'}`}
+                >
+                  {indexBuilding ? (
+                    <Spin indicator={<LoadingOutlined style={{ fontSize: 14 }} spin />} />
+                  ) : (
+                    <BuildOutlined style={{ fontSize: 14 }} />
+                  )}
+                </button>
+              </Tooltip>
+              {indexStatus === 'completed' && (
+                <Tooltip title="Index built successfully">
+                  <span className="ml-1 text-green-500 text-xs">✓</span>
+                </Tooltip>
+              )}
+              {indexStatus === 'error' && (
+                <Tooltip title="Index build failed">
+                  <span className="ml-1 text-red-500 text-xs">✗</span>
+                </Tooltip>
+              )}
+            </div>
             <Switch
               size="small"
               checked={showConfig}

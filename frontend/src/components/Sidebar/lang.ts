@@ -1008,6 +1008,22 @@ export const messages: { [key: string]: Message } = {
   searchFilesAndSymbolsPlaceholder: {
     en: "Enter file name or symbol to search...",
     zh: "输入文件名或符号进行搜索..."
+  },
+  buildIndex: {
+    en: "Build Index",
+    zh: "构建索引"
+  },
+  buildingIndex: {
+    en: "Building Index...",
+    zh: "构建索引中..."
+  },
+  indexBuildSuccess: {
+    en: "Index built successfully",
+    zh: "索引构建成功"
+  },
+  indexBuildFailed: {
+    en: "Index build failed",
+    zh: "索引构建失败"
   }
 };
 
