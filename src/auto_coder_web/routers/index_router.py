@@ -181,8 +181,8 @@ async def query_index(query: str, project_path: str = Depends(get_project_path))
         if hasattr(result, 'sources'):
             sources = [
                 SourceCode(
-                    module_name=source.module_name,
-                    source_code=source.source_code,
+                    module_name=os.path.relpath(source.module_name, project_path),
+                    source_code="",
                     tag=source.tag if hasattr(source, 'tag') else "",
                     tokens=source.tokens if hasattr(source, 'tokens') else -1,
                     metadata=source.metadata if hasattr(source, 'metadata') else {}
