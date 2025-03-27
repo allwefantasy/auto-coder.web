@@ -14,7 +14,8 @@ import {
     SummaryMessage,
     ContextAwareMessage,
     CodeGenerateMessage,
-    CodeRankMessage
+    CodeRankMessage,
+    CodeLintMessage
 } from './MessageTypes';
 
 
@@ -75,6 +76,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         // 代码生成结果的展示
         if (message.metadata?.stream_out_type === "code_generate") {
             return <CodeGenerateMessage message={message} />;
+        }
+
+        // 代码lint结果的展示
+        if (message.metadata?.stream_out_type === "lint") {
+            return <CodeLintMessage message={message} />;
         }
 
         if (message.metadata?.stream_out_type === "code_rank") {

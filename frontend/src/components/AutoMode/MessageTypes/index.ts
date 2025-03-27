@@ -12,3 +12,4 @@ export { default as SummaryMessage } from './SummaryMessage';
 export { default as ContextAwareMessage } from './ContextAwareMessage';
 export { default as CodeGenerateMessage } from './CodeGenerateMessage';
 export { default as CodeRankMessage } from './CodeRankMessage';
+export { default as CodeLintMessage } from './CodeLintMessage';
