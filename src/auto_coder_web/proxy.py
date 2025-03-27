@@ -16,12 +16,12 @@ import argparse
 import aiofiles
 import pkg_resources
 import sys
-from .terminal import terminal_manager
+from auto_coder_web.terminal import terminal_manager
 from autocoder.common import AutoCoderArgs
 from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
-from .routers import todo_router, settings_router, auto_router, commit_router, chat_router, coding_router
-from .expert_routers import history_router
-from .common_router import completions_router, file_router, auto_coder_conf_router, chat_list_router, file_group_router, model_router
+from auto_coder_web.routers import todo_router, settings_router, auto_router, commit_router, chat_router, coding_router
+from auto_coder_web.expert_routers import history_router
+from auto_coder_web.common_router import completions_router, file_router, auto_coder_conf_router, chat_list_router, file_group_router, model_router
 from rich.console import Console
 from loguru import logger
 from auto_coder_web.lang import get_message
