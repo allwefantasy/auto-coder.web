@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Modal, Input, List } from 'antd';
+import { Modal, Input, List, Button } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { getMessage } from './Sidebar/lang';
 
 interface FileSearchProps {
@@ -12,6 +13,8 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{name: string, path: string, display: string}>>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSmartSearch, setShowSmartSearch] = useState(false);
   const searchInputRef = useRef<any>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -19,17 +22,53 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
     if (!term) {
       setSearchResults([]);
       setSelectedIndex(-1);
+      setShowSmartSearch(false);
       return;
     }
     try {
+      setIsLoading(true);
       const response = await fetch(`/api/completions/files?name=${encodeURIComponent(term)}`);
       const data = await response.json();
       setSearchResults(data.completions);
       setSelectedIndex(data.completions.length > 0 ? 0 : -1);
+      setShowSmartSearch(data.completions.length === 0);
     } catch (error) {
       console.error('Error fetching file completions:', error);
+      setShowSmartSearch(true);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
+
+  const handleSmartSearch = async () => {
+    if (!searchTerm) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/index/query?query=${encodeURIComponent(searchTerm)}`);
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // 将索引搜索结果转换为文件搜索结果格式
+      const formattedResults = data.sources.map((source: any) => ({
+        name: source.module_name.split('/').pop() || source.module_name,
+        path: source.module_name,
+        display: source.module_name
+      }));
+      
+      setSearchResults(formattedResults);
+      setSelectedIndex(formattedResults.length > 0 ? 0 : -1);
+      setShowSmartSearch(false);
+    } catch (error) {
+      console.error('Error performing smart search:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSelectFile = (path: string) => {
     onSelectFile(path);
@@ -40,6 +79,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
     setSearchTerm('');
     setSearchResults([]);
     setSelectedIndex(-1);
+    setShowSmartSearch(false);
     onClose();
   };
 
@@ -131,23 +171,42 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
         />
       </div>
       <div ref={listRef} className="dark-theme-list max-h-96 overflow-y-auto">
-        <List
-          dataSource={searchResults}
-          renderItem={(item, index) => (
-            <List.Item
-              data-index={index}
-              className={`cursor-pointer text-gray-200 border-gray-700 ${
-                selectedIndex === index ? 'bg-gray-700' : 'hover:bg-gray-700'
-              }`}
-              onClick={() => handleSelectFile(item.path)}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-4 text-gray-400">
+            Loading...
+          </div>
+        ) : showSmartSearch ? (
+          <div className="flex flex-col items-center py-4">
+            <p className="text-gray-400 mb-3">No exact matches found. Try smart search?</p>
+            <Button 
+              type="primary" 
+              icon={<SearchOutlined />} 
+              onClick={handleSmartSearch}
+              className="bg-blue-600 hover:bg-blue-700 border-blue-600"
             >
-              <div className="flex flex-col">
-                <span className="text-white">{item.display}</span>
-                <span className="text-gray-400 text-sm">{item.path}</span>
-              </div>
-            </List.Item>
-          )}          
-        />
+              Smart Search
+            </Button>
+          </div>
+        ) : (
+          <List
+            dataSource={searchResults}
+            renderItem={(item, index) => (
+              <List.Item
+                data-index={index}
+                className={`cursor-pointer text-gray-200 border-gray-700 ${
+                  selectedIndex === index ? 'bg-gray-700' : 'hover:bg-gray-700'
+                }`}
+                onClick={() => handleSelectFile(item.path)}
+              >
+                <div className="flex flex-col">
+                  <span className="text-white">{item.display}</span>
+                  <span className="text-gray-400 text-sm">{item.path}</span>
+                </div>
+              </List.Item>
+            )}
+            locale={{ emptyText: 'No results found' }}
+          />
+        )}
       </div>
     </Modal>
   );

@@ -4,7 +4,7 @@ from threading import Thread
 import time as import_time
 from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
-from typing import Optional, Any, Dict, Union
+from typing import Optional, Any, Dict, Union, List
 from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
 from loguru import logger
 
@@ -26,6 +26,16 @@ class IndexStatusError(BaseModel):
 class IndexStatusUnknown(BaseModel):
     status: str = "unknown"
     message: str = "No index build status available"
+
+class SourceCode(BaseModel):
+    module_name: str
+    source_code: str
+    tag: str = ""
+    tokens: int = -1
+    metadata: Dict[str, Any] = {}
+
+class SourceCodeListResponse(BaseModel):
+    sources: List[SourceCode]
 
 # 组合类型
 IndexStatus = Union[IndexStatusCompleted, IndexStatusError, IndexStatusUnknown]
@@ -147,3 +157,45 @@ async def get_index_status(project_path: str = Depends(get_project_path)):
         logger.error(f"Error getting index status: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"Failed to get index status: {str(e)}")
+
+
+@router.get("/api/index/query", response_model=SourceCodeListResponse)
+async def query_index(query: str, project_path: str = Depends(get_project_path)):
+    """
+    智能搜索项目文件
+    
+    使用索引查询相关文件
+    
+    Args:
+        query: 搜索查询
+        project_path: 项目路径
+        
+    Returns:
+        匹配的源代码文件列表
+    """
+    try:
+        wrapper = AutoCoderRunnerWrapper(project_path)
+        result = wrapper.query_index_wrapper(query)
+        
+        # 将结果转换为SourceCodeListResponse格式
+        if hasattr(result, 'sources'):
+            sources = [
+                SourceCode(
+                    module_name=source.module_name,
+                    source_code=source.source_code,
+                    tag=source.tag if hasattr(source, 'tag') else "",
+                    tokens=source.tokens if hasattr(source, 'tokens') else -1,
+                    metadata=source.metadata if hasattr(source, 'metadata') else {}
+                )
+                for source in result.sources
+            ]
+            return SourceCodeListResponse(sources=sources)
+        else:
+            # 如果结果不是预期的格式，返回空列表
+            logger.warning(f"Unexpected result format from query_index_wrapper: {type(result)}")
+            return SourceCodeListResponse(sources=[])
+            
+    except Exception as e:
+        logger.error(f"Error querying index: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to query index: {str(e)}")
