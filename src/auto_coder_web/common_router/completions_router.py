@@ -35,7 +35,7 @@ async def get_project_path(request: Request):
 
 def find_files_in_project(patterns: List[str], project_path: str) -> List[str]:
     memory = get_memory()
-    default_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__",".venv"]
+    default_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__",".venv",".auto-coder"]
     active_file_list = memory["current_files"]["files"]
 
     project_root = project_path
@@ -60,14 +60,14 @@ def find_files_in_project(patterns: List[str], project_path: str) -> List[str]:
                     if not any(
                         exclude_dir in abs_path.split(os.sep)
                         for exclude_dir in final_exclude_dirs
-                    ) and not any(
+                    ) or not any(
                         dir.startswith('.') for dir in abs_path.split(os.sep)
                     ):
                         matched_files.append(abs_path)
         else:
             is_added = False
             for root, dirs, files in os.walk(project_root, followlinks=True):
-                dirs[:] = [d for d in dirs if d not in final_exclude_dirs and not d.startswith('.')]
+                dirs[:] = [d for d in dirs if d not in final_exclude_dirs or not d.startswith('.')]
                 if pattern in files:
                     matched_files.append(os.path.join(root, pattern))
                     is_added = True
