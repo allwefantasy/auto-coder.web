@@ -26,13 +26,27 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
     }
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/completions/files?name=${encodeURIComponent(term)}`);
-      const data = await response.json();
-      setSearchResults(data.completions);
-      setSelectedIndex(data.completions.length > 0 ? 0 : -1);
-      setShowSmartSearch(data.completions.length === 0);
+      
+      // 并行获取文件和符号搜索结果
+      const [fileResponse, symbolResponse] = await Promise.all([
+        fetch(`/api/completions/files?name=${encodeURIComponent(term)}`),
+        fetch(`/api/completions/symbols?name=${encodeURIComponent(term)}`)
+      ]);
+      
+      const fileData = await fileResponse.json();
+      const symbolData = await symbolResponse.json();
+      
+      // 合并文件和符号搜索结果
+      const combinedResults = [
+        ...fileData.completions,
+        ...symbolData.completions
+      ];
+      
+      setSearchResults(combinedResults);
+      setSelectedIndex(combinedResults.length > 0 ? 0 : -1);
+      setShowSmartSearch(combinedResults.length === 0);
     } catch (error) {
-      console.error('Error fetching file completions:', error);
+      console.error('Error fetching completions:', error);
       setShowSmartSearch(true);
     } finally {
       setIsLoading(false);
@@ -121,7 +135,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
 
   return (
     <Modal
-      title={getMessage('searchFiles')}
+      title={getMessage('searchFilesAndSymbols')}
       open={isOpen}
       onCancel={handleClose}
       footer={null}
@@ -148,7 +162,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
         <Input
           ref={searchInputRef}
           autoFocus
-          placeholder={getMessage('searchFilesPlaceholder')}
+          placeholder={getMessage('searchFilesAndSymbolsPlaceholder')}
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -197,10 +211,13 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
                 }`}
                 onClick={() => handleSelectFile(item.path)}
               >
-                <div className="flex flex-col">
-                  <span className="text-white">{item.display}</span>
-                  <span className="text-gray-400 text-sm">{item.path}</span>
-                </div>
+              <div className="flex flex-col">
+                <span className="text-white">{item.display}</span>
+                <span className="text-gray-400 text-sm">
+                  {item.path}
+                  {item.name !== item.path && ` (${item.name})`}
+                </span>
+              </div>
               </List.Item>
             )}
             locale={{ emptyText: 'No results found' }}
