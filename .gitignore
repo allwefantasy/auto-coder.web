@@ -12,3 +12,7 @@ events/
 ref_repos
 /node_modules
 /*.egg-info/
+.auto-coder/
+/actions/
+/output.txt
+src/auto_coder_web.egg-info
