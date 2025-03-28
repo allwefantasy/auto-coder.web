@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { message as AntdMessage, Modal, Input, Select, Button, Layout, Divider, Typography, Space, Dropdown, Menu, Tooltip } from 'antd';
-import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined, SaveOutlined } from '@ant-design/icons';
+import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined, SaveOutlined, ExpandOutlined, ShrinkOutlined } from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
 import ChatListDropdown from './ChatListDropdown';
 import './ChatPanel.css';
@@ -805,9 +805,25 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   return (
     <>
-    <Layout className="h-screen flex flex-col overflow-hidden">
-      {/* 头部导航栏 */}
-      <Layout.Header className="bg-gray-800 px-2 py-0.5 h-8 flex justify-between items-center border-b border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-10">
+    <>
+      {isMaximized ? (
+        <Modal
+          title={getChatTitle()}
+          open={isMaximized}
+          onCancel={() => setIsMaximized(false)}
+          footer={null}
+          width="90vw"
+          bodyStyle={{ height: '80vh', padding: 0 }}
+          className="maximized-chat-modal"
+        >
+          <div className="h-full flex flex-col">
+            {renderChatContent()}
+          </div>
+        </Modal>
+      ) : (
+        <Layout className="h-screen flex flex-col overflow-hidden">
+          {/* 头部导航栏 */}
+          <Layout.Header className="bg-gray-800 px-2 py-0.5 h-8 flex justify-between items-center border-b border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-10">
         <div className="flex items-center space-x-2 flex-1 min-w-0 overflow-hidden">
           <div className="flex items-center flex-shrink-0">
             <svg className="w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -861,6 +877,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             <Button 
               icon={<SettingOutlined style={{ fontSize: '10px' }} />} 
               onClick={() => setShowConfig(!showConfig)}
+              className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
+              size="small"
+            />
+          </Tooltip>
+          
+          <Tooltip title={isMaximized ? getMessage('restorePanel') : getMessage('maximizePanel')}>
+            <Button 
+              icon={isMaximized ? <ShrinkOutlined style={{ fontSize: '10px' }} /> : <ExpandOutlined style={{ fontSize: '10px' }} />} 
+              onClick={() => setIsMaximized(!isMaximized)}
               className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
               size="small"
             />
@@ -1023,5 +1048,108 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     </>
   );
 };
+
+const renderChatContent = () => (
+  <>
+    {/* 消息列表区域 */}
+    <Layout.Content className="flex-1 overflow-hidden flex flex-col">
+      <div 
+        className="flex-1 overflow-y-auto bg-gray-900 p-2 transition-all duration-300" 
+        id="chat-messages-container"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0)',
+          backgroundSize: '20px 20px'
+        }}
+      >
+        {/* Token统计组件 */}
+        {messages.length > 0 && (
+          <div className="sticky top-0 right-0 float-right bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-md p-2 m-1 shadow-md z-10">
+            <div className="font-mono text-xs text-gray-400 flex flex-col items-end gap-1 text-[11px]">
+              <div className="flex items-center">
+                <span>{getMessage('tokens')}: </span>
+                <span className="text-green-500 ml-1">↑ {accumulatedStats.inputTokens}</span>
+                <span className="text-red-500 ml-1">↓ {accumulatedStats.outputTokens}</span>
+              </div>
+              {(accumulatedStats.cacheHits > 0 || accumulatedStats.cacheMisses > 0) && (
+                <div className="flex items-center">
+                  <span>{getMessage('cache')}: </span>
+                  <span className="text-white ml-1">⊕ {accumulatedStats.cacheHits}</span>
+                  <span className="text-white ml-1">→ {accumulatedStats.cacheMisses}</span>
+                </div>
+              )}
+              <div className="flex items-center">
+                <span>{getMessage('apiCost')}: </span>
+                <span className="text-white ml-1">${accumulatedStats.totalCost.toFixed(5)}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-gray-400 animate-fade-in">
+            <MessageOutlined style={{ fontSize: '36px', marginBottom: '10px', opacity: 0.5 }} />
+            <Typography.Title level={5} className="text-gray-300 mb-1">
+              开始一个新的对话
+            </Typography.Title>
+            <Typography.Text className="text-gray-400 text-center max-w-md text-xs">
+              有任何问题都可以在下方输入，我会尽力帮助您。
+            </Typography.Text>
+          </div>
+        ) : (
+          <div className="space-y-4 animate-fade-in">
+            <MessageList
+              messages={getAutoModeMessages()}
+              onUserResponse={async (response, eventId) => {
+                if (eventId && pendingResponseEvent) {
+                  const { requestId, eventData } = pendingResponseEvent;
+                  await fetch('/api/event/response', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      request_id: requestId,
+                      event: eventData,
+                      response: JSON.stringify({ "value": response })
+                    })
+                  });
+                  setPendingResponseEvent(null);
+                }
+              }}
+            />
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+      
+      {/* 输入区域 */}
+      <div className="border-t border-gray-700 bg-gray-800 transition-all duration-300 shadow-inner">
+        <InputArea
+          showConfig={showConfig}
+          setShowConfig={setShowConfig}
+          config={config}
+          updateConfig={updateConfig}
+          fileGroups={fileGroups}
+          selectedGroups={selectedGroups}
+          setSelectedGroups={setSelectedGroups}
+          fetchFileGroups={fetchFileGroups}
+          isMaximized={isMaximized}
+          setIsMaximized={setIsMaximized}
+          handleEditorDidMount={handleEditorDidMount}
+          setShouldSendMessage={setShouldSendMessage}
+          isWriteMode={isWriteMode}
+          setIsWriteMode={setIsWriteMode}
+          handleRevert={handleRevert}
+          handleSendMessage={handleSendMessage}
+          handleStopGeneration={handleStopGeneration}
+          sendLoading={sendLoading}
+          setConfig={setConfig}
+          isFullScreen={isMaximized}
+          showFileGroupSelect={true}
+        />
+      </div>
+    </Layout.Content>
+  </>
+);
 
 export default ChatPanel;

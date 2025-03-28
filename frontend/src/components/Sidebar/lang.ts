@@ -960,6 +960,14 @@ export const messages: { [key: string]: Message } = {
     en: "Generation stopped",
     zh: "生成已停止"
   },
+  maximizePanel: {
+    en: "Maximize Panel",
+    zh: "最大化面板"
+  },
+  restorePanel: {
+    en: "Restore Panel",
+    zh: "恢复面板"
+  },
   // Initialization page keys
   initializeProject: {
     en: "Initialize Project",
