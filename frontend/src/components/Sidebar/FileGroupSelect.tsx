@@ -120,47 +120,23 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
 
   // 处理键盘导航
   const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    // 处理所有键盘事件，无论下拉菜单是否打开
+    // 只有当下拉菜单打开时才处理键盘事件
+    if (!dropdownVisible) return;
+    
     switch (e.key) {
       case 'ArrowDown':
-        // 打开下拉菜单并移动到第一个选项
-        if (!dropdownVisible) {
-          setDropdownVisible(true);
-        }
-        // 阻止默认行为，让 antd Select 处理选项导航
-        e.preventDefault();
-        break;
       case 'ArrowUp':
-        // 打开下拉菜单并移动到最后一个选项
-        if (!dropdownVisible) {
-          setDropdownVisible(true);
-        }
-        // 阻止默认行为，让 antd Select 处理选项导航
-        e.preventDefault();
+      case 'Enter':
+        // 这些键已经被 antd Select 处理，不需要额外处理
         break;
       case 'ArrowLeft':
       case 'ArrowRight':
-        // 如果下拉菜单打开，阻止默认行为，防止光标移动
-        if (dropdownVisible) {
-          e.preventDefault();
-        }
-        break;
-      case 'Enter':
-        // 如果下拉菜单打开，让 antd Select 处理选择
-        // 默认行为已经是选择当前高亮的选项
+        // 阻止默认行为，防止光标移动
+        e.preventDefault();
         break;
       case 'Escape':
         // 关闭下拉菜单
-        if (dropdownVisible) {
-          setDropdownVisible(false);
-          e.preventDefault();
-        }
-        break;
-      case 'Tab':
-        // 如果下拉菜单打开，关闭它
-        if (dropdownVisible) {
-          setDropdownVisible(false);
-        }
+        setDropdownVisible(false);
         break;
     }
   };
@@ -193,24 +169,6 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         open={dropdownVisible}
         onDropdownVisibleChange={setDropdownVisible}
         onKeyDown={handleKeyDown}
-        dropdownRender={(menu) => (
-          <div
-            onKeyDown={(e) => {
-              // 在下拉菜单中处理键盘事件
-              if (e.key === 'Escape') {
-                setDropdownVisible(false);
-                e.preventDefault();
-                e.stopPropagation();
-                // 将焦点返回到输入框
-                if (selectRef.current) {
-                  selectRef.current.focus();
-                }
-              }
-            }}
-          >
-            {menu}
-          </div>
-        )}
         onSearch={(value) => {
           setSearchText(value);
           fetchFileCompletions(value);
