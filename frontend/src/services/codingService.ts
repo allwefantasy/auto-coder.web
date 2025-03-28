@@ -16,7 +16,9 @@ import {
   ResultContextUsedContent, 
   CodeContent, 
   MarkdownContent, 
-  ResultSummaryContent 
+  ResultSummaryContent,
+  IndexBuildStartContent,
+  IndexBuildEndContent 
 } from '../components/AutoMode/types';
 
 class CodingService extends EventEmitter {
@@ -221,6 +223,28 @@ class CodingService extends EventEmitter {
       // Handle ResultSummaryContent
       contentType = 'summary';
       messageContent = content.content.summary;
+    } else if (this.isIndexBuildStartContent(content.content)) {
+      // Handle IndexBuildStartContent
+      contentType = 'index_build_start';
+      messageContent = `Processing files: ${content.content.file_number}/${content.content.total_files}`;
+      metadata = {
+        ...metadata,
+        file_number: content.content.file_number,
+        total_files: content.content.total_files
+      };
+    } else if (this.isIndexBuildEndContent(content.content)) {
+      // Handle IndexBuildEndContent
+      contentType = 'index_build_end';
+      messageContent = `Index build completed: Updated ${content.content.updated_files} files, Removed ${content.content.removed_files} files`;
+      metadata = {
+        ...metadata,
+        updated_files: content.content.updated_files,
+        removed_files: content.content.removed_files,
+        input_tokens: content.content.input_tokens,
+        output_tokens: content.content.output_tokens,
+        input_cost: content.content.input_cost,
+        output_cost: content.content.output_cost
+      };
     } else if (this.isCommandPrepareStatContent(content.content)) {
       // Handle ResultCommandPrepareStatContent
       contentType = 'command_prepare_stat';
@@ -290,6 +314,22 @@ class CodingService extends EventEmitter {
     return content &&
       typeof content.command === 'string' &&
       typeof content.content === 'string';
+  }
+
+  // Type guard for IndexBuildStartContent
+  private isIndexBuildStartContent(content: any): content is IndexBuildStartContent {
+    return content &&
+      typeof content.file_number === 'number' &&
+      typeof content.total_files === 'number';
+  }
+
+  // Type guard for IndexBuildEndContent
+  private isIndexBuildEndContent(content: any): content is IndexBuildEndContent {
+    return content &&
+      typeof content.updated_files === 'number' &&
+      typeof content.removed_files === 'number' &&
+      typeof content.input_tokens === 'number' &&
+      typeof content.output_tokens === 'number';
   }
 
   private isContextUsedContent(content: any): content is ResultContextUsedContent {

@@ -14,7 +14,7 @@ export interface BaseEventContent {
   
   // Result content interface
   export interface ResultContent extends BaseEventContent {
-    content: string | ResultSummaryContent | ResultTokenStatContent | ResultCommandPrepareStatContent | ResultCommandExecuteStatContent | ResultContextUsedContent | any;
+    content: string | ResultSummaryContent | ResultTokenStatContent | ResultCommandPrepareStatContent | ResultCommandExecuteStatContent | ResultContextUsedContent | IndexBuildStartContent | IndexBuildEndContent | any;
     content_type: string;
     metadata?: Record<string, any>;
   }
@@ -34,6 +34,22 @@ export interface BaseEventContent {
     input_cost: number;
     output_cost: number;
     speed: number;
+  }
+  
+  // Index build start content
+  export interface IndexBuildStartContent {
+    file_number: number;
+    total_files: number;
+  }
+  
+  // Index build end content
+  export interface IndexBuildEndContent {
+    updated_files: number;
+    removed_files: number;
+    input_tokens: number;
+    output_tokens: number;
+    input_cost: number;
+    output_cost: number;
   }
   
   // Command preparation statistics content

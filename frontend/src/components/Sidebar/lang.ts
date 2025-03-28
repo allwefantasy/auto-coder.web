@@ -1200,6 +1200,23 @@ export const messages: { [key: string]: Message } = {
   lintResults: {
     en: "Lint Results",
     zh: "代码检查结果"
+  },
+  // Index build related messages
+  indexingFiles: {
+    en: "Preparing to build index files(files will build/total files)",
+    zh: "准备构建索引文件(待构建/总文件数)"
+  },
+  updatedFiles: {
+    en: "Updated Files",
+    zh: "更新的文件"
+  },
+  removedFiles: {
+    en: "Removed Files",
+    zh: "删除的文件"
+  },
+  indexProgress: {
+    en: "Progress",
+    zh: "进度"
   }
 };
 

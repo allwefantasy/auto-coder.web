@@ -15,7 +15,8 @@ import {
     ContextAwareMessage,
     CodeGenerateMessage,
     CodeRankMessage,
-    CodeLintMessage
+    CodeLintMessage,
+    IndexBuildMessage
 } from './MessageTypes';
 
 
@@ -72,6 +73,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         // For 上下文感知信息的展示
         if (message.metadata?.stream_out_type === "file_number_list") {
             return <ContextAwareMessage message={message} />;
+        }
+        
+        // 索引构建信息展示
+        if (message.metadata?.stream_out_type === "index_build") {
+            return <IndexBuildMessage message={message} />;
         }
         
         // 代码生成结果的展示
