@@ -25,7 +25,8 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     model: '',
     code_model: '',
     chat_model: '',
-    generate_rerank_model: ''
+    generate_rerank_model: '',
+    index_model: ''
   });
 
   // Fetch available models
@@ -81,6 +82,10 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           updatedModels.generate_rerank_model = currentConfig.generate_rerank_model;
         }
         
+        if (currentConfig.index_model) {
+          updatedModels.index_model = currentConfig.index_model;
+        }
+        
         setSelectedModels(updatedModels);
       } catch (error) {
         console.error('Error fetching current configuration:', error);
@@ -98,7 +103,8 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     const initialModels: Record<string, string> = { ...selectedModels };
     availableKeys.forEach(key => {
       if ((key.key === 'model' || key.key === 'code_model' || 
-          key.key === 'chat_model' || key.key === 'generate_rerank_model') && 
+          key.key === 'chat_model' || key.key === 'generate_rerank_model' ||
+          key.key === 'index_model') && 
           !initialModels[key.key]) {
         initialModels[key.key] = (key as any).value || '';
       }
@@ -201,6 +207,20 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             }))}
           />
           <p className="model-config-description">Used for reranking generated content</p>
+        </div>
+
+        <div className="model-config-item">
+          <label className="model-config-label">Index Model</label>
+          <Select
+            {...selectProps}
+            value={selectedModels.index_model}
+            onChange={(value) => handleModelChange('index_model', value)}
+            options={models.map(model => ({
+              value: model.name,
+              label: model.name
+            }))}
+          />
+          <p className="model-config-description">Used for indexing content</p>
         </div>
       </div>
     </div>
