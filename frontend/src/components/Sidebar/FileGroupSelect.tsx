@@ -145,6 +145,35 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     });
   };
 
+  // 简化键盘导航实现
+  const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    // 下拉菜单关闭时不处理任何键盘事件
+    if (!dropdownVisible) return;
+    
+    // 关键导航键（上下箭头、Enter、Tab）直接交给 Ant Design 处理
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Tab') {
+      // 不做任何操作，让 Ant Design 处理
+      return;
+    }
+    
+    switch (e.key) {
+      case 'Escape':
+        // 关闭下拉菜单并阻止事件传播
+        setDropdownVisible(false);
+        e.stopPropagation();
+        e.preventDefault();
+        break;
+        
+      case 'ArrowLeft':
+      case 'ArrowRight':
+        // 阻止默认行为，防止文本光标移动
+        if (document.activeElement && document.activeElement.tagName !== 'BODY') {
+          e.preventDefault();
+        }
+        break;
+    }
+  };
+
   // 改进焦点管理
   const focusSelect = () => {
     if (selectRef.current) {
@@ -201,7 +230,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             focusSelect();
           }
         }}
-        // onKeyDown={handleKeyDown} // Removed to allow default Ant Design keyboard navigation
+        onKeyDown={handleKeyDown}
         onSearch={(value) => {
           setSearchText(value);
           fetchFileCompletions(value);
