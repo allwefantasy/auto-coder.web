@@ -233,6 +233,9 @@ const InputArea: React.FC<InputAreaProps> = ({
       } else if (data.status === 'error') {
         setIndexBuilding(false);
         setIndexStatus('error');
+      } else if (data.status === 'running') {
+        setIndexBuilding(true);
+        setIndexStatus('building');
       } else if (data.status === 'unknown') {
         setIndexBuilding(false);
         setIndexStatus('');
@@ -264,6 +267,9 @@ const InputArea: React.FC<InputAreaProps> = ({
           setIndexStatus('error');
           AntdMessage.error(`Index build failed: ${data.error}`);
           clearInterval(interval);
+        } else if (data.status === 'running') {
+          setIndexBuilding(true);
+          setIndexStatus('building');
         }
       } catch (error) {
         console.error('Error polling index status:', error);
