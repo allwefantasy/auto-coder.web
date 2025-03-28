@@ -43,12 +43,11 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       // 检查是否是 Cmd/Ctrl + I
       if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
+        e.preventDefault();
         if (selectRef.current) {
           selectRef.current.focus();
           message.info(getMessage('focusInput'), 1);
         }
-        // 不阻止事件默认行为，允许事件继续向上传播
-        return;
       }
     };
 
