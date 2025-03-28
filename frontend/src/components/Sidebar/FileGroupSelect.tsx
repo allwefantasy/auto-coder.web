@@ -196,7 +196,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 className="file-option"
               >
                 <div className="flex justify-between items-center" title={file.path}>
-                  <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 20 ? '...' + file.path.slice(-20) : file.path})</span>
+                  <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 50 ? '...' + file.path.slice(-50) : file.path})</span>
                   <span className="text-gray-400 text-[10px]">File</span>
                 </div>
               </Select.Option>
