@@ -3,6 +3,8 @@ import { Select, SelectProps } from 'antd';
 import { FileGroup, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import { FileMetadata } from '../../types/file_meta';
+import './FileGroupSelect.css';
+import { getMessage } from './lang';
 
 interface FileGroupSelectProps {
   fileGroups: FileGroup[];
@@ -41,13 +43,47 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   // 订阅编辑器选项卡变更事件，而不是 files.opened 事件
   useEffect(() => {
     const unsubscribe = eventBus.subscribe(EVENTS.EDITOR.TABS_CHANGED, (tabs: FileMetadata[]) => {
-      console.log('FileGroupSelect: Received editor tabs changed event', tabs);
+      console.log(getMessage('editorTabsChanged'), tabs);
       setOpenedFiles(tabs);
     });
     
     // 组件卸载时取消订阅
     return () => unsubscribe();
   }, []);
+  
+  // 添加全局键盘导航事件监听
+  useEffect(() => {
+    // 只有当下拉菜单打开时才添加键盘事件监听
+    if (!dropdownVisible) return;
+    
+    const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
+      // 如果事件已经被处理，不要再处理
+      if (e.defaultPrevented) return;
+      
+      // 处理特定的键盘事件
+      if (e.key === 'Escape') {
+        setDropdownVisible(false);
+        e.preventDefault();
+        
+        // 移除当前可能的焦点
+        if (document.activeElement && document.activeElement instanceof HTMLElement) {
+          try {
+            document.activeElement.blur();
+          } catch (error) {
+            console.error(getMessage('errorRemovingFocus'), error);
+          }
+        }
+      }
+    };
+    
+    // 添加全局事件监听器
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    
+    // 清理函数
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [dropdownVisible]);
   
   useEffect(() => {
     const files = mentionItems      
@@ -57,7 +93,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
       }));
     
     setMentionFiles(files);
-    console.log("Updated mention files:", files.length);
+    console.log(getMessage('updatedMentionFiles', { count: String(files.length) }));
     
     // 只有当有提到的文件时才处理
     if (files.length > 0) {
@@ -96,7 +132,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
       const data = await response.json();
       setFileCompletions(data.completions || []);
     } catch (error) {
-      console.error('Error fetching file completions:', error);
+      console.error(getMessage('errorFetchingCompletions'), error);
     }
   };
 
@@ -114,30 +150,80 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         file_paths: fileValues
       })
     }).catch(error => {
-      console.error('Error updating selection:', error);
+      console.error(getMessage('errorUpdatingSelection'), error);
     });
   };
 
-  // 处理键盘导航
+  // 改进键盘导航实现
   const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    // 只有当下拉菜单打开时才处理键盘事件
+    // 下拉菜单关闭时不处理任何键盘事件
     if (!dropdownVisible) return;
     
+    // 检查是否有焦点元素
+    const hasActiveElement = document.activeElement && 
+                            document.activeElement.tagName !== 'BODY';
+    
     switch (e.key) {
+      case 'Escape':
+        // 关闭下拉菜单并阻止事件传播
+        setDropdownVisible(false);
+        e.stopPropagation();
+        e.preventDefault();
+        // 尝试移除可能的活动焦点
+        if (document.activeElement && document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+        // 确保聚焦回Select输入框
+        setTimeout(() => {
+          if (selectRef.current && selectRef.current.selectRef) {
+            try {
+              const input = selectRef.current.selectRef.querySelector('input');
+              if (input) input.focus();
+            } catch (error) {
+              console.error(getMessage('errorFocusingInput'), error);
+            }
+          }
+        }, 10);
+        break;
+        
+      // 对于上下键和Enter键，确保事件能被Select组件正确捕获处理
       case 'ArrowDown':
       case 'ArrowUp':
-      case 'Enter':
-        // 这些键已经被 antd Select 处理，不需要额外处理
+        // 不阻止默认行为，让antd处理，但确保事件传播
         break;
+        
+      case 'Enter':
+        // Enter键应该选择当前高亮的选项
+        // Ant Design Select应该已经处理了这个行为
+        break;
+        
       case 'ArrowLeft':
       case 'ArrowRight':
-        // 阻止默认行为，防止光标移动
-        e.preventDefault();
+        // 阻止默认行为，防止文本光标移动
+        if (hasActiveElement) {
+          e.preventDefault();
+        }
         break;
-      case 'Escape':
-        // 关闭下拉菜单
-        setDropdownVisible(false);
-        break;
+    }
+  };
+
+  // 确保焦点位于选择器上
+  const focusSelect = () => {
+    if (selectRef.current) {
+      // 使用setTimeout确保DOM已经完全渲染
+      setTimeout(() => {
+        try {
+          // 尝试聚焦到Select组件的输入框
+          if (selectRef.current && selectRef.current.selectRef) {
+            const inputElement = selectRef.current.selectRef.querySelector('input');
+            if (inputElement) {
+              inputElement.focus();
+            }
+          }
+        } catch (error) {
+          console.error('Error focusing select:', error);
+        }
+      }, 10);
     }
   };
 
@@ -158,16 +244,24 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         }}
         maxTagCount={20}
         maxTagTextLength={30}
-        maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} more...`}
-        placeholder="Select file groups or search for files"
+        maxTagPlaceholder={(omittedValues) => getMessage('moreFiles', { count: String(omittedValues.length) })}
+        placeholder={getMessage('fileGroupSelectPlaceholder')}
         value={[...selectedGroups, ...selectedFiles]}
         onFocus={() => {
           fetchFileGroups();
           setDropdownVisible(true);
         }}
-        onBlur={() => setDropdownVisible(false)}
+        onBlur={() => {
+          // 添加短暂延迟，避免点击下拉选项时触发blur
+          setTimeout(() => setDropdownVisible(false), 100);
+        }}
         open={dropdownVisible}
-        onDropdownVisibleChange={setDropdownVisible}
+        onDropdownVisibleChange={(visible) => {
+          setDropdownVisible(visible);
+          if (visible) {
+            focusSelect();
+          }
+        }}
         onKeyDown={handleKeyDown}
         onSearch={(value) => {
           setSearchText(value);
@@ -188,12 +282,15 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         optionLabelProp="label"
         className="custom-select multi-line-select"
         listHeight={300}
-        popupClassName="dark-dropdown-menu"
+        popupClassName="dark-dropdown-menu keyboard-navigation-dropdown"
         dropdownStyle={{ 
           backgroundColor: '#1f2937', 
           borderColor: '#374151',
           fontSize: '12px'
         }}
+        showSearch={true}
+        tabIndex={0}
+        autoClearSearchValue={false}
         tagRender={(props) => {
           const { label, value, closable, onClose } = props;
           return (
@@ -221,7 +318,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         }}
       >
         {fileCompletions.length > 0 && (
-          <Select.OptGroup label="Search Results">
+          <Select.OptGroup label={getMessage('searchResults')}>
             {fileCompletions.map(file => (
               <Select.Option
                 key={file.path}
@@ -231,7 +328,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
               >
                 <div className="flex justify-between items-center" title={file.path}>
                   <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 50 ? '...' + file.path.slice(-50) : file.path})</span>
-                  <span className="text-gray-400 text-[10px]">File</span>
+                  <span className="text-gray-400 text-[10px]">{getMessage('fileType')}</span>
                 </div>
               </Select.Option>
             ))}
@@ -243,7 +340,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           <Select.OptGroup 
             label={
               <div className="flex justify-between items-center">
-                <span>Opened Files</span>
+                <span>{getMessage('openedFiles')}</span>
                 <button 
                   className="text-xs text-blue-400 hover:text-blue-300 px-1 py-0 rounded"
                   onClick={(e) => {
@@ -282,11 +379,10 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                     strokeWidth="2" 
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
-                    className="feather feather-refresh-cw"
+                    className="feather feather-check-square"
                   >
-                    <polyline points="23 4 23 10 17 10"></polyline>
-                    <polyline points="1 20 1 14 7 14"></polyline>
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    <polyline points="9 11 12 14 22 4"></polyline>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                   </svg>
                 </button>
               </div>
@@ -307,7 +403,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                     {display} ({file.path.length > 40 ? '...' + file.path.slice(-40) : file.path})
                   </span>
                   <span className={`text-[10px] ${file.isSelected ? 'text-green-400' : 'text-green-600/70'}`}>
-                    {file.isSelected ? 'Active' : 'Opened'}
+                    {getMessage(file.isSelected ? 'fileStatusActive' : 'fileStatusOpened')}
                   </span>
                 </div>
                 </Select.Option>
@@ -326,14 +422,14 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             <div className="flex justify-between items-center">
               <span className="text-gray-200 text-xs">{group.name}</span>
               <span className="text-gray-400 text-[10px]">
-                {group.files.length} files
+                {getMessage('fileCount', { count: String(group.files.length) })}
               </span>
             </div>
           </Select.Option>
         ))}
         
         {mentionFiles.length > 0 && searchText.length < 2 && (
-          <Select.OptGroup label="Mentioned Files">
+          <Select.OptGroup label={getMessage('mentionedFiles')}>
             {mentionFiles.map(file => (
               <Select.Option
                 key={`mention-${file.path}`}
@@ -343,68 +439,13 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
               >
                 <div className="flex justify-between items-center" title={file.path}>
                   <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 20 ? '...' + file.path.slice(-20) : file.path})</span>
-                  <span className="text-blue-400 text-[10px]">Mentioned</span>
+                  <span className="text-blue-400 text-[10px]">{getMessage('mentionedFileStatus')}</span>
                 </div>
               </Select.Option>
             ))}
           </Select.OptGroup>
         )}
       </Select>
-      
-      <style>
-        {`
-          .multi-line-select .ant-select-selector {
-            height: auto !important;
-            min-height: 28px !important;
-            padding: 1px 4px !important;
-            border-width: 1px !important;
-          }
-          
-          .multi-line-select .ant-select-selection-overflow {
-            flex-wrap: wrap;
-            max-height: none !important;
-            overflow: auto !important;
-            gap: 1px !important;
-          }
-          
-          .multi-line-select .ant-select-selection-item {
-            margin: 1px !important;
-          }
-          
-          .multi-line-select .ant-select-selection-overflow-item {
-            margin: 0 !important;
-          }
-
-          .multi-line-select .ant-select-selection-placeholder {
-            font-size: 12px !important;
-          }
-
-          .multi-line-select .ant-select-selection-search {
-            font-size: 12px !important;
-          }
-
-          .ant-select-dropdown {
-            font-size: 12px !important;
-          }
-          
-          /* 高亮选中项的样式 */
-          .ant-select-item-option-active {
-            background-color: #374151 !important;
-          }
-          
-          .ant-select-item-option-selected {
-            background-color: #4b5563 !important;
-          }
-          
-          /* 自定义OptGroup标题样式 */
-          .ant-select-item-group .ant-select-item-group-title {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            padding-right: 8px !important;
-          }
-        `}
-      </style>
     </div>
   );
 };

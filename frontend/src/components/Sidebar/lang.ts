@@ -1065,7 +1065,73 @@ export const messages: { [key: string]: Message } = {
   indexModelDescription: {
     en: "Used for indexing content",
     zh: "用于内容索引"
-  }  
+  },
+  // FileGroupSelect相关
+  fileGroupSelectPlaceholder: {
+    en: "Select file groups or search for files",
+    zh: "选择文件组或搜索文件"
+  },
+  searchResults: {
+    en: "Search Results",
+    zh: "搜索结果"
+  },
+  fileType: {
+    en: "File",
+    zh: "文件"
+  },
+  openedFiles: {
+    en: "Opened Files",
+    zh: "已打开文件"
+  },
+  fileStatusActive: {
+    en: "Active",
+    zh: "当前活动"
+  },
+  fileStatusOpened: {
+    en: "Opened",
+    zh: "已打开"
+  },
+  mentionedFiles: {
+    en: "Mentioned Files",
+    zh: "提到的文件"
+  },
+  mentionedFileStatus: {
+    en: "Mentioned",
+    zh: "被提到"
+  },
+  fileCount: {
+    en: "{count} files",
+    zh: "{count} 个文件"
+  },
+  moreFiles: {
+    en: "+{count} more...",
+    zh: "还有 {count} 个..."
+  },
+  updatedMentionFiles: {
+    en: "Updated mention files: {count}",
+    zh: "更新提到的文件: {count} 个"
+  },
+  // 控制台日志和错误消息
+  editorTabsChanged: {
+    en: "FileGroupSelect: Received editor tabs changed event",
+    zh: "FileGroupSelect: 收到编辑器选项卡变更事件"
+  },
+  errorRemovingFocus: {
+    en: "Error removing focus on ESC:",
+    zh: "ESC键移除焦点时出错:"
+  },
+  errorFocusingInput: {
+    en: "Error focusing input after ESC:",
+    zh: "ESC键后聚焦输入框时出错:"
+  },
+  errorFetchingCompletions: {
+    en: "Error fetching file completions:",
+    zh: "获取文件补全时出错:"
+  },
+  errorUpdatingSelection: {
+    en: "Error updating selection:",
+    zh: "更新选择时出错:"
+  }
 };
 
 // 当前语言设置
