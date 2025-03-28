@@ -15,6 +15,7 @@ import {
 import { FileMetadata } from '../../types/file_meta';
 import { chatService } from '../../services/chatService';
 import { codingService } from '../../services/codingService';
+import { autoCoderConfService } from '../../services/AutoCoderConfService';
 import { Message as AutoModeMessage } from '../../components/AutoMode/types';
 import MessageList, { MessageProps } from '../../components/AutoMode/MessageList';
 
@@ -218,39 +219,28 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   }, [shouldSendMessage]);
 
   useEffect(() => {
-    // Fetch initial config
-    fetch('/api/conf')
-      .then(response => response.json())
-      .then(data => {
-        const { human_as_model, skip_build_index, project_type, ...extraConf } = data.conf;
-        setConfig({
-          human_as_model: human_as_model === "true",
-          skip_build_index: skip_build_index === "true",
-          project_type: project_type,
-          extra_conf: extraConf,
-          available_keys: []
-        });
-      })
-      .catch(error => {
-        console.error('Error fetching config:', error);
-        AntdMessage.error('Failed to fetch configuration');
-      });
-  }, []);
+    // 监听配置更新事件
+    const handleConfigUpdated = (updatedConfig: ConfigState) => {
+      setConfig(updatedConfig);
+    };
 
-  useEffect(() => {
-    // Fetch available configuration keys
-    fetch('/api/conf/keys')
-      .then(response => response.json())
-      .then(data => {
-        setConfig(prev => ({
-          ...prev,
-          available_keys: data.keys
-        }));
-      })
-      .catch(error => {
-        console.error('Error fetching configuration keys:', error);
-        AntdMessage.error('Failed to fetch configuration keys');
-      });
+    // 监听错误事件
+    const handleError = (errorMessage: string) => {
+      AntdMessage.error(errorMessage);
+    };
+
+    // 添加事件监听器
+    autoCoderConfService.on('configUpdated', handleConfigUpdated);
+    autoCoderConfService.on('error', handleError);
+
+    // 初始加载配置 - 通过服务的事件回调机制自动设置
+    // 不需要手动调用 API 了
+
+    // 清理函数
+    return () => {
+      autoCoderConfService.off('configUpdated', handleConfigUpdated);
+      autoCoderConfService.off('error', handleError);
+    };
   }, []);
 
   useEffect(() => {
@@ -437,24 +427,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   const updateConfig = async (key: string, value: boolean | string) => {
-    try {
-      const response = await fetch('/api/conf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ [key]: String(value) })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update configuration');
-      }
-
-      setConfig(prev => ({ ...prev, [key]: value }));
+    const success = await autoCoderConfService.updateConfig(key, value);
+    if (success) {
       AntdMessage.success('Configuration updated successfully');
-    } catch (error) {
-      console.error('Error updating config:', error);
-      AntdMessage.error('Failed to update configuration');
     }
   };
 
