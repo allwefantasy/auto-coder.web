@@ -82,13 +82,13 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   return (
     <Split 
       className="flex-1 flex"
-      sizes={[isMaximized ? 0 : 25, isMaximized ? 100 : 75]}
+      sizes={[25, 75]}
       minSize={[180, 400]}
       gutterSize={3}
       snapOffset={20}
     >
       {/* Left Sidebar - Chat */}
-      <div className={`border-r border-gray-700 flex flex-col ${isMaximized ? 'hidden' : ''}`}>
+      <div className="border-r border-gray-700 flex flex-col">
         <ChatPanel
           setPreviewFiles={setPreviewFiles}
           setActivePanel={setActivePanel}
