@@ -280,19 +280,18 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         updateSelection(selectedGroups, updatedFiles);
       }
       
-      // 关闭下拉菜单
+      // 关闭下拉菜单但保持焦点
       setDropdownVisible(false);
       // 清空搜索文本
       setSearchText('');
       // 重置选项索引
       setFocusedOptionIndex(-1);
       
-      // 清空Select组件的搜索框内容
+      // 清空Select组件的搜索框内容并保持焦点
       if (selectRef.current) {
         try {
-          // 尝试清除搜索框内容
+          // 保持焦点
           selectRef.current.focus();
-          selectRef.current.blur();
           
           // 直接清除输入元素的值
           setTimeout(() => {
@@ -300,6 +299,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
               const inputElement = selectRef.current.selector.querySelector('.ant-select-selection-search-input');
               if (inputElement) {
                 inputElement.value = '';
+                // 确保焦点保持在输入框上
+                inputElement.focus();
               }
             }
           }, 10);
@@ -338,15 +339,23 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             // 重置聚焦的选项索引
             setFocusedOptionIndex(-1);
           }}
-          onBlur={() => {
-            // 添加短暂延迟，避免点击下拉选项时触发blur
-            setTimeout(() => {
-              setDropdownVisible(false);
-              // 重置聚焦的选项索引
-              setFocusedOptionIndex(-1);
-              // 清空搜索文本
-              setSearchText('');
-            }, 100);
+          onBlur={(e) => {
+            // 检查是否是因为选择了选项而导致的失焦
+            const relatedTarget = e.relatedTarget as HTMLElement;
+            const isSelectingOption = relatedTarget && 
+              (relatedTarget.classList.contains('ant-select-item') || 
+               relatedTarget.closest('.ant-select-dropdown'));
+            
+            if (!isSelectingOption) {
+              // 添加短暂延迟，避免点击下拉选项时触发blur
+              setTimeout(() => {
+                setDropdownVisible(false);
+                // 重置聚焦的选项索引
+                setFocusedOptionIndex(-1);
+                // 清空搜索文本
+                setSearchText('');
+              }, 100);
+            }
           }}
           open={dropdownVisible}        
           onSearch={(value) => {
@@ -364,12 +373,24 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
               // 清空搜索文本
               setSearchText('');
               
-              // 强制清除搜索框内容
+              // 强制清除搜索框内容，但保持焦点
               setTimeout(() => {
                 if (selectRef.current && selectRef.current.selector) {
                   const inputElement = selectRef.current.selector.querySelector('.ant-select-selection-search-input');
                   if (inputElement) {
                     inputElement.value = '';
+                    // 确保焦点保持在输入框上
+                    inputElement.focus();
+                  }
+                }
+              }, 10);
+            } else {
+              // 当下拉菜单显示时，确保焦点在输入框上
+              setTimeout(() => {
+                if (selectRef.current && selectRef.current.selector) {
+                  const inputElement = selectRef.current.selector.querySelector('.ant-select-selection-search-input');
+                  if (inputElement) {
+                    inputElement.focus();
                   }
                 }
               }, 10);
