@@ -210,43 +210,36 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             label={
               <div className="flex justify-between items-center">
                 <span>Opened Files</span>
-                <div className="flex space-x-1">
-                  <button 
-                    className="text-xs text-blue-400 hover:text-blue-300 px-1 py-0 rounded"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // 全选所有已打开文件
-                      const openedFilePaths = openedFiles.map(file => file.path);
-                      const newSelection = [
-                        ...selectedGroups,
+                <button 
+                  className="text-xs text-blue-400 hover:text-blue-300 px-1 py-0 rounded"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // 获取所有已打开文件路径
+                    const openedFilePaths = openedFiles.map(file => file.path);
+                    
+                    // 检查是否所有已打开文件都已被选中
+                    const allSelected = openedFilePaths.every(path => 
+                      selectedFiles.includes(path)
+                    );
+                    
+                    if (allSelected) {
+                      // 如果全部已选中，则取消选择所有已打开文件
+                      const newFileSelection = selectedFiles.filter(
+                        path => !openedFilePaths.includes(path)
+                      );
+                      updateSelection(selectedGroups, newFileSelection);
+                    } else {
+                      // 否则选择所有已打开文件
+                      const newFileSelection = [
                         ...selectedFiles.filter(path => !openedFilePaths.includes(path)),
                         ...openedFilePaths
                       ];
-                      updateSelection(
-                        newSelection.filter(value => fileGroups.some(group => group.name === value)),
-                        newSelection.filter(value => !fileGroups.some(group => group.name === value))
-                      );
-                    }}
-                  >
-                    All
-                  </button>
-                  <button 
-                    className="text-xs text-blue-400 hover:text-blue-300 px-1 py-0 rounded"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // 反选已打开文件
-                      const openedFilePaths = openedFiles.map(file => file.path);
-                      const newFileSelection = selectedFiles.filter(
-                        path => !openedFilePaths.includes(path)
-                      ).concat(
-                        openedFilePaths.filter(path => !selectedFiles.includes(path))
-                      );
                       updateSelection(selectedGroups, newFileSelection);
-                    }}
-                  >
-                    Invert
-                  </button>
-                </div>
+                    }
+                  }}
+                >
+                  Toggle
+                </button>
               </div>
             }
           >
