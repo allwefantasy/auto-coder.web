@@ -100,6 +100,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
 }) => {
   // 添加一个ref来跟踪提供者是否已经注册
   const providerRegistered = React.useRef(false);
+  // 添加一个ref来存储editor的引用
+  const editorRef = React.useRef<any>(null);
   
   React.useEffect(() => {
     // 在组件挂载时注入样式
@@ -107,13 +109,25 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     styleElement.textContent = mentionStyles;
     document.head.appendChild(styleElement);
 
+    // 添加事件监听，当收到编辑器获得焦点事件时，让编辑器获得焦点
+    const unsubscribe = eventBus.subscribe(EVENTS.EDITOR.FOCUS, () => {
+      if (editorRef.current) {
+        editorRef.current.focus();
+      }
+    });
+
     return () => {
       // 在组件卸载时移除样式
       document.head.removeChild(styleElement);
+      // 取消事件订阅
+      unsubscribe();
     };
   }, []);
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
+    // 存储editor引用
+    editorRef.current = editor;
+    
     // 首先通知父组件编辑器已经挂载
     onEditorDidMount(editor, monaco);
     

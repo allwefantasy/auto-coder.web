@@ -2,7 +2,9 @@
 export const EVENTS = {
   EDITOR: {
     // 编辑器选项卡变更事件 CodeEditor.tsx 发布, FileGroupSelect.tsx 订阅
-    TABS_CHANGED: 'editor.tabs.changed'
+    TABS_CHANGED: 'editor.tabs.changed',
+    // 编辑器获得焦点事件 FileGroupSelect.tsx 发布, EditorComponent.tsx 订阅
+    FOCUS: 'editor.focus'
   },
   CODING: {
     // 编程任务完成事件 codingService.ts 发布, HistoryPanel.tsx 订阅

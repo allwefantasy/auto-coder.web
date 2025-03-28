@@ -383,6 +383,15 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             </div>
           );
         }}
+        onKeyDown={(e) => {
+          // 监听 Cmd/Ctrl + I 快捷键
+          if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
+            e.preventDefault();
+            e.stopPropagation();
+            // 发布事件让编辑器获得焦点
+            eventBus.publish(EVENTS.EDITOR.FOCUS);
+          }
+        }}
       >
         {fileCompletions.length > 0 && (
           <Select.OptGroup label={getMessage('searchResults')}>
