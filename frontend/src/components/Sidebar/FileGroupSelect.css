@@ -30,6 +30,16 @@
 
 .ant-select-dropdown {
   font-size: 12px !important;
+  z-index: 10001 !important;
+}
+
+/* 确保Antd选择器正确处理键盘事件 */
+.ant-select {
+  outline: none !important;
+}
+
+.ant-select-dropdown.ant-slide-up-leave {
+  display: none !important; /* 修复Escape后菜单动画问题 */
 }
 
 /* 高亮选中项的样式 */
@@ -95,4 +105,14 @@
 .keyboard-navigation-select.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
   border-color: #6366f1 !important;
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* 确保下拉菜单在全屏模式下也能显示 */
+.dark-dropdown-menu.ant-select-dropdown {
+  z-index: 10001 !important;
+}
+
+/* 全局提高Ant Select下拉菜单的层级 */
+div[class^="ant-select-dropdown"] {
+  z-index: 10001 !important;
 } 

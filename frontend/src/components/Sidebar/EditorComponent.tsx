@@ -131,10 +131,11 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     // 首先通知父组件编辑器已经挂载
     onEditorDidMount(editor, monaco);
     
-    // 添加键盘快捷键
+    // 添加键盘快捷键 - 修改为触发InputArea全屏
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, () => {
-      // 通过回调通知父组件切换最大化/最小化状态
-      onToggleMaximize();
+      // 触发InputArea全屏事件
+      eventBus.publish(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN);
+      return null;
     });
 
     // 添加提交快捷键
@@ -528,7 +529,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   };
 
   return (
-    <div className={`flex-1 ${isMaximized ? 'h-full' : 'h-full'} border-0 rounded-lg overflow-hidden w-full`} style={{ height: isMaximized ? '100%' : '150px' }}>
+    <div className={`flex-1 border-0 rounded-lg overflow-hidden w-full h-full`} 
+         style={{ 
+           height: isMaximized ? '100%' : '150px',
+           display: 'flex',
+           flexDirection: 'column',
+           flex: isMaximized ? '1 1 auto' : '0 0 150px'
+         }}>
       <Editor
         height="100%"
         defaultLanguage="markdown"

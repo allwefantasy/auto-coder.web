@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Switch, Select, Tooltip, message as AntdMessage, Spin } from 'antd';
 import { UndoOutlined, BuildOutlined, LoadingOutlined } from '@ant-design/icons';
 import EditorComponent from './EditorComponent';
@@ -7,6 +7,7 @@ import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
 import FileGroupSelect from './FileGroupSelect';
 import { chatService } from '../../services/chatService';
 import { codingService } from '../../services/codingService';
+import eventBus, { EVENTS } from '../../services/eventBus';
 
 interface InputAreaProps {
   showConfig: boolean;
@@ -55,16 +56,89 @@ const InputArea: React.FC<InputAreaProps> = ({
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [indexBuilding, setIndexBuilding] = useState<boolean>(false);
   const [indexStatus, setIndexStatus] = useState<string>('');
+  const [isInputAreaMaximized, setIsInputAreaMaximized] = useState<boolean>(false);
+  const originalLayoutRef = useRef<{
+    position: string,
+    top: string,
+    right: string,
+    bottom: string,
+    left: string,
+    zIndex: string,
+    width: string,
+    height: string,
+    background: string
+  } | null>(null);
+  
+  const inputAreaRef = useRef<HTMLDivElement>(null);
 
-  // 切换写作模式的回调函数
+  const toggleFullscreen = useCallback(() => {
+    if (inputAreaRef.current) {
+      const element = inputAreaRef.current;
+      
+      if (!isInputAreaMaximized) {
+        const computedStyle = window.getComputedStyle(element);
+        originalLayoutRef.current = {
+          position: computedStyle.position,
+          top: computedStyle.top,
+          right: computedStyle.right,
+          bottom: computedStyle.bottom,
+          left: computedStyle.left,
+          zIndex: computedStyle.zIndex,
+          width: computedStyle.width,
+          height: computedStyle.height,
+          background: computedStyle.background
+        };
+        
+        element.style.position = 'fixed';
+        element.style.top = '0';
+        element.style.right = '0';
+        element.style.bottom = '0';
+        element.style.left = '0';
+        element.style.zIndex = '9999';
+        element.style.width = '100vw';
+        element.style.height = '100vh';
+        element.style.background = '#1f2937';
+        element.style.overflow = 'hidden';
+        element.style.display = 'flex';
+        element.style.flexDirection = 'column';
+        
+        setIsInputAreaMaximized(true);
+      } else {
+        if (originalLayoutRef.current) {
+          const originalStyle = originalLayoutRef.current;
+          element.style.position = originalStyle.position;
+          element.style.top = originalStyle.top;
+          element.style.right = originalStyle.right;
+          element.style.bottom = originalStyle.bottom;
+          element.style.left = originalStyle.left;
+          element.style.zIndex = originalStyle.zIndex;
+          element.style.width = originalStyle.width;
+          element.style.height = originalStyle.height;
+          element.style.background = originalStyle.background;
+          element.style.overflow = '';
+          element.style.display = '';
+          element.style.flexDirection = '';
+        }
+        
+        setIsInputAreaMaximized(false);
+      }
+    }
+  }, [isInputAreaMaximized]);
+
+  useEffect(() => {
+    const unsubscribe = eventBus.subscribe(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN, toggleFullscreen);
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [toggleFullscreen]);
+
   const toggleWriteMode = useCallback(() => {
     setIsWriteMode(!isWriteMode);
   }, [setIsWriteMode, isWriteMode]);
 
-  // 添加键盘快捷键事件监听
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Command + . (Mac) 或 Ctrl + . (Windows/Linux)
       if ((e.metaKey || e.ctrlKey) && e.key === '.') {
         toggleWriteMode();
       }
@@ -77,7 +151,6 @@ const InputArea: React.FC<InputAreaProps> = ({
   }, [toggleWriteMode]);
 
   useEffect(() => {
-    // Check index status on component mount
     checkIndexStatus();
     
     const handleTaskComplete = () => {
@@ -112,7 +185,6 @@ const InputArea: React.FC<InputAreaProps> = ({
     setMentionItems(items);
   };
 
-  // Function to build index
   const buildIndex = async () => {
     if (indexBuilding) return;
     
@@ -132,7 +204,6 @@ const InputArea: React.FC<InputAreaProps> = ({
       setIndexStatus('building');
       AntdMessage.success('Index build started');
       
-      // Start polling for status
       pollIndexStatus();
     } catch (error) {
       console.error('Error building index:', error);
@@ -142,7 +213,6 @@ const InputArea: React.FC<InputAreaProps> = ({
     }
   };
 
-  // Function to check index status
   const checkIndexStatus = async () => {
     try {
       const response = await fetch('/api/index/status');
@@ -169,7 +239,6 @@ const InputArea: React.FC<InputAreaProps> = ({
     }
   };
 
-  // Function to poll index status
   const pollIndexStatus = () => {
     const interval = setInterval(async () => {
       try {
@@ -198,20 +267,49 @@ const InputArea: React.FC<InputAreaProps> = ({
         setIndexStatus('error');
         clearInterval(interval);
       }
-    }, 2000); // Poll every 2 seconds
+    }, 2000);
 
-    // Clean up interval on component unmount
     return () => clearInterval(interval);
   };
 
   return (
-    <div className="bg-gray-800 border-t border-gray-700">
-      {/* Configuration and Groups Section */}
-      <div className="px-0.5 pt-0">
+    <div 
+      ref={inputAreaRef}
+      className={`bg-gray-800 border-t border-gray-700 ${isInputAreaMaximized ? 'p-4 flex flex-col h-screen' : ''}`}
+    >
+      <div className={`px-0.5 pt-0 ${isInputAreaMaximized ? 'mb-2 flex-shrink-0' : ''}`}>
         <div className="space-y-0">
           <div className="flex items-center justify-between">
             <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
             <div className="flex items-center">
+              <Tooltip title={isInputAreaMaximized ? "退出全屏" : "全屏模式"}>
+                <button
+                  onClick={toggleFullscreen}
+                  className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    {isInputAreaMaximized ? (
+                      <>
+                        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                      </>
+                    ) : (
+                      <>
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                      </>
+                    )}
+                  </svg>
+                </button>
+              </Tooltip>
               <Tooltip title={indexBuilding ? "Building index..." : "Build index"}>
                 <button 
                   onClick={buildIndex}
@@ -249,7 +347,6 @@ const InputArea: React.FC<InputAreaProps> = ({
 
         {showConfig && (
           <div className="space-y-0 -mb-0.5">
-            {/* Project Type - Changed to vertical layout */}
             <div className="flex flex-col space-y-0">
               <Tooltip title={getMessage('projectTypeTooltip')}>
                 <span className="text-gray-300 text-[10px]">{getMessage('projectType')}</span>
@@ -280,7 +377,6 @@ const InputArea: React.FC<InputAreaProps> = ({
           </div>
         )}
 
-        {/* File Groups Select - Using the new component */}
         <div className="h-[1px] bg-gray-700/50 my-1"></div>
         <FileGroupSelect
           fileGroups={fileGroups}
@@ -291,24 +387,30 @@ const InputArea: React.FC<InputAreaProps> = ({
         />
       </div>
 
-      {/* Message Input */}
-      <div className={`px-1 py-0.5 flex flex-col space-y-0.5 ${isMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}>
-        <div className="flex-1 min-h-[80px] h-full">
+      <div className={`px-1 py-0.5 flex flex-col ${isMaximized && !isInputAreaMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} 
+          ${isInputAreaMaximized ? 'flex-1 overflow-hidden' : ''} 
+          scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}
+      >
+        <div className={`flex-1 ${isInputAreaMaximized ? 'flex-grow h-full' : 'min-h-[80px]'}`}
+             style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)' } : {}}
+        >
           <EditorComponent
-            isMaximized={isMaximized}
+            isMaximized={isMaximized || isInputAreaMaximized}
             onEditorDidMount={handleEditorDidMount}
             onShouldSendMessage={() => setShouldSendMessage(true)}
-            onToggleMaximize={() => setIsMaximized((prev: boolean): boolean => !prev)}
+            onToggleMaximize={() => {
+              if (isInputAreaMaximized) {
+                return;
+              }
+              setIsMaximized((prev: boolean): boolean => !prev);
+            }}
             onMentionMapChange={handleMentionMapChange}
           />
         </div>
-        <div className="flex flex-col mt-0 gap-0">
-          {/* Bottom Actions Container */}
+        <div className="flex flex-col mt-0 gap-0 flex-shrink-0">
           <div className="space-y-0 bg-gray-850 p-0.5 rounded-lg shadow-inner border border-gray-700/50">
-            {/* Mode and Shortcuts Row */}
             <div className="flex items-center justify-between px-0">
               <div className="flex items-center space-x-0.5">
-                {/* Mode Switch with Label */}
                 <span className="text-[9px] font-medium text-gray-400">Mode:</span>
                 <Tooltip title={`Switch between Chat and Write mode (${navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)`}>
                   <Switch
@@ -320,7 +422,6 @@ const InputArea: React.FC<InputAreaProps> = ({
                     className="bg-gray-700 hover:bg-gray-600"
                   />
                 </Tooltip>
-                {/* Keyboard Shortcut */}
                 <kbd className="px-0.5 py-0 ml-1 text-[8px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
                   {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
                 </kbd>                
@@ -330,7 +431,6 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </div>
               </div>
               
-              {/* Send Button (moved from Actions Row) */}
               <button
                 className={`p-0.5 rounded-md transition-all duration-200
                   focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed

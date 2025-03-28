@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, KeyboardEvent, useCallback } from 'react';
 import { Select, message } from 'antd';
+import type { CustomTagProps } from 'rc-select/lib/BaseSelect';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import { FileGroup, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
@@ -275,265 +276,277 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
       <div className="h-[1px] bg-gray-700/50 my-0.5"></div>
       <div className="flex items-center gap-1">
         <Select
-        ref={selectRef}
-        mode="multiple"
-        style={{ 
-          width: '100%', 
-          background: '#1f2937', 
-          borderColor: '#374151', 
-          color: '#e5e7eb',
-          minHeight: '28px',
-          height: 'auto',
-          fontSize: '12px'
-        }}
-        maxTagCount={20}
-        maxTagTextLength={30}
-        maxTagPlaceholder={(omittedValues) => getMessage('moreFiles', { count: String(omittedValues.length) })}
-        placeholder={getMessage('fileGroupSelectPlaceholder')}
-        value={[...selectedGroups, ...selectedFiles]}
-        onFocus={() => {
-          fetchFileGroups();
-          setDropdownVisible(true);
-          // 重置聚焦的选项索引
-          setFocusedOptionIndex(-1);
-        }}
-        onBlur={() => {
-          // 添加短暂延迟，避免点击下拉选项时触发blur
-          setTimeout(() => {
-            setDropdownVisible(false);
+          ref={selectRef}
+          mode="multiple"
+          style={{ 
+            width: '100%', 
+            background: '#1f2937', 
+            borderColor: '#374151', 
+            color: '#e5e7eb',
+            minHeight: '28px',
+            height: 'auto',
+            fontSize: '12px'
+          }}
+          maxTagCount={20}
+          maxTagTextLength={30}
+          maxTagPlaceholder={(omittedValues) => getMessage('moreFiles', { count: String(omittedValues.length) })}
+          placeholder={getMessage('fileGroupSelectPlaceholder')}
+          value={[...selectedGroups, ...selectedFiles]}
+          onFocus={() => {
+            fetchFileGroups();
+            setDropdownVisible(true);
             // 重置聚焦的选项索引
             setFocusedOptionIndex(-1);
-          }, 100);
-        }}
-        open={dropdownVisible}        
-        onSearch={(value) => {
-          setSearchText(value);
-          fetchFileCompletions(value);
-          // 当搜索文本变化时，重置聚焦的选项索引
-          setFocusedOptionIndex(-1);
-        }}
-        onChange={(values) => {
-          const groupValues = values.filter(value => 
-            fileGroups.some(group => group.name === value)
-          );
-          
-          const fileValues = values.filter(value => 
-            !fileGroups.some(group => group.name === value)
-          );
-          
-          updateSelection(groupValues, fileValues);
-        }}
-        // 启用过滤选项以支持键盘导航
-        filterOption={(input, option) => {
-          if (!option) return false;
-          
-          // 使用 option.label 作为主要过滤依据
-          const labelText = typeof option.label === 'string' ? option.label : '';
-          // 使用 option.value 作为备用
-          const valueText = typeof option.value === 'string' ? option.value : '';
-          
-          // 同时匹配 label 和 value
-          return (
-            labelText.toLowerCase().includes(input.toLowerCase()) ||
-            valueText.toLowerCase().includes(input.toLowerCase())
-          );
-        }}
-        optionFilterProp="label"
-        className="custom-select multi-line-select keyboard-navigation-select"
-        listHeight={300}
-        popupClassName="dark-dropdown-menu keyboard-navigation-dropdown"
-        dropdownStyle={{ 
-          backgroundColor: '#1f2937', 
-          borderColor: '#374151',
-          fontSize: '12px'
-        }}
-        showSearch={true}
-        tabIndex={0}
-        autoClearSearchValue={false}
-        tagRender={(props) => {
-          const { label, value, closable, onClose } = props;
-          return (
-            <span 
-              className="inline-flex items-center m-0.5 px-1 py-0.5 rounded bg-gray-700 text-gray-200 text-xs"
-              style={{
-                maxWidth: '100%',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                lineHeight: '1.2'
-              }}
-            >
-              <span className="mr-0.5">{label}</span>
-              {closable && (
-                <span 
-                  className="cursor-pointer text-gray-400 hover:text-gray-200 ml-0.5"
-                  onClick={onClose}
-                >
-                  ×
-                </span>
-              )}
-            </span>
-          );
-        }}
-        // 添加下拉菜单项选中状态的处理
-        dropdownRender={(menu) => {
-          return (
+          }}
+          onBlur={() => {
+            // 添加短暂延迟，避免点击下拉选项时触发blur
+            setTimeout(() => {
+              setDropdownVisible(false);
+              // 重置聚焦的选项索引
+              setFocusedOptionIndex(-1);
+            }, 100);
+          }}
+          open={dropdownVisible}        
+          onSearch={(value) => {
+            setSearchText(value);
+            fetchFileCompletions(value);
+            // 当搜索文本变化时，重置聚焦的选项索引
+            setFocusedOptionIndex(-1);
+          }}
+          onDropdownVisibleChange={(visible) => {
+            // 保持状态一致性
+            setDropdownVisible(visible);
+            if (!visible) {
+              // 重置聚焦的选项索引
+              setFocusedOptionIndex(-1);
+            }
+          }}
+          onChange={(values) => {
+            const groupValues = values.filter(value => 
+              fileGroups.some(group => group.name === value)
+            );
+            
+            const fileValues = values.filter(value => 
+              !fileGroups.some(group => group.name === value)
+            );
+            
+            updateSelection(groupValues, fileValues);
+          }}
+          // 启用过滤选项以支持键盘导航
+          filterOption={(input, option) => {
+            if (!option) return false;
+            
+            // 使用 option.label 作为主要过滤依据
+            const labelText = typeof option.label === 'string' ? option.label : '';
+            // 使用 option.value 作为备用
+            const valueText = typeof option.value === 'string' ? option.value : '';
+            
+            // 同时匹配 label 和 value
+            return (
+              labelText.toLowerCase().includes(input.toLowerCase()) ||
+              valueText.toLowerCase().includes(input.toLowerCase())
+            );
+          }}
+          optionFilterProp="label"
+          className="custom-select multi-line-select keyboard-navigation-select"
+          listHeight={300}
+          popupClassName="dark-dropdown-menu keyboard-navigation-dropdown"
+          dropdownStyle={{ 
+            backgroundColor: '#1f2937', 
+            borderColor: '#374151',
+            fontSize: '12px'
+          }}
+          showSearch={true}
+          tabIndex={0}
+          autoClearSearchValue={false}
+          getPopupContainer={() => document.body}
+          tagRender={(props: CustomTagProps) => {
+            const { label, value, closable, onClose } = props;
+            return (
+              <span 
+                className="inline-flex items-center m-0.5 px-1 py-0.5 rounded bg-gray-700 text-gray-200 text-xs"
+                style={{
+                  maxWidth: '100%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  lineHeight: '1.2'
+                }}
+              >
+                <span className="mr-0.5">{label}</span>
+                {closable && (
+                  <span 
+                    className="cursor-pointer text-gray-400 hover:text-gray-200 ml-0.5"
+                    onClick={onClose}
+                  >
+                    ×
+                  </span>
+                )}
+              </span>
+            );
+          }}
+          dropdownRender={(menu) => (
             <div className="keyboard-navigation-menu">
               {menu}
             </div>
-          );
-        }}
-        onKeyDown={(e) => {
-          // 监听 Cmd/Ctrl + I 快捷键
-          if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
-            e.preventDefault();
-            e.stopPropagation();
-            // 发布事件让编辑器获得焦点
-            eventBus.publish(EVENTS.EDITOR.FOCUS);
-          }
-        }}
-      >
-        {fileCompletions.length > 0 && (
-          <Select.OptGroup label={getMessage('searchResults')}>
-            {fileCompletions.map((file, index) => (
-              <Select.Option
-                key={file.path}
-                value={file.path}
-                label={file.display}
-                className={`file-option ${focusedOptionIndex === index ? 'keyboard-focused-option' : ''}`}
-              >
-                <div className="flex justify-between items-center" title={file.path}>
-                  <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 50 ? '...' + file.path.slice(-50) : file.path})</span>
-                  <span className="text-gray-400 text-[10px]">{getMessage('fileType')}</span>
-                </div>
-              </Select.Option>
-            ))}
-          </Select.OptGroup>
-        )}
-
-        {/* 已打开文件选项组 */}
-        {openedFiles.length > 0 && searchText.length < 2 && (
-          <Select.OptGroup 
-            label={
-              <div className="flex justify-between items-center">
-                <span>{getMessage('openedFiles')}</span>
-                <button 
-                  className="text-xs text-blue-400 hover:text-blue-300 px-1 py-0 rounded"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // 获取所有已打开文件路径
-                    const openedFilePaths = openedFiles.map(file => file.path);
-                    
-                    // 检查是否所有已打开文件都已被选中
-                    const allSelected = openedFilePaths.every(path => 
-                      selectedFiles.includes(path)
-                    );
-                    
-                    if (allSelected) {
-                      // 如果全部已选中，则取消选择所有已打开文件
-                      const newFileSelection = selectedFiles.filter(
-                        path => !openedFilePaths.includes(path)
-                      );
-                      updateSelection(selectedGroups, newFileSelection);
-                    } else {
-                      // 否则选择所有已打开文件
-                      const newFileSelection = [
-                        ...selectedFiles.filter(path => !openedFilePaths.includes(path)),
-                        ...openedFilePaths
-                      ];
-                      updateSelection(selectedGroups, newFileSelection);
-                    }
-                  }}
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="12" 
-                    height="12" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className="feather feather-check-square"
-                  >
-                    <polyline points="9 11 12 14 22 4"></polyline>
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                  </svg>
-                </button>
-              </div>
+          )}
+          onKeyDown={(e) => {
+            // 监听 Cmd/Ctrl + I 快捷键
+            if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
+              e.preventDefault();
+              e.stopPropagation();
+              // 发布事件让编辑器获得焦点
+              eventBus.publish(EVENTS.EDITOR.FOCUS);
             }
-          >
-            {openedFiles.map((file, index) => {
-              // 使用文件名作为显示名
-              const display = file.label || file.path.split('/').pop() || file.path;
-              const optionIndex = fileCompletions.length + index;
-              return (
+            // 处理Escape键
+            else if (e.key === 'Escape') {
+              e.preventDefault();
+              e.stopPropagation();
+              setDropdownVisible(false);
+            }
+          }}
+        >
+          {fileCompletions.length > 0 && (
+            <Select.OptGroup label={getMessage('searchResults')}>
+              {fileCompletions.map((file, index) => (
                 <Select.Option
-                  key={`opened-${file.path}`}
-                  value={file.path}
-                  label={display}
-                  className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
-                >
-                <div className="flex justify-between items-center" title={file.path}>
-                  <span className={`text-xs ${file.isSelected ? 'text-white font-medium' : 'text-gray-200'}`}>
-                    {display} ({formatPathDisplay(file.path)})
-                  </span>
-                  <span className={`text-[10px] ${file.isSelected ? 'text-green-400' : 'text-green-600/70'}`}>
-                    {getMessage(file.isSelected ? 'fileStatusActive' : 'fileStatusOpened')}
-                  </span>
-                </div>
-                </Select.Option>
-              );
-            })}
-          </Select.OptGroup>
-        )}
-
-        {fileGroups.map((group, index) => {
-          const optionIndex = fileCompletions.length + 
-            (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
-            (mentionFiles.length > 0 && searchText.length < 2 ? mentionFiles.length : 0) + 
-            index;
-          return (
-            <Select.Option
-              key={group.name}
-              value={group.name}
-              label={group.name}
-              className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
-            >
-              <div className="flex justify-between items-center">
-                <span className="text-gray-200 text-xs">{group.name}</span>
-                <span className="text-gray-400 text-[10px]">
-                  {getMessage('fileCount', { count: String(group.files.length) })}
-                </span>
-              </div>
-            </Select.Option>
-          );
-        })}
-        
-        {mentionFiles.length > 0 && searchText.length < 2 && (
-          <Select.OptGroup label={getMessage('mentionedFiles')}>
-            {mentionFiles.map((file, index) => {
-              const optionIndex = fileCompletions.length + 
-                (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
-                index;
-              return (
-                <Select.Option
-                  key={`mention-${file.path}`}
+                  key={file.path}
                   value={file.path}
                   label={file.display}
-                  className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
+                  className={`file-option ${focusedOptionIndex === index ? 'keyboard-focused-option' : ''}`}
                 >
                   <div className="flex justify-between items-center" title={file.path}>
-                    <span className="text-gray-200 text-xs">{file.display} ({formatPathDisplay(file.path, 20)})</span>
-                    <span className="text-blue-400 text-[10px]">{getMessage('mentionedFileStatus')}</span>
+                    <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 50 ? '...' + file.path.slice(-50) : file.path})</span>
+                    <span className="text-gray-400 text-[10px]">{getMessage('fileType')}</span>
                   </div>
                 </Select.Option>
-              );
-            })}
-          </Select.OptGroup>
-        )}
-      </Select>
+              ))}
+            </Select.OptGroup>
+          )}
+
+          {/* 已打开文件选项组 */}
+          {openedFiles.length > 0 && searchText.length < 2 && (
+            <Select.OptGroup 
+              label={
+                <div className="flex justify-between items-center">
+                  <span>{getMessage('openedFiles')}</span>
+                  <button 
+                    className="text-xs text-blue-400 hover:text-blue-300 px-1 py-0 rounded"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // 获取所有已打开文件路径
+                      const openedFilePaths = openedFiles.map(file => file.path);
+                      
+                      // 检查是否所有已打开文件都已被选中
+                      const allSelected = openedFilePaths.every(path => 
+                        selectedFiles.includes(path)
+                      );
+                      
+                      if (allSelected) {
+                        // 如果全部已选中，则取消选择所有已打开文件
+                        const newFileSelection = selectedFiles.filter(
+                          path => !openedFilePaths.includes(path)
+                        );
+                        updateSelection(selectedGroups, newFileSelection);
+                      } else {
+                        // 否则选择所有已打开文件
+                        const newFileSelection = [
+                          ...selectedFiles.filter(path => !openedFilePaths.includes(path)),
+                          ...openedFilePaths
+                        ];
+                        updateSelection(selectedGroups, newFileSelection);
+                      }
+                    }}
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="12" 
+                      height="12" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="feather feather-check-square"
+                    >
+                      <polyline points="9 11 12 14 22 4"></polyline>
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                  </button>
+                </div>
+              }
+            >
+              {openedFiles.map((file, index) => {
+                // 使用文件名作为显示名
+                const display = file.label || file.path.split('/').pop() || file.path;
+                const optionIndex = fileCompletions.length + index;
+                return (
+                  <Select.Option
+                    key={`opened-${file.path}`}
+                    value={file.path}
+                    label={display}
+                    className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
+                  >
+                  <div className="flex justify-between items-center" title={file.path}>
+                    <span className={`text-xs ${file.isSelected ? 'text-white font-medium' : 'text-gray-200'}`}>
+                      {display} ({formatPathDisplay(file.path)})
+                    </span>
+                    <span className={`text-[10px] ${file.isSelected ? 'text-green-400' : 'text-green-600/70'}`}>
+                      {getMessage(file.isSelected ? 'fileStatusActive' : 'fileStatusOpened')}
+                    </span>
+                  </div>
+                  </Select.Option>
+                );
+              })}
+            </Select.OptGroup>
+          )}
+
+          {fileGroups.map((group, index) => {
+            const optionIndex = fileCompletions.length + 
+              (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
+              (mentionFiles.length > 0 && searchText.length < 2 ? mentionFiles.length : 0) + 
+              index;
+            return (
+              <Select.Option
+                key={group.name}
+                value={group.name}
+                label={group.name}
+                className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-200 text-xs">{group.name}</span>
+                  <span className="text-gray-400 text-[10px]">
+                    {getMessage('fileCount', { count: String(group.files.length) })}
+                  </span>
+                </div>
+              </Select.Option>
+            );
+          })}
+          
+          {mentionFiles.length > 0 && searchText.length < 2 && (
+            <Select.OptGroup label={getMessage('mentionedFiles')}>
+              {mentionFiles.map((file, index) => {
+                const optionIndex = fileCompletions.length + 
+                  (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
+                  index;
+                return (
+                  <Select.Option
+                    key={`mention-${file.path}`}
+                    value={file.path}
+                    label={file.display}
+                    className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
+                  >
+                    <div className="flex justify-between items-center" title={file.path}>
+                      <span className="text-gray-200 text-xs">{file.display} ({formatPathDisplay(file.path, 20)})</span>
+                      <span className="text-blue-400 text-[10px]">{getMessage('mentionedFileStatus')}</span>
+                    </div>
+                  </Select.Option>
+                );
+              })}
+            </Select.OptGroup>
+          )}
+        </Select>
         <CloseCircleOutlined
           className="text-gray-400 hover:text-gray-200 cursor-pointer text-sm"
           onClick={async () => {

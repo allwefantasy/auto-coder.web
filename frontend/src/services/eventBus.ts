@@ -12,7 +12,9 @@ export const EVENTS = {
   },
   UI: {
     // 激活面板事件 CompletionMessage.tsx 发布, ExpertModePage.tsx 订阅
-    ACTIVATE_PANEL: 'ui.panel.activate'
+    ACTIVATE_PANEL: 'ui.panel.activate',
+    // InputArea全屏切换事件 EditorComponent.tsx 发布, InputArea.tsx 订阅
+    TOGGLE_INPUT_FULLSCREEN: 'input.area.toggle.fullscreen'
   },
   FILE_GROUP_SELECT: {
     // 聚焦文件组选择事件 EditorComponent.tsx 发布, FileGroupSelect.tsx 订阅
