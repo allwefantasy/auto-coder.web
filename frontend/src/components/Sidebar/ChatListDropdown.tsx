@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Dropdown, Button, Tooltip, message as AntdMessage, Modal } from 'antd';
-import { MessageOutlined, PlusOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons';
+import React, { useState, useRef } from 'react';
+import { Dropdown, Button, Tooltip, message as AntdMessage, Modal, Input } from 'antd';
+import { MessageOutlined, PlusOutlined, DeleteOutlined, DownOutlined, EditOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { getMessage } from './lang';
 
 interface ChatListDropdownProps {
@@ -12,6 +12,7 @@ interface ChatListDropdownProps {
   showNewChatModal: () => void;
   deleteChatList: (name: string) => Promise<void>;
   getChatTitle: () => string;
+  renameChatList?: (oldName: string, newName: string) => Promise<boolean>;
 }
 
 const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
@@ -22,9 +23,13 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
   setCurrentSessionName,
   showNewChatModal,
   deleteChatList,
-  getChatTitle
+  getChatTitle,
+  renameChatList = async () => false
 }) => {
   const [showAllChats, setShowAllChats] = useState(false);
+  const [editingChat, setEditingChat] = useState<string | null>(null);
+  const [newChatName, setNewChatName] = useState('');
+  const inputRef = useRef<Input>(null);
   const MAX_DEFAULT_CHATS = 10;
   const MAX_TOTAL_CHATS = 100;
   const handleDeleteChat = async (name: string) => {
@@ -39,6 +44,53 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
         AntdMessage.success('对话已删除');
       },
     });
+  };
+
+  const startEditing = (name: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingChat(name);
+    setNewChatName(name);
+    // 使用 setTimeout 确保在下一个渲染周期后聚焦输入框
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+  };
+
+  const cancelEditing = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingChat(null);
+  };
+
+  const handleRenameChat = async (oldName: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
+    if (!newChatName.trim()) {
+      AntdMessage.error('对话名称不能为空');
+      return;
+    }
+
+    if (newChatName === oldName) {
+      setEditingChat(null);
+      return;
+    }
+
+    if (chatLists.includes(newChatName)) {
+      AntdMessage.error('已存在同名对话');
+      return;
+    }
+
+    const success = await renameChatList(oldName, newChatName);
+    if (success) {
+      AntdMessage.success('对话已重命名');
+      // 如果当前选中的是被重命名的对话，更新当前选中的对话名称
+      if (chatListName === oldName) {
+        setChatListName(newChatName);
+        await setCurrentSessionName(newChatName);
+      }
+    } else {
+      AntdMessage.error('重命名失败');
+    }
+    setEditingChat(null);
   };
 
   // 决定显示哪些聊天记录
@@ -63,18 +115,64 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
     ...visibleChatLists.map(name => ({
       key: name,
       label: (
-        <div className={`flex justify-between items-center w-full group ${chatListName === name ? 'bg-indigo-700/40 rounded-sm' : ''}`}>
-          <span className={`truncate max-w-[180px] ${chatListName === name ? 'text-white font-medium' : 'text-gray-200'}`}>{name}</span>
-          <Button 
-            type="text" 
-            size="small" 
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-white" 
-            icon={<DeleteOutlined />}
-            onClick={(e) => {
+        <div 
+          className={`flex justify-between items-center w-full group ${chatListName === name ? 'bg-indigo-700/40 rounded-sm' : ''}`}
+          onClick={(e) => {
+            if (editingChat === name) {
               e.stopPropagation();
-              handleDeleteChat(name);
-            }}
-          />
+            }
+          }}
+        >
+          {editingChat === name ? (
+            <div className="flex items-center w-full" onClick={e => e.stopPropagation()}>
+              <Input
+                ref={inputRef}
+                value={newChatName}
+                onChange={e => setNewChatName(e.target.value)}
+                onPressEnter={() => handleRenameChat(name)}
+                size="small"
+                className="mr-1 text-black"
+                autoFocus
+              />
+              <Button 
+                type="text" 
+                size="small"
+                className="text-green-500 p-0 flex items-center justify-center" 
+                icon={<CheckOutlined />}
+                onClick={e => handleRenameChat(name, e)}
+              />
+              <Button 
+                type="text" 
+                size="small"
+                className="text-red-500 p-0 flex items-center justify-center" 
+                icon={<CloseOutlined />}
+                onClick={cancelEditing}
+              />
+            </div>
+          ) : (
+            <>
+              <span className={`truncate max-w-[150px] ${chatListName === name ? 'text-white font-medium' : 'text-gray-200'}`}>{name}</span>
+              <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button 
+                  type="text" 
+                  size="small" 
+                  className="text-white p-0 mx-1 flex items-center justify-center" 
+                  icon={<EditOutlined />}
+                  onClick={e => startEditing(name, e)}
+                />
+                <Button 
+                  type="text" 
+                  size="small" 
+                  className="text-white p-0 flex items-center justify-center" 
+                  icon={<DeleteOutlined />}
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleDeleteChat(name);
+                  }}
+                />
+              </div>
+            </>
+          )}
         </div>
       ),
     })),
