@@ -38,25 +38,21 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   const selectRef = useRef<any>(null);
   const processedMentionPaths = useRef<Set<string>>(new Set());
 
-  // 添加快捷键监听
+  // 监听编辑器发来的聚焦事件
   useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // 检查是否是 Cmd/Ctrl + I
-      if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
-        e.preventDefault();
-        if (selectRef.current) {
-          selectRef.current.focus();
-          message.info(getMessage('focusInput'), 1);
-        }
+    const handleFocusEvent = () => {
+      if (selectRef.current) {
+        selectRef.current.focus();
+        message.info(getMessage('focusInput'), 1);
       }
     };
 
-    // 添加全局键盘事件监听
-    window.addEventListener('keydown', handleGlobalKeyDown as any);
+    // 订阅聚焦事件
+    const unsubscribe = eventBus.subscribe(EVENTS.FILE_GROUP_SELECT.FOCUS, handleFocusEvent);
     
     // 清理函数
     return () => {
-      window.removeEventListener('keydown', handleGlobalKeyDown as any);
+      unsubscribe();
     };
   }, []);
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Editor, loader } from '@monaco-editor/react';
 import { CompletionItem, EnhancedCompletionItem } from './types';
+import eventBus, { EVENTS } from '../../services/eventBus';
 // 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
 
@@ -125,6 +126,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     // 添加提交快捷键
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       onShouldSendMessage();
+    });
+
+    // 添加聚焦文件组选择快捷键
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
+      // 触发自定义事件
+      eventBus.publish(EVENTS.FILE_GROUP_SELECT.FOCUS);
+      return null;
     });
 
     // 注册自定义命令，用于处理自动完成选择事件

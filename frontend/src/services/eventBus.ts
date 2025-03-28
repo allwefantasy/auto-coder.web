@@ -11,6 +11,10 @@ export const EVENTS = {
   UI: {
     // 激活面板事件 CompletionMessage.tsx 发布, ExpertModePage.tsx 订阅
     ACTIVATE_PANEL: 'ui.panel.activate'
+  },
+  FILE_GROUP_SELECT: {
+    // 聚焦文件组选择事件 EditorComponent.tsx 发布, FileGroupSelect.tsx 订阅
+    FOCUS: 'file.group.select.focus'
   }
 };
 
