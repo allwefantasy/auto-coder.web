@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Switch, Select, Tooltip, message as AntdMessage, Spin } from 'antd';
 import { UndoOutlined, BuildOutlined, LoadingOutlined } from '@ant-design/icons';
 import EditorComponent from './EditorComponent';
@@ -56,6 +56,26 @@ const InputArea: React.FC<InputAreaProps> = ({
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [indexBuilding, setIndexBuilding] = useState<boolean>(false);
   const [indexStatus, setIndexStatus] = useState<string>('');
+
+  // 切换写作模式的回调函数
+  const toggleWriteMode = useCallback(() => {
+    setIsWriteMode(prev => !prev);
+  }, [setIsWriteMode]);
+
+  // 添加键盘快捷键事件监听
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Command + . (Mac) 或 Ctrl + . (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === '.') {
+        toggleWriteMode();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [toggleWriteMode]);
 
   useEffect(() => {
     // Check index status on component mount
@@ -298,14 +318,16 @@ const InputArea: React.FC<InputAreaProps> = ({
               <div className="flex items-center space-x-0.5">
                 {/* Mode Switch with Label */}
                 <span className="text-[9px] font-medium text-gray-400">Mode:</span>
-                <Switch
-                  size="small"
-                  checked={isWriteMode}
-                  onChange={setIsWriteMode}
-                  checkedChildren="Write"
-                  unCheckedChildren="Chat"
-                  className="bg-gray-700 hover:bg-gray-600"
-                />
+                <Tooltip title={`Switch between Chat and Write mode (${navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)`}>
+                  <Switch
+                    size="small"
+                    checked={isWriteMode}
+                    onChange={setIsWriteMode}
+                    checkedChildren="Write"
+                    unCheckedChildren="Chat"
+                    className="bg-gray-700 hover:bg-gray-600"
+                  />
+                </Tooltip>
                 {/* Keyboard Shortcut */}
                 <kbd className="px-0.5 py-0 ml-1 text-[8px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
                   {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
