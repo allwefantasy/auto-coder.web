@@ -1065,11 +1065,7 @@ export const messages: { [key: string]: Message } = {
   indexModelDescription: {
     en: "Used for indexing content",
     zh: "用于内容索引"
-  },
-  modelConfiguration: {
-    en: "Model Configuration",
-    zh: "模型配置"
-  }
+  }  
 };
 
 // 当前语言设置
