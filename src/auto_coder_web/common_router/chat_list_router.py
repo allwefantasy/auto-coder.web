@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 import aiofiles
 from auto_coder_web.types import ChatList
 from pydantic import BaseModel
-
+import asyncio
 
 class SessionNameRequest(BaseModel):
     session_name: str
@@ -48,7 +48,8 @@ async def get_chat_lists(project_path: str = Depends(get_project_path)):
 
         # Get files with their modification times
         chat_lists = []
-        for file in os.listdir(chat_lists_dir):
+        files = await asyncio.to_thread(os.listdir, chat_lists_dir)
+        for file in files:
             if file.endswith('.json'):
                 file_path = os.path.join(chat_lists_dir, file)
                 mod_time = os.path.getmtime(file_path)
