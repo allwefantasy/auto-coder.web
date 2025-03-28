@@ -1024,6 +1024,51 @@ export const messages: { [key: string]: Message } = {
   indexBuildFailed: {
     en: "Index build failed",
     zh: "索引构建失败"
+  },
+  // Model configuration descriptions
+  defaultModel: {
+    en: "Default Model",
+    zh: "默认模型"
+  },
+  defaultModelDescription: {
+    en: "Used for general purpose tasks",
+    zh: "用于通用任务"
+  },
+  codeModel: {
+    en: "Code Model",
+    zh: "代码模型"
+  },
+  codeModelDescription: {
+    en: "Used for code generation and analysis",
+    zh: "用于代码生成和分析"
+  },
+  chatModel: {
+    en: "Chat Model",
+    zh: "聊天模型"
+  },
+  chatModelDescription: {
+    en: "Used for conversational responses",
+    zh: "用于对话响应"
+  },
+  rerankModel: {
+    en: "Rerank Model",
+    zh: "重排序模型"
+  },
+  rerankModelDescription: {
+    en: "Used for reranking generated content",
+    zh: "用于重新排序生成的内容"
+  },
+  indexModel: {
+    en: "Index Model",
+    zh: "索引模型"
+  },
+  indexModelDescription: {
+    en: "Used for indexing content",
+    zh: "用于内容索引"
+  },
+  modelConfiguration: {
+    en: "Model Configuration",
+    zh: "模型配置"
   }
 };
 

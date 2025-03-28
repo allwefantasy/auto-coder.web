@@ -140,7 +140,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="settings-title">{getMessage('modelName') || '模型配置'}</h3>
+        <h3 className="settings-title">{getMessage('modelConfiguration')}</h3>
         <Button 
           type="text" 
           icon={<ReloadOutlined />} 
@@ -154,7 +154,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
       
       <div className="space-y-3">
         <div className="model-config-item">
-          <label className="model-config-label">Default Model</label>
+          <label className="model-config-label">{getMessage('defaultModel')}</label>
           <Select
             {...selectProps}
             value={selectedModels.model}
@@ -164,11 +164,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
               label: model.name
             }))}
           />
-          <p className="model-config-description">Used for general purpose tasks</p>
+          <p className="model-config-description">{getMessage('defaultModelDescription')}</p>
         </div>
 
         <div className="model-config-item">
-          <label className="model-config-label">Code Model</label>
+          <label className="model-config-label">{getMessage('codeModel')}</label>
           <Select
             {...selectProps}
             value={selectedModels.code_model}
@@ -178,11 +178,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
               label: model.name
             }))}
           />
-          <p className="model-config-description">Used for code generation and analysis</p>
+          <p className="model-config-description">{getMessage('codeModelDescription')}</p>
         </div>
 
         <div className="model-config-item">
-          <label className="model-config-label">Chat Model</label>
+          <label className="model-config-label">{getMessage('chatModel')}</label>
           <Select
             {...selectProps}
             value={selectedModels.chat_model}
@@ -192,11 +192,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
               label: model.name
             }))}
           />
-          <p className="model-config-description">Used for conversational responses</p>
+          <p className="model-config-description">{getMessage('chatModelDescription')}</p>
         </div>
 
         <div className="model-config-item">
-          <label className="model-config-label">Rerank Model</label>
+          <label className="model-config-label">{getMessage('rerankModel')}</label>
           <Select
             {...selectProps}
             value={selectedModels.generate_rerank_model}
@@ -206,11 +206,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
               label: model.name
             }))}
           />
-          <p className="model-config-description">Used for reranking generated content</p>
+          <p className="model-config-description">{getMessage('rerankModelDescription')}</p>
         </div>
 
         <div className="model-config-item">
-          <label className="model-config-label">Index Model</label>
+          <label className="model-config-label">{getMessage('indexModel')}</label>
           <Select
             {...selectProps}
             value={selectedModels.index_model}
@@ -220,7 +220,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
               label: model.name
             }))}
           />
-          <p className="model-config-description">Used for indexing content</p>
+          <p className="model-config-description">{getMessage('indexModelDescription')}</p>
         </div>
       </div>
     </div>
