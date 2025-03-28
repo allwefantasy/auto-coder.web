@@ -1092,12 +1092,12 @@ export const messages: { [key: string]: Message } = {
     zh: "自动修复生成代码中的代码风格错误。支持Python、ReactJS和Vue。"
   },
   enableActiveContext: {
-    en: "Enable Active Context",
-    zh: "启用活跃上下文"
+    en: "Enable Memory System",
+    zh: "启用记忆系统"
   },
   enableActiveContextDescription: {
-    en: "When using /auto command, recent project changes (commits) will be provided to the model for better understanding.",
-    zh: "使用/auto指令时，系统会自动将近期对项目的变更(commit)信息给到大模型，使其更好理解用户需求。"
+    en: "Memory system will become more familiar with your system in each iteration.",
+    zh: "记忆系统会在每次迭代中都会对你的系统更加熟悉"
   },
   enableTaskHistory: {
     en: "Enable Task History",
