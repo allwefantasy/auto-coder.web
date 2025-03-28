@@ -426,6 +426,56 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   };
 
+  // 添加重命名聊天列表的函数
+  const renameChatList = async (oldName: string, newName: string) => {
+    try {
+      // 验证新名称不为空
+      if (!newName.trim()) {
+        AntdMessage.error('Chat name cannot be empty');
+        return false;
+      }
+
+      // 调用重命名API
+      const response = await fetch('/api/chat-lists/rename', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          old_name: oldName,
+          new_name: newName,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to rename chat list');
+      }
+
+      // 更新本地聊天列表
+      setChatLists(prev => {
+        const newList = [...prev];
+        const index = newList.indexOf(oldName);
+        if (index !== -1) {
+          newList[index] = newName;
+        }
+        return newList;
+      });
+
+      // 如果当前正在使用的聊天列表被重命名，更新当前名称
+      if (chatListName === oldName) {
+        setChatListName(newName);
+      }
+
+      AntdMessage.success(`Chat renamed to ${newName}`);
+      return true;
+    } catch (error: any) {
+      console.error('Error renaming chat list:', error);
+      AntdMessage.error(`Failed to rename chat: ${error.message || 'Unknown error'}`);
+      return false;
+    }
+  };
+
   const updateConfig = async (key: string, value: boolean | string) => {
     const success = await autoCoderConfService.updateConfig(key, value);
     if (success) {
@@ -785,6 +835,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             showNewChatModal={showNewChatModal}
             deleteChatList={deleteChatList}
             getChatTitle={getChatTitle}
+            renameChatList={renameChatList}
           />
           
           <Tooltip title="保存当前对话">

@@ -10,6 +10,11 @@ class SessionNameRequest(BaseModel):
     session_name: str
 
 
+class RenameChatListRequest(BaseModel):
+    old_name: str
+    new_name: str
+
+
 async def get_project_path(request: Request) -> str:
     """
     从FastAPI请求上下文中获取项目路径
@@ -141,3 +146,56 @@ async def set_current_session_name(request: SessionNameRequest, project_path: st
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to set current session name: {str(e)}")
+
+
+@router.post("/api/chat-lists/rename")
+async def rename_chat_list(request: RenameChatListRequest, project_path: str = Depends(get_project_path)):
+    """
+    重命名聊天列表
+    
+    将现有聊天列表从旧名称重命名为新名称
+    """
+    try:
+        chat_lists_dir = os.path.join(project_path, ".auto-coder", "auto-coder.web", "chat-lists")
+        old_file_path = os.path.join(chat_lists_dir, f"{request.old_name}.json")
+        new_file_path = os.path.join(chat_lists_dir, f"{request.new_name}.json")
+        
+        # 检查旧文件是否存在
+        if not os.path.exists(old_file_path):
+            raise HTTPException(status_code=404, detail=f"Chat list {request.old_name} not found")
+        
+        # 检查新文件名是否已存在
+        if os.path.exists(new_file_path):
+            raise HTTPException(status_code=409, detail=f"Chat list with name {request.new_name} already exists")
+        
+        # 读取旧文件内容
+        async with aiofiles.open(old_file_path, 'r') as f:
+            content = await f.read()
+        
+        # 写入新文件
+        async with aiofiles.open(new_file_path, 'w') as f:
+            await f.write(content)
+        
+        # 删除旧文件
+        os.remove(old_file_path)
+        
+        # 如果当前会话名称是旧名称，则更新为新名称
+        session_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "current-session.json")
+        if os.path.exists(session_file):
+            try:
+                async with aiofiles.open(session_file, 'r') as f:
+                    session_content = await f.read()
+                    session_data = json.loads(session_content)
+                    
+                if session_data.get("session_name") == request.old_name:
+                    session_data["session_name"] = request.new_name
+                    async with aiofiles.open(session_file, 'w') as f:
+                        await f.write(json.dumps(session_data, indent=2, ensure_ascii=False))
+            except Exception as e:
+                print(f"Error updating current session name: {str(e)}")
+        
+        return {"status": "success", "message": f"Chat list renamed from {request.old_name} to {request.new_name}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to rename chat list: {str(e)}")

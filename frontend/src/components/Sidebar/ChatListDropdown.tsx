@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Dropdown, Button, Tooltip, message as AntdMessage, Modal, Input } from 'antd';
 import { MessageOutlined, PlusOutlined, DeleteOutlined, DownOutlined, EditOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { getMessage } from './lang';
+import type { InputRef } from 'antd';
 
 interface ChatListDropdownProps {
   chatListName: string;
@@ -29,7 +30,7 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
   const [showAllChats, setShowAllChats] = useState(false);
   const [editingChat, setEditingChat] = useState<string | null>(null);
   const [newChatName, setNewChatName] = useState('');
-  const inputRef = useRef<Input>(null);
+  const inputRef = useRef<InputRef>(null);
   const MAX_DEFAULT_CHATS = 10;
   const MAX_TOTAL_CHATS = 100;
   const handleDeleteChat = async (name: string) => {
