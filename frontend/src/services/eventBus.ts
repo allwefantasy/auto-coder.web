@@ -5,8 +5,12 @@ export const EVENTS = {
     TABS_CHANGED: 'editor.tabs.changed'
   },
   CODING: {
-    // 编程任务完成事件
+    // 编程任务完成事件 codingService.ts 发布, HistoryPanel.tsx 订阅
     TASK_COMPLETE: 'coding.task.complete'
+  },
+  UI: {
+    // 激活面板事件 CompletionMessage.tsx 发布, ExpertModePage.tsx 订阅
+    ACTIVATE_PANEL: 'ui.panel.activate'
   }
 };
 

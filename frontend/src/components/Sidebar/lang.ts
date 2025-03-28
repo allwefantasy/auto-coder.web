@@ -620,6 +620,14 @@ export const messages: { [key: string]: Message } = {
     en: "View this change feature coming soon",
     zh: "查看此次变更功能即将上线"
   },
+  viewChanges: {
+    en: "View Changes",
+    zh: "查看变更"
+  },
+  completion: {
+    en: "Completion",
+    zh: "完成"
+  },
   completionTime: {
     en: "Completion Time",
     zh: "完成时间"

@@ -13,6 +13,7 @@ import TodoPanel from '../MainContent/TodoPanel';
 import { getMessage } from '../Sidebar/lang';
 import { FileMetadata } from '../../types/file_meta';
 import './SplitStyles.css';
+import eventBus, { EVENTS } from '../../services/eventBus';
 
 interface ExpertModePageProps {
   projectName: string;
@@ -59,6 +60,19 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showToolsDropdown]);
+  
+  // Listen for panel activation events
+  useEffect(() => {
+    const unsubscribe = eventBus.subscribe(EVENTS.UI.ACTIVATE_PANEL, (panelName) => {
+      if (panelName === 'history') {
+        setActivePanel('history');
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [setActivePanel]);
 
   const toggleToolsDropdown = (e: React.MouseEvent) => {
     e.stopPropagation();

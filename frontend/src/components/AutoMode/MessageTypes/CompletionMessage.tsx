@@ -1,43 +1,67 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
 import './MessageStyles.css';
+import eventBus, { EVENTS } from '../../../services/eventBus';
 
 interface CompletionMessageProps {
     message: MessageProps;
 }
 
 const CompletionMessage: React.FC<CompletionMessageProps> = ({ message }) => {
+    const handleViewChanges = () => {
+        // Dispatch event to activate HistoryPanel
+        eventBus.publish(EVENTS.UI.ACTIVATE_PANEL, 'history');
+    };
+
     return (
         <div className="message-font">
             <div className="message-title">
                 <span className="message-title-icon">
-                    <svg className="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 </span>
-                <span className="text-green-400 message-title-text">{getMessage('jobCompleted')}</span>
+                <span className="text-green-400 message-title-text">{getMessage('completion') || 'Completion'}</span>
+                {message.metadata?.success_code && (
+                    <button 
+                        onClick={handleViewChanges}
+                        className="ml-4 text-xs text-blue-400 hover:text-blue-300 underline focus:outline-none"
+                    >
+                        {getMessage('viewChanges') || 'View Changes'}
+                    </button>
+                )}
             </div>
-            <div className="bg-gray-800/50 p-3 rounded-md">
-                <p className="text-white mb-2">{message.content}</p>
-                {message.metadata?.completion_time && (
-                    <p className="text-gray-400">
-                        {getMessage('completionTime')}: {new Date(message.metadata.completion_time).toLocaleString()}
-                    </p>
-                )}
-                {message.metadata?.details && Object.keys(message.metadata.details).length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-gray-700">
-                        <p className="text-gray-400 mb-1">{getMessage('settingsTitle')}:</p>
-                        {Object.entries(message.metadata.details).map(([key, value]) => (
-                            <div key={key} className="flex">
-                                <span className="text-gray-500 mr-2">{key}:</span>
-                                <span className="text-gray-300">
-                                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
+            <div className="prose prose-invert prose-xs max-w-none">
+                <ReactMarkdown
+                    className="text-gray-200 break-words"
+                    components={{
+                        code: ({ className, children, ...props }: any) => {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const inline = !match;
+                            return !inline ? (
+                                <SyntaxHighlighter
+                                    language={match ? match[1] : ''}
+                                    style={vscDarkPlus}
+                                    PreTag="div"
+                                    wrapLines={true}
+                                    wrapLongLines={true}
+                                >
+                                    {String(children).replace(/\n$/, '')}
+                                </SyntaxHighlighter>
+                            ) : (
+                                <code className={className} {...props}>
+                                    {children}
+                                </code>
+                            );
+                        }
+                    }}
+                >
+                    {message.content}
+                </ReactMarkdown>
             </div>
         </div>
     );

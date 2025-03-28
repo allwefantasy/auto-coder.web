@@ -337,7 +337,7 @@ class CodingService extends EventEmitter {
       type: event.event_type,
       content: content.error_message,
       metadata: content.details,
-      eventId: event.event_id,
+      eventId: event.event_id           
     };
 
     this.emit('message', message);
@@ -367,7 +367,8 @@ class CodingService extends EventEmitter {
         success_code: content.success_code,
         completion_time: content.completion_time,
         details: content.details,
-        result: content.result
+        result: content.result,
+        isWrite: true
       }
     };
 

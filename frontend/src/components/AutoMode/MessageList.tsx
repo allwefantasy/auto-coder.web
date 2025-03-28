@@ -68,6 +68,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             return <MarkdownMessage message={message} />;
         }
 
+        // For completion with success_code in isWrite mode
+        if (message.metadata?.success_code && message.metadata?.isWrite) {
+            return <CompletionMessage message={message} />;
+        }
+
         // For 上下文感知信息的展示
         if (message.metadata?.stream_out_type === "file_number_list") {
             return <ContextAwareMessage message={message} />;
