@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, KeyboardEvent } from 'react';
-import { Select, SelectProps } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Select } from 'antd';
 import { FileGroup, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import { FileMetadata } from '../../types/file_meta';
@@ -29,10 +29,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   const [fileCompletions, setFileCompletions] = useState<FileCompletion[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
-  const [dropdownVisible, setDropdownVisible] = useState(false);
   
   const [mentionFiles, setMentionFiles] = useState<{path: string, display: string}[]>([]);
-  const selectRef = useRef<any>(null);
   const processedMentionPaths = useRef<Set<string>>(new Set());
   
   // 新增状态 - 已打开的文件
@@ -118,34 +116,10 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     });
   };
 
-  // 处理键盘导航
-  const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    // 只有当下拉菜单打开时才处理键盘事件
-    if (!dropdownVisible) return;
-    
-    switch (e.key) {
-      case 'ArrowDown':
-      case 'ArrowUp':
-      case 'Enter':
-        // 这些键已经被 antd Select 处理，不需要额外处理
-        break;
-      case 'ArrowLeft':
-      case 'ArrowRight':
-        // 阻止默认行为，防止光标移动
-        e.preventDefault();
-        break;
-      case 'Escape':
-        // 关闭下拉菜单
-        setDropdownVisible(false);
-        break;
-    }
-  };
-
   return (
     <div className="px-1">
       <div className="h-[1px] bg-gray-700/50 my-0.5"></div>
       <Select
-        ref={selectRef}
         mode="multiple"
         style={{ 
           width: '100%', 
@@ -161,14 +135,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} more...`}
         placeholder="Select file groups or search for files"
         value={[...selectedGroups, ...selectedFiles]}
-        onFocus={() => {
-          fetchFileGroups();
-          setDropdownVisible(true);
-        }}
-        onBlur={() => setDropdownVisible(false)}
-        open={dropdownVisible}
-        onDropdownVisibleChange={setDropdownVisible}
-        onKeyDown={handleKeyDown}
+        onFocus={fetchFileGroups}
         onSearch={(value) => {
           setSearchText(value);
           fetchFileCompletions(value);
@@ -187,7 +154,6 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         filterOption={false}
         optionLabelProp="label"
         className="custom-select multi-line-select"
-        listHeight={300}
         popupClassName="dark-dropdown-menu"
         dropdownStyle={{ 
           backgroundColor: '#1f2937', 
@@ -385,15 +351,6 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
 
           .ant-select-dropdown {
             font-size: 12px !important;
-          }
-          
-          /* 高亮选中项的样式 */
-          .ant-select-item-option-active {
-            background-color: #374151 !important;
-          }
-          
-          .ant-select-item-option-selected {
-            background-color: #4b5563 !important;
           }
           
           /* 自定义OptGroup标题样式 */
