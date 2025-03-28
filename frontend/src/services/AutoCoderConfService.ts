@@ -25,7 +25,7 @@ class AutoCoderConfService extends EventEmitter {
   }
 
   // 获取配置
-  private async fetchConfig(): Promise<void> {
+  private async fetchConfig(): Promise<ConfigState | null> {
     try {
       const response = await fetch('/api/conf');
       if (!response.ok) {
@@ -45,9 +45,12 @@ class AutoCoderConfService extends EventEmitter {
 
       // 通知订阅者配置已更新
       this.emit('configUpdated', this.config);
+
+      return this.config;
     } catch (error) {
       console.error('Error fetching config:', error);
       this.emit('error', 'Failed to fetch configuration');
+      return null;
     }
   }
 
@@ -61,7 +64,7 @@ class AutoCoderConfService extends EventEmitter {
   }
 
   // 获取可用的配置键
-  private async fetchConfigKeys(): Promise<void> {
+  private async fetchConfigKeys(): Promise<ConfigKey[] | null> {
     try {
       const response = await fetch('/api/conf/keys');
       if (!response.ok) {
@@ -77,9 +80,11 @@ class AutoCoderConfService extends EventEmitter {
 
       // 通知订阅者配置键已更新
       this.emit('configKeysUpdated', this.config.available_keys);
+      return this.config.available_keys;
     } catch (error) {
       console.error('Error fetching configuration keys:', error);
       this.emit('error', 'Failed to fetch configuration keys');
+      return null;
     }
   }
 

@@ -5,6 +5,8 @@ import type { AutoCoderArgs } from './types';
 import ModelConfig from './ModelConfig';
 import ModelManagement from './ModelManagement';
 import ProviderManagement from './ProviderManagement';
+import AdvancedSettings from './AdvancedSettings';
+import { autoCoderConfService } from '../../services/AutoCoderConfService';
 import './ModelConfig.css';
 
 const { TabPane } = Tabs;
@@ -134,6 +136,15 @@ const SettingsPanel: React.FC = () => {
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('providerManagement')}</span>} key="providers">
           <ProviderManagement />
+        </TabPane>
+        <TabPane tab={<span className="text-gray-300">{getMessage('advancedSettings')}</span>} key="advanced">
+          <AdvancedSettings 
+            availableKeys={config.available_keys} 
+            onSettingChange={(key, value) => {
+              // We don't need to handle the API call here anymore as the component does it directly
+              // This is just to maintain the interface consistency
+            }}
+          />
         </TabPane>
       </Tabs>
     </div>

@@ -1066,6 +1066,43 @@ export const messages: { [key: string]: Message } = {
     en: "Used for indexing content",
     zh: "用于内容索引"
   },
+  // Advanced settings
+  advancedSettings: {
+    en: "Advanced",
+    zh: "高级设置"
+  },
+  enableAutoFixLint: {
+    en: "Auto Fix Lint",
+    zh: "自动修复代码风格"
+  },
+  enableAutoFixLintDescription: {
+    en: "Automatically fixes lint errors in generated code. Supports Python, ReactJS, and Vue.",
+    zh: "自动修复生成代码中的代码风格错误。支持Python、ReactJS和Vue。"
+  },
+  enableActiveContext: {
+    en: "Enable Active Context",
+    zh: "启用活跃上下文"
+  },
+  enableActiveContextDescription: {
+    en: "When using /auto command, recent project changes (commits) will be provided to the model for better understanding.",
+    zh: "使用/auto指令时，系统会自动将近期对项目的变更(commit)信息给到大模型，使其更好理解用户需求。"
+  },
+  enableTaskHistory: {
+    en: "Enable Task History",
+    zh: "启用任务历史"
+  },
+  enableTaskHistoryDescription: {
+    en: "When using /chat, /coding commands, include task history in the context.",
+    zh: "使用/chat、/coding等指令时，将任务历史信息纳入上下文。"
+  },
+  includeProjectStructure: {
+    en: "Include Project Structure",
+    zh: "包含项目结构"
+  },
+  includeProjectStructureDescription: {
+    en: "Include project directory structure in context. Set to false for large projects.",
+    zh: "在上下文中包含项目目录结构。如果项目很大，请设置为false。"
+  },
   // FileGroupSelect相关
   fileGroupSelectPlaceholder: {
     en: "Select file groups or search for files",
