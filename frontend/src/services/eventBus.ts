@@ -14,7 +14,9 @@ export const EVENTS = {
     // 激活面板事件 CompletionMessage.tsx 发布, ExpertModePage.tsx 订阅
     ACTIVATE_PANEL: 'ui.panel.activate',
     // InputArea全屏切换事件 EditorComponent.tsx 发布, InputArea.tsx 订阅
-    TOGGLE_INPUT_FULLSCREEN: 'input.area.toggle.fullscreen'
+    TOGGLE_INPUT_FULLSCREEN: 'input.area.toggle.fullscreen',
+    // 显示弹出框事件
+    SHOW_MODAL: 'ui.modal.show'
   },
   FILE_GROUP_SELECT: {
     // 聚焦文件组选择事件 EditorComponent.tsx 发布, FileGroupSelect.tsx 订阅

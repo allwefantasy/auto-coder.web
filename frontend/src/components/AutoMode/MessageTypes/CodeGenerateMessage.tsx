@@ -4,6 +4,7 @@ import { getMessage } from '../../Sidebar/lang';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './MessageStyles.css';
+import eventBus, { EVENTS } from '../../../services/eventBus';
 
 interface CodeGenerateMessageProps {
     message: MessageProps;
@@ -35,6 +36,18 @@ const StreamingCodeGenerateMessage: React.FC<{ message: MessageProps; isComplete
     
     // Determine language for syntax highlighting
     const language = message.language || 'javascript';
+    
+    // 处理最大化按钮点击
+    const handleMaximize = () => {
+        if (isCompleted) {
+            eventBus.publish(EVENTS.UI.SHOW_MODAL, {
+                content: message.content,
+                format: 'markdown',
+                language: language,
+                title: getMessage('generatingCode')
+            });
+        }
+    };
     
     return (
         <div className="message-font">
@@ -74,6 +87,19 @@ const StreamingCodeGenerateMessage: React.FC<{ message: MessageProps; isComplete
                 <span className="text-blue-400 message-title-text text-xs">
                     {message.isStreaming ? getMessage('generatingCode') : getMessage('generatedCode')}
                 </span>
+                
+                {/* 添加最大化按钮 - 仅当流式处理完成时可用 */}
+                {isCompleted && (
+                    <button 
+                        onClick={handleMaximize}
+                        className="ml-auto message-maximize-button text-gray-400 hover:text-blue-400"
+                        title={getMessage('maximize') || 'Maximize'}
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                        </svg>
+                    </button>
+                )}
             </div>
             
             {/* Only show content when not collapsed */}
@@ -107,6 +133,16 @@ const RegularCodeGenerateMessage: React.FC<{ message: MessageProps }> = ({ messa
     // Determine language for syntax highlighting
     const language = message.language || 'javascript';
     
+    // 处理最大化按钮点击
+    const handleMaximize = () => {
+        eventBus.publish(EVENTS.UI.SHOW_MODAL, {
+            content: message.content,
+            format: 'markdown',
+            language: language,
+            title: message.metadata?.fileName || getMessage('generatedCode')
+        });
+    };
+    
     return (
         <div className="message-font">
             {/* Header section with simple style */}            
@@ -136,6 +172,17 @@ const RegularCodeGenerateMessage: React.FC<{ message: MessageProps }> = ({ messa
                 
                 {/* Title */}
                 <span className="text-blue-400 message-title-text text-xs">{getMessage('generatedCode') || 'Generated Code'}</span>
+                
+                {/* 添加最大化按钮 */}
+                <button 
+                    onClick={handleMaximize}
+                    className="ml-auto message-maximize-button text-gray-400 hover:text-blue-400"
+                    title={getMessage('maximize') || 'Maximize'}
+                >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                    </svg>
+                </button>
             </div>
             
             {/* Only show content when not collapsed */}

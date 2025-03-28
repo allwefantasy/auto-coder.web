@@ -7,7 +7,9 @@
 .message-title {
   display: flex;
   align-items: center;
-  margin-bottom: 0.5rem;
+  padding: 4px 8px;
+  gap: 4px;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.2);
 }
 
 .message-title-icon {
@@ -45,4 +47,19 @@
   overflow: hidden;
   border: 1px solid rgba(55, 65, 81, 1);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* 最大化按钮样式 */
+.message-maximize-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.message-maximize-button:hover {
+  background-color: rgba(59, 130, 246, 0.1);
 } 
