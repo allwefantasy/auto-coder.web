@@ -1192,6 +1192,14 @@ export const messages: { [key: string]: Message } = {
   focusInput: {
     en: "Focused on file selection input",
     zh: "已聚焦到文件选择输入框"
+  },
+  analyzingCode: {
+    en: "Analyzing Code",
+    zh: "正在分析代码"
+  },
+  lintResults: {
+    en: "Lint Results",
+    zh: "代码检查结果"
   }
 };
 
