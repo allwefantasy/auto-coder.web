@@ -27,6 +27,11 @@ class IndexStatusUnknown(BaseModel):
     status: str = "unknown"
     message: str = "No index build status available"
 
+class IndexStatusRunning(BaseModel):
+    status: str = "running"
+    message: str = "Index build in progress"
+    timestamp: float
+
 class SourceCode(BaseModel):
     module_name: str
     source_code: str
@@ -38,7 +43,7 @@ class SourceCodeListResponse(BaseModel):
     sources: List[SourceCode]
 
 # 组合类型
-IndexStatus = Union[IndexStatusCompleted, IndexStatusError, IndexStatusUnknown]
+IndexStatus = Union[IndexStatusCompleted, IndexStatusError, IndexStatusUnknown, IndexStatusRunning]
 
 router = APIRouter()
 
@@ -107,6 +112,19 @@ async def build_index(project_path: str = Depends(get_project_path)):
                 f.write(status_data.model_dump_json())
 
     try:
+        # 先更新状态为running
+        status_file = os.path.join(
+            project_path, ".auto-coder", "auto-coder.web", "index-status.json")
+        os.makedirs(os.path.dirname(status_file), exist_ok=True)
+        
+        status_data = IndexStatusRunning(
+            message="Index build started",
+            timestamp=import_time.time()
+        )
+        
+        with open(status_file, 'w') as f:
+            f.write(status_data.model_dump_json())
+
         # 创建并启动线程
         thread = Thread(target=run_index_build_in_thread)
         thread.daemon = True  # 设置为守护线程，这样当主程序退出时，线程也会退出
