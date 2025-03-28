@@ -51,7 +51,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     return () => unsubscribe();
   }, []);
   
-  // 添加全局键盘导航事件监听
+  // 简化全局键盘导航事件监听
   useEffect(() => {
     // 只有当下拉菜单打开时才添加键盘事件监听
     if (!dropdownVisible) return;
@@ -60,19 +60,10 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
       // 如果事件已经被处理，不要再处理
       if (e.defaultPrevented) return;
       
-      // 处理特定的键盘事件
+      // 只处理 Escape 键，其他键交给组件内部处理
       if (e.key === 'Escape') {
         setDropdownVisible(false);
         e.preventDefault();
-        
-        // 移除当前可能的焦点
-        if (document.activeElement && document.activeElement instanceof HTMLElement) {
-          try {
-            document.activeElement.blur();
-          } catch (error) {
-            console.error(getMessage('errorRemovingFocus'), error);
-          }
-        }
       }
     };
     
@@ -154,14 +145,16 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     });
   };
 
-  // 改进键盘导航实现
+  // 简化键盘导航实现
   const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     // 下拉菜单关闭时不处理任何键盘事件
     if (!dropdownVisible) return;
     
-    // 检查是否有焦点元素
-    const hasActiveElement = document.activeElement && 
-                            document.activeElement.tagName !== 'BODY';
+    // 关键导航键（上下箭头、Enter、Tab）直接交给 Ant Design 处理
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Tab') {
+      // 不做任何操作，让 Ant Design 处理
+      return;
+    }
     
     switch (e.key) {
       case 'Escape':
@@ -169,54 +162,28 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         setDropdownVisible(false);
         e.stopPropagation();
         e.preventDefault();
-        // 尝试移除可能的活动焦点
-        if (document.activeElement && document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
-        }
-        // 确保聚焦回Select输入框
-        setTimeout(() => {
-          if (selectRef.current && selectRef.current.selectRef) {
-            try {
-              const input = selectRef.current.selectRef.querySelector('input');
-              if (input) input.focus();
-            } catch (error) {
-              console.error(getMessage('errorFocusingInput'), error);
-            }
-          }
-        }, 10);
-        break;
-        
-      // 对于上下键和Enter键，确保事件能被Select组件正确捕获处理
-      case 'ArrowDown':
-      case 'ArrowUp':
-        // 不阻止默认行为，让antd处理，但确保事件传播
-        break;
-        
-      case 'Enter':
-        // Enter键应该选择当前高亮的选项
-        // Ant Design Select应该已经处理了这个行为
         break;
         
       case 'ArrowLeft':
       case 'ArrowRight':
         // 阻止默认行为，防止文本光标移动
-        if (hasActiveElement) {
+        if (document.activeElement && document.activeElement.tagName !== 'BODY') {
           e.preventDefault();
         }
         break;
     }
   };
 
-  // 确保焦点位于选择器上
+  // 改进焦点管理
   const focusSelect = () => {
     if (selectRef.current) {
-      // 使用setTimeout确保DOM已经完全渲染
+      // 使用较短的延迟确保DOM已经完全渲染
       setTimeout(() => {
         try {
-          // 尝试聚焦到Select组件的输入框
+          // 仅在没有焦点时聚焦到Select组件的输入框
           if (selectRef.current && selectRef.current.selectRef) {
             const inputElement = selectRef.current.selectRef.querySelector('input');
-            if (inputElement) {
+            if (inputElement && document.activeElement !== inputElement) {
               inputElement.focus();
             }
           }
@@ -258,6 +225,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         open={dropdownVisible}
         onDropdownVisibleChange={(visible) => {
           setDropdownVisible(visible);
+          // 仅在打开下拉菜单时设置焦点
           if (visible) {
             focusSelect();
           }
@@ -278,8 +246,22 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           
           updateSelection(groupValues, fileValues);
         }}
-        filterOption={false}
-        optionLabelProp="label"
+        // 启用过滤选项以支持键盘导航
+        filterOption={(input, option) => {
+          if (!option) return false;
+          
+          // 使用 option.label 作为主要过滤依据
+          const labelText = typeof option.label === 'string' ? option.label : '';
+          // 使用 option.value 作为备用
+          const valueText = typeof option.value === 'string' ? option.value : '';
+          
+          // 同时匹配 label 和 value
+          return (
+            labelText.toLowerCase().includes(input.toLowerCase()) ||
+            valueText.toLowerCase().includes(input.toLowerCase())
+          );
+        }}
+        optionFilterProp="label"
         className="custom-select multi-line-select"
         listHeight={300}
         popupClassName="dark-dropdown-menu keyboard-navigation-dropdown"
