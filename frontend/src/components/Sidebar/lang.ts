@@ -49,6 +49,10 @@ export const messages: { [key: string]: Message } = {
     en: "Skip Filter Index",
     zh: "跳过过滤索引"
   },
+  skipFilterIndexDescription: {
+    en: "When enabled, system won't automatically filter files based on context. You'll need to manually add files using /add_files command.",
+    zh: "启用后，系统不会自动根据上下文过滤文件。你需要使用/add_files指令手动添加文件。"
+  },
   indexFilterLevelInput: {
     en: "Index Filter Level",
     zh: "索引过滤级别"
