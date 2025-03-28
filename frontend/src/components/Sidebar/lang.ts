@@ -1188,6 +1188,10 @@ export const messages: { [key: string]: Message } = {
   clearFailed: {
     en: "Failed to clear selections",
     zh: "清除选中内容失败"
+  },
+  focusInput: {
+    en: "Focused on file selection input",
+    zh: "已聚焦到文件选择输入框"
   }
 };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, KeyboardEvent, useCallback } from 'react';
-import { Select } from 'antd';
+import { Select, message } from 'antd';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import { FileGroup, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
@@ -37,6 +37,28 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   const [mentionFiles, setMentionFiles] = useState<{path: string, display: string}[]>([]);
   const selectRef = useRef<any>(null);
   const processedMentionPaths = useRef<Set<string>>(new Set());
+
+  // 添加快捷键监听
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // 检查是否是 Cmd/Ctrl + I
+      if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
+        e.preventDefault();
+        if (selectRef.current) {
+          selectRef.current.focus();
+          message.info(getMessage('focusInput'), 1);
+        }
+      }
+    };
+
+    // 添加全局键盘事件监听
+    window.addEventListener('keydown', handleGlobalKeyDown as any);
+    
+    // 清理函数
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown as any);
+    };
+  }, []);
 
   const formatPathDisplay = useCallback((path: string, maxLength: number = 40) => {
     // Remove the filename part (everything after last slash)
