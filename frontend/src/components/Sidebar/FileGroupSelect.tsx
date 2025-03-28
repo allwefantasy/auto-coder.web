@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, KeyboardEvent, useCallback } from 'react';
-import { Select, SelectProps } from 'antd';
+import { Select } from 'antd';
+import { CloseCircleOutlined } from '@ant-design/icons';
 import { FileGroup, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import { FileMetadata } from '../../types/file_meta';
@@ -254,7 +255,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   return (
     <div className="px-1" onKeyDown={handleKeyDown}>
       <div className="h-[1px] bg-gray-700/50 my-0.5"></div>
-      <Select
+      <div className="flex items-center gap-1">
+        <Select
         ref={selectRef}
         mode="multiple"
         style={{ 
@@ -504,7 +506,24 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             })}
           </Select.OptGroup>
         )}
-      </Select>
+        />
+        <CloseCircleOutlined
+          className="text-gray-400 hover:text-gray-200 cursor-pointer text-sm"
+          onClick={async () => {
+            try {
+              await fetch('/api/file-groups/clear', {
+                method: 'POST'
+              });
+              setSelectedGroups([]);
+              setSelectedFiles([]);
+              fetchFileGroups();
+            } catch (error) {
+              console.error(getMessage('clearFailed'), error);
+            }
+          }}
+          title={getMessage('clearContext')}
+        />
+      </div>
     </div>
   );
 };

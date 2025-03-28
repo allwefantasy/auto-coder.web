@@ -207,3 +207,12 @@ async def get_file_groups(
 ):
     groups = await asyncio.to_thread(_get_groups, project_path)
     return {"groups": groups}
+
+
+@router.post("/api/file-groups/clear")
+async def clear_current_files():
+    memory = get_memory()
+    memory["current_files"]["files"] = []
+    memory["current_files"]["current_groups"] = []
+    save_memory()
+    return {"status": "success", "message": "Cleared current files"}

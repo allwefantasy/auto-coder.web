@@ -1180,6 +1180,14 @@ export const messages: { [key: string]: Message } = {
   errorUpdatingSelection: {
     en: "Error updating selection:",
     zh: "更新选择时出错:"
+  },
+  clearContext: {
+    en: "Clear all selections",
+    zh: "清除所有选中内容"
+  },
+  clearFailed: {
+    en: "Failed to clear selections",
+    zh: "清除选中内容失败"
   }
 };
 
