@@ -68,4 +68,31 @@
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
   background-color: #4b5563 !important;
   color: white !important;
+}
+
+/* 为下拉菜单中的键盘聚焦选项添加样式 */
+.keyboard-focused-option {
+  background-color: rgba(79, 70, 229, 0.2) !important;
+  border-left: 2px solid #6366f1 !important;
+}
+
+/* 确保 antd 的下拉菜单项不会被其他样式覆盖 */
+.keyboard-navigation-dropdown .ant-select-item-option-active {
+  background-color: rgba(55, 65, 81, 0.7) !important;
+}
+
+/* 当选项被键盘导航聚焦时的样式优先级更高 */
+.keyboard-navigation-dropdown .ant-select-item-option-active.keyboard-focused-option {
+  background-color: rgba(79, 70, 229, 0.3) !important;
+}
+
+/* 确保键盘导航的菜单项在鼠标悬停时有明显的样式区分 */
+.keyboard-navigation-dropdown .ant-select-item:hover {
+  background-color: rgba(55, 65, 81, 0.8) !important;
+}
+
+/* 当有键盘焦点时外框样式 */
+.keyboard-navigation-select.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
 } 

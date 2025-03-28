@@ -39,6 +39,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   
   // 新增状态 - 已打开的文件
   const [openedFiles, setOpenedFiles] = useState<FileMetadata[]>([]);
+  // 新增状态 - 当前键盘聚焦的选项索引
+  const [focusedOptionIndex, setFocusedOptionIndex] = useState<number>(-1);
   
   // 订阅编辑器选项卡变更事件，而不是 files.opened 事件
   useEffect(() => {
@@ -51,30 +53,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     return () => unsubscribe();
   }, []);
   
-  // 简化全局键盘导航事件监听
-  useEffect(() => {
-    // 只有当下拉菜单打开时才添加键盘事件监听
-    if (!dropdownVisible) return;
-    
-    const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
-      // 如果事件已经被处理，不要再处理
-      if (e.defaultPrevented) return;
-      
-      // 只处理 Escape 键，其他键交给组件内部处理
-      if (e.key === 'Escape') {
-        setDropdownVisible(false);
-        e.preventDefault();
-      }
-    };
-    
-    // 添加全局事件监听器
-    document.addEventListener('keydown', handleGlobalKeyDown);
-    
-    // 清理函数
-    return () => {
-      document.removeEventListener('keydown', handleGlobalKeyDown);
-    };
-  }, [dropdownVisible]);
+  
   
   useEffect(() => {
     const files = mentionItems      
@@ -145,57 +124,128 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     });
   };
 
-  // 简化键盘导航实现
-  const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    // 下拉菜单关闭时不处理任何键盘事件
-    if (!dropdownVisible) return;
-    
-    // 关键导航键（上下箭头、Enter、Tab）直接交给 Ant Design 处理
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Tab') {
-      // 不做任何操作，让 Ant Design 处理
+  // 处理键盘导航事件
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!dropdownVisible) {
+      // 如果下拉列表未显示，则不处理键盘事件
       return;
     }
-    
+
     switch (e.key) {
-      case 'Escape':
-        // 关闭下拉菜单并阻止事件传播
-        setDropdownVisible(false);
-        e.stopPropagation();
+      case 'ArrowDown':
         e.preventDefault();
+        setFocusedOptionIndex(prev => {
+          // 计算可选项的总数
+          const totalOptions = fileCompletions.length + fileGroups.length + 
+            (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
+            (mentionFiles.length > 0 && searchText.length < 2 ? mentionFiles.length : 0);
+          
+          // 移动到下一个选项，如果到达末尾则回到第一个
+          return prev >= totalOptions - 1 ? 0 : prev + 1;
+        });
         break;
-        
-      case 'ArrowLeft':
-      case 'ArrowRight':
-        // 阻止默认行为，防止文本光标移动
-        if (document.activeElement && document.activeElement.tagName !== 'BODY') {
+      
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedOptionIndex(prev => {
+          // 计算可选项的总数
+          const totalOptions = fileCompletions.length + fileGroups.length + 
+            (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
+            (mentionFiles.length > 0 && searchText.length < 2 ? mentionFiles.length : 0);
+          
+          // 移动到上一个选项，如果到达顶部则移到最后一个
+          return prev <= 0 ? totalOptions - 1 : prev - 1;
+        });
+        break;
+      
+      case 'Enter':
+        if (focusedOptionIndex >= 0) {
           e.preventDefault();
+          // 获取当前聚焦的选项并选中它
+          // 这需要一个额外的逻辑来确定哪个选项是当前聚焦的
+          selectFocusedOption(focusedOptionIndex);
         }
+        break;
+      
+      case 'Tab':
+        if (focusedOptionIndex >= 0) {
+          e.preventDefault();
+          // 与Enter键相同，选中当前聚焦的选项
+          selectFocusedOption(focusedOptionIndex);
+        }
+        break;
+      
+      case 'Escape':
+        e.preventDefault();
+        // 关闭下拉菜单
+        setDropdownVisible(false);
+        break;
+      
+      default:
         break;
     }
   };
 
-  // 改进焦点管理
-  const focusSelect = () => {
-    if (selectRef.current) {
-      // 使用较短的延迟确保DOM已经完全渲染
-      setTimeout(() => {
-        try {
-          // 仅在没有焦点时聚焦到Select组件的输入框
-          if (selectRef.current && selectRef.current.selectRef) {
-            const inputElement = selectRef.current.selectRef.querySelector('input');
-            if (inputElement && document.activeElement !== inputElement) {
-              inputElement.focus();
-            }
+  // 选择当前聚焦的选项
+  const selectFocusedOption = (index: number) => {
+    // 需要根据当前的渲染顺序计算出索引对应的实际选项
+    // 这取决于你的选项在界面上的渲染顺序
+    let optionIndex = index;
+    let selectedValue: string = '';
+    
+    // 先检查是否是搜索结果中的选项
+    if (fileCompletions.length > 0 && optionIndex < fileCompletions.length) {
+      selectedValue = fileCompletions[optionIndex].path;
+    } else {
+      optionIndex -= fileCompletions.length;
+      
+      // 检查是否是已打开文件中的选项
+      if (openedFiles.length > 0 && searchText.length < 2 && optionIndex < openedFiles.length) {
+        selectedValue = openedFiles[optionIndex].path;
+      } else {
+        optionIndex -= (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0);
+        
+        // 检查是否是提到文件中的选项
+        if (mentionFiles.length > 0 && searchText.length < 2 && optionIndex < mentionFiles.length) {
+          selectedValue = mentionFiles[optionIndex].path;
+        } else {
+          optionIndex -= (mentionFiles.length > 0 && searchText.length < 2 ? mentionFiles.length : 0);
+          
+          // 最后检查是否是文件组中的选项
+          if (optionIndex < fileGroups.length) {
+            selectedValue = fileGroups[optionIndex].name;
           }
-        } catch (error) {
-          console.error('Error focusing select:', error);
         }
-      }, 10);
+      }
+    }
+    
+    if (selectedValue) {
+      // 更新选中项
+      const isGroup = fileGroups.some(group => group.name === selectedValue);
+      
+      if (isGroup) {
+        // 如果是文件组，则将其添加到选中组
+        const updatedGroups = [...selectedGroups];
+        if (!updatedGroups.includes(selectedValue)) {
+          updatedGroups.push(selectedValue);
+        }
+        updateSelection(updatedGroups, selectedFiles);
+      } else {
+        // 如果是文件，则将其添加到选中文件
+        const updatedFiles = [...selectedFiles];
+        if (!updatedFiles.includes(selectedValue)) {
+          updatedFiles.push(selectedValue);
+        }
+        updateSelection(selectedGroups, updatedFiles);
+      }
+      
+      // 关闭下拉菜单
+      setDropdownVisible(false);
     }
   };
 
   return (
-    <div className="px-1">
+    <div className="px-1" onKeyDown={handleKeyDown}>
       <div className="h-[1px] bg-gray-700/50 my-0.5"></div>
       <Select
         ref={selectRef}
@@ -217,23 +267,23 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         onFocus={() => {
           fetchFileGroups();
           setDropdownVisible(true);
+          // 重置聚焦的选项索引
+          setFocusedOptionIndex(-1);
         }}
         onBlur={() => {
           // 添加短暂延迟，避免点击下拉选项时触发blur
-          setTimeout(() => setDropdownVisible(false), 100);
+          setTimeout(() => {
+            setDropdownVisible(false);
+            // 重置聚焦的选项索引
+            setFocusedOptionIndex(-1);
+          }, 100);
         }}
-        open={dropdownVisible}
-        onDropdownVisibleChange={(visible) => {
-          setDropdownVisible(visible);
-          // 仅在打开下拉菜单时设置焦点
-          if (visible) {
-            focusSelect();
-          }
-        }}
-        onKeyDown={handleKeyDown}
+        open={dropdownVisible}        
         onSearch={(value) => {
           setSearchText(value);
           fetchFileCompletions(value);
+          // 当搜索文本变化时，重置聚焦的选项索引
+          setFocusedOptionIndex(-1);
         }}
         onChange={(values) => {
           const groupValues = values.filter(value => 
@@ -262,7 +312,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           );
         }}
         optionFilterProp="label"
-        className="custom-select multi-line-select"
+        className="custom-select multi-line-select keyboard-navigation-select"
         listHeight={300}
         popupClassName="dark-dropdown-menu keyboard-navigation-dropdown"
         dropdownStyle={{ 
@@ -298,15 +348,23 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             </span>
           );
         }}
+        // 添加下拉菜单项选中状态的处理
+        dropdownRender={(menu) => {
+          return (
+            <div className="keyboard-navigation-menu">
+              {menu}
+            </div>
+          );
+        }}
       >
         {fileCompletions.length > 0 && (
           <Select.OptGroup label={getMessage('searchResults')}>
-            {fileCompletions.map(file => (
+            {fileCompletions.map((file, index) => (
               <Select.Option
                 key={file.path}
                 value={file.path}
                 label={file.display}
-                className="file-option"
+                className={`file-option ${focusedOptionIndex === index ? 'keyboard-focused-option' : ''}`}
               >
                 <div className="flex justify-between items-center" title={file.path}>
                   <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 50 ? '...' + file.path.slice(-50) : file.path})</span>
@@ -370,15 +428,16 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
               </div>
             }
           >
-            {openedFiles.map(file => {
+            {openedFiles.map((file, index) => {
               // 使用文件名作为显示名
               const display = file.label || file.path.split('/').pop() || file.path;
+              const optionIndex = fileCompletions.length + index;
               return (
                 <Select.Option
                   key={`opened-${file.path}`}
                   value={file.path}
                   label={display}
-                  className="file-option"
+                  className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
                 >
                 <div className="flex justify-between items-center" title={file.path}>
                   <span className={`text-xs ${file.isSelected ? 'text-white font-medium' : 'text-gray-200'}`}>
@@ -394,37 +453,48 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           </Select.OptGroup>
         )}
 
-        {fileGroups.map(group => (
-          <Select.Option
-            key={group.name}
-            value={group.name}
-            label={group.name}
-            className="file-option"
-          >
-            <div className="flex justify-between items-center">
-              <span className="text-gray-200 text-xs">{group.name}</span>
-              <span className="text-gray-400 text-[10px]">
-                {getMessage('fileCount', { count: String(group.files.length) })}
-              </span>
-            </div>
-          </Select.Option>
-        ))}
+        {fileGroups.map((group, index) => {
+          const optionIndex = fileCompletions.length + 
+            (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
+            (mentionFiles.length > 0 && searchText.length < 2 ? mentionFiles.length : 0) + 
+            index;
+          return (
+            <Select.Option
+              key={group.name}
+              value={group.name}
+              label={group.name}
+              className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-gray-200 text-xs">{group.name}</span>
+                <span className="text-gray-400 text-[10px]">
+                  {getMessage('fileCount', { count: String(group.files.length) })}
+                </span>
+              </div>
+            </Select.Option>
+          );
+        })}
         
         {mentionFiles.length > 0 && searchText.length < 2 && (
           <Select.OptGroup label={getMessage('mentionedFiles')}>
-            {mentionFiles.map(file => (
-              <Select.Option
-                key={`mention-${file.path}`}
-                value={file.path}
-                label={file.display}
-                className="file-option"
-              >
-                <div className="flex justify-between items-center" title={file.path}>
-                  <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 20 ? '...' + file.path.slice(-20) : file.path})</span>
-                  <span className="text-blue-400 text-[10px]">{getMessage('mentionedFileStatus')}</span>
-                </div>
-              </Select.Option>
-            ))}
+            {mentionFiles.map((file, index) => {
+              const optionIndex = fileCompletions.length + 
+                (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
+                index;
+              return (
+                <Select.Option
+                  key={`mention-${file.path}`}
+                  value={file.path}
+                  label={file.display}
+                  className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
+                >
+                  <div className="flex justify-between items-center" title={file.path}>
+                    <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 20 ? '...' + file.path.slice(-20) : file.path})</span>
+                    <span className="text-blue-400 text-[10px]">{getMessage('mentionedFileStatus')}</span>
+                  </div>
+                </Select.Option>
+              );
+            })}
           </Select.OptGroup>
         )}
       </Select>
