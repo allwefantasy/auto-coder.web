@@ -63,15 +63,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
     // Function to render message content based on content type
     const renderMessageContent = (message: MessageProps) => {        
 
-        // For markdown content
-        if (message.contentType === 'markdown' && !message.metadata?.stream_out_type) {
-            return <MarkdownMessage message={message} />;
-        }
-
-        // For completion with success_code in isWrite mode
-        if (message.metadata?.success_code && message.metadata?.isWrite) {
+        // For completion events
+        if (message.type === 'COMPLETION') {
             return <CompletionMessage message={message} />;
         }
+        
 
         // For 上下文感知信息的展示
         if (message.metadata?.stream_out_type === "file_number_list") {
@@ -116,12 +112,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         if (message.contentType === 'context_used') {
             return <ContextUsedMessage message={message} />;
         }
-
-        // For completion events
-        if (message.type === 'COMPLETION') {
-            return <CompletionMessage message={message} />;
-        }
-
+        
         // For thinking or streaming content
         if (message.isThinking || message.isStreaming) {
             return <ThinkingMessage message={message} />;
@@ -131,6 +122,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         if (message.metadata?.stream_out_type === "command_suggestion") {
             return <CommandSuggestionMessage message={message} />;
         }
+
+        if (message.contentType === 'markdown' && !message.metadata?.stream_out_type) {
+            return <MarkdownMessage message={message} />;
+        }        
         
         // Default text content
         return <DefaultMessage message={message} />;

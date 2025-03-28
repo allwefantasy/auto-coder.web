@@ -26,7 +26,7 @@ const CompletionMessage: React.FC<CompletionMessageProps> = ({ message }) => {
                     </svg>
                 </span>
                 <span className="text-green-400 message-title-text">{getMessage('completion') || 'Completion'}</span>
-                {message.metadata?.success_code && (
+                {message.metadata?.isWrite && (
                     <button 
                         onClick={handleViewChanges}
                         className="ml-4 text-xs text-blue-400 hover:text-blue-300 underline focus:outline-none"
