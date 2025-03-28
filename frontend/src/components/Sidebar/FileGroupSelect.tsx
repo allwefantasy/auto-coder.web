@@ -196,7 +196,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 className="file-option"
               >
                 <div className="flex justify-between items-center" title={file.path}>
-                  <span className="text-gray-200 text-xs">{file.display}</span>
+                  <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 20 ? '...' + file.path.slice(-20) : file.path})</span>
                   <span className="text-gray-400 text-[10px]">File</span>
                 </div>
               </Select.Option>
@@ -219,7 +219,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 >
                 <div className="flex justify-between items-center" title={file.path}>
                   <span className={`text-xs ${file.isSelected ? 'text-white font-medium' : 'text-gray-200'}`}>
-                    {display}
+                    {display} ({file.path.length > 20 ? '...' + file.path.slice(-20) : file.path})
                   </span>
                   <span className={`text-[10px] ${file.isSelected ? 'text-green-400' : 'text-green-600/70'}`}>
                     {file.isSelected ? 'Active' : 'Opened'}
@@ -257,7 +257,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 className="file-option"
               >
                 <div className="flex justify-between items-center" title={file.path}>
-                  <span className="text-gray-200 text-xs">{file.display}</span>
+                  <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 20 ? '...' + file.path.slice(-20) : file.path})</span>
                   <span className="text-blue-400 text-[10px]">Mentioned</span>
                 </div>
               </Select.Option>
