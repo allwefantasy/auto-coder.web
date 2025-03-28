@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Switch, message } from 'antd';
 import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
-import { autoCoderConfService } from '../../services/AutoCoderConfService';
 import './ModelConfig.css';
 
 interface AdvancedSettingsProps {
@@ -26,43 +25,46 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
     include_project_structure: true
   });
 
-  // Subscribe to config changes
+  // Fetch current configuration
   useEffect(() => {
-    const handleConfigUpdate = (config: any) => {
-      const updatedSettings = { ...settings };
-      
-      if (config.extra_conf?.enable_auto_fix_lint !== undefined) {
-        updatedSettings.enable_auto_fix_lint = config.extra_conf.enable_auto_fix_lint === "true";
+    const fetchCurrentConfig = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/conf');
+        if (!response.ok) {
+          throw new Error('Failed to fetch configuration');
+        }
+        const data = await response.json();
+        const currentConfig = data.conf;
+        
+        // Update settings with current configuration
+        const updatedSettings = { ...settings };
+        
+        if (currentConfig.enable_auto_fix_lint !== undefined) {
+          updatedSettings.enable_auto_fix_lint = currentConfig.enable_auto_fix_lint === "true";
+        }
+        
+        if (currentConfig.enable_active_context !== undefined) {
+          updatedSettings.enable_active_context = currentConfig.enable_active_context === "true";
+        }
+        
+        if (currentConfig.enable_task_history !== undefined) {
+          updatedSettings.enable_task_history = currentConfig.enable_task_history === "true";
+        }
+        
+        if (currentConfig.include_project_structure !== undefined) {
+          updatedSettings.include_project_structure = currentConfig.include_project_structure === "true";
+        }
+        
+        setSettings(updatedSettings);
+      } catch (error) {
+        console.error('Error fetching current configuration:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      if (config.extra_conf?.enable_active_context !== undefined) {
-        updatedSettings.enable_active_context = config.extra_conf.enable_active_context === "true";
-      }
-      
-      if (config.extra_conf?.enable_task_history !== undefined) {
-        updatedSettings.enable_task_history = config.extra_conf.enable_task_history === "true";
-      }
-      
-      if (config.extra_conf?.include_project_structure !== undefined) {
-        updatedSettings.include_project_structure = config.extra_conf.include_project_structure === "true";
-      }
-      
-      setSettings(updatedSettings);
-      setLoading(false);
     };
-
-    // Subscribe to config changes
-    autoCoderConfService.on('configUpdated', handleConfigUpdate);
-
-    // Initial load
-    setLoading(true);
-    const config = autoCoderConfService.getConfig();
-    handleConfigUpdate(config);
-
-    // Cleanup
-    return () => {
-      autoCoderConfService.off('configUpdated', handleConfigUpdate);
-    };
+    
+    fetchCurrentConfig();
   }, []);
 
   // Initialize settings from availableKeys as fallback
@@ -87,17 +89,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
     setSettings(initialSettings);
   }, [availableKeys]);
 
-  const handleSettingChange = async (key: keyof AdvancedSettingsState, value: boolean) => {
-    // Update local state
+  const handleSettingChange = (key: keyof AdvancedSettingsState, value: boolean) => {
     setSettings(prev => ({ ...prev, [key]: value }));
-    
-    // Update config using service
-    const success = await autoCoderConfService.updateConfig(key, value);
-    if (!success) {
-      // Restore previous setting if update fails
-      setSettings(prev => ({ ...prev, [key]: !value }));
-      message.error(getMessage('settingsUpdateError'));
-    }
+    onSettingChange(key, value);
   };
 
   if (loading) {
