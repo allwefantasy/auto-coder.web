@@ -158,54 +158,68 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
       return;
     }
 
+    // 计算可选项的总数
+    const totalOptions = fileCompletions.length + 
+      (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
+      (mentionFiles.length > 0 && searchText.length < 2 ? mentionFiles.length : 0) + 
+      fileGroups.length;
+
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
+        e.stopPropagation(); // 阻止事件冒泡，避免和Ant Design的导航冲突
+        if (totalOptions === 0) return; // 如果没有选项，不做任何操作
+        
         setFocusedOptionIndex(prev => {
-          // 计算可选项的总数
-          const totalOptions = fileCompletions.length + fileGroups.length + 
-            (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
-            (mentionFiles.length > 0 && searchText.length < 2 ? mentionFiles.length : 0);
-          
           // 移动到下一个选项，如果到达末尾则回到第一个
-          return prev >= totalOptions - 1 ? 0 : prev + 1;
+          const nextIndex = prev >= totalOptions - 1 ? 0 : prev + 1;
+          console.log(`移动到下一个选项: ${nextIndex}`);
+          return nextIndex;
         });
         break;
       
       case 'ArrowUp':
         e.preventDefault();
+        e.stopPropagation(); // 阻止事件冒泡
+        if (totalOptions === 0) return; // 如果没有选项，不做任何操作
+        
         setFocusedOptionIndex(prev => {
-          // 计算可选项的总数
-          const totalOptions = fileCompletions.length + fileGroups.length + 
-            (openedFiles.length > 0 && searchText.length < 2 ? openedFiles.length : 0) + 
-            (mentionFiles.length > 0 && searchText.length < 2 ? mentionFiles.length : 0);
-          
           // 移动到上一个选项，如果到达顶部则移到最后一个
-          return prev <= 0 ? totalOptions - 1 : prev - 1;
+          const nextIndex = prev <= 0 ? totalOptions - 1 : prev - 1;
+          console.log(`移动到上一个选项: ${nextIndex}`);
+          return nextIndex;
         });
         break;
       
       case 'Enter':
         if (focusedOptionIndex >= 0) {
           e.preventDefault();
-          // 获取当前聚焦的选项并选中它
-          // 这需要一个额外的逻辑来确定哪个选项是当前聚焦的
+          e.stopPropagation(); // 阻止事件冒泡
+          // 选中当前聚焦的选项
           selectFocusedOption(focusedOptionIndex);
+          console.log(`选中选项: ${focusedOptionIndex}`);
         }
         break;
       
       case 'Tab':
         if (focusedOptionIndex >= 0) {
           e.preventDefault();
+          e.stopPropagation(); // 阻止事件冒泡
           // 与Enter键相同，选中当前聚焦的选项
           selectFocusedOption(focusedOptionIndex);
+          console.log(`选中选项: ${focusedOptionIndex}`);
         }
         break;
       
       case 'Escape':
         e.preventDefault();
+        e.stopPropagation(); // 阻止事件冒泡
         // 关闭下拉菜单
         setDropdownVisible(false);
+        // 清空搜索文本和重置选项索引
+        setSearchText('');
+        setFocusedOptionIndex(-1);
+        console.log('关闭下拉菜单');
         break;
       
       default:
@@ -268,13 +282,38 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
       
       // 关闭下拉菜单
       setDropdownVisible(false);
+      // 清空搜索文本
+      setSearchText('');
+      // 重置选项索引
+      setFocusedOptionIndex(-1);
+      
+      // 清空Select组件的搜索框内容
+      if (selectRef.current) {
+        try {
+          // 尝试清除搜索框内容
+          selectRef.current.focus();
+          selectRef.current.blur();
+          
+          // 直接清除输入元素的值
+          setTimeout(() => {
+            if (selectRef.current && selectRef.current.selector) {
+              const inputElement = selectRef.current.selector.querySelector('.ant-select-selection-search-input');
+              if (inputElement) {
+                inputElement.value = '';
+              }
+            }
+          }, 10);
+        } catch (error) {
+          console.error('Error clearing search box:', error);
+        }
+      }
     }
   };
 
   return (
-    <div className="px-1" onKeyDown={handleKeyDown}>
-      <div className="h-[1px] bg-gray-700/50 my-0.5"></div>
-      <div className="flex items-center gap-1">
+    <div className="px-1 w-full" onKeyDown={handleKeyDown}>
+      <div className="h-[1px] bg-gray-700/50 my-0.5 w-full"></div>
+      <div className="flex items-center gap-1 w-full">
         <Select
           ref={selectRef}
           mode="multiple"
@@ -285,7 +324,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             color: '#e5e7eb',
             minHeight: '28px',
             height: 'auto',
-            fontSize: '12px'
+            fontSize: '12px',
+            flex: '1 1 auto'
           }}
           maxTagCount={20}
           maxTagTextLength={30}
@@ -304,6 +344,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
               setDropdownVisible(false);
               // 重置聚焦的选项索引
               setFocusedOptionIndex(-1);
+              // 清空搜索文本
+              setSearchText('');
             }, 100);
           }}
           open={dropdownVisible}        
@@ -319,6 +361,18 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             if (!visible) {
               // 重置聚焦的选项索引
               setFocusedOptionIndex(-1);
+              // 清空搜索文本
+              setSearchText('');
+              
+              // 强制清除搜索框内容
+              setTimeout(() => {
+                if (selectRef.current && selectRef.current.selector) {
+                  const inputElement = selectRef.current.selector.querySelector('.ant-select-selection-search-input');
+                  if (inputElement) {
+                    inputElement.value = '';
+                  }
+                }
+              }, 10);
             }
           }}
           onChange={(values) => {
@@ -332,6 +386,10 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             
             updateSelection(groupValues, fileValues);
           }}
+          // 禁用默认的键盘导航，使用我们自定义的导航
+          listItemHeight={28}
+          listHeight={320}
+          menuItemSelectedIcon={null}
           // 启用过滤选项以支持键盘导航
           filterOption={(input, option) => {
             if (!option) return false;
@@ -349,7 +407,6 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           }}
           optionFilterProp="label"
           className="custom-select multi-line-select keyboard-navigation-select"
-          listHeight={300}
           popupClassName="dark-dropdown-menu keyboard-navigation-dropdown"
           dropdownStyle={{ 
             backgroundColor: '#1f2937', 
@@ -488,14 +545,14 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                     label={display}
                     className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
                   >
-                  <div className="flex justify-between items-center" title={file.path}>
-                    <span className={`text-xs ${file.isSelected ? 'text-white font-medium' : 'text-gray-200'}`}>
-                      {display} ({formatPathDisplay(file.path)})
-                    </span>
-                    <span className={`text-[10px] ${file.isSelected ? 'text-green-400' : 'text-green-600/70'}`}>
-                      {getMessage(file.isSelected ? 'fileStatusActive' : 'fileStatusOpened')}
-                    </span>
-                  </div>
+                    <div className="flex justify-between items-center" title={file.path}>
+                      <span className={`text-xs ${file.isSelected ? 'text-white font-medium' : 'text-gray-200'}`}>
+                        {display} ({formatPathDisplay(file.path)})
+                      </span>
+                      <span className={`text-[10px] ${file.isSelected ? 'text-green-400' : 'text-green-600/70'}`}>
+                        {getMessage(file.isSelected ? 'fileStatusActive' : 'fileStatusOpened')}
+                      </span>
+                    </div>
                   </Select.Option>
                 );
               })}
@@ -568,4 +625,4 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   );
 };
 
-export default FileGroupSelect;
+export default FileGroupSelect; 

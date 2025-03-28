@@ -29,6 +29,8 @@ interface InputAreaProps {
   handleSendMessage: () => void;
   handleStopGeneration: () => void;
   sendLoading: boolean;
+  isFullScreen: boolean;
+  showFileGroupSelect: boolean;
 }
 
 const InputArea: React.FC<InputAreaProps> = ({
@@ -50,7 +52,9 @@ const InputArea: React.FC<InputAreaProps> = ({
   handleSendMessage,
   handleStopGeneration,
   sendLoading,
-  setConfig
+  setConfig,
+  isFullScreen,
+  showFileGroupSelect
 }) => {
   const [mentionItems, setMentionItems] = useState<EnhancedCompletionItem[]>([]);
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
@@ -112,7 +116,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           element.style.bottom = originalStyle.bottom;
           element.style.left = originalStyle.left;
           element.style.zIndex = originalStyle.zIndex;
-          element.style.width = originalStyle.width;
+          element.style.width = '100%';
           element.style.height = originalStyle.height;
           element.style.background = originalStyle.background;
           element.style.overflow = '';
@@ -273,13 +277,14 @@ const InputArea: React.FC<InputAreaProps> = ({
   };
 
   return (
-    <div 
+    <div
+      className={`flex flex-col w-full bg-gray-800 border-t border-gray-700 ${isInputAreaMaximized ? 'fixed inset-0 z-[9999] p-4' : ''}`}
       ref={inputAreaRef}
-      className={`bg-gray-800 border-t border-gray-700 ${isInputAreaMaximized ? 'p-4 flex flex-col h-screen' : ''}`}
+      style={{ width: '100%' }}
     >
-      <div className={`px-0.5 pt-0 ${isInputAreaMaximized ? 'mb-2 flex-shrink-0' : ''}`}>
-        <div className="space-y-0">
-          <div className="flex items-center justify-between">
+      <div className={`px-0.5 pt-0 ${isInputAreaMaximized ? 'mb-2 flex-shrink-0' : 'w-full'}`}>
+        <div className="space-y-0 w-full">
+          <div className="flex items-center justify-between w-full">
             <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
             <div className="flex items-center">
               <Tooltip title={isInputAreaMaximized ? "退出全屏" : "全屏模式"}>
@@ -346,8 +351,8 @@ const InputArea: React.FC<InputAreaProps> = ({
         </div>
 
         {showConfig && (
-          <div className="space-y-0 -mb-0.5">
-            <div className="flex flex-col space-y-0">
+          <div className="space-y-0 -mb-0.5 w-full">
+            <div className="flex flex-col space-y-0 w-full">
               <Tooltip title={getMessage('projectTypeTooltip')}>
                 <span className="text-gray-300 text-[10px]">{getMessage('projectType')}</span>
               </Tooltip>
@@ -377,19 +382,22 @@ const InputArea: React.FC<InputAreaProps> = ({
           </div>
         )}
 
-        <div className="h-[1px] bg-gray-700/50 my-1"></div>
-        <FileGroupSelect
-          fileGroups={fileGroups}
-          selectedGroups={selectedGroups}
-          setSelectedGroups={setSelectedGroups}
-          fetchFileGroups={fetchFileGroups}
-          mentionItems={mentionItems}
-        />
+        <div className="h-[1px] bg-gray-700/50 my-1 w-full"></div>
+        <div className="w-full">
+          <FileGroupSelect
+            fileGroups={fileGroups}
+            selectedGroups={selectedGroups}
+            setSelectedGroups={setSelectedGroups}
+            fetchFileGroups={fetchFileGroups}
+            mentionItems={mentionItems}
+          />
+        </div>
       </div>
 
       <div className={`px-1 py-0.5 flex flex-col ${isMaximized && !isInputAreaMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} 
-          ${isInputAreaMaximized ? 'flex-1 overflow-hidden' : ''} 
+          ${isInputAreaMaximized ? 'flex-1 overflow-hidden' : 'w-full'} 
           scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}
+        style={{ width: '100%' }}
       >
         <div className={`flex-1 ${isInputAreaMaximized ? 'flex-grow h-full' : 'min-h-[80px]'}`}
              style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)' } : {}}

@@ -926,6 +926,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             handleStopGeneration={handleStopGeneration}
             sendLoading={sendLoading}
             setConfig={setConfig}
+            isFullScreen={isMaximized}
+            showFileGroupSelect={true}
           />
         </div>
       </Layout.Content>

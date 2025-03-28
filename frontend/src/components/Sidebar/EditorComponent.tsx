@@ -102,6 +102,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   const providerRegistered = React.useRef(false);
   // 添加一个ref来存储editor的引用
   const editorRef = React.useRef<any>(null);
+  // 添加一个ref来存储编辑器容器的引用
+  const editorContainer = React.useRef<HTMLDivElement>(null);
   
   React.useEffect(() => {
     // 在组件挂载时注入样式
@@ -529,54 +531,56 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   };
 
   return (
-    <div className={`flex-1 border-0 rounded-lg overflow-hidden w-full h-full`} 
-         style={{ 
-           height: isMaximized ? '100%' : '150px',
-           display: 'flex',
-           flexDirection: 'column',
-           flex: isMaximized ? '1 1 auto' : '0 0 150px'
-         }}>
-      <Editor
-        height="100%"
-        defaultLanguage="markdown"
-        defaultValue={defaultValue}
-        onChange={onChange}
-        theme="vs-dark"
-        onMount={handleEditorDidMount}
-        // 禁用自动检测和加载远程资源
-        loading={<div className="flex items-center justify-center h-full">加载编辑器中...</div>}
-        // 确保使用本地资源
-        beforeMount={(monaco) => {
-          // 设置 Monaco 环境，使用本地 worker
-          window.MonacoEnvironment = {
-            getWorkerUrl: (workerId: string, label: string): string => {
-              return `/monaco-editor/min/vs/base/worker/workerMain.js`;
+    <div className="w-full relative h-full flex flex-col">
+      <div
+        ref={editorContainer}
+        className={`editor-container w-full border border-gray-700 rounded-md overflow-hidden ${
+          isMaximized ? 'h-full flex-grow' : 'h-[200px]'
+        }`}
+        style={{ width: '100%' }}
+      >
+        <Editor
+          height="100%"
+          defaultLanguage="markdown"
+          defaultValue={defaultValue}
+          onChange={onChange}
+          theme="vs-dark"
+          onMount={handleEditorDidMount}
+          // 禁用自动检测和加载远程资源
+          loading={<div className="flex items-center justify-center h-full">加载编辑器中...</div>}
+          // 确保使用本地资源
+          beforeMount={(monaco) => {
+            // 设置 Monaco 环境，使用本地 worker
+            window.MonacoEnvironment = {
+              getWorkerUrl: (workerId: string, label: string): string => {
+                return `/monaco-editor/min/vs/base/worker/workerMain.js`;
+              }
+            };
+          }}
+          options={{
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            wordWrap: 'on',
+            lineNumbers: 'off',
+            folding: false,
+            contextmenu: false,
+            fontFamily: 'monospace',
+            fontSize: 14,
+            lineHeight: 1.5,
+            padding: { top: 8, bottom: 8 },
+            suggestOnTriggerCharacters: true,
+            quickSuggestions: true,
+            acceptSuggestionOnEnter: 'smart',
+            overviewRulerLanes: 0,
+            overviewRulerBorder: false,
+            fixedOverflowWidgets: true,
+            suggest: {
+              insertMode: 'replace',
+              snippetsPreventQuickSuggestions: false,
             }
-          };
-        }}
-        options={{
-          minimap: { enabled: false },
-          scrollBeyondLastLine: false,
-          wordWrap: 'on',
-          lineNumbers: 'off',
-          folding: false,
-          contextmenu: false,
-          fontFamily: 'monospace',
-          fontSize: 14,
-          lineHeight: 1.5,
-          padding: { top: 8, bottom: 8 },
-          suggestOnTriggerCharacters: true,
-          quickSuggestions: true,
-          acceptSuggestionOnEnter: 'smart',
-          overviewRulerLanes: 0,
-          overviewRulerBorder: false,
-          fixedOverflowWidgets: true,
-          suggest: {
-            insertMode: 'replace',
-            snippetsPreventQuickSuggestions: false,
-          }
-        }}
-      />
+          }}
+        />
+      </div>
     </div>
   );
 };
