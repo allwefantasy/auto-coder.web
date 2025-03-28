@@ -59,8 +59,8 @@ const InputArea: React.FC<InputAreaProps> = ({
 
   // 切换写作模式的回调函数
   const toggleWriteMode = useCallback(() => {
-    setIsWriteMode(prev => !prev);
-  }, [setIsWriteMode]);
+    setIsWriteMode(!isWriteMode);
+  }, [setIsWriteMode, isWriteMode]);
 
   // 添加键盘快捷键事件监听
   useEffect(() => {
