@@ -7,7 +7,6 @@ import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
 import FileGroupSelect from './FileGroupSelect';
 import { chatService } from '../../services/chatService';
 import { codingService } from '../../services/codingService';
-import CustomConfig from './CustomConfig';
 
 interface InputAreaProps {
   showConfig: boolean;
@@ -250,17 +249,6 @@ const InputArea: React.FC<InputAreaProps> = ({
 
         {showConfig && (
           <div className="space-y-0 -mb-0.5">
-            <div className="flex items-center justify-between">
-              <Tooltip title={getMessage('skipBuildIndexTooltip')}>
-                <span className="text-gray-300 text-[10px]">{getMessage('skipBuildIndex')}</span>
-              </Tooltip>
-              <Switch
-                size="small"
-                checked={config.skip_build_index}
-                onChange={(checked) => updateConfig('skip_build_index', checked)}
-              />
-            </div>
-
             {/* Project Type - Changed to vertical layout */}
             <div className="flex flex-col space-y-0">
               <Tooltip title={getMessage('projectTypeTooltip')}>
@@ -279,17 +267,21 @@ const InputArea: React.FC<InputAreaProps> = ({
               >                
               </Select>
             </div>
-
-            {/* Custom Configuration */}
-            <CustomConfig 
-              config={config}
-              setConfig={setConfig}
-              updateConfig={updateConfig}
-            />
+            <div className="flex items-center justify-between ">
+              <Tooltip title={getMessage('skipBuildIndexTooltip')}>
+                <span className="text-gray-300 text-[10px]">{getMessage('skipBuildIndex')}</span>
+              </Tooltip>
+              <Switch
+                size="small"
+                checked={config.skip_build_index}
+                onChange={(checked) => updateConfig('skip_build_index', checked)}
+              />
+            </div>                        
           </div>
         )}
 
         {/* File Groups Select - Using the new component */}
+        <div className="h-[1px] bg-gray-700/50 my-1"></div>
         <FileGroupSelect
           fileGroups={fileGroups}
           selectedGroups={selectedGroups}
