@@ -3,6 +3,10 @@ export const EVENTS = {
   EDITOR: {
     // 编辑器选项卡变更事件 CodeEditor.tsx 发布, FileGroupSelect.tsx 订阅
     TABS_CHANGED: 'editor.tabs.changed'
+  },
+  CODING: {
+    // 编程任务完成事件
+    TASK_COMPLETE: 'coding.task.complete'
   }
 };
 

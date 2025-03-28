@@ -6,6 +6,7 @@ import { MessageOutlined, CodeOutlined, SortAscendingOutlined, SortDescendingOut
 import axios from 'axios';
 import { Editor, loader } from '@monaco-editor/react';
 import DiffViewer from './DiffViewer';
+import eventBus, { EVENTS } from '../../services/eventBus';
 
 // 防止Monaco加载多次
 loader.config({
@@ -90,6 +91,18 @@ const HistoryPanel: React.FC = () => {
     // 组件加载时自动加载数据
     React.useEffect(() => {
         loadQueries();
+
+        // 订阅编程任务完成事件
+        const unsubscribe = eventBus.subscribe(EVENTS.CODING.TASK_COMPLETE, (data) => {
+            console.log('Coding task completed, reloading queries', data);
+            // 任务完成后自动加载最新的历史记录
+            loadQueries();
+        });
+
+        // 组件卸载时取消订阅
+        return () => {
+            unsubscribe();
+        };
     }, []);
     
     // 处理撤销按钮点击

@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
+import eventBus, { EVENTS } from './eventBus';
 import { 
   Message as AutoModeMessage, 
   AutoCommandEvent, 
@@ -344,6 +345,8 @@ class CodingService extends EventEmitter {
     // Add delay to ensure message state is updated before triggering task completion event
     setTimeout(() => {
       this.emit('taskComplete', true);
+      // 发布任务完成事件，标记为失败
+      eventBus.publish(EVENTS.CODING.TASK_COMPLETE, { success: false, event_file_id: this.eventFileId });
     }, 300);
   }
 
@@ -373,6 +376,8 @@ class CodingService extends EventEmitter {
     // Add delay to ensure message state is updated before triggering task completion event
     setTimeout(() => {
       this.emit('taskComplete', false);
+      // 发布任务完成事件，标记为成功
+      eventBus.publish(EVENTS.CODING.TASK_COMPLETE, { success: true, event_file_id: this.eventFileId });
     }, 300);
   }
 
