@@ -6,6 +6,7 @@ import { getLanguageByFileName } from '../../utils/fileUtils';
 import FileTree from './components/FileTree';
 import MonacoEditor from './components/MonacoEditor';
 import { FileMetadata } from '../../types/file_meta';
+import eventBus, { EVENTS } from '../../services/eventBus';
 import './CodeEditor.css';
 
 interface CodeEditorProps {
@@ -24,6 +25,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
   const [fileTabs, setFileTabs] = useState<FileTab[]>([]);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
   const [saving, setSaving] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (fileTabs.length > 0) {
+      const openedFiles = fileTabs.map(tab => ({
+        path: tab.key,
+        isSelected: tab.key === activeFile,
+        label: tab.label
+      }));
+      eventBus.publish(EVENTS.EDITOR.TABS_CHANGED, openedFiles);
+    }
+  }, [fileTabs, activeFile]);
 
   useEffect(() => {
     if (initialFiles) {

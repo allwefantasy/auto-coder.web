@@ -8,4 +8,5 @@ export interface FileMetadata {
   isSelected?: boolean;
   // expert_chat_box | human
   modifiedBy?: string;
+  label?: string;
 } 

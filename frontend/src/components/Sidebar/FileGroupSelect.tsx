@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Select } from 'antd';
 import { FileGroup, EnhancedCompletionItem } from './types';
+import eventBus, { EVENTS } from '../../services/eventBus';
+import { FileMetadata } from '../../types/file_meta';
 
 interface FileGroupSelectProps {
   fileGroups: FileGroup[];
@@ -30,6 +32,20 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   
   const [mentionFiles, setMentionFiles] = useState<{path: string, display: string}[]>([]);
   const processedMentionPaths = useRef<Set<string>>(new Set());
+  
+  // 新增状态 - 已打开的文件
+  const [openedFiles, setOpenedFiles] = useState<FileMetadata[]>([]);
+  
+  // 订阅编辑器选项卡变更事件，而不是 files.opened 事件
+  useEffect(() => {
+    const unsubscribe = eventBus.subscribe(EVENTS.EDITOR.TABS_CHANGED, (tabs: FileMetadata[]) => {
+      console.log('FileGroupSelect: Received editor tabs changed event', tabs);
+      setOpenedFiles(tabs);
+    });
+    
+    // 组件卸载时取消订阅
+    return () => unsubscribe();
+  }, []);
   
   useEffect(() => {
     const files = mentionItems      
@@ -185,6 +201,33 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 </div>
               </Select.Option>
             ))}
+          </Select.OptGroup>
+        )}
+
+        {/* 已打开文件选项组 */}
+        {openedFiles.length > 0 && searchText.length < 2 && (
+          <Select.OptGroup label="Opened Files">
+            {openedFiles.map(file => {
+              // 使用文件名作为显示名
+              const display = file.label || file.path.split('/').pop() || file.path;
+              return (
+                <Select.Option
+                  key={`opened-${file.path}`}
+                  value={file.path}
+                  label={display}
+                  className="file-option"
+                >
+                  <div className="flex justify-between items-center">
+                    <span className={`text-xs ${file.isSelected ? 'text-white font-medium' : 'text-gray-200'}`}>
+                      {display}
+                    </span>
+                    <span className={`text-[10px] ${file.isSelected ? 'text-green-400' : 'text-green-600/70'}`}>
+                      {file.isSelected ? 'Active' : 'Opened'}
+                    </span>
+                  </div>
+                </Select.Option>
+              );
+            })}
           </Select.OptGroup>
         )}
 
