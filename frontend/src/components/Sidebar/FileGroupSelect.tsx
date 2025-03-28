@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, KeyboardEvent } from 'react';
+import React, { useState, useEffect, useRef, KeyboardEvent, useCallback } from 'react';
 import { Select, SelectProps } from 'antd';
 import { FileGroup, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
@@ -36,6 +36,13 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   const [mentionFiles, setMentionFiles] = useState<{path: string, display: string}[]>([]);
   const selectRef = useRef<any>(null);
   const processedMentionPaths = useRef<Set<string>>(new Set());
+
+  const formatPathDisplay = useCallback((path: string, maxLength: number = 40) => {
+    // Remove the filename part (everything after last slash)
+    const dirPath = path.substring(0, path.lastIndexOf('/'));
+    // Show last maxLength characters of directory path
+    return dirPath.length > maxLength ? '...' + dirPath.slice(-maxLength) : dirPath;
+  }, []);
   
   // 新增状态 - 已打开的文件
   const [openedFiles, setOpenedFiles] = useState<FileMetadata[]>([]);
@@ -441,7 +448,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 >
                 <div className="flex justify-between items-center" title={file.path}>
                   <span className={`text-xs ${file.isSelected ? 'text-white font-medium' : 'text-gray-200'}`}>
-                    {display} ({file.path.length > 40 ? '...' + file.path.slice(-40) : file.path})
+                    {display} ({formatPathDisplay(file.path)})
                   </span>
                   <span className={`text-[10px] ${file.isSelected ? 'text-green-400' : 'text-green-600/70'}`}>
                     {getMessage(file.isSelected ? 'fileStatusActive' : 'fileStatusOpened')}
@@ -489,7 +496,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                   className={`file-option ${focusedOptionIndex === optionIndex ? 'keyboard-focused-option' : ''}`}
                 >
                   <div className="flex justify-between items-center" title={file.path}>
-                    <span className="text-gray-200 text-xs">{file.display} ({file.path.length > 20 ? '...' + file.path.slice(-20) : file.path})</span>
+                    <span className="text-gray-200 text-xs">{file.display} ({formatPathDisplay(file.path, 20)})</span>
                     <span className="text-blue-400 text-[10px]">{getMessage('mentionedFileStatus')}</span>
                   </div>
                 </Select.Option>
