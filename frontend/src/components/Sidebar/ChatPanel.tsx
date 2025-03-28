@@ -857,6 +857,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             />
           </Tooltip>
           
+          <Tooltip title="最大化">
+            <Button 
+              icon={<MenuOutlined style={{ fontSize: '10px' }} />} 
+              onClick={() => setIsMaximized(!isMaximized)}
+              className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
+              size="small"
+            />
+          </Tooltip>
           <Tooltip title="设置">
             <Button 
               icon={<SettingOutlined style={{ fontSize: '10px' }} />} 
