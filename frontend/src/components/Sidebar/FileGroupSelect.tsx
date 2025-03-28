@@ -506,7 +506,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             })}
           </Select.OptGroup>
         )}
-        />
+      </Select>
         <CloseCircleOutlined
           className="text-gray-400 hover:text-gray-200 cursor-pointer text-sm"
           onClick={async () => {
