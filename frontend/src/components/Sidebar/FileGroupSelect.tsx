@@ -27,14 +27,12 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   fileGroups,
   selectedGroups,
   setSelectedGroups,
-  fetchFileGroups,
-  mentionItems = []
+  fetchFileGroups,  
 }) => {
   const [fileCompletions, setFileCompletions] = useState<FileCompletion[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-
+  const [dropdownVisible, setDropdownVisible] = useState(false);  
   const [mentionFiles, setMentionFiles] = useState<{ path: string, display: string }[]>([]);
   const selectRef = useRef<any>(null);
   const processedMentionPaths = useRef<Set<string>>(new Set());
@@ -79,45 +77,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     // 组件卸载时取消订阅
     return () => unsubscribe();
   }, []);
-
-
-
-  useEffect(() => {
-    const files = mentionItems
-      .map(item => ({
-        path: item.path,
-        display: item.display || item.name || item.path.split('/').pop() || item.path
-      }));
-
-    setMentionFiles(files);
-    console.log(getMessage('updatedMentionFiles', { count: String(files.length) }));
-
-    // 只有当有提到的文件时才处理
-    if (files.length > 0) {
-      // 找出未处理过的新文件路径
-      const newFilePaths = files
-        .map(file => file.path)
-        .filter(path => !processedMentionPaths.current.has(path));
-
-      // 如果有新文件要添加
-      if (newFilePaths.length > 0) {
-        // 标记为已处理
-        newFilePaths.forEach(path => processedMentionPaths.current.add(path));
-
-        // 更新选中文件，避免重复
-        setSelectedFiles(prevSelectedFiles => {
-          const combinedFiles = [...prevSelectedFiles, ...newFilePaths];
-          const uniqueFiles = Array.from(new Set(combinedFiles));
-
-          // 直接在这里调用一次，避免依赖于状态更新后的回调
-          updateSelection(selectedGroups, uniqueFiles);
-
-          return uniqueFiles;
-        });
-      }
-    }
-  }, [mentionItems, selectedGroups]);
-
+  
   const fetchFileCompletions = async (searchValue: string) => {
     if (searchValue.length < 2) {
       setFileCompletions([]);

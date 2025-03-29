@@ -27,21 +27,12 @@ loader.config({
 
 // CSS 样式定义 - 将在组件加载时注入
 const mentionStyles = `
-.monaco-file-mention {
+.monaco-mention {
   background-color: rgba(73, 156, 255, 0.2);
   border-radius: 3px;
   padding: 2px 4px;
   font-weight: bold;
   color: #499cff;
-  cursor: pointer;
-}
-
-.monaco-symbol-mention {
-  background-color: rgba(255, 162, 73, 0.2);
-  border-radius: 3px;
-  padding: 2px 4px;
-  font-weight: bold;
-  color: #ff9c33;
   cursor: pointer;
 }
 
@@ -55,16 +46,10 @@ const mentionStyles = `
   box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
 
-.file-mention-widget {
+.mention-widget {
   background-color: rgba(73, 156, 255, 0.2);
   color: #499cff;
   border: 1px solid rgba(73, 156, 255, 0.4);
-}
-
-.symbol-mention-widget {
-  background-color: rgba(255, 162, 73, 0.2);
-  color: #ff9c33;
-  border: 1px solid rgba(255, 162, 73, 0.4);
 }
 `;
 
@@ -80,8 +65,6 @@ interface EditorComponentProps {
   onToggleMaximize: () => void;
   /** 当点击 mention 项时的回调 */
   onMentionClick?: (type: 'file' | 'symbol', text: string, item?: EnhancedCompletionItem) => void;
-  /** 当 mention 映射发生变化时的回调 */
-  onMentionMapChange?: (mentionItems: EnhancedCompletionItem[]) => void;
 }
 
 /**
@@ -95,8 +78,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   defaultValue = '',
   onChange,
   onToggleMaximize,
-  onMentionClick,
-  onMentionMapChange
+  onMentionClick,  
 }) => {
   // 添加一个ref来跟踪提供者是否已经注册
   const providerRegistered = React.useRef(false);
@@ -158,11 +140,9 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       
       // 从临时存储中获取完整项信息
       const item = temporaryCompletionItems.get(path);
-      console.log(`临时存储中的项: ${item}`);
       if (item) {
         // 将选中项添加到正式映射中
-        mentionItemsMap.set(path, item); 
-        symbolNameToPathMap.set(name, path)       
+        mentionItemsMap.set(path, item);        
         // 通知父组件映射已更新
         notifyMentionMapChange();
       }
@@ -175,12 +155,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     });
 
     // mention 块装饰器实现
-    let fileMentionDecorations: string[] = [];
-    let symbolMentionDecorations: string[] = [];
+    let mentionDecorations: string[] = [];
     
     // 添加映射存储，用于存储 mention 文本与 CompletionItem 的映射关系
     const mentionItemsMap = new Map<string, EnhancedCompletionItem>();
-    const symbolNameToPathMap = new Map<string, string>();
     const temporaryCompletionItems = new Map<string, EnhancedCompletionItem>();
     
     // 添加标志位和防抖机制，避免递归调用
@@ -192,6 +170,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       if (onMentionMapChange) {
         // 将 Map 转换为数组传递给回调
         const mentionItems = Array.from(mentionItemsMap.values());
+        console.log('notifyMentionMapChange:', mentionItems);
         onMentionMapChange(mentionItems);
       }
     };
@@ -213,13 +192,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         
         const text = model.getValue();
         
-        // 文件 mention 正则表达式 - 匹配 @file 格式，但不是 @@
-        const fileMentionRegex = /(?<!\@)@([a-zA-Z0-9_\-\/\.]+)/g;
-        // 符号 mention 正则表达式 - 匹配 @@symbol 格式
-        const symbolMentionRegex = /@@([a-zA-Z0-9_\-\/\.]+)/g;
+        // 统一的 mention 正则表达式 - 匹配 @reference 格式
+        const mentionRegex = /@([a-zA-Z0-9_\-\/\.\(\)]+)/g;
         
-        const fileMatches = [];
-        const symbolMatches = [];
+        const matches = [];
         
         // 用于跟踪当前文本中存在的所有 mention
         const currentMentions = new Set<string>();
@@ -227,90 +203,45 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         // 记录是否有新的 mention 被检测到但不在映射中        
         let mapChanged = false;
         
-        let fileMatch;
-        while ((fileMatch = fileMentionRegex.exec(text)) !== null) {
-          // 确保不是 @@ 的开头
-          if (text.charAt(fileMatch.index - 1) !== '@') {
-            const startPos = model.getPositionAt(fileMatch.index);
-            const endPos = model.getPositionAt(fileMatch.index + fileMatch[0].length);
-            
-            // 将此 mention 添加到当前存在的集合中
-            const mentionName = fileMatch[1];
-            currentMentions.add(mentionName);            
-            
-            fileMatches.push({
-              range: new monaco.Range(
-                startPos.lineNumber,
-                startPos.column,
-                endPos.lineNumber,
-                endPos.column
-              ),
-              text: fileMatch[0],
-              name: mentionName
-            });            
-          }
-        }
-        
-        let symbolMatch;
-        while ((symbolMatch = symbolMentionRegex.exec(text)) !== null) {
-          const startPos = model.getPositionAt(symbolMatch.index);
-          const endPos = model.getPositionAt(symbolMatch.index + symbolMatch[0].length);
+        let match;
+        while ((match = mentionRegex.exec(text)) !== null) {
+          const startPos = model.getPositionAt(match.index);
+          const endPos = model.getPositionAt(match.index + match[0].length);
           
           // 将此 mention 添加到当前存在的集合中
-          const mentionName = symbolMatch[1];
-          currentMentions.add(mentionName);
+          const mentionName = match[1];
+          currentMentions.add(mentionName);            
           
-          symbolMatches.push({
+          matches.push({
             range: new monaco.Range(
               startPos.lineNumber,
               startPos.column,
               endPos.lineNumber,
               endPos.column
             ),
-            text: symbolMatch[0],
+            text: match[0],
             name: mentionName
-          });                  
-          
+          });
         }
-
         
-        // 先遍历currentMentions，从 symbolNameToPathMap 将里面的名字转化为path
-        const newCurrentMentions = Array.from(currentMentions).map(name => {
-          const path = symbolNameToPathMap.get(name);
-          if (path) {
-            return path
-          }
-          return name
-        });
-        
-        // 然后从 mentionItemsMap 中删除不在 currentMentions 中的键
+        // 从 mentionItemsMap 中删除不在 currentMentions 中的键
         Array.from(mentionItemsMap.keys()).forEach(key => {
-          if (!newCurrentMentions.includes(key)) {
+          if (!currentMentions.has(key)) {
             mentionItemsMap.delete(key);
             mapChanged = true;
           }
         });
         
-        // 更新文件 mention 装饰器
-        fileMentionDecorations = editor.deltaDecorations(fileMentionDecorations, fileMatches.map(match => ({
+        // 更新 mention 装饰器
+        mentionDecorations = editor.deltaDecorations(mentionDecorations, matches.map(match => ({
           range: match.range,
           options: {
-            inlineClassName: 'monaco-file-mention',
-            hoverMessage: { value: `文件: ${match.name}` },
+            inlineClassName: 'monaco-mention',
+            hoverMessage: { value: `引用: ${match.name}` },
             stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
           }
         })));
-        
-        // 更新符号 mention 装饰器
-        symbolMentionDecorations = editor.deltaDecorations(symbolMentionDecorations, symbolMatches.map(match => ({
-          range: match.range,
-          options: {
-            inlineClassName: 'monaco-symbol-mention',
-            hoverMessage: { value: `符号: ${match.name}` },
-            stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
-          }
-        })));
-                                        
+                              
         // 如果映射发生了变化，通知父组件
         if (mapChanged) {
           notifyMentionMapChange();
@@ -355,48 +286,22 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       const position = e.target.position;
       if (!position) return;
       
-      // 检查点击的位置是否在文件 mention 范围内
-      for (let i = 0; i < fileMentionDecorations.length; i++) {
-        const range = editor.getModel().getDecorationRange(fileMentionDecorations[i]);
+      // 检查点击的位置是否在 mention 范围内
+      for (let i = 0; i < mentionDecorations.length; i++) {
+        const range = editor.getModel().getDecorationRange(mentionDecorations[i]);
         if (range && range.containsPosition(position)) {
           const mentionText = model.getValueInRange(range);
           // 移除 @ 前缀
-          const fileName = mentionText.substring(1);
+          const reference = mentionText.substring(1);
           
           // 检查是否有对应的 CompletionItem
-          const completionItem = temporaryCompletionItems.get(fileName);
-          if(completionItem) {
-            mentionItemsMap.set(fileName, completionItem);            
-          }
+          const completionItem = mentionItemsMap.get(reference) || temporaryCompletionItems.get(reference);
           
-          if (onMentionClick) {
-            onMentionClick('file', fileName, completionItem);
+          if (onMentionClick && completionItem) {
+            onMentionClick(completionItem.mentionType, reference, completionItem);
           } else {
-            // 默认行为：打开文件或显示文件信息
-            console.log('文件被点击:', fileName, completionItem);
-            // 这里可以添加默认的文件打开逻辑
-          }
-          return;
-        }
-      }
-      
-      // 检查点击的位置是否在符号 mention 范围内
-      for (let i = 0; i < symbolMentionDecorations.length; i++) {
-        const range = editor.getModel().getDecorationRange(symbolMentionDecorations[i]);
-        if (range && range.containsPosition(position)) {
-          const mentionText = model.getValueInRange(range);
-          // 移除 @@ 前缀
-          const symbolName = mentionText.substring(2);
-          
-          // 检查是否有对应的 CompletionItem
-          const completionItem = temporaryCompletionItems.get(symbolName);          
-          
-          if (onMentionClick) {
-            onMentionClick('symbol', symbolName, completionItem);
-          } else {
-            // 默认行为：显示符号信息或跳转到符号定义
-            console.log('符号被点击:', symbolName, completionItem);
-            // 这里可以添加默认的符号导航逻辑
+            // 默认行为：打开引用或显示信息
+            console.log('引用被点击:', reference, completionItem);
           }
           return;
         }
@@ -430,89 +335,82 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           // 获取当前词和前缀
           const word = model.getWordUntilPosition(position);
           const prefix = textUntilPosition.charAt(word.startColumn - 2); // 获取触发字符
-          const double_prefix = textUntilPosition.charAt(word.startColumn - 3); // 获取触发字符
 
           //获取当前词
           const wordText = word.word;
 
           console.log('prefix:', prefix, 'word:', wordText);
 
-          if (prefix === "@" && double_prefix === "@") {
-            // 符号补全
+          if (prefix === "@") {
+            // 获取查询文本
             const query = wordText;
-            console.log(`请求符号自动完成，查询: "${query}"`);
+            console.log(`请求自动完成，查询: "${query}"`);
             
-            const response = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
-            const data = await response.json();
+            // 获取文件补全
+            const fileResponse = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
+            const fileData = await fileResponse.json();
             
-            console.log(`接收到符号自动完成结果: ${data.completions.length} 项`);
+            // 获取符号补全
+            const symbolResponse = await fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`);
+            const symbolData = await symbolResponse.json();
             
+            console.log(`接收到自动完成结果: 文件 ${fileData.completions.length} 项, 符号 ${symbolData.completions.length} 项`);
+            
+            // 将文件补全结果映射为建议项
+            const fileSuggestions = fileData.completions.map((item: CompletionItem) => {
+              // 创建增强版 CompletionItem
+              const enhancedItem: EnhancedCompletionItem = {
+                ...item,
+                mentionType: 'file'
+              };
+              
+              // 存储到临时映射中
+              temporaryCompletionItems.set(item.path, enhancedItem);
+              
+              return {
+                label: item.name,
+                kind: monaco.languages.CompletionItemKind.File,
+                insertText: item.path,
+                detail: "文件",
+                documentation: `路径: ${item.location || item.path}`,
+                command: {
+                  id: 'editor.acceptedCompletion',
+                  title: '选择完成',
+                  arguments: [item.name, item.path, 'file']
+                },
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+              };
+            });
+            
+            // 将符号补全结果映射为建议项
+            const symbolSuggestions = symbolData.completions.map((item: CompletionItem) => {
+              // 创建增强版 CompletionItem
+              const enhancedItem: EnhancedCompletionItem = {
+                ...item,
+                mentionType: 'symbol'
+              };
+              
+              // 存储到临时映射中
+              temporaryCompletionItems.set(item.path, enhancedItem);
+              
+              return {
+                label: `${item.name}(${item.path})`,
+                kind: monaco.languages.CompletionItemKind.Function,
+                insertText: `${item.name}(${item.path})`,
+                detail: "符号",
+                documentation: `位置: ${item.path}`,
+                command: {
+                  id: 'editor.acceptedCompletion',
+                  title: '选择完成',
+                  arguments: [item.name, item.path, 'symbol']
+                },
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+              };
+            });
+            
+            // 合并文件和符号建议
             return {
-              suggestions: data.completions.map((item: CompletionItem) => {
-                // 创建增强版 CompletionItem
-                const enhancedItem: EnhancedCompletionItem = {
-                  ...item,
-                  mentionType: 'symbol'
-                };
-                
-                // 存储到临时映射中，而不是直接添加到 mentionItemsMap
-                temporaryCompletionItems.set(item.path, enhancedItem);
-                console.log(`添加符号到临时映射: ${item.path}`);
-                
-                return {
-                  label: item.name,
-                  kind: monaco.languages.CompletionItemKind.Function,
-                  insertText: item.name,
-                  detail: "",
-                  documentation: `Location: ${item.path}`,
-                  // 设置自定义命令，在选择后执行
-                  command: {
-                    id: 'editor.acceptedCompletion',
-                    title: '选择完成',
-                    arguments: [item.name,item.path, 'symbol']  // 传递必要信息
-                  },
-                  insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-                };
-              }),
-              incomplete: true
-            };
-          } else if (prefix === "@") {
-            // 文件补全
-            const query = wordText;
-            console.log(`请求文件自动完成，查询: "${query}"`);
-            
-            const response = await fetch(`/api/completions/files?name=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            
-            console.log(`接收到文件自动完成结果: ${data.completions.length} 项`);
-            
-            return {
-              suggestions: data.completions.map((item: CompletionItem) => {
-                // 创建增强版 CompletionItem
-                const enhancedItem: EnhancedCompletionItem = {
-                  ...item,
-                  mentionType: 'file'
-                };
-                
-                // 存储到临时映射中，而不是直接添加到 mentionItemsMap
-                temporaryCompletionItems.set(item.path, enhancedItem);
-                console.log(`添加文件到临时映射: ${item.path}`);
-                
-                return {
-                  label: item.name,
-                  kind: monaco.languages.CompletionItemKind.File,
-                  insertText: item.path,
-                  detail: "",
-                  documentation: `Location: ${item.location}`,
-                  // 设置自定义命令，在选择后执行
-                  command: {
-                    id: 'editor.acceptedCompletion',
-                    title: '选择完成',
-                    arguments: [item.name,item.path, 'file']  // 传递必要信息
-                  },
-                  insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-                };
-              }),
+              suggestions: [...fileSuggestions, ...symbolSuggestions],
               incomplete: true
             };
           }

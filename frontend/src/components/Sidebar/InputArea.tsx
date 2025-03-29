@@ -55,8 +55,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   setConfig,
   isFullScreen,
   showFileGroupSelect
-}) => {
-  const [mentionItems, setMentionItems] = useState<EnhancedCompletionItem[]>([]);
+}) => {  
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [indexBuilding, setIndexBuilding] = useState<boolean>(false);
   const [indexStatus, setIndexStatus] = useState<string>('');
@@ -183,11 +182,6 @@ const InputArea: React.FC<InputAreaProps> = ({
     }
   };
 
-  const handleMentionMapChange = (items: EnhancedCompletionItem[]) => {
-    console.log("Mention map changed:", items.length, "items");
-    console.log(JSON.stringify(items));
-    setMentionItems(items);
-  };
 
   const buildIndex = async () => {
     if (indexBuilding) return;
@@ -394,8 +388,7 @@ const InputArea: React.FC<InputAreaProps> = ({
             fileGroups={fileGroups}
             selectedGroups={selectedGroups}
             setSelectedGroups={setSelectedGroups}
-            fetchFileGroups={fetchFileGroups}
-            mentionItems={mentionItems}
+            fetchFileGroups={fetchFileGroups}            
           />
         </div>
       </div>
@@ -417,8 +410,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 return;
               }
               setIsMaximized((prev: boolean): boolean => !prev);
-            }}
-            onMentionMapChange={handleMentionMapChange}
+            }}            
           />
         </div>
         <div className="flex flex-col mt-0 gap-0 flex-shrink-0">
