@@ -55,6 +55,55 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     };
   }, []);
 
+  // 监听编辑器发来的mentions变化事件
+  useEffect(() => {
+    const handleMentionsChanged = (mentions: Array<{type: string; text: string; path: string}>) => {
+      console.log(mentions)
+      // 仅处理文件类型的mentions
+      const fileOnlyMentions = mentions;
+      
+      if (fileOnlyMentions.length > 0) {
+        // 转换为组件需要的格式
+        const fileMentions = fileOnlyMentions.map(item => ({
+          path: item.path,
+          display: item.text
+        }));
+        
+        // 更新状态
+        setMentionFiles(fileMentions);
+        
+        // 更新已处理的mentions路径集合
+        processedMentionPaths.current = new Set(fileMentions.map(file => file.path));
+        
+        // 自动选中被提到的文件
+        const mentionPaths = fileMentions.map(file => file.path);
+        const newSelectedFiles = [...selectedFiles];
+        let hasNewFiles = false;
+        
+        // 添加尚未选中的提到文件
+        mentionPaths.forEach(path => {
+          if (!newSelectedFiles.includes(path)) {
+            newSelectedFiles.push(path);
+            hasNewFiles = true;
+          }
+        });
+        
+        // 如果有新文件被添加，更新选择
+        if (hasNewFiles) {
+          updateSelection(selectedGroups, newSelectedFiles);
+        }
+      } 
+    };
+
+    // 订阅mentions变化事件
+    const unsubscribe = eventBus.subscribe(EVENTS.EDITOR.MENTIONS_CHANGED, handleMentionsChanged);
+
+    // 清理函数
+    return () => {
+      unsubscribe();
+    };
+  }, [selectedGroups, selectedFiles]);
+
   const formatPathDisplay = useCallback((path: string, maxLength: number = 40) => {
     // Remove the filename part (everything after last slash)
     const dirPath = path.substring(0, path.lastIndexOf('/'));
@@ -94,8 +143,12 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   };
 
   const updateSelection = (groupValues: string[], fileValues: string[]) => {
-    setSelectedGroups(groupValues);
-    setSelectedFiles(fileValues);
+    // 去重处理
+    const uniqueGroupValues = Array.from(new Set(groupValues));
+    const uniqueFileValues = Array.from(new Set(fileValues));
+    
+    setSelectedGroups(uniqueGroupValues);
+    setSelectedFiles(uniqueFileValues);
 
     fetch('/api/file-groups/switch', {
       method: 'POST',
@@ -103,8 +156,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        group_names: groupValues,
-        file_paths: fileValues
+        group_names: uniqueGroupValues,
+        file_paths: uniqueFileValues
       })
     }).catch(error => {
       console.error(getMessage('errorUpdatingSelection'), error);
