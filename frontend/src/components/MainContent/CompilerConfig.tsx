@@ -271,13 +271,12 @@ const CompilerConfig: React.FC = () => {
           <Form.Item
             name="type"
             label={getMessage('compilerType') || 'Type'}
-            rules={[{ required: true, message: getMessage('typeRequired') || 'Please select a type' }]}
+            rules={[{ required: true, message: getMessage('typeRequired') || 'Please enter a build tool type' }]}
           >
-            <Select className="dark-select" dropdownClassName="dark-select-dropdown">
-              <Select.Option value="frontend">Frontend</Select.Option>
-              <Select.Option value="backend">Backend</Select.Option>
-              <Select.Option value="custom">Custom</Select.Option>
-            </Select>
+            <Input 
+              className="dark-input" 
+              placeholder={getMessage('enterBuildTool') || 'Enter build tool (e.g. vite, maven)'}
+            />
           </Form.Item>
           
           <Form.Item

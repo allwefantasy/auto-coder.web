@@ -162,6 +162,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         cacheHits += message.metadata.cache_hit || 0;
         cacheMisses += message.metadata.cache_miss || 0;
       }
+      if (message.metadata?.stream_out_type === "index_build" && message.metadata?.input_tokens) {
+        inputTokens += message.metadata.input_tokens || 0;
+        outputTokens += message.metadata.output_tokens || 0;
+        totalCost += (message.metadata.input_cost || 0) + (message.metadata.output_cost || 0);
+        contextWindowUsage = Math.max(contextWindowUsage, message.metadata.context_window || 0);
+        maxContextWindow = message.metadata.max_context_window || maxContextWindow;
+        cacheHits += message.metadata.cache_hit || 0;
+        cacheMisses += message.metadata.cache_miss || 0;
+      }
     });
 
     setAccumulatedStats({
