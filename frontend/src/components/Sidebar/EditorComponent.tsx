@@ -101,11 +101,11 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   const mentionsRef = React.useRef<MentionData[]>([]);
   // 存储当前装饰IDs的引用
   const decorationsRef = React.useRef<string[]>([]);
-  
+
   // 更新mention装饰
   const updateMentionDecorations = React.useCallback(() => {
     if (!editorRef.current) return;
-    
+
     const decorations = mentionsRef.current.map(mention => ({
       range: mention.range,
       options: {
@@ -114,14 +114,14 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         stickiness: monaco.editor.TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges
       }
     }));
-    
+
     decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, decorations);
-    
+
     // 更新每个mention的decorationId
     mentionsRef.current.forEach((mention, index) => {
       mention.decorationId = decorationsRef.current[index];
     });
-    
+
     // 通过 eventBus 发布 mentions 变化事件
     // eventBus.publish(EVENTS.EDITOR.MENTIONS_CHANGED, mentionsRef.current.map(m => ({
     //   type: m.type,
@@ -134,7 +134,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   // 处理内容变化，更新mention位置
   const handleContentChange = React.useCallback(() => {
     if (!editorRef.current) return;
-    
+
     // 检查每个mention是否仍然有效
     const model = editorRef.current.getModel();
     const validMentions = mentionsRef.current.filter(mention => {
@@ -143,7 +143,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       // 检查文本是否仍然是mention格式
       return text.startsWith('@') && text.includes(mention.text);
     });
-    
+
     // 更新mentions列表
     mentionsRef.current = validMentions;
     // 更新装饰
@@ -153,7 +153,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   // 添加一个新的mention
   const addMention = React.useCallback((range: any, type: 'file' | 'symbol', text: string, path: string, item: EnhancedCompletionItem) => {
     const id = `mention-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     // 创建新的mention数据
     const mentionData: MentionData = {
       id,
@@ -163,13 +163,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       path,
       item
     };
-    
+
     // 添加到mention列表
     mentionsRef.current.push(mentionData);
-    
+
     // 更新装饰
     updateMentionDecorations();
-    
+
     return mentionData;
   }, [updateMentionDecorations]);
 
@@ -197,10 +197,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   const handleEditorDidMount = (editor: any, monaco: any) => {
     // 存储editor引用
     editorRef.current = editor;
-    
+
     // 首先通知父组件编辑器已经挂载
     onEditorDidMount(editor, monaco);
-    
+
     // 添加键盘快捷键 - 修改为触发InputArea全屏
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, () => {
       // 触发InputArea全屏事件
@@ -221,40 +221,40 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     });
 
     // ----- mention 相关处理 -----
-        
+
     // 注册自定义命令，用于处理自动完成选择事件
-    monaco.editor.registerCommand('editor.acceptedCompletion', function(...args: any[]) {
+    monaco.editor.registerCommand('editor.acceptedCompletion', function (...args: any[]) {
       // Monaco可能不会按预期传递编辑器实例，所以我们使用当前引用
       const currentEditor = editorRef.current;
       if (!currentEditor) return null;
-      
+
       // 解析参数 - 不依赖于editor参数
       const [, ...restArgs] = args;
       let name: string, path: string, mentionType: 'file' | 'symbol', item: EnhancedCompletionItem;
-      
+
       if (restArgs.length >= 3) {
         name = restArgs[0];
-        path = restArgs[1]; 
+        path = restArgs[1];
         mentionType = restArgs[2] as 'file' | 'symbol';
         item = restArgs[3] || {} as EnhancedCompletionItem;
       } else {
         console.warn('Insufficient arguments for mention completion');
         return null;
       }
-      
+
       // 获取当前光标位置
       const position = currentEditor.getPosition();
       const model = currentEditor.getModel();
-      
+
       // 获取当前行文本
       const lineContent = model.getLineContent(position.lineNumber);
-      
+
       // 找到@符号的位置
       let atSignColumn = position.column - 1;
       while (atSignColumn > 0 && lineContent.charAt(atSignColumn - 1) !== '@') {
         atSignColumn--;
       }
-      
+
       // 创建一个range从@到当前位置
       const range = new monaco.Range(
         position.lineNumber,
@@ -262,18 +262,18 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         position.lineNumber,
         position.column
       );
-      
+
       // 添加新的mention
       addMention(range, mentionType, name, path, item);
-      
+
       return null;
     });
-    
+
     // 监听鼠标点击事件，处理点击mention
     editor.onMouseDown((e: any) => {
       if (e.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT) {
         const position = e.target.position;
-        
+
         // 检查点击位置是否在任何mention范围内
         for (const mention of mentionsRef.current) {
           if (mention.range.containsPosition(position)) {
@@ -286,100 +286,84 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         }
       }
     });
-    
+
     // 监听内容变化更新mention
     editor.onDidChangeModelContent(() => {
       handleContentChange();
     });
-        
+
     // 注册自动完成提供者
     if (!providerRegistered.current) {
       monaco.languages.registerCompletionItemProvider('markdown', {
         triggerCharacters: ['@'],
         provideCompletionItems: async (model: any, position: any) => {                    
-          // 获取当前行的文本内容
-          const textUntilPosition = model.getValueInRange({
-            startLineNumber: position.lineNumber,
-            startColumn: 1,
-            endLineNumber: position.lineNumber,
-            endColumn: position.column
+          const wordText =model.getWordUntilPosition(position);
+          // 获取查询文本
+          const query = wordText;
+
+          // 并行获取文件和符号补全
+          const [fileResponse, symbolResponse] = await Promise.all([
+            fetch(`/api/completions/files?name=${encodeURIComponent(query)}`),
+            fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`)
+          ]);
+
+          const [fileData, symbolData] = await Promise.all([
+            fileResponse.json(),
+            symbolResponse.json()
+          ]);
+
+          // 处理文件补全结果
+          const fileSuggestions = fileData.completions.map((item: CompletionItem) => {
+            const enhancedItem: EnhancedCompletionItem = {
+              ...item,
+              mentionType: 'file'
+            };
+
+            return {
+              label: item.name,
+              kind: monaco.languages.CompletionItemKind.File,
+              insertText: item.name,
+              detail: "文件",
+              documentation: `路径: ${item.location || item.path}`,
+              command: {
+                id: 'editor.acceptedCompletion',
+                title: '选择完成',
+                arguments: [item.name, item.path, 'file', enhancedItem]
+              },
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+            };
           });
 
-          // 获取当前词和前缀
-          const word = model.getWordUntilPosition(position);
-          const prefix = textUntilPosition.charAt(word.startColumn - 2);
-          const wordText = word.word;
-
-          if (prefix === "@") {
-            // 获取查询文本
-            const query = wordText;
-            
-            // 并行获取文件和符号补全
-            const [fileResponse, symbolResponse] = await Promise.all([
-              fetch(`/api/completions/files?name=${encodeURIComponent(query)}`),
-              fetch(`/api/completions/symbols?name=${encodeURIComponent(query)}`)
-            ]);
-            
-            const [fileData, symbolData] = await Promise.all([
-              fileResponse.json(),
-              symbolResponse.json()
-            ]);
-            
-            // 处理文件补全结果
-            const fileSuggestions = fileData.completions.map((item: CompletionItem) => {
-              const enhancedItem: EnhancedCompletionItem = {
-                ...item,
-                mentionType: 'file'
-              };                            
-              
-              return {
-                label: item.name,
-                kind: monaco.languages.CompletionItemKind.File,
-                insertText: item.name,
-                detail: "文件",
-                documentation: `路径: ${item.location || item.path}`,
-                command: {
-                  id: 'editor.acceptedCompletion',
-                  title: '选择完成',
-                  arguments: [item.name, item.path, 'file', enhancedItem]
-                },
-                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-              };
-            });
-            
-            // 处理符号补全结果
-            const symbolSuggestions = symbolData.completions.map((item: CompletionItem) => {
-              const enhancedItem: EnhancedCompletionItem = {
-                ...item,
-                mentionType: 'symbol'
-              };
-                            
-              return {
-                label: `${item.name}(${item.path})`,
-                kind: monaco.languages.CompletionItemKind.Function,
-                insertText: item.name,
-                detail: "符号",
-                documentation: `位置: ${item.path}`,
-                command: {
-                  id: 'editor.acceptedCompletion',
-                  title: '选择完成',
-                  arguments: [item.name, item.path, 'symbol', enhancedItem]
-                },
-                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-              };
-            });
-            
-            // 合并建议
-            return {
-              suggestions: [...fileSuggestions, ...symbolSuggestions],
-              incomplete: true
+          // 处理符号补全结果
+          const symbolSuggestions = symbolData.completions.map((item: CompletionItem) => {
+            const enhancedItem: EnhancedCompletionItem = {
+              ...item,
+              mentionType: 'symbol'
             };
-          }
 
-          return { suggestions: [] };
+            return {
+              label: `${item.name}(${item.path})`,
+              kind: monaco.languages.CompletionItemKind.Function,
+              insertText: item.name,
+              detail: "符号",
+              documentation: `位置: ${item.path}`,
+              command: {
+                id: 'editor.acceptedCompletion',
+                title: '选择完成',
+                arguments: [item.name, item.path, 'symbol', enhancedItem]
+              },
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+            };
+          });
+
+          // 合并建议
+          return {
+            suggestions: [...fileSuggestions, ...symbolSuggestions],
+            incomplete: true
+          };
         }
       });
-      
+
       providerRegistered.current = true;
     }
   };
@@ -388,9 +372,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     <div className="w-full relative h-full flex flex-col">
       <div
         ref={editorContainer}
-        className={`editor-container w-full border border-gray-700 rounded-md overflow-hidden ${
-          isMaximized ? 'h-full flex-grow' : 'h-[200px]'
-        }`}
+        className={`editor-container w-full border border-gray-700 rounded-md overflow-hidden ${isMaximized ? 'h-full flex-grow' : 'h-[200px]'
+          }`}
         style={{ width: '100%' }}
       >
         <Editor

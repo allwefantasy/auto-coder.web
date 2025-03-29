@@ -97,7 +97,7 @@ const App: React.FC = () => {
         },
         body: JSON.stringify({
           mode: newMode ? 'expert' : 'agent'
-        } as UIModeUpdate)
+        })
       });
       if (!response.ok) {
         console.error('Failed to save mode preference');
