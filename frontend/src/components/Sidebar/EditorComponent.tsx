@@ -297,9 +297,18 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       monaco.languages.registerCompletionItemProvider('markdown', {
         triggerCharacters: ['@'],
         provideCompletionItems: async (model: any, position: any) => {                    
-          const wordText =model.getWordUntilPosition(position);
-          // 获取查询文本
-          const query = wordText.word;
+          // 获取当前行文本
+          const lineContent = model.getLineContent(position.lineNumber);
+          // 获取当前列位置
+          let column = position.column - 1;
+          
+          // 向前查找直到遇到空格或行首
+          while (column > 0 && lineContent.charAt(column - 1) !== ' ') {
+            column--;
+          }
+          
+          // 提取从空格后到当前位置的文本作为查询
+          const query = lineContent.substring(column, position.column - 1);
           console.log(query);
 
           // 并行获取文件和符号补全
