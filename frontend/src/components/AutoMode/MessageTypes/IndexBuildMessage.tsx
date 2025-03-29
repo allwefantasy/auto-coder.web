@@ -40,21 +40,7 @@ const IndexBuildMessage: React.FC<IndexBuildMessageProps> = ({ message }) => {
             }
         };
     }, []);
-
-    // Calculate progress percentage based on which data format is available
-    const calculateProgress = () => {
-        if (message.metadata?.file_number !== undefined && message.metadata?.total_files) {
-            return (message.metadata.file_number / message.metadata.total_files) * 100;
-        } else if (message.metadata?.updated_files !== undefined && 
-                  (message.metadata?.updated_files + message.metadata?.removed_files) > 0) {
-            // Simple ratio of updated to total changes (updated + removed)
-            const totalChanges = message.metadata.updated_files + message.metadata.removed_files;
-            return (message.metadata.updated_files / totalChanges) * 100;
-        }
-        return 0;
-    };
-
-    const progressPercentage = calculateProgress();    
+      
     return (
         <div ref={containerRef} className="font-mono text-[11px] text-gray-400 flex flex-row items-center gap-2 flex-wrap">            
             {message.metadata && (
@@ -100,29 +86,7 @@ const IndexBuildMessage: React.FC<IndexBuildMessageProps> = ({ message }) => {
                                 ${(message.metadata.input_cost + message.metadata.output_cost).toFixed(5)}
                             </span>
                         </div>
-                    )}
-
-                    {/* Progress bar */}
-                    {progressPercentage > 0 && (
-                        <div className="flex items-center">
-                            <span>{getMessage('indexProgress')}: </span>
-                            {showProgressBar ? (
-                                <div className="relative w-28 h-2 bg-gray-800 rounded ml-1 border border-gray-600">
-                                    <div 
-                                        className="h-full bg-blue-600 rounded-l" 
-                                        style={{ width: `${progressPercentage}%` }}
-                                    ></div>
-                                    {progressPercentage > 10 && (
-                                        <span className="absolute inset-0 flex items-center justify-center text-[9px] text-white">
-                                            {progressPercentage.toFixed(1)}%
-                                        </span>
-                                    )}
-                                </div>
-                            ) : (
-                                <span className="text-blue-400 ml-1">{progressPercentage.toFixed(1)}%</span>
-                            )}
-                        </div>
-                    )}
+                    )}                    
                 </>
             )}
         </div>
