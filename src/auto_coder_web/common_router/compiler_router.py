@@ -62,7 +62,8 @@ async def create_compiler(compiler: CompilerCreate):
         working_dir=compiler.working_dir,
         command=compiler.command,
         args=compiler.args,
-        extract_regex=compiler.extract_regex
+        extract_regex=compiler.extract_regex,
+        triggers=compiler.triggers
     )
     
     if result["status"] == "error":
@@ -82,7 +83,8 @@ async def update_compiler(name: str, compiler: CompilerUpdate):
         working_dir=compiler.working_dir,
         command=compiler.command,
         args=compiler.args,
-        extract_regex=compiler.extract_regex
+        extract_regex=compiler.extract_regex,
+        triggers=compiler.triggers
     )
     
     if result["status"] == "error":
