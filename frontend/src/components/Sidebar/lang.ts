@@ -1287,6 +1287,14 @@ export const messages: { [key: string]: Message } = {
     en: "Regular expression to extract error information from compiler output",
     zh: "从编译器输出中提取错误信息的正则表达式"
   },
+  enterFileExtensions: {
+    en: "Enter file extensions (e.g. .py,.js)",
+    zh: "输入文件后缀名 (例如 .py,.js)"
+  },
+  triggersLabel: {
+    en: "Source file extensions that trigger compilation",
+    zh: "触发编译的源码后缀名列表"
+  },
   compilerUpdateSuccess: {
     en: "Compiler updated successfully",
     zh: "编译器更新成功"

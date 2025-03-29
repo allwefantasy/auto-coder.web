@@ -307,6 +307,19 @@ const CompilerConfig: React.FC = () => {
               tokenSeparators={[' ']}
             />
           </Form.Item>
+
+          <Form.Item
+            name="triggers"
+            label={getMessage('triggersLabel') || 'Source file extensions'}
+          >
+            <Select
+              mode="tags"
+              className="dark-select compiler-select compiler-tag-select"
+              dropdownClassName="dark-select-dropdown"
+              placeholder={getMessage('enterFileExtensions') || 'Enter file extensions (e.g. .py,.js)'}
+              tokenSeparators={[',']}
+            />
+          </Form.Item>
           
           <Form.Item
             name="extract_regex"
