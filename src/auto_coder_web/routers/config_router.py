@@ -45,19 +45,22 @@ async def get_ui_mode(request: Request):
     config = await load_config(config_path)
     return {"mode": config.mode}
 
+class UIModeUpdate(BaseModel):
+    mode: str
+
 @router.put("/api/config/ui/mode")
 async def update_ui_mode(
-    mode: str,
+    update: UIModeUpdate,
     request: Request
 ):
     """更新UI模式"""
-    if mode not in ["agent", "expert"]:
+    if update.mode not in ["agent", "expert"]:
         raise HTTPException(status_code=400, detail="Mode must be 'agent' or 'expert'")
     
     project_path = await get_project_path(request)
     config_path = await get_config_path(project_path)
     config = await load_config(config_path)
-    config.mode = mode
+    config.mode = update.mode
     await save_config(config, config_path)
     
-    return {"mode": mode}
+    return {"mode": update.mode}
