@@ -1287,6 +1287,18 @@ export const messages: { [key: string]: Message } = {
     en: "Regular expression to extract error information from compiler output",
     zh: "从编译器输出中提取错误信息的正则表达式"
   },
+  triggers: {
+    en: "File Triggers",
+    zh: "文件触发器"
+  },
+  triggersTooltip: {
+    en: "When files with these extensions are modified, this compiler will be triggered",
+    zh: "当这些扩展名的文件被修改时，将触发此编译器"
+  },
+  triggersPlaceholder: {
+    en: "Select file extensions that trigger this compiler",
+    zh: "选择触发此编译器的文件扩展名"
+  },
   compilerUpdateSuccess: {
     en: "Compiler updated successfully",
     zh: "编译器更新成功"

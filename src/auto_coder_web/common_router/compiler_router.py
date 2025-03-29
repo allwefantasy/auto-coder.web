@@ -12,6 +12,7 @@ class CompilerBase(BaseModel):
     command: str
     args: List[str]
     extract_regex: Optional[str] = None
+    triggers: Optional[List[str]] = None
 
 class CompilerCreate(CompilerBase):
     pass
@@ -49,7 +50,6 @@ async def get_compiler(name: str):
         raise HTTPException(status_code=status_code, detail=result["message"])
     
     return result
-
 @router.post("/api/compilers")
 async def create_compiler(compiler: CompilerCreate):
     """
@@ -69,7 +69,6 @@ async def create_compiler(compiler: CompilerCreate):
         raise HTTPException(status_code=400, detail=result["message"])
     
     return result
-
 @router.put("/api/compilers/{name}")
 async def update_compiler(name: str, compiler: CompilerUpdate):
     """
