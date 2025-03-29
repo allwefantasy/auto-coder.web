@@ -197,7 +197,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           e.stopPropagation(); // 阻止事件冒泡
           // 选中当前聚焦的选项
           selectFocusedOption(focusedOptionIndex);
-          console.log(`选中选项: ${focusedOptionIndex}`);
+          console.log(`选中选项: ${focusedOptionIndex}`);          
         }
         break;
 
@@ -207,7 +207,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           e.stopPropagation(); // 阻止事件冒泡
           // 与Enter键相同，选中当前聚焦的选项
           selectFocusedOption(focusedOptionIndex);
-          console.log(`选中选项: ${focusedOptionIndex}`);
+          console.log(`选中选项: ${focusedOptionIndex}`);          
         }
         break;
 
@@ -293,6 +293,10 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           // 保持焦点
           selectRef.current.focus();
 
+          if (selectRef.current.clearInput) {
+            selectRef.current.clearInput();
+          }
+
           // 直接清除输入元素的值
           setTimeout(() => {
             if (selectRef.current && selectRef.current.selector) {
@@ -303,7 +307,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
                 inputElement.focus();
               }
             }
-          }, 10);
+          }, 50);
         } catch (error) {
           console.error('Error clearing search box:', error);
         }
@@ -436,7 +440,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           }}
           showSearch={true}
           tabIndex={0}
-          autoClearSearchValue={false}
+          autoClearSearchValue={true}
           getPopupContainer={() => document.body}
           tagRender={(props: CustomTagProps) => {
             const { label, value, closable, onClose } = props;
