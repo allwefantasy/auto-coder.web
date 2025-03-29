@@ -196,8 +196,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const handleScroll = useCallback(() => {
     const container = document.getElementById('chat-messages-container');
     if (container) {
-      // 检查是否滚动到底部（考虑一个小的阈值，如40像素）
-      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 40;
+      // 检查是否滚动到底部（考虑一个小的阈值，如100像素）
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
       setIsAtBottom(isNearBottom);
     }
   }, []);
