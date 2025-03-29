@@ -58,6 +58,14 @@ const App: React.FC = () => {
       
       // Check initialization status
       checkInitializationStatus();
+
+      // Load saved mode preference
+      fetch('/api/config/ui/mode')
+        .then(response => response.json())
+        .then(data => {
+          setIsExpertMode(data.mode === 'expert');
+        })
+        .catch(error => console.error('Error loading mode preference:', error));
     });
   }, []);
 
@@ -77,8 +85,26 @@ const App: React.FC = () => {
   };
 
   // Toggle between expert and auto modes
-  const toggleMode = () => {
-    setIsExpertMode(!isExpertMode);
+  const toggleMode = async () => {
+    const newMode = !isExpertMode;
+    setIsExpertMode(newMode);
+    
+    try {
+      const response = await fetch('/api/config/ui/mode', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mode: newMode ? 'expert' : 'agent'
+        })
+      });
+      if (!response.ok) {
+        console.error('Failed to save mode preference');
+      }
+    } catch (error) {
+      console.error('Error saving mode preference:', error);
+    }
   };
 
   // Toggle the visibility of the mode switch panel
