@@ -75,7 +75,7 @@ const CompilerConfig: React.FC = () => {
     setEditingCompiler(compiler);
     form.setFieldsValue({
       ...compiler,
-      args: compiler.args, // No need to join array to string anymore
+      args: compiler.args || [], // Ensure args is an array
     });
     setModalVisible(true);
   };
@@ -88,32 +88,28 @@ const CompilerConfig: React.FC = () => {
     try {
       const values = await form.validateFields();
       
-      // No need to split string to array anymore
+      // Ensure args is an array, even if empty
       const compilerData = {
         ...values,
+        args: values.args || [],
       };
       
       let response;
+      let url = '/api/compilers';
+      let method = 'POST';
       
       if (editingCompiler) {
-        // Update existing compiler
-        response = await fetch(`/api/compilers/${editingCompiler.name}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(compilerData),
-        });
-      } else {
-        // Create new compiler
-        response = await fetch('/api/compilers', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(compilerData),
-        });
-      }
+        url = `/api/compilers/${editingCompiler.name}`;
+        method = 'PUT';
+      } 
+
+      response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(compilerData),
+      });
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -122,8 +118,8 @@ const CompilerConfig: React.FC = () => {
       
       message.success(
         editingCompiler 
-          ? getMessage('compilerUpdateSuccess') || 'Compiler updated successfully' 
-          : getMessage('compilerCreateSuccess') || 'Compiler created successfully'
+          ? getMessage('compilerUpdateSuccess') 
+          : getMessage('compilerCreateSuccess')
       );
       
       setModalVisible(false);
@@ -145,7 +141,7 @@ const CompilerConfig: React.FC = () => {
         throw new Error(errorData.detail || 'Failed to delete compiler');
       }
       
-      message.success(getMessage('compilerDeleteSuccess') || 'Compiler deleted successfully');
+      message.success(getMessage('compilerDeleteSuccess'));
       fetchCompilers();
     } catch (error) {
       console.error('Error deleting compiler:', error);
@@ -155,28 +151,28 @@ const CompilerConfig: React.FC = () => {
 
   const columns = [
     {
-      title: getMessage('compilerName') || 'Name',
+      title: getMessage('compilerName'),
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: getMessage('compilerType') || 'Type',
+      title: getMessage('compilerType'),
       dataIndex: 'type',
       key: 'type',
     },
     {
-      title: getMessage('workingDirectory') || 'Working Directory',
+      title: getMessage('workingDirectory'),
       dataIndex: 'working_dir',
       key: 'working_dir',
       ellipsis: true,
     },
     {
-      title: getMessage('compilerCommand') || 'Command',
+      title: getMessage('compilerCommand'),
       dataIndex: 'command',
       key: 'command',
     },
     {
-      title: getMessage('actions') || 'Actions',
+      title: getMessage('actions'),
       key: 'actions',
       render: (_: any, record: Compiler) => (
         <Space size="small">
@@ -187,10 +183,10 @@ const CompilerConfig: React.FC = () => {
             className="text-gray-400 hover:text-white dark-button"
           />
           <Popconfirm
-            title={getMessage('deleteConfirmation') || 'Are you sure you want to delete this compiler?'}
+            title={getMessage('deleteConfirmation')}
             onConfirm={() => handleDelete(record.name)}
-            okText={getMessage('yes') || 'Yes'}
-            cancelText={getMessage('no') || 'No'}
+            okText={getMessage('yes')}
+            cancelText={getMessage('no')}
           >
             <Button 
               type="text" 
@@ -207,7 +203,7 @@ const CompilerConfig: React.FC = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="settings-title">{getMessage('compilerConfiguration') || 'Compiler Configuration'}</h3>
+        <h3 className="settings-title">{getMessage('compilerConfiguration')}</h3>
         <Space>
           <Button 
             type="text" 
@@ -222,14 +218,14 @@ const CompilerConfig: React.FC = () => {
             onClick={showAddModal}
             className="bg-blue-600 hover:bg-blue-700 dark-button"
           >
-            {getMessage('addCompiler') || 'Add Compiler'}
+            {getMessage('addCompiler')}
           </Button>
           {compilers.length === 0 && (
             <Button 
               onClick={initializeCompilers}
               className="bg-green-600 hover:bg-green-700 text-white dark-button"
             >
-              {getMessage('initializeDefault') || 'Initialize Default'}
+              {getMessage('initializeDefault')}
             </Button>
           )}
         </Space>
@@ -242,76 +238,80 @@ const CompilerConfig: React.FC = () => {
         loading={loading}
         pagination={false}
         className="compiler-table dark-table"
-        locale={{ emptyText: getMessage('noCompilers') || 'No compilers configured' }}
+        locale={{ emptyText: getMessage('noCompilers') }}
       />
       
       <Modal
-        title={editingCompiler ? (getMessage('editCompiler') || 'Edit Compiler') : (getMessage('addCompiler') || 'Add Compiler')}
+        title={editingCompiler ? getMessage('editCompiler') : getMessage('addCompiler')}
         open={modalVisible}
         onCancel={handleCancel}
         onOk={handleSubmit}
-        okText={getMessage('save') || 'Save'}
-        cancelText={getMessage('cancel') || 'Cancel'}
+        okText={getMessage('save')}
+        cancelText={getMessage('cancel')}
         className="dark-modal"
+        destroyOnClose // Ensure form fields are reset when modal is closed
       >
         <Form
           form={form}
           layout="vertical"
           name="compilerForm"
           className="dark-form"
+          initialValues={{ args: [] }} // Default args to empty array
         >
           <Form.Item
             name="name"
-            label={getMessage('compilerName') || 'Name'}
-            rules={[{ required: true, message: getMessage('nameRequired') || 'Please enter a name' }]}
+            label={getMessage('compilerName')}
+            rules={[{ required: true, message: getMessage('nameRequired') }]}
           >
             <Input disabled={!!editingCompiler} className="dark-input" />
           </Form.Item>
           
           <Form.Item
             name="type"
-            label={getMessage('compilerType') || 'Type'}
-            rules={[{ required: true, message: getMessage('typeRequired') || 'Please enter a build tool type' }]}
+            label={getMessage('compilerType')}
+            rules={[{ required: true, message: getMessage('typeRequired') }]}
           >
             <Input 
               className="dark-input" 
-              placeholder={getMessage('enterBuildTool') || 'Enter build tool (e.g. vite, maven)'}
+              placeholder={getMessage('enterBuildTool')}
             />
           </Form.Item>
           
           <Form.Item
             name="working_dir"
-            label={getMessage('workingDirectory') || 'Working Directory'}
-            rules={[{ required: true, message: getMessage('workingDirRequired') || 'Please enter a working directory' }]}
+            label={getMessage('workingDirectory')}
+            rules={[{ required: true, message: getMessage('workingDirRequired') }]}
           >
             <Input className="dark-input" />
           </Form.Item>
           
           <Form.Item
             name="command"
-            label={getMessage('compilerCommand') || 'Command'}
-            rules={[{ required: true, message: getMessage('compilerCommandRequired') || 'Please enter a command' }]}
+            label={getMessage('compilerCommand')}
+            rules={[{ required: true, message: getMessage('compilerCommandRequired') }]}
           >
             <Input className="dark-input" />
           </Form.Item>
           
           <Form.Item
             name="args"
-            label={getMessage('arguments') || 'Arguments'}
+            label={getMessage('arguments')}
           >
             <Select
               mode="tags"
+              style={{ width: '100%' }}
               className="dark-select compiler-select compiler-tag-select"
               dropdownClassName="dark-select-dropdown"
-              placeholder={getMessage('enterArguments') || 'Enter arguments'}
+              placeholder={getMessage('enterArguments')}
               tokenSeparators={[' ']}
+              options={[]} // Provide empty options array for tag mode
             />
           </Form.Item>
           
           <Form.Item
             name="extract_regex"
-            label={getMessage('extractRegex') || 'Error Extraction Regex'}
-            tooltip={getMessage('extractRegexTooltip') || 'Regular expression to extract error information from compiler output'}
+            label={getMessage('extractRegex')}
+            tooltip={getMessage('extractRegexTooltip')}
           >
             <Input className="dark-input" />
           </Form.Item>
