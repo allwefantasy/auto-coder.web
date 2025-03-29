@@ -5,6 +5,7 @@ import type { AutoCoderArgs } from './types';
 import ModelConfig from './ModelConfig';
 import ModelManagement from './ModelManagement';
 import ProviderManagement from './ProviderManagement';
+import CompilerConfig from './CompilerConfig';
 import AdvancedSettings from './AdvancedSettings';
 import './ModelConfig.css';
 
@@ -135,6 +136,9 @@ const SettingsPanel: React.FC = () => {
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('providerManagement')}</span>} key="providers">
           <ProviderManagement />
+        </TabPane>
+        <TabPane tab={<span className="text-gray-300">{getMessage('compilerConfiguration') || 'Compiler Configuration'}</span>} key="compilers">
+          <CompilerConfig />
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('advancedSettings')}</span>} key="advanced">
           <AdvancedSettings 

@@ -26,7 +26,8 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     code_model: '',
     chat_model: '',
     generate_rerank_model: '',
-    index_model: ''
+    index_model: '',
+    index_filter_model: ''
   });
 
   // Fetch available models
@@ -86,6 +87,10 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           updatedModels.index_model = currentConfig.index_model;
         }
         
+        if (currentConfig.index_filter_model) {
+          updatedModels.index_filter_model = currentConfig.index_filter_model;
+        }
+        
         setSelectedModels(updatedModels);
       } catch (error) {
         console.error('Error fetching current configuration:', error);
@@ -104,7 +109,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     availableKeys.forEach(key => {
       if ((key.key === 'model' || key.key === 'code_model' || 
           key.key === 'chat_model' || key.key === 'generate_rerank_model' ||
-          key.key === 'index_model') && 
+          key.key === 'index_model' || key.key === 'index_filter_model') && 
           !initialModels[key.key]) {
         initialModels[key.key] = (key as any).value || '';
       }
@@ -221,6 +226,20 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             }))}
           />
           <p className="model-config-description">{getMessage('indexModelDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('indexFilterModel')}</label>
+          <Select
+            {...selectProps}
+            value={selectedModels.index_filter_model}
+            onChange={(value) => handleModelChange('index_filter_model', value)}
+            options={models.map(model => ({
+              value: model.name,
+              label: model.name
+            }))}
+          />
+          <p className="model-config-description">{getMessage('indexFilterModelDescription')}</p>
         </div>
       </div>
     </div>

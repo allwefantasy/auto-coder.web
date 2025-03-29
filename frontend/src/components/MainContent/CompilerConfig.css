@@ -1,0 +1,56 @@
+/* CompilerConfig specific styles */
+
+/* Fix for tag close button visibility in dark theme */
+.compiler-tag-select .ant-select-selection-item {
+  background-color: #1f2937;
+  border-color: #374151;
+  color: #f3f4f6;
+}
+
+.compiler-tag-select .ant-select-selection-item .ant-select-selection-item-remove {
+  color: #9ca3af;
+}
+
+.compiler-tag-select .ant-select-selection-item .ant-select-selection-item-remove:hover {
+  color: #f3f4f6;
+}
+
+/* Make input and selection fields more visible in dark theme */
+.compiler-input,
+.compiler-select {
+  background-color: #1f2937 !important;
+  color: #f3f4f6 !important;
+  border-color: #374151 !important;
+}
+
+.compiler-select .ant-select-selection-placeholder {
+  color: #9ca3af !important;
+}
+
+/* Ensure modal and table styling is consistent with dark theme */
+.compiler-table .ant-table {
+  background-color: transparent;
+}
+
+.compiler-table .ant-table-thead > tr > th {
+  background-color: #111827;
+  color: #f3f4f6;
+  border-bottom: 1px solid #374151;
+}
+
+.compiler-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #374151;
+}
+
+.compiler-table .ant-table-tbody > tr:hover > td {
+  background-color: #1f2937;
+}
+
+/* Additional button styling */
+.compiler-action-button {
+  border-color: #374151;
+}
+
+.compiler-action-button:hover {
+  border-color: #6b7280;
+} 

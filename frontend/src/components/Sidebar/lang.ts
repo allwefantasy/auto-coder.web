@@ -580,9 +580,9 @@ export const messages: { [key: string]: Message } = {
     en: "Tool Preparation",
     zh: "准备工具"
   },
-  command: {
-    en: "Tool",
-    zh: "工具"
+  compilerCommand: {
+    en: "Command",
+    zh: "命令"
   },
   parameters: {
     en: "Parameters",
@@ -1217,6 +1217,103 @@ export const messages: { [key: string]: Message } = {
   indexProgress: {
     en: "Progress",
     zh: "进度"
+  },
+  // Compiler Configuration
+  compilerConfiguration: {
+    en: "Compiler Configuration",
+    zh: "编译器配置"
+  },
+  addCompiler: {
+    en: "Add Compiler",
+    zh: "添加编译器"
+  },
+  editCompiler: {
+    en: "Edit Compiler",
+    zh: "编辑编译器"
+  },
+  deleteConfirmation: {
+    en: "Are you sure you want to delete this compiler?",
+    zh: "确定要删除此编译器吗？"
+  },
+  compilerName: {
+    en: "Name",
+    zh: "名称"
+  },
+  compilerType: {
+    en: "Type",
+    zh: "类型"
+  },
+  workingDirectory: {
+    en: "Working Directory",
+    zh: "工作目录"
+  },
+  actions: {
+    en: "Actions",
+    zh: "操作"
+  },
+  yes: {
+    en: "Yes",
+    zh: "是"
+  },
+  no: {
+    en: "No",
+    zh: "否"
+  },
+  nameRequired: {
+    en: "Please enter a name",
+    zh: "请输入名称"
+  },
+  typeRequired: {
+    en: "Please select a type",
+    zh: "请选择类型"
+  },
+  workingDirRequired: {
+    en: "Please enter a working directory",
+    zh: "请输入工作目录"
+  },
+  compilerCommandRequired: {
+    en: "Please enter a command",
+    zh: "请输入命令"
+  },
+  arguments: {
+    en: "Arguments (space separated)",
+    zh: "参数 (空格分隔)"
+  },
+  extractRegex: {
+    en: "Error Extraction Regex",
+    zh: "错误提取正则表达式"
+  },
+  extractRegexTooltip: {
+    en: "Regular expression to extract error information from compiler output",
+    zh: "从编译器输出中提取错误信息的正则表达式"
+  },
+  compilerUpdateSuccess: {
+    en: "Compiler updated successfully",
+    zh: "编译器更新成功"
+  },
+  compilerCreateSuccess: {
+    en: "Compiler created successfully",
+    zh: "编译器创建成功"
+  },
+  compilerDeleteSuccess: {
+    en: "Compiler deleted successfully",
+    zh: "编译器删除成功"
+  },
+  noCompilers: {
+    en: "No compilers configured",
+    zh: "未配置编译器"
+  },
+  initializeDefault: {
+    en: "Initialize Default",
+    zh: "初始化默认设置"
+  },
+  indexFilterModel: {
+    en: "Index Filter Model",
+    zh: "索引过滤模型"
+  },
+  indexFilterModelDescription: {
+    en: "Used for filtering index content",
+    zh: "用于过滤索引内容"
   }
 };
 
