@@ -123,12 +123,12 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     });
     
     // 通过 eventBus 发布 mentions 变化事件
-    eventBus.publish(EVENTS.EDITOR.MENTIONS_CHANGED, mentionsRef.current.map(m => ({
-      type: m.type,
-      text: m.text,
-      path: m.path,
-      item: m.item
-    })));
+    // eventBus.publish(EVENTS.EDITOR.MENTIONS_CHANGED, mentionsRef.current.map(m => ({
+    //   type: m.type,
+    //   text: m.text,
+    //   path: m.path,
+    // //   item: m.item
+    // })));
   }, []);
 
   // 处理内容变化，更新mention位置
