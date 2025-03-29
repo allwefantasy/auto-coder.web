@@ -75,7 +75,8 @@ const CompilerConfig: React.FC = () => {
     setEditingCompiler(compiler);
     form.setFieldsValue({
       ...compiler,
-      args: compiler.args, // No need to join array to string anymore
+      args: compiler.args,
+      triggers: compiler.triggers || [], // Initialize triggers field
     });
     setModalVisible(true);
   };
@@ -91,6 +92,7 @@ const CompilerConfig: React.FC = () => {
       // No need to split string to array anymore
       const compilerData = {
         ...values,
+        triggers: values.triggers || [], // Ensure triggers is always an array
       };
       
       let response;
