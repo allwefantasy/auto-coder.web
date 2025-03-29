@@ -286,6 +286,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
       setSearchText('');
       // 重置选项索引
       setFocusedOptionIndex(-1);
+      // 清空文件补全结果
+      setFileCompletions([]);
 
       // 清空Select组件的搜索框内容并保持焦点
       if (selectRef.current) {
@@ -406,6 +408,18 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             );
 
             updateSelection(groupValues, fileValues);
+            
+            // 清空搜索相关状态
+            setSearchText('');
+            setFileCompletions([]);
+            
+            // 清空输入框
+            if (selectRef.current && selectRef.current.selector) {
+              const inputElement = selectRef.current.selector.querySelector('.ant-select-selection-search-input');
+              if (inputElement) {
+                inputElement.value = '';
+              }
+            }
           }}
           // 禁用默认的键盘导航，使用我们自定义的导航
           listItemHeight={28}
