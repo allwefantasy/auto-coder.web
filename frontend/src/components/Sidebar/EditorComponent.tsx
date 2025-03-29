@@ -111,7 +111,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       options: {
         inlineClassName: 'monaco-mention',
         hoverMessage: { value: `**${mention.type === 'file' ? '文件' : '符号'}**: ${mention.path}` },
-        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+        stickiness: monaco.editor.TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges
       }
     }));
     
