@@ -297,7 +297,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       monaco.languages.registerCompletionItemProvider('markdown', {
         triggerCharacters: ['@'],
         provideCompletionItems: async (model: any, position: any) => {                    
-          const wordText = model.getWordUntilPosition(position);
+          // const wordText = model.getWordUntilPosition(position);
           // 获取查询文本
           // const query = wordText.word;
           
