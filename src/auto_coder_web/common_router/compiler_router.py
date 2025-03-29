@@ -12,7 +12,6 @@ class CompilerBase(BaseModel):
     command: str
     args: List[str]
     extract_regex: Optional[str] = None
-    triggers: List[str] = []
 
 class CompilerCreate(CompilerBase):
     pass
