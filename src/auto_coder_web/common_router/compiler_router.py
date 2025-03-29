@@ -11,6 +11,7 @@ class CompilerBase(BaseModel):
     working_dir: str
     command: str
     args: List[str]
+    triggers: List[str] = []
     extract_regex: Optional[str] = None
 
 class CompilerCreate(CompilerBase):
@@ -21,6 +22,7 @@ class CompilerUpdate(BaseModel):
     working_dir: Optional[str] = None
     command: Optional[str] = None
     args: Optional[List[str]] = None
+    triggers: Optional[List[str]] = None
     extract_regex: Optional[str] = None
 
 @router.get("/api/compilers")
@@ -62,6 +64,7 @@ async def create_compiler(compiler: CompilerCreate):
         working_dir=compiler.working_dir,
         command=compiler.command,
         args=compiler.args,
+        triggers=compiler.triggers,
         extract_regex=compiler.extract_regex
     )
     
@@ -82,6 +85,7 @@ async def update_compiler(name: str, compiler: CompilerUpdate):
         working_dir=compiler.working_dir,
         command=compiler.command,
         args=compiler.args,
+        triggers=compiler.triggers,
         extract_regex=compiler.extract_regex
     )
     
