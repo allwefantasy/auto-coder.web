@@ -297,10 +297,25 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       monaco.languages.registerCompletionItemProvider('markdown', {
         triggerCharacters: ['@'],
         provideCompletionItems: async (model: any, position: any) => {                    
-          const wordText =model.getWordUntilPosition(position);
+          const wordText = model.getWordUntilPosition(position);
           // 获取查询文本
-          const query = wordText.word;
-          console.log(query);
+          // const query = wordText.word;
+          
+          // 获取当前行的内容
+          const lineContent = model.getLineContent(position.lineNumber);
+          // 获取光标前的文本
+          const textBeforeCursor = lineContent.substring(0, position.column - 1);
+          
+          // 检查是否有@字符，并从@字符后开始提取查询文本
+          const atSignIndex = textBeforeCursor.lastIndexOf('@');
+          
+          // 如果找到@字符，则从@后面开始提取；否则返回空字符串
+          let query = '';
+          if (atSignIndex !== -1) {
+            query = textBeforeCursor.substring(atSignIndex + 1); // +1 跳过@字符本身
+          }
+
+          console.log('提取的查询:', query, '原始文本:', textBeforeCursor);
 
           // 并行获取文件和符号补全
           const [fileResponse, symbolResponse] = await Promise.all([
