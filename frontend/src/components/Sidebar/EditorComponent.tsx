@@ -123,12 +123,12 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     });
 
     // 通过 eventBus 发布 mentions 变化事件
-    // eventBus.publish(EVENTS.EDITOR.MENTIONS_CHANGED, mentionsRef.current.map(m => ({
-    //   type: m.type,
-    //   text: m.text,
-    //   path: m.path,
-    // //   item: m.item
-    // })));
+    eventBus.publish(EVENTS.EDITOR.MENTIONS_CHANGED, mentionsRef.current.map(m => ({
+      type: m.type,
+      text: m.text,
+      path: m.path,
+      item: m.item
+    })));
   }, []);
 
   // 处理内容变化，更新mention位置
@@ -299,7 +299,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         provideCompletionItems: async (model: any, position: any) => {                    
           const wordText =model.getWordUntilPosition(position);
           // 获取查询文本
-          const query = wordText;
+          const query = wordText.word;
+          console.log(query);
 
           // 并行获取文件和符号补全
           const [fileResponse, symbolResponse] = await Promise.all([
@@ -344,7 +345,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             return {
               label: `${item.name}(${item.path})`,
               kind: monaco.languages.CompletionItemKind.Function,
-              insertText: item.name,
+              insertText: `${item.name}(${item.path})`,
               detail: "符号",
               documentation: `位置: ${item.path}`,
               command: {
@@ -406,14 +407,14 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             lineHeight: 1.5,
             padding: { top: 8, bottom: 8 },
             suggestOnTriggerCharacters: true,
-            quickSuggestions: true,
+            quickSuggestions: false,
             acceptSuggestionOnEnter: 'smart',
             overviewRulerLanes: 0,
             overviewRulerBorder: false,
             fixedOverflowWidgets: true,
             suggest: {
               insertMode: 'replace',
-              snippetsPreventQuickSuggestions: false,
+              snippetsPreventQuickSuggestions: true,
             }
           }}
         />
