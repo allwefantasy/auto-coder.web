@@ -102,6 +102,8 @@ const RagConfig: React.FC = () => {
       
       setModalVisible(false);
       fetchRags();
+      EventBus.publish(EVENTS.RAG.UPDATED);
+      EventBus.publish(EVENTS.RAG.UPDATED);
     } catch (error) {
       console.error('Error saving RAG:', error);
       message.error(error instanceof Error ? error.message : getMessage('processingError'));

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import EventBus, { EVENTS } from '../../services/eventBus';
 import { Select, Tooltip, Spin, Button, Empty, Modal, Input, message } from 'antd';
 import { DatabaseOutlined, ReloadOutlined, PlusOutlined, FileSearchOutlined } from '@ant-design/icons';
 import './ragSelectorStyles.css';
@@ -36,6 +37,8 @@ const RagSelector: React.FC = () => {
 
   useEffect(() => {
     fetchRags();
+    const unsubscribe = EventBus.subscribe(EVENTS.RAG.UPDATED, fetchRags);
+    return () => unsubscribe();
   }, []);
 
   const handleRefresh = () => {
