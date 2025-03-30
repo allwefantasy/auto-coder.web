@@ -49,5 +49,5 @@ async def upload_image(
     
     return JSONResponse({
         "success": True,
-        "path": os.path.join(".auto-coder", "auto-coder.web", "uploads", filename)
+        "path": os.path.join(project_path,".auto-coder", "auto-coder.web", "uploads", filename)
     })

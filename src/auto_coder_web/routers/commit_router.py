@@ -426,12 +426,10 @@ async def get_current_changes(
             logger.info(f"使用事件文件模式获取提交, event_file_id={event_file_id}")
             try:
                 # 获取事件文件路径
-                event_file_path = get_event_file_path(event_file_id, project_path)
-                logger.info(f"事件文件路径: {event_file_path}")
+                event_file_path = get_event_file_path(event_file_id, project_path)                
                 
                 # 获取事件管理器
-                event_manager = get_event_manager(event_file_path)
-                logger.info(f"成功获取事件管理器")
+                event_manager = get_event_manager(event_file_path)                
                 
                 # 获取所有事件
                 all_events = event_manager.event_store.get_events()
@@ -447,37 +445,28 @@ async def get_current_changes(
                 # 记录事件中包含action_file字段的事件数量
                 action_file_count = 0
                 
-                for i, event in enumerate(all_events):
-                    logger.debug(f"处理事件 {i+1}/{len(all_events)}, 事件类型: {event.event_type}")
+                for i, event in enumerate(all_events):                    
                     # 检查元数据中是否有action_file字段
                     if 'action_file' in event.metadata and event.metadata['action_file']:
                         action_file_count += 1
-                        action_file = event.metadata['action_file']
-                        logger.debug(f"事件 {i+1} 包含action_file: {action_file}")
+                        action_file = event.metadata['action_file']                        
                         
-                        if action_file in action_files:
-                            logger.debug(f"跳过重复的action_file: {action_file}")
+                        if action_file in action_files:                            
                             continue
                                                 
                         action_files.add(action_file)
                         # 从action文件获取提交ID       
                         # action_file 这里的值是 类似这样的 actions/000000000104_chat_action.yml
                         if action_file.startswith("actions"):
-                            action_file = action_file[len("actions/"):]
-                            logger.debug(f"处理后的action_file: {action_file}")
+                            action_file = action_file[len("actions/"):]                            
 
                         final_action_files.append(action_file)
-                
-                logger.info(f"从 {len(all_events)} 个事件中提取到 {action_file_count} 个包含action_file的事件")
-                logger.info(f"去重后得到 {len(action_files)} 个唯一action_file")
-                logger.info(f"最终处理的action_files: {final_action_files}")
+                                
                 
                 commits = []
-                for i, action_file in enumerate(final_action_files):
-                    logger.info(f"处理action文件 {i+1}/{len(final_action_files)}: {action_file}")
+                for i, action_file in enumerate(final_action_files):                    
                     commit_ids = action_manager.get_all_commit_id_from_file(action_file)                                        
-                    
-                    logger.info(f"从action文件 {action_file} 获取到的提交ID列表: {commit_ids}")
+                                        
                     
                     if not commit_ids:
                         logger.warning(f"无法从action文件 {action_file} 获取提交ID")
@@ -492,8 +481,7 @@ async def get_current_changes(
                         for cid in commit_ids:
                             try:
                                 commit = repo.commit(cid)
-                                message = commit.message.strip()
-                                logger.info(f"检查提交 {cid[:7]} 是否为revert提交，消息: {message[:50]}...")
+                                message = commit.message.strip()                                
                                 
                                 if message.startswith("<revert>"):
                                     logger.info(f"找到revert提交: {cid}")
@@ -503,20 +491,16 @@ async def get_current_changes(
                                 logger.warning(f"检查提交 {cid} 时出错: {str(e)}")
                         
                         # 如果找到revert提交，只处理这个提交
-                        if revert_commit_id:
-                            logger.info(f"将只处理revert提交: {revert_commit_id}")
+                        if revert_commit_id:                            
                             commit_ids = [revert_commit_id]
                     
                     # 处理所有提交ID（或者只处理revert提交）
                     for commit_id in commit_ids:
                         # 验证提交ID是否存在于仓库中
-                        try:
-                            logger.info(f"获取提交详情: {commit_id}")
+                        try:                            
                             commit = repo.commit(commit_id)
                             # 获取提交统计信息
-                            stats = commit.stats.total
-                            logger.info(f"提交统计信息: 插入={stats['insertions']}, 删除={stats['deletions']}, 文件变更={stats['files']}")
-                            
+                            stats = commit.stats.total                            
                             # 构建提交信息
                             commit_info = {
                                 "hash": commit.hexsha,
@@ -532,18 +516,14 @@ async def get_current_changes(
                                 }
                             }
                             commits.append(commit_info)
-                            logger.info(f"成功添加提交信息到结果列表，当前结果数: {len(commits)}")
                         except Exception as e:
                             logger.warning(f"无法获取提交 {commit_id} 的详情: {str(e)}")
                 
-                logger.info(f"处理完所有action文件，共找到 {len(commits)} 个提交")
                 
                 # 按提交时间戳排序（降序 - 最新的在前面）
                 if commits:
                     commits.sort(key=lambda x: x['timestamp'], reverse=True)
-                    logger.info("提交已按时间戳降序排序")
-                                
-                logger.info(f"返回结果: {len(commits)} 个提交")
+                                                
                 return {"commits": commits, "total": len(commits)}
             
             except Exception as e:

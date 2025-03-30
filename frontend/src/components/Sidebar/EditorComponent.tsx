@@ -187,11 +187,57 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       }
     });
 
+    // 添加拖拽上传图片支持
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (editorContainer.current) {
+        editorContainer.current.classList.add('drag-over');
+      }
+    };
+
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (editorContainer.current) {
+        editorContainer.current.classList.remove('drag-over');
+      }
+    };
+
+    const handleDrop = async (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (editorContainer.current) {
+        editorContainer.current.classList.remove('drag-over');
+      }
+      
+      if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.type.startsWith('image/')) {
+          await handleImageUpload(file);
+        }
+      }
+    };
+
+    // 为编辑器容器添加拖拽事件监听
+    if (editorContainer.current) {
+      editorContainer.current.addEventListener('dragover', handleDragOver);
+      editorContainer.current.addEventListener('dragleave', handleDragLeave);
+      editorContainer.current.addEventListener('drop', handleDrop);
+    }
+
     return () => {
       // 在组件卸载时移除样式
       document.head.removeChild(styleElement);
       // 取消事件订阅
       unsubscribe();
+      // 移除拖拽事件监听
+      if (editorContainer.current) {
+        editorContainer.current.removeEventListener('dragover', handleDragOver);
+        editorContainer.current.removeEventListener('dragleave', handleDragLeave);
+        editorContainer.current.removeEventListener('drop', handleDrop);
+      }
     };
   }, []);
 
@@ -209,7 +255,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               position.lineNumber,
               position.column
             ),
-            text: `<img src="${response.path}" />`,
+            text: `<img>${response.path}</img>`,
             forceMoveMarkers: true
           }]);
         }
