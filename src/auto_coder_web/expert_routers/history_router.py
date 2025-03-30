@@ -142,8 +142,7 @@ async def validate_and_load_history(
                     
                     # 检查该提交是否已被撤销
                     is_reverted = False
-                    if response_id and response_id in reverted_commits:
-                        logger.info(f"提交 {response_id[:7]} 已被撤销")
+                    if response_id and response_id in reverted_commits:                        
                         is_reverted = True
                     
                     # 提取上下文URL（如果有）

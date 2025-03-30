@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import aiofiles
-from fastapi import APIRouter, HTTPException, Depends, Path
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import List, Optional
 from pathlib import Path as FilePath
@@ -25,10 +25,11 @@ class Rag(BaseModel):
 class RagList(BaseModel):
     data: List[Rag] = []
 
-async def get_project_path():
-    from fastapi import Request
-    request = Request.scope.get("app").state.project_path
-    return request
+async def get_project_path(request: Request) -> str:
+    """
+    从FastAPI请求上下文中获取项目路径
+    """
+    return request.app.state.project_path
 
 async def load_rags(project_path: str) -> RagList:
     """Asynchronously load RAGs"""
@@ -60,16 +61,14 @@ async def save_rags(rags: RagList, project_path: str):
         await f.write(json.dumps(rags.dict(), indent=2, ensure_ascii=False))
 
 @router.get("/api/rags")
-async def get_rags(request: Depends(get_project_path)):
+async def get_rags(project_path: str = Depends(get_project_path)):
     """Get all RAGs"""
-    project_path = request
     rags = await load_rags(project_path)
     return rags
 
 @router.post("/api/rags")
-async def create_rag(rag: Rag, request: Depends(get_project_path)):
-    """Create a new RAG"""
-    project_path = request
+async def create_rag(rag: Rag, project_path: str = Depends(get_project_path)):
+    """Create a new RAG"""    
     rags = await load_rags(project_path)
     
     # Check if RAG with same name already exists
@@ -81,9 +80,8 @@ async def create_rag(rag: Rag, request: Depends(get_project_path)):
     return {"status": "success", "message": "RAG created successfully"}
 
 @router.get("/api/rags/{name}")
-async def get_rag(name: str, request: Depends(get_project_path)):
+async def get_rag(name: str, project_path: str = Depends(get_project_path)):
     """Get a specific RAG by name"""
-    project_path = request
     rags = await load_rags(project_path)
     
     for rag in rags.data:
@@ -93,9 +91,8 @@ async def get_rag(name: str, request: Depends(get_project_path)):
     raise HTTPException(status_code=404, detail=f"RAG with name '{name}' not found")
 
 @router.put("/api/rags/{name}")
-async def update_rag(name: str, updated_rag: Rag, request: Depends(get_project_path)):
+async def update_rag(name: str, updated_rag: Rag, project_path: str = Depends(get_project_path)):
     """Update an existing RAG"""
-    project_path = request
     rags = await load_rags(project_path)
     
     for i, rag in enumerate(rags.data):
@@ -111,9 +108,8 @@ async def update_rag(name: str, updated_rag: Rag, request: Depends(get_project_p
     raise HTTPException(status_code=404, detail=f"RAG with name '{name}' not found")
 
 @router.delete("/api/rags/{name}")
-async def delete_rag(name: str, request: Depends(get_project_path)):
+async def delete_rag(name: str, project_path: str = Depends(get_project_path)):
     """Delete a RAG by name"""
-    project_path = request
     rags = await load_rags(project_path)
     
     initial_count = len(rags.data)
