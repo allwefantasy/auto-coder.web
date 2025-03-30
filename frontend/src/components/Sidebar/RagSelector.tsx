@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import EventBus, { EVENTS } from '../../services/eventBus';
 import { Select, Tooltip, Spin, Button, Empty, Modal, Input, message } from 'antd';
 import { DatabaseOutlined, ReloadOutlined, PlusOutlined, FileSearchOutlined } from '@ant-design/icons';
@@ -21,9 +22,8 @@ const RagSelector: React.FC = () => {
   const fetchRags = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/rags');
-      const data = await response.json();
-      const rags = data.data || [];
+      const response = await axios.get('/api/rags');
+      const rags = response.data.data || [];
       setRags(rags);
       if (rags.length > 0) {
         setSelectedRag(rags[0].name);
@@ -45,16 +45,10 @@ const RagSelector: React.FC = () => {
     if (selectedRag) {
       const selected = rags.find(r => r.name === selectedRag);
       if (selected) {
-        fetch('/api/auto_coder_conf_router', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            rag_type: 'simple',
-            rag_url: selected.base_url,
-            rag_token: selected.api_key
-          })
+        axios.post('/api/auto_coder_conf_router', {
+          rag_type: 'simple',
+          rag_url: selected.base_url,
+          rag_token: selected.api_key
         }).catch(err => {
           console.error('Failed to configure RAG', err);
         });
