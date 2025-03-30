@@ -6,6 +6,7 @@ import ModelConfig from './ModelConfig';
 import ModelManagement from './ModelManagement';
 import ProviderManagement from './ProviderManagement';
 import CompilerConfig from './CompilerConfig';
+import RagConfig from './RagConfig';
 import AdvancedSettings from './AdvancedSettings';
 import './ModelConfig.css';
 
@@ -139,6 +140,9 @@ const SettingsPanel: React.FC = () => {
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('compilerConfiguration') || 'Compiler Configuration'}</span>} key="compilers">
           <CompilerConfig />
+        </TabPane>
+        <TabPane tab={<span className="text-gray-300">{getMessage('ragConfiguration') || 'RAG Configuration'}</span>} key="rags">
+          <RagConfig />
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('advancedSettings')}</span>} key="advanced">
           <AdvancedSettings 

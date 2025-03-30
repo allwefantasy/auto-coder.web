@@ -1315,6 +1315,55 @@ export const messages: { [key: string]: Message } = {
     en: "Initialize Default",
     zh: "初始化默认设置"
   },
+  // RAG Configuration
+  ragConfiguration: {
+    en: "RAG Configuration",
+    zh: "知识库配置"
+  },
+  addRag: {
+    en: "Add RAG",
+    zh: "添加知识库"
+  },
+  editRag: {
+    en: "Edit RAG",
+    zh: "编辑知识库"
+  },
+  deleteRag: {
+    en: "Delete RAG",
+    zh: "删除知识库"
+  },
+  ragName: {
+    en: "RAG Name",
+    zh: "知识库名称"
+  },
+  ragBaseUrl: {
+    en: "RAG URL",
+    zh: "知识库地址"
+  },
+  ragApiKey: {
+    en: "API Key",
+    zh: "API密钥"
+  },
+  ragAddSuccess: {
+    en: "RAG added successfully",
+    zh: "知识库添加成功"
+  },
+  ragUpdateSuccess: {
+    en: "RAG updated successfully",
+    zh: "知识库更新成功"
+  },
+  ragDeleteSuccess: {
+    en: "RAG deleted successfully",
+    zh: "知识库删除成功"
+  },
+  confirmDeleteRag: {
+    en: "Are you sure you want to delete this RAG?",
+    zh: "确定要删除此知识库吗？"
+  },
+  noRags: {
+    en: "No RAGs configured",
+    zh: "未配置知识库"
+  },
   indexFilterModel: {
     en: "Index Filter Model",
     zh: "索引过滤模型"
