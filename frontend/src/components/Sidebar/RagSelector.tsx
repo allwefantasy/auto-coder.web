@@ -16,7 +16,10 @@ const RagSelector: React.FC = () => {
   const [rags, setRags] = useState<Rag[]>([]);
   const [selectedRag, setSelectedRag] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
-  const [showFileSelector, setShowFileSelector] = useState<boolean>(false);    
+  const [showFileSelector, setShowFileSelector] = useState<boolean>(false);
+  
+  // 用于跟踪RAG是否启用的状态
+  const [enableRag, setEnableRag] = useState<boolean>(false);
 
   const fetchRags = async () => {
     try {
@@ -66,7 +69,13 @@ const RagSelector: React.FC = () => {
         <Tooltip title="Select a Retrieval-Augmented Generation provider">
           <div 
             className="flex items-center cursor-pointer hover:text-blue-400"
-            onClick={() => setShowFileSelector(!showFileSelector)}
+            onClick={() => {
+              const newValue = !showFileSelector;
+              setShowFileSelector(newValue);
+              setEnableRag(newValue);
+              // 触发事件通知ChatPanel
+              EventBus.publish(EVENTS.RAG.ENABLED_CHANGED, newValue);
+            }}
           >
             <DatabaseOutlined 
               className={`mr-1 ${showFileSelector ? 'text-blue-400' : 'text-gray-400'}`} 

@@ -118,6 +118,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [isNewChatModalVisible, setIsNewChatModalVisible] = useState<boolean>(false);
   const [newChatName, setNewChatName] = useState<string>('');
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
+  // 添加RAG启用状态
+  const [enableRag, setEnableRag] = useState<boolean>(false);
   
   // 添加消息ID计数器，用于生成唯一的消息ID
   const [messageIdCounter, setMessageIdCounter] = useState<number>(0);
@@ -735,12 +737,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       EVENTS.CHAT.REFRESH_FROM_MESSAGE, 
       handleRefreshFromMessage
     );
+    
+    // 订阅RAG启用状态变更事件
+    const unsubscribeRagEnabled = eventBus.subscribe(
+      EVENTS.RAG.ENABLED_CHANGED,
+      (enabled: boolean) => {
+        console.log('ChatPanel: RAG enabled changed to', enabled);
+        setEnableRag(enabled);
+      }
+    );
 
     // 在组件卸载时清理事件监听器
     return () => {
       chatService.removeAllListeners();
       codingService.removeAllListeners();
       unsubscribeRefresh();
+      unsubscribeRagEnabled();
     };
   }, [handleRefreshFromMessage]);
   
@@ -773,7 +785,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       } else {
         // 聊天模式
         console.log('ChatPanel: Sending message to chatService');
-        const result = await chatService.executeCommand(trimmedText);
+        
+        // 检查是否启用了RAG且不在写作模式
+        let commandText = trimmedText;
+        if (enableRag && !isWriteMode) {
+          console.log('ChatPanel: RAG enabled, prepending /rag to message');
+          commandText = `/rag ${trimmedText}`;
+        }
+        
+        const result = await chatService.executeCommand(commandText);
         console.log('ChatPanel: Received result from chatService:', result);
         setRequestId(result.event_file_id);
         setLocalRequestId(result.event_file_id);

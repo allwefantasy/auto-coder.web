@@ -30,7 +30,9 @@ export const EVENTS = {
   },
   RAG: {
     // RAG配置更新事件 RagConfig.tsx 发布, RagSelector.tsx 订阅
-    UPDATED: 'rag.updated'
+    UPDATED: 'rag.updated',
+    // RAG启用状态变更事件 RagSelector.tsx 发布, ChatPanel.tsx 订阅
+    ENABLED_CHANGED: 'rag.enabled.changed'
   }
 };
 
