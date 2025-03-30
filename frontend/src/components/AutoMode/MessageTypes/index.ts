@@ -14,3 +14,4 @@ export { default as CodeGenerateMessage } from './CodeGenerateMessage';
 export { default as CodeRankMessage } from './CodeRankMessage';
 export { default as CodeLintMessage } from './CodeLintMessage';
 export { default as IndexBuildMessage } from './IndexBuildMessage';
+export { default as UserMessage } from './UserMessage';

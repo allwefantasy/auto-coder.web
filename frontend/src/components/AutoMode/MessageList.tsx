@@ -16,7 +16,8 @@ import {
     CodeGenerateMessage,
     CodeRankMessage,
     CodeLintMessage,
-    IndexBuildMessage
+    IndexBuildMessage,
+    UserMessage
 } from './MessageTypes';
 
 
@@ -62,7 +63,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         return [...filteredMessages, lastMessage];
     };
     // Function to render message content based on content type
-    const renderMessageContent = (message: MessageProps) => {        
+    const renderMessageContent = (message: MessageProps) => { 
+        
+        if (message.isUser) {
+            return <UserMessage message={message} />;
+        }
 
         // For completion events
         if (message.type === 'COMPLETION') {
