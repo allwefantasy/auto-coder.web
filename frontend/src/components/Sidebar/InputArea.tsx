@@ -287,6 +287,28 @@ const InputArea: React.FC<InputAreaProps> = ({
           <div className="flex items-center justify-between w-full">
             <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
             <div className="flex items-center">
+              <Tooltip title="Open Documentation">
+                <button
+                  onClick={() => window.open('https://uelng8wukz.feishu.cn/wiki/BxySwtln8iQKENkHB12cIV6vnZb?fromScene=spaceOverview', '_blank')}
+                  className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                </button>
+              </Tooltip>
               <Tooltip title={isInputAreaMaximized ? "退出全屏" : "全屏模式"}>
                 <button
                   onClick={toggleFullscreen}
