@@ -6,6 +6,7 @@ import { getMessage } from './lang';
 import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
 import FileGroupSelect from './FileGroupSelect';
 import { chatService } from '../../services/chatService';
+import RagSelector from './RagSelector';
 import { codingService } from '../../services/codingService';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import axios from 'axios';
@@ -443,6 +444,9 @@ const InputArea: React.FC<InputAreaProps> = ({
 
         <div className="h-[1px] bg-gray-700/50 my-1 w-full"></div>
         <div className="w-full">
+          {!isWriteMode && (
+            <RagSelector />
+          )}
           <FileGroupSelect
             fileGroups={fileGroups}
             selectedGroups={selectedGroups}
