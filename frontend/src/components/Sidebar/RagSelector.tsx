@@ -17,6 +17,7 @@ const RagSelector: React.FC = () => {
   const [selectedRag, setSelectedRag] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
   const [showFileSelector, setShowFileSelector] = useState<boolean>(false);
+  const [showRagSelector, setShowRagSelector] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<string>('');
 
   const fetchRags = async () => {
@@ -75,50 +76,61 @@ const RagSelector: React.FC = () => {
     <div className="w-full mb-2">
       <div className="flex items-center justify-between mb-1">
         <Tooltip title="Select a Retrieval-Augmented Generation provider">
-          <div className="flex items-center">
-            <DatabaseOutlined className="text-blue-400 mr-1" style={{ fontSize: '12px' }} />
-            <span className="text-gray-300 text-xxs">RAG Provider</span>
+          <div 
+            className="flex items-center cursor-pointer hover:text-blue-400"
+            onClick={() => setShowFileSelector(!showFileSelector)}
+          >
+            <DatabaseOutlined 
+              className={`mr-1 ${showFileSelector ? 'text-blue-400' : 'text-gray-400'}`} 
+              style={{ fontSize: '12px' }} 
+            />
+            <span className={`text-xxs ${showFileSelector ? 'text-blue-400' : 'text-gray-400'}`}>
+              RAG Provider
+            </span>
           </div>
         </Tooltip>
-        <Tooltip title="Refresh RAG providers">
-          <Button 
-            type="text" 
-            size="small" 
-            icon={<ReloadOutlined />} 
-            onClick={handleRefresh}
-            className="text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center h-5 w-5"
-            disabled={loading}
-          />
-        </Tooltip>
+        {showFileSelector && (
+          <Tooltip title="Refresh RAG providers">
+            <Button 
+              type="text" 
+              size="small" 
+              icon={<ReloadOutlined />} 
+              onClick={handleRefresh}
+              className="text-gray-400 hover:text-blue-400 p-0 flex items-center justify-center h-5 w-5"
+              disabled={loading}
+            />
+          </Tooltip>
+        )}
       </div>
       
-      <div className="relative">
-        <Select
-          className="w-full custom-rag-select"
-          size="small"
-          loading={loading}
-          placeholder="Select RAG"
-          value={selectedRag}
-          onChange={(value) => setSelectedRag(value)}
-          options={rags.map(r => ({ 
-            label: r.name, 
-            value: r.name 
-          }))}
-          dropdownMatchSelectWidth={false}
-          dropdownRender={(menu) => (
-            <div>
-              {menu}
-              {rags.length === 0 && !loading && (
-                <Empty 
-                  image={Empty.PRESENTED_IMAGE_SIMPLE} 
-                  description="No RAG providers found" 
-                  className="my-2"
-                  imageStyle={{ height: 32 }}
-                />
-              )}              
-            </div>
-          )}
-        />
+      {showFileSelector && (
+        <div className="relative">
+          <Select
+            className="w-full custom-rag-select"
+            size="small"
+            loading={loading}
+            placeholder="Select RAG"
+            value={selectedRag}
+            onChange={(value) => setSelectedRag(value)}
+            options={rags.map(r => ({ 
+              label: r.name, 
+              value: r.name 
+            }))}
+            dropdownMatchSelectWidth={false}
+            dropdownRender={(menu) => (
+              <div>
+                {menu}
+                {rags.length === 0 && !loading && (
+                  <Empty 
+                    image={Empty.PRESENTED_IMAGE_SIMPLE} 
+                    description="No RAG providers found" 
+                    className="my-2"
+                    imageStyle={{ height: 32 }}
+                  />
+                )}              
+              </div>
+            )}
+          />
         <Button 
           type="text" 
           icon={<FileSearchOutlined />} 
