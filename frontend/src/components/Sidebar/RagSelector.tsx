@@ -22,7 +22,11 @@ const RagSelector: React.FC = () => {
       setLoading(true);
       const response = await fetch('/api/rags');
       const data = await response.json();
-      setRags(data.data || []);
+      const rags = data.data || [];
+      setRags(rags);
+      if (rags.length > 0) {
+        setSelectedRag(rags[0].name);
+      }
     } catch (err) {
       console.error('Failed to fetch RAGs', err);
     } finally {
@@ -57,7 +61,7 @@ const RagSelector: React.FC = () => {
         <Tooltip title="Select a Retrieval-Augmented Generation provider">
           <div className="flex items-center">
             <DatabaseOutlined className="text-blue-400 mr-1" style={{ fontSize: '12px' }} />
-            <span className="text-gray-300 text-xs">RAG Provider</span>
+            <span className="text-gray-300 text-xxs">RAG Provider</span>
           </div>
         </Tooltip>
         <Tooltip title="Refresh RAG providers">

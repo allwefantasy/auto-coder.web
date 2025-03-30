@@ -35,3 +35,8 @@
 .rag-file-selector-modal .ant-modal-close:hover {
   color: #e5e7eb;
 }
+
+.text-xxs {
+  font-size: 0.625rem; /* 10px */
+  line-height: 0.75rem; /* 12px */
+}
