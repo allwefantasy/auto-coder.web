@@ -1,5 +1,6 @@
 import React from 'react';
 import { Editor, loader } from '@monaco-editor/react';
+import { uploadImage } from '../../services/api';
 import { CompletionItem, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
 // 导入 monaco 编辑器类型
@@ -194,9 +195,53 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     };
   }, []);
 
+  const handleImageUpload = async (file: File) => {
+    try {
+      const response = await uploadImage(file);
+      if (response.success) {
+        const editor = editorRef.current;
+        if (editor) {
+          const position = editor.getPosition();
+          editor.executeEdits('', [{
+            range: new monaco.Range(
+              position.lineNumber,
+              position.column,
+              position.lineNumber,
+              position.column
+            ),
+            text: `<img src="${response.path}" />`,
+            forceMoveMarkers: true
+          }]);
+        }
+      }
+    } catch (error) {
+      console.error('Image upload failed:', error);
+    }
+  };
+
   const handleEditorDidMount = (editor: any, monaco: any) => {
     // 存储editor引用
     editorRef.current = editor;
+
+    // 添加上传图片按钮
+    editor.addAction({
+      id: 'upload-image',
+      label: 'Upload Image',
+      contextMenuGroupId: 'navigation',
+      contextMenuOrder: 1.5,
+      run: () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e: any) => {
+          const file = e.target.files[0];
+          if (file) {
+            handleImageUpload(file);
+          }
+        };
+        input.click();
+      }
+    });
 
     // 首先通知父组件编辑器已经挂载
     onEditorDidMount(editor, monaco);
