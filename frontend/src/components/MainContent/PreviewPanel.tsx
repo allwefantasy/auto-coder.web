@@ -18,9 +18,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
   const [previewUrl, setPreviewUrl] = useState('http://127.0.0.1:3000'); // Default value
   const [isUrlFocused, setIsUrlFocused] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isLoadingUrl, setIsLoadingUrl] = useState(true);
+  const [isLoadingUrl, setIsLoadingUrl] = useState(true); // Track initial loading
 
-  // Refs and Debounce
+  // Debounced save function
   const debouncedSaveUrl = useRef(
     debounce(async (url: string) => {
       try {
@@ -89,58 +89,13 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
       setTimeout(() => setShowWebPreview(true), 50);
   }
 
-  // --- Conditional Computations ---
-
-  // Split sizes based on collapse state
-  const splitSizes = isCollapsed ? [10, 90] : [50, 50];
-  const splitMinSize = isCollapsed ? [50, 200] : [200, 200];
-
-  // Collapse button style based on collapse state
-  const collapseButtonStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 10,
-    backgroundColor: '#4B5563', // gray-700
-    borderRadius: '9999px',
-    padding: '0.25rem', // p-1
-    transition: 'background-color 0.2s',
-  };
-  if (isCollapsed) {
-    collapseButtonStyle.left = '-10px';
-  } else {
-    collapseButtonStyle.right = '-10px';
-  }
-
-  // Active file details
-  const activeFile = files[activeFileIndex];
-  const activeFileLanguage = activeFile ? getLanguageByFileName(activeFile.path) : 'plaintext';
-  const activeFileContent = activeFile ? activeFile.content : '';
-
-  // URL input container class based on focus state
-  let urlInputContainerClass = 'flex items-center px-2 py-1 bg-gray-900 rounded-lg border border-gray-700';
-  if (isUrlFocused) {
-    urlInputContainerClass = 'flex items-center px-2 py-1 bg-gray-900 rounded-lg border border-blue-500';
-  }
-
-  // Helper function for file tab class
-  const getFileTabClass = (index: number): string => {
-    const baseClass = 'px-4 py-2 text-sm flex-shrink-0';
-    if (index === activeFileIndex) {
-      return `${baseClass} bg-gray-700 text-white`;
-    } else {
-      return `${baseClass} text-gray-300 hover:bg-gray-600`;
-    }
-  };
-
-
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full"> {/* Use h-full for better layout */}
       <div className="flex-1 overflow-hidden">
-        <Split
+        <Split 
           className="split-container"
-          sizes={splitSizes}
-          minSize={splitMinSize}
+          sizes={isCollapsed ? [10, 90] : [50, 50]}
+          minSize={isCollapsed ? [50, 200] : [200, 200]}
           gutterSize={8}
           snapOffset={30}
           dragInterval={1}
@@ -149,16 +104,14 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
           style={{ display: 'flex', flexDirection: 'row', height: '100%' }}
         >
           {/* Left Panel - Code Preview */}
-          <div className={`flex flex-col relative ${isCollapsed ? 'w-[50px]' : 'flex-1'} overflow-hidden`}>
+          <div className={`flex flex-col relative ${isCollapsed ? 'w-[50px]' : 'flex-1'} overflow-hidden`}> {/* Added flex-1 and overflow-hidden */}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              style={collapseButtonStyle}
-              className="hover:bg-gray-600" // Add hover effect separately if needed
+              className="absolute top-1/2 transform -translate-y-1/2 z-10 bg-gray-700 rounded-full p-1 hover:bg-gray-600 transition-colors"
+              style={{ [isCollapsed ? 'left' : 'right']: '-10px' }} // Adjust position based on collapse state
             >
-               {/* Icons can remain conditional */}
-               {isCollapsed ? <RightOutlined className="text-white text-xs" /> : <LeftOutlined className="text-white text-xs" />}
             </button>
-            {!isCollapsed && (
+            {!isCollapsed && ( // Only render content if not collapsed
               <>
                 {files.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-gray-400">
@@ -170,7 +123,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                       {files.map((file, index) => (
                         <button
                           key={file.path}
-                          className={getFileTabClass(index)} // Use helper function
+                          className={`px-4 py-2 text-sm flex-shrink-0 ${
+                            index === activeFileIndex ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-600'
+                          }`}
                           onClick={() => setActiveFileIndex(index)}
                           title={file.path}
                         >
@@ -178,12 +133,12 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                         </button>
                       ))}
                     </div>
-                    <div className="flex-1 overflow-hidden">
+                    <div className="flex-1 overflow-hidden"> {/* Ensure Editor takes remaining space */}
                       <Editor
                         height="100%"
-                        language={activeFileLanguage} // Use computed variable
+                        language={files[activeFileIndex] ? getLanguageByFileName(files[activeFileIndex].path) : 'plaintext'}
                         theme="vs-dark"
-                        value={activeFileContent} // Use computed variable
+                        value={files[activeFileIndex] ? files[activeFileIndex].content : ''}
                         options={{
                           readOnly: true,
                           minimap: { enabled: true },
@@ -201,9 +156,10 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
           </div>
 
           {/* Right Panel - Web Preview */}
-          <div className="flex flex-col flex-1 border-l border-gray-700 overflow-hidden">
-            <div className="p-2 bg-gray-800 flex-shrink-0">
-              <div className={urlInputContainerClass}> {/* Use computed class */}
+          <div className="flex flex-col flex-1 border-l border-gray-700 overflow-hidden"> {/* Added flex-1 and overflow-hidden */}
+            <div className="p-2 bg-gray-800 flex-shrink-0"> {/* Added flex-shrink-0 */}
+              <div className={`flex items-center px-2 py-1 bg-gray-900 rounded-lg border ${isUrlFocused ? 'border-blue-500' : 'border-gray-700'}`}>
+                {/* Removed the "+" icon */}
                 <input
                   type="url"
                   value={previewUrl}
@@ -334,13 +290,11 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                 />
               )}
 
-              {/* Placeholder/Reloading Message */}
+              {/* Placeholder/Reloading Message (conditionally rendered) */}
               {!isLoadingUrl && !showWebPreview && (
-                 <div className="h-full flex items-center justify-center text-gray-500">
-                   {/* Ternary for simple text choice is often acceptable, but replacing if required: */}
-                   {previewUrl && <span>Reloading preview...</span>}
-                   {!previewUrl && <span>Enter a URL above to preview web content</span>}
-                 </div>
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  {previewUrl ? 'Reloading preview...' : 'Enter a URL above to preview web content'}
+                </div>
               )}
             </div>
           </div>
