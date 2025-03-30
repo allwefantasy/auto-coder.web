@@ -18,6 +18,8 @@ import { codingService } from '../../services/codingService';
 import { autoCoderConfService } from '../../services/AutoCoderConfService';
 import { Message as AutoModeMessage } from '../../components/AutoMode/types';
 import MessageList, { MessageProps } from '../../components/AutoMode/MessageList';
+import eventBus from '../../services/eventBus';
+import { EVENTS } from '../../services/eventBus';
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ 
   setPreviewFiles, 
@@ -691,7 +693,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   // 处理从特定消息重新开始对话
-  const handleRefreshFromMessage = useCallback((data: { messageIndex: number, messageContent: string, messageId: string }) => {
+  const handleRefreshFromMessage = useCallback((data: { messageId: string,messageContent: string }) => {
     // 清理该消息后面的所有消息
     setMessages(prevMessages => {
       // 找到消息在数组中的实际位置
