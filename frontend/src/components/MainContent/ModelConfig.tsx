@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Select, message, Skeleton, Button } from 'antd';
+import { Select, message, Skeleton, Button, Tag } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
@@ -21,9 +21,9 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
-  const [selectedModels, setSelectedModels] = useState<Record<string, string>>({
+  const [selectedModels, setSelectedModels] = useState<Record<string, string | string[]>>({
     model: '',
-    code_model: '',
+    code_model: [],
     chat_model: '',
     generate_rerank_model: '',
     index_model: '',
@@ -72,7 +72,10 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
         }
         
         if (currentConfig.code_model) {
-          updatedModels.code_model = currentConfig.code_model;
+          // If code_model is a string, split it by comma to create an array
+          updatedModels.code_model = typeof currentConfig.code_model === 'string' 
+            ? currentConfig.code_model.split(',') 
+            : currentConfig.code_model;
         }
         
         if (currentConfig.chat_model) {
@@ -117,15 +120,24 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     setSelectedModels(initialModels);
   }, [availableKeys]);
 
-  const handleModelChange = (key: string, value: string) => {
+  const handleModelChange = (key: string, value: string | string[]) => {
     setSelectedModels(prev => ({ ...prev, [key]: value }));
-    onModelChange(key, value);
+    
+    // For code_model, convert array to comma-separated string when sending to backend
+    if (key === 'code_model' && Array.isArray(value)) {
+      onModelChange(key, value.join(','));
+    } else {
+      onModelChange(key, value as string);
+    }
   };
 
   const selectProps = {
     loading: loading || configLoading,
     className: "custom-select",
     popupClassName: "custom-select-dropdown",
+    showSearch: true,
+    filterOption: (input: string, option?: { label: string, value: string }) => 
+      option?.label.toLowerCase().includes(input.toLowerCase()) || false,
     style: { 
       width: '100%'
     }
@@ -176,12 +188,26 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           <label className="model-config-label">{getMessage('codeModel')}</label>
           <Select
             {...selectProps}
-            value={selectedModels.code_model}
+            mode="multiple"
+            value={selectedModels.code_model as string[]}
             onChange={(value) => handleModelChange('code_model', value)}
             options={models.map(model => ({
               value: model.name,
               label: model.name
             }))}
+            tagRender={(props) => {
+              const { label, value, closable, onClose } = props;
+              return (
+                <Tag 
+                  color="blue" 
+                  closable={closable} 
+                  onClose={onClose} 
+                  style={{ marginRight: 3 }}
+                >
+                  {label}
+                </Tag>
+              );
+            }}
           />
           <p className="model-config-description">{getMessage('codeModelDescription')}</p>
         </div>

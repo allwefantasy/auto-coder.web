@@ -40,3 +40,29 @@
   font-size: 0.625rem; /* 10px */
   line-height: 0.75rem; /* 12px */
 }
+
+/* Styles for search filtering in Select components */
+.custom-select .ant-select-selection-search-input {
+  background-color: transparent !important;
+  color: #e5e7eb !important;
+}
+
+.custom-select .ant-select-selection-placeholder {
+  color: #9ca3af !important;
+}
+
+/* Styles for multiple select tags */
+.custom-select .ant-select-selection-item {
+  background-color: #2563eb !important;
+  border: none !important;
+  color: white !important;
+  border-radius: 4px !important;
+}
+
+.custom-select .ant-select-selection-item-remove {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.custom-select .ant-select-selection-item-remove:hover {
+  color: white !important;
+}
