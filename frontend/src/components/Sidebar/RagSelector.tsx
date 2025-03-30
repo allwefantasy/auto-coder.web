@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import EventBus, { EVENTS } from '../../services/eventBus';
 import { Select, Tooltip, Spin, Button, Empty, Modal, Input, message } from 'antd';
-import { DatabaseOutlined, ReloadOutlined, PlusOutlined, FileSearchOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, ReloadOutlined, FileSearchOutlined } from '@ant-design/icons';
 import './ragSelectorStyles.css';
 
 interface Rag {
