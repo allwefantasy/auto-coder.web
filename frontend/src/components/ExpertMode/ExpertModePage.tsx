@@ -192,6 +192,20 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                     </button>
                     <button
                       className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 
+                        ${activePanel === 'preview'
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
+                          : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
+                        } flex items-center space-x-2`}
+                      onClick={() => setActivePanel('preview')}
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span>{getMessage('previewChanges')}</span>
+                    </button>
+                    <button
+                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 
                         ${activePanel === 'filegroup'
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
                           : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
@@ -220,7 +234,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                     <div className="relative tools-dropdown-container">
                       <button
                         className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 
-                          ${['preview', 'clipboard'].includes(activePanel)
+                          ${activePanel === 'clipboard'
                             ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
                             : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
                           } flex items-center space-x-2`}
@@ -236,23 +250,6 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                           className="absolute z-10 mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                         >
                           <div className="py-1">
-                            <button
-                              className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${
-                                activePanel === 'preview'
-                                  ? 'bg-blue-600 text-white'
-                                  : 'text-gray-300 hover:bg-gray-700'
-                              }`}
-                              onClick={() => {
-                                setActivePanel('preview');
-                                setShowToolsDropdown(false);
-                              }}
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                              <span>{getMessage('previewChanges')}</span>
-                            </button>
                             <button
                               className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${
                                 activePanel === 'clipboard'
