@@ -219,9 +219,15 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         }
       }
     };
-
+    
     // 添加粘贴图片支持
     const handlePaste = async (e: ClipboardEvent) => {
+      // 只处理当编辑器获得焦点时的粘贴事件
+      if (document.activeElement !== editorContainer.current && 
+          !editorContainer.current?.contains(document.activeElement)) {
+        return;
+      }
+      
       if (e.clipboardData && e.clipboardData.items) {
         const items = e.clipboardData.items;
         
@@ -246,9 +252,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       editorContainer.current.addEventListener('dragover', handleDragOver);
       editorContainer.current.addEventListener('dragleave', handleDragLeave);
       editorContainer.current.addEventListener('drop', handleDrop);
-      // 添加粘贴事件监听
-      document.addEventListener('paste', handlePaste);
     }
+
+    // 添加粘贴事件监听器到document
+    document.addEventListener('paste', handlePaste);
 
     return () => {
       // 在组件卸载时移除样式
@@ -268,25 +275,92 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
 
   const handleImageUpload = async (file: File) => {
     try {
-      const response = await uploadImage(file);
-      if (response.success) {
-        const editor = editorRef.current;
-        if (editor) {
-          const position = editor.getPosition();
-          editor.executeEdits('', [{
-            range: new monaco.Range(
-              position.lineNumber,
-              position.column,
-              position.lineNumber,
-              position.column
-            ),
-            text: `<_img_>${response.path}</_img_>`,
-            forceMoveMarkers: true
-          }]);
+      // 添加上传中状态反馈
+      const editor = editorRef.current;
+      if (editor) {
+        const position = editor.getPosition();
+        const loadingId = editor.executeEdits('', [{
+          range: new monaco.Range(
+            position.lineNumber,
+            position.column,
+            position.lineNumber,
+            position.column
+          ),
+          text: '![上传中...]()  ',
+          forceMoveMarkers: true
+        }]);
+        
+        // 上传图片
+        const response = await uploadImage(file);
+        
+        if (response.success) {
+          // 获取当前光标位置
+          const currentPosition = editor.getPosition();
+          
+          // 查找上传中文本的位置
+          const model = editor.getModel();
+          const content = model.getValue();
+          const loadingTextPos = content.indexOf('![上传中...]()');
+          
+          if (loadingTextPos !== -1) {
+            // 计算行和列
+            let line = 1;
+            let col = 1;
+            for (let i = 0; i < loadingTextPos; i++) {
+              if (content[i] === '\n') {
+                line++;
+                col = 1;
+              } else {
+                col++;
+              }
+            }
+            
+            // 替换上传中文本
+            editor.executeEdits('', [{
+              range: new monaco.Range(
+                line,
+                col,
+                line,
+                col + '![上传中...]()'.length
+              ),
+              text: `<_img_>${response.path}</_img_>`,
+              forceMoveMarkers: true
+            }]);
+          } else {
+            // 如果找不到上传中文本，则在当前位置插入
+            editor.executeEdits('', [{
+              range: new monaco.Range(
+                currentPosition.lineNumber,
+                currentPosition.column,
+                currentPosition.lineNumber,
+                currentPosition.column
+              ),
+              text: `<_img_>${response.path}</_img_>`,
+              forceMoveMarkers: true
+            }]);
+          }
+        } else {
+          console.error('Image upload failed:', response);
         }
       }
     } catch (error) {
       console.error('Image upload failed:', error);
+      
+      // 显示错误信息
+      const editor = editorRef.current;
+      if (editor) {
+        const position = editor.getPosition();
+        editor.executeEdits('', [{
+          range: new monaco.Range(
+            position.lineNumber,
+            position.column,
+            position.lineNumber,
+            position.column
+          ),
+          text: ' [图片上传失败] ',
+          forceMoveMarkers: true
+        }]);
+      }
     }
   };
 
@@ -334,6 +408,35 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       // 触发自定义事件
       eventBus.publish(EVENTS.FILE_GROUP_SELECT.FOCUS);
       return null;
+    });
+    
+    // 添加粘贴事件监听器到编辑器实例
+    editor.onDidPaste(() => {
+      // 编辑器已经处理了粘贴，我们只需要检查是否有图片
+      setTimeout(() => {
+        // 延迟检查，确保系统粘贴事件已处理
+        const clipboardItems = navigator.clipboard && navigator.clipboard.read ? 
+          navigator.clipboard.read().catch(() => null) : null;
+          
+        if (clipboardItems) {
+          clipboardItems.then(items => {
+            if (items) {  // 添加null检查
+              for (const item of items) {
+                // 检查是否有图片类型
+                if (item.types && item.types.some(type => type.startsWith('image/'))) {
+                  const imageType = item.types.find(type => type.startsWith('image/'));
+                  if (imageType) {
+                    item.getType(imageType).then(blob => {
+                      const file = new File([blob], "pasted-image.png", { type: imageType });
+                      handleImageUpload(file);
+                    }).catch(e => console.error("获取图片失败:", e));
+                  }
+                }
+              }
+            }
+          }).catch(e => console.error("读取剪贴板失败:", e));
+        }
+      }, 0);
     });
 
     // ----- mention 相关处理 -----
