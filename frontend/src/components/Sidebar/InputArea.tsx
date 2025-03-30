@@ -289,7 +289,7 @@ const InputArea: React.FC<InputAreaProps> = ({
             <div className="flex items-center">
               <Tooltip title="Open Documentation">
                 <button
-                  onClick={() => window.open('https://uelng8wukz.feishu.cn/wiki/BxySwtln8iQKENkHB12cIV6vnZb?fromScene=spaceOverview', '_blank')}
+                  onClick={() => window.open('https://uelng8wukz.feishu.cn/wiki/EFCEwiYZFit44ZkJgohcYjlMnVP?fromScene=spaceOverview', '_blank')}
                   className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
                 >
                   <svg 
