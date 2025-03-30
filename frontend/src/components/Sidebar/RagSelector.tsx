@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Select, Tooltip, Spin, Button, Empty, Modal, Input, message } from 'antd';
 import { DatabaseOutlined, ReloadOutlined, PlusOutlined, FileSearchOutlined } from '@ant-design/icons';
+import './ragSelectorStyles.css';
 
 interface Rag {
   name: string;
@@ -8,46 +9,6 @@ interface Rag {
   api_key: string;
 }
 
-// Add global styles
-const globalStyles = `
-  .custom-rag-select .ant-select-selector {
-    background-color: #1e293b !important;
-    border-color: #374151 !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
-    transition: all 0.3s !important;
-  }
-  .custom-rag-select:hover .ant-select-selector {
-    border-color: #4b5563 !important;
-  }
-  .custom-rag-select.ant-select-focused .ant-select-selector {
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-  }
-  .rag-file-selector-modal .ant-modal-content {
-    background-color: #1f2937;
-    border: 1px solid #374151;
-  }
-  .rag-file-selector-modal .ant-modal-header {
-    background-color: #1f2937;
-    border-bottom: 1px solid #374151;
-  }
-  .rag-file-selector-modal .ant-modal-title {
-    color: #e5e7eb;
-  }
-  .rag-file-selector-modal .ant-modal-close {
-    color: #9ca3af;
-  }
-  .rag-file-selector-modal .ant-modal-close:hover {
-    color: #e5e7eb;
-  }
-`;
-
-// Add style element to document head
-if (typeof document !== 'undefined') {
-  const styleElement = document.createElement('style');
-  styleElement.innerHTML = globalStyles;
-  document.head.appendChild(styleElement);
-}
 
 const RagSelector: React.FC = () => {
   const [rags, setRags] = useState<Rag[]>([]);
