@@ -1322,6 +1322,14 @@ export const messages: { [key: string]: Message } = {
   indexFilterModelDescription: {
     en: "Used for filtering index content",
     zh: "用于过滤索引内容"
+  },
+  enableAutoFixCompile: {
+    en: "Auto Fix Compile",
+    zh: "自动修复编译错误"
+  },
+  enableAutoFixCompileDescription: {
+    en: "Automatically fixes compilation errors in generated code",
+    zh: "自动修复生成代码中的编译错误"
   }
 };
 
