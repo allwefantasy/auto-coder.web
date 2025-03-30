@@ -111,7 +111,7 @@ async def validate_and_load_history(
                         if len(lines) > 1:
                             original_hash = lines[-1].strip()
                             reverted_commits[original_hash] = True
-                            logger.info(f"找到撤销提交 {commit.hexsha[:7]} 撤销了 {original_hash[:7]}")                            
+                            # logger.info(f"找到撤销提交 {commit.hexsha[:7]} 撤销了 {original_hash[:7]}")                            
                     if commit_inter_count > 2*max_history_count:
                         break
                     commit_inter_count += 1
