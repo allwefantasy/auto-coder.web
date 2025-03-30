@@ -90,15 +90,29 @@ const StreamingCodeGenerateMessage: React.FC<{ message: MessageProps; isComplete
                 
                 {/* 添加最大化按钮 - 仅当流式处理完成时可用 */}
                 {isCompleted && (
-                    <button 
-                        onClick={handleMaximize}
-                        className="ml-auto message-maximize-button text-gray-400 hover:text-blue-400"
-                        title={getMessage('maximize') || 'Maximize'}
-                    >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                        </svg>
-                    </button>
+                    <>
+                        <button 
+                            onClick={() => {
+                                navigator.clipboard.writeText(messageContent);
+                                // 可选：添加复制成功的提示
+                            }}
+                            className="ml-auto message-copy-button text-gray-400 hover:text-blue-400"
+                            title={getMessage('copy') || 'Copy'}
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                            </svg>
+                        </button>
+                        <button 
+                            onClick={handleMaximize}
+                            className="ml-1 message-maximize-button text-gray-400 hover:text-blue-400"
+                            title={getMessage('maximize') || 'Maximize'}
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                            </svg>
+                        </button>
+                    </>
                 )}
             </div>
             
@@ -173,10 +187,22 @@ const RegularCodeGenerateMessage: React.FC<{ message: MessageProps }> = ({ messa
                 {/* Title */}
                 <span className="text-blue-400 message-title-text text-xs">{getMessage('generatedCode') || 'Generated Code'}</span>
                 
-                {/* 添加最大化按钮 */}
+                {/* 添加复制和最大化按钮 */}
+                <button 
+                    onClick={() => {
+                        navigator.clipboard.writeText(message.content);
+                        // 可选：添加复制成功的提示
+                    }}
+                    className="ml-auto message-copy-button text-gray-400 hover:text-blue-400"
+                    title={getMessage('copy') || 'Copy'}
+                >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                </button>
                 <button 
                     onClick={handleMaximize}
-                    className="ml-auto message-maximize-button text-gray-400 hover:text-blue-400"
+                    className="ml-1 message-maximize-button text-gray-400 hover:text-blue-400"
                     title={getMessage('maximize') || 'Maximize'}
                 >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
