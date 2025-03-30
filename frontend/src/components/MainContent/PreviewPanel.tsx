@@ -268,12 +268,16 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                 </button>
               </div>
             </div>
-            <div className="flex-1 bg-white"> {/* Changed background to white for better iframe visibility */}
-              {isLoadingUrl ? (
-                 <div className="h-full flex items-center justify-center text-gray-500">
-                   Loading preview URL...
-                 </div>
-              ) : showWebPreview ? (
+            <div className="flex-1 bg-white relative"> {/* Changed background & added relative positioning */}
+              {/* Loading Indicator */}
+              {isLoadingUrl && (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-500 bg-white z-10">
+                  Loading preview URL...
+                </div>
+              )}
+
+              {/* Web Preview Iframe (conditionally rendered but always present in DOM structure when not loading) */}
+              {!isLoadingUrl && showWebPreview && (
                 <Iframe
                   url={previewUrl}
                   width="100%"
@@ -284,10 +288,13 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                   allowFullScreen
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups" // Added sandbox for security
                 />
-              ) : (
-                 <div className="h-full flex items-center justify-center text-gray-500"> {/* Adjusted text color */}
-                   {previewUrl ? 'Reloading preview...' : 'Enter a URL above to preview web content'}
-                 </div>
+              )}
+
+              {/* Placeholder/Reloading Message (conditionally rendered) */}
+              {!isLoadingUrl && !showWebPreview && (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  {previewUrl ? 'Reloading preview...' : 'Enter a URL above to preview web content'}
+                </div>
               )}
             </div>
           </div>
