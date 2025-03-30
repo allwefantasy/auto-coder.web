@@ -38,8 +38,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
       <div className="flex-1 overflow-hidden">
         <Split 
           className="split-container"
-          sizes={isCollapsed ? [10, 90] : [50, 50]}
-          minSize={isCollapsed ? [50, 200] : [200, 200]}
+          sizes={(isCollapsed && [10, 90]) || [50, 50]}
+          minSize={(isCollapsed && [50, 200]) || [200, 200]}
           gutterSize={8}
           snapOffset={30}
           dragInterval={1}
@@ -48,26 +48,26 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
           style={{ display: 'flex', flexDirection: 'row', height: '100%' }}
         >
           {/* Left Panel - Code Preview */}
-          <div className={`flex flex-col relative ${isCollapsed ? 'w-[50px]' : ''}`}>
+          <div className={`flex flex-col relative ${(isCollapsed && 'w-[50px]') || ''}`}>
             <button 
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="absolute -right-4 top-1/2 transform -translate-y-1/2 z-10 
                         bg-gray-700 rounded-full p-1 hover:bg-gray-600 transition-colors"
             >
-              {isCollapsed ? <RightOutlined /> : <LeftOutlined />}
+              {(isCollapsed && <RightOutlined />) || <LeftOutlined />}
             </button>
-            {files.length === 0 ? (
+            {(files.length === 0 && (
               <div className="w-full flex items-center justify-center text-gray-400">
                 No changes to preview
               </div>
-            ) : (
+            )) || (
               <>
                 <div className="flex bg-gray-800">
                   {files.map((file, index) => (
                     <button
                       key={file.path}
                       className={`px-4 py-2 text-sm ${
-                        index === activeFileIndex ? 'bg-gray-700 text-white' : 'text-gray-300'
+                        (index === activeFileIndex && 'bg-gray-700 text-white') || 'text-gray-300'
                       }`}
                       onClick={() => setActiveFileIndex(index)}
                       title={file.path}
@@ -99,7 +99,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
           {/* Right Panel - Web Preview */}
           <div className="flex flex-col border-l border-gray-700">
             <div className="p-2 bg-gray-800">
-              <div className={`flex items-center px-2 py-1 bg-gray-900 rounded-lg border ${isUrlFocused ? 'border-blue-500' : 'border-gray-700'}`}>
+              <div className={`flex items-center px-2 py-1 bg-gray-900 rounded-lg border ${(isUrlFocused && 'border-blue-500') || 'border-gray-700'}`}>
                 <div className="flex items-center px-2 text-gray-400">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -129,7 +129,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
               </div>
             </div>
             <div className="flex-1">
-              {showWebPreview ? (
+              {(showWebPreview && (
                 <Iframe
                   url={previewUrl}
                   width="100%"
@@ -139,7 +139,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                   position="relative"
                   allowFullScreen
                 />
-              ) : (
+              )) || (
                 <div className="h-full flex items-center justify-center text-gray-400">
                   Enter a URL above to preview web content
                 </div>
