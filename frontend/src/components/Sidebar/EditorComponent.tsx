@@ -220,11 +220,34 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       }
     };
 
+    // 添加粘贴图片支持
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (e.clipboardData && e.clipboardData.items) {
+        const items = e.clipboardData.items;
+        
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') !== -1) {
+            // 阻止默认粘贴行为
+            e.preventDefault();
+            
+            // 获取图片文件
+            const file = items[i].getAsFile();
+            if (file) {
+              await handleImageUpload(file);
+              break;
+            }
+          }
+        }
+      }
+    };
+
     // 为编辑器容器添加拖拽事件监听
     if (editorContainer.current) {
       editorContainer.current.addEventListener('dragover', handleDragOver);
       editorContainer.current.addEventListener('dragleave', handleDragLeave);
       editorContainer.current.addEventListener('drop', handleDrop);
+      // 添加粘贴事件监听
+      document.addEventListener('paste', handlePaste);
     }
 
     return () => {
@@ -238,6 +261,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         editorContainer.current.removeEventListener('dragleave', handleDragLeave);
         editorContainer.current.removeEventListener('drop', handleDrop);
       }
+      // 移除粘贴事件监听
+      document.removeEventListener('paste', handlePaste);
     };
   }, []);
 
