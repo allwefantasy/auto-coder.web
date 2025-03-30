@@ -27,7 +27,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
             {/* Refresh Icon - Positioned top-right, appears on hover */}
             <button
                 onClick={handleRefresh}
-                className="absolute top-1 right-1 p-1 rounded text-gray-400 hover:text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-1 right-1 p-1 rounded text-gray-400 hover:text-gray-200 transition-opacity"
                 title={getMessage('refreshFromHere') || 'Refresh from here'} // Add tooltip for accessibility
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
