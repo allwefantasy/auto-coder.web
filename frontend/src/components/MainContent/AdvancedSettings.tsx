@@ -15,6 +15,7 @@ interface AdvancedSettingsState {
   enable_task_history: boolean;
   include_project_structure: boolean;
   skip_filter_index: boolean;
+  enable_auto_fix_compile: boolean;
 }
 
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSettingChange }) => {
@@ -24,7 +25,8 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
     enable_active_context: false,
     enable_task_history: false,
     include_project_structure: true,
-    skip_filter_index: false
+    skip_filter_index: false,
+    enable_auto_fix_compile: false
   });
 
   // Fetch current configuration
@@ -60,6 +62,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
         if (currentConfig.skip_filter_index !== undefined) {
           updatedSettings.skip_filter_index = currentConfig.skip_filter_index === "true";
         }
+        if (currentConfig.enable_auto_fix_compile !== undefined) {
+          updatedSettings.enable_auto_fix_compile = currentConfig.enable_auto_fix_compile === "true";
+        }
         
         setSettings(updatedSettings);
       } catch (error) {
@@ -91,6 +96,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
       }
       if (key.key === 'skip_filter_index' && initialSettings.skip_filter_index === undefined) {
         initialSettings.skip_filter_index = key.default === "true";
+      }
+      if (key.key === 'enable_auto_fix_compile' && initialSettings.enable_auto_fix_compile === undefined) {
+        initialSettings.enable_auto_fix_compile = key.default === "true";
       }
     });
 
@@ -173,6 +181,18 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
             />
           </div>
           <p className="model-config-description">{getMessage('skipFilterIndexDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <div className="flex justify-between items-center">
+            <label className="model-config-label">{getMessage('enableAutoFixCompile')}</label>
+            <Switch
+              checked={settings.enable_auto_fix_compile}
+              onChange={(checked) => handleSettingChange('enable_auto_fix_compile', checked)}
+              className="bg-gray-600"
+            />
+          </div>
+          <p className="model-config-description">{getMessage('enableAutoFixCompileDescription')}</p>
         </div>
       </div>
     </div>
