@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import Iframe from 'react-iframe';
 import Split from 'react-split';
@@ -13,12 +13,46 @@ interface PreviewPanelProps {
 const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
   const [activeFileIndex, setActiveFileIndex] = React.useState(0);
   const [showWebPreview, setShowWebPreview] = React.useState(false);
-  const [previewUrl, setPreviewUrl] = React.useState('http://127.0.0.1:3000');
+  const [previewUrl, setPreviewUrl] = React.useState(''); // Initialize empty, fetch from backend
+  const [initialUrlLoaded, setInitialUrlLoaded] = React.useState(false);
   const [isUrlFocused, setIsUrlFocused] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
+  // Fetch initial config
   useEffect(() => {
-    setShowWebPreview(true);
+    fetch('/api/config/ui')
+      .then(res => res.json())
+      .then(config => {
+        // Use saved URL or default if none is saved
+        setPreviewUrl(config.previewUrl || 'http://127.0.0.1:3000'); 
+        setInitialUrlLoaded(true);
+        // Show preview only after URL is loaded
+        setShowWebPreview(true); 
+      })
+      .catch(error => {
+        console.error('Error fetching UI config:', error);
+        // Fallback to default URL in case of error
+        setPreviewUrl('http://127.0.0.1:3000');
+        setInitialUrlLoaded(true);
+        setShowWebPreview(true);
+      });
+  }, []);
+
+  // Function to save the preview URL
+  const savePreviewUrl = useCallback(async (urlToSave: string) => {
+    try {
+      await fetch('/api/config/ui', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ previewUrl: urlToSave }),
+      });
+      // Optional: Add success feedback or error handling here
+    } catch (error) {
+      console.error('Error saving preview URL:', error);
+      // Optional: Add error feedback to the user
+    }
   }, []);
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,9 +62,16 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      const newUrl = (e.target as HTMLInputElement).value;
+      savePreviewUrl(newUrl); // Save on Enter
       setShowWebPreview(false);
       setTimeout(() => setShowWebPreview(true), 100); // Brief delay to trigger reload
     }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsUrlFocused(false);
+    savePreviewUrl(e.target.value); // Save on blur
   };
 
   return (
@@ -108,13 +149,13 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                 <input
                   type="url"
                   value={previewUrl}
-                  onChange={handleUrlChange}
-                  onKeyDown={handleKeyDown}
-                  onFocus={() => setIsUrlFocused(true)}
-                  onBlur={() => setIsUrlFocused(false)}
-                  className="flex-1 px-2 py-1 bg-transparent text-white text-sm focus:outline-none"
-                  placeholder="Enter URL to preview"
-                />
+                   onChange={handleUrlChange}
+                   onKeyDown={handleKeyDown}
+                   onFocus={() => setIsUrlFocused(true)}
+                   onBlur={handleBlur} // Use the new handleBlur
+                   className="flex-1 px-2 py-1 bg-transparent text-white text-sm focus:outline-none"
+                   placeholder="Enter URL to preview"
+                 />
                 <button
                   onClick={() => {
                     setShowWebPreview(false);
@@ -127,24 +168,27 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                   </svg>
                 </button>
               </div>
-            </div>
-            <div className="flex-1">
-              {(showWebPreview && (
-                <Iframe
-                  url={previewUrl}
+             </div>
+             <div className="flex-1">
+               {/* Only render Iframe if initial URL is loaded and showWebPreview is true */}
+               {(initialUrlLoaded && showWebPreview && previewUrl && (
+                 <Iframe
+                   url={previewUrl}
                   width="100%"
                   height="100%"
                   className="border-0"
                   display="block"
                   position="relative"
-                  allowFullScreen
-                />
-              )) || (
-                <div className="h-full flex items-center justify-center text-gray-400">
-                  Enter a URL above to preview web content
-                </div>
-              )}
-            </div>
+                   allowFullScreen
+                 />
+               )) || (
+                 <div className="h-full flex items-center justify-center text-gray-400">
+                   {(!initialUrlLoaded && "Loading preview URL...") || 
+                    (!previewUrl && "Enter a URL above to preview web content") || 
+                    "Reloading preview..."}
+                 </div>
+               )}
+             </div>
           </div>
         </Split>
       </div>
