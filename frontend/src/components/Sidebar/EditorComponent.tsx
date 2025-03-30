@@ -255,7 +255,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               position.lineNumber,
               position.column
             ),
-            text: `<img>${response.path}</img>`,
+            text: `<_img_>${response.path}</_img_>`,
             forceMoveMarkers: true
           }]);
         }

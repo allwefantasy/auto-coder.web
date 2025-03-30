@@ -432,12 +432,10 @@ async def get_current_changes(
                 event_manager = get_event_manager(event_file_path)                
                 
                 # 获取所有事件
-                all_events = event_manager.event_store.get_events()
-                logger.info(f"获取事件总数: {len(all_events)}")
+                all_events = event_manager.event_store.get_events()                
                 
                 # 创建ActionYmlFileManager实例
-                action_manager = ActionYmlFileManager(project_path)                                                
-                logger.info(f"成功创建ActionYmlFileManager实例")
+                action_manager = ActionYmlFileManager(project_path)                                                                
 
                 action_files = set()
                 final_action_files = []
