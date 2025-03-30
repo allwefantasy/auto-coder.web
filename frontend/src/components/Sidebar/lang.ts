@@ -1185,6 +1185,10 @@ export const messages: { [key: string]: Message } = {
     en: "Clear all selections",
     zh: "清除所有选中内容"
   },
+  refreshFromHere: {
+    en: "Refresh from here",
+    zh: "从此处刷新"
+  },
   clearFailed: {
     en: "Failed to clear selections",
     zh: "清除选中内容失败"
