@@ -8,12 +8,9 @@ import FileGroupSelect from './FileGroupSelect';
 import { chatService } from '../../services/chatService';
 import { codingService } from '../../services/codingService';
 import eventBus, { EVENTS } from '../../services/eventBus';
+import axios from 'axios';
 
 interface InputAreaProps {
-  showConfig: boolean;
-  setShowConfig: (value: boolean) => void;
-  config: ConfigState;
-  updateConfig: (key: string, value: boolean | string) => void;
   fileGroups: FileGroup[];
   selectedGroups: string[];
   setConfig: React.Dispatch<React.SetStateAction<ConfigState>>;
@@ -34,10 +31,6 @@ interface InputAreaProps {
 }
 
 const InputArea: React.FC<InputAreaProps> = ({
-  showConfig,
-  setShowConfig,
-  config,
-  updateConfig,
   fileGroups,
   selectedGroups,
   setSelectedGroups,
@@ -56,6 +49,11 @@ const InputArea: React.FC<InputAreaProps> = ({
   isFullScreen,
   showFileGroupSelect
 }) => {  
+  const [showConfig, setShowConfig] = useState<boolean>(false);
+  const [config, setLocalConfig] = useState<ConfigState>({
+    project_type: '',
+    skip_build_index: false
+  });
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [indexBuilding, setIndexBuilding] = useState<boolean>(false);
   const [indexStatus, setIndexStatus] = useState<string>('');
@@ -153,8 +151,47 @@ const InputArea: React.FC<InputAreaProps> = ({
     };
   }, [toggleWriteMode]);
 
+  // 获取配置信息
+  const fetchConfig = useCallback(async () => {
+    try {
+      const response = await axios.get('/api/conf');
+      if (response.data && response.data.conf) {
+        const apiConfig = response.data.conf;
+        const newConfig: ConfigState = {
+          project_type: apiConfig.project_type || '',
+          skip_build_index: apiConfig.skip_build_index === 'true'
+        };
+        setLocalConfig(newConfig);
+        setConfig(newConfig);
+      }
+    } catch (error) {
+      console.error('Error fetching config:', error);
+      AntdMessage.error('Failed to fetch configuration');
+    }
+  }, [setConfig]);
+
+  // 更新配置
+  const updateConfig = useCallback(async (key: string, value: boolean | string) => {
+    try {
+      // 更新本地状态
+      setLocalConfig(prev => {
+        const newConfig = { ...prev, [key]: value };
+        // 同步到父组件
+        setConfig(newConfig);
+        return newConfig;
+      });
+
+      // 发送到API
+      await axios.post('/api/conf', { [key]: value });
+    } catch (error) {
+      console.error(`Error updating config ${key}:`, error);
+      AntdMessage.error(`Failed to update ${key}`);
+    }
+  }, [setConfig]);
+
   useEffect(() => {
     checkIndexStatus();
+    fetchConfig();
     
     const handleTaskComplete = () => {
       setIsCancelling(false);
@@ -166,7 +203,7 @@ const InputArea: React.FC<InputAreaProps> = ({
     return () => {
       service.off('taskComplete', handleTaskComplete);
     };
-  }, [isWriteMode]);
+  }, [isWriteMode, fetchConfig]);
 
   const handleCancelGeneration = async () => {
     if (isCancelling) return;
