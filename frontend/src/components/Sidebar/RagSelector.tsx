@@ -16,9 +16,7 @@ const RagSelector: React.FC = () => {
   const [rags, setRags] = useState<Rag[]>([]);
   const [selectedRag, setSelectedRag] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
-  const [showFileSelector, setShowFileSelector] = useState<boolean>(false);
-  const [showRagSelector, setShowRagSelector] = useState<boolean>(false);
-  const [selectedFile, setSelectedFile] = useState<string>('');
+  const [showFileSelector, setShowFileSelector] = useState<boolean>(false);    
 
   const fetchRags = async () => {
     try {
@@ -59,18 +57,8 @@ const RagSelector: React.FC = () => {
     fetchRags();
   };
 
-  const closeFileSelector = () => {
-    setShowFileSelector(false);
-  };
 
-  const handleFileSelect = () => {
-    if (selectedFile) {
-      closeFileSelector();
-      message.success(`Selected file: ${selectedFile}`);
-    } else {
-      message.warning('Please select or search for a file');
-    }
-  };
+
 
   return (
     <div className="w-full mb-2">
@@ -116,8 +104,7 @@ const RagSelector: React.FC = () => {
             options={rags.map(r => ({ 
               label: r.name, 
               value: r.name 
-            }))}
-            dropdownMatchSelectWidth={false}
+            }))}            
             dropdownRender={(menu) => (
               <div>
                 {menu}
@@ -138,35 +125,7 @@ const RagSelector: React.FC = () => {
           className="absolute right-0 top-0 text-gray-400 hover:text-blue-400 h-full px-2 flex items-center"
           onClick={() => setShowFileSelector(true)}
         />
-      </div>
-
-      <Modal
-        title="选择文件或搜索文件"
-        open={showFileSelector}
-        onCancel={closeFileSelector}
-        footer={[
-          <Button key="cancel" onClick={closeFileSelector}>
-            取消
-          </Button>,
-          <Button key="select" type="primary" onClick={handleFileSelect}>
-            选择
-          </Button>,
-        ]}
-        className="rag-file-selector-modal"
-        width={600}
-      >
-        <div className="mb-4">
-          <Input 
-            placeholder="搜索文件..." 
-            prefix={<FileSearchOutlined />} 
-            allowClear
-            className="mb-2"
-          />
-          <div className="bg-gray-900 p-3 rounded-md border border-gray-700 h-64 overflow-auto">
-            <div className="text-gray-400 text-sm">请选择文件或搜索文件</div>
-          </div>
-        </div>
-      </Modal>
+      </div>      
       </>
       )}
     </div>
