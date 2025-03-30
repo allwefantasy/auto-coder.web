@@ -71,37 +71,38 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
                     </svg>
                 </button>
-                </div>
-            )}
+            </div>
+            
             {!isCollapsed && (
                 <div className="prose prose-invert prose-xs max-w-none">
-                <ReactMarkdown
-                    className="text-gray-200 break-words"
-                    components={{
-                        code: ({ className, children, ...props }: any) => {
-                            const match = /language-(\w+)/.exec(className || '');
-                            const inline = !match;
-                            return !inline ? (
-                                <SyntaxHighlighter
-                                    language={match ? match[1] : ''}
-                                    style={vscDarkPlus}
-                                    PreTag="div"
-                                    wrapLines={true}
-                                    wrapLongLines={true}
-                                >
-                                    {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                            ) : (
-                                <code className={className} {...props}>
-                                    {children}
-                                </code>
-                            );
-                        }
-                    }}
-                >
-                    {message.content}
-                </ReactMarkdown>
-            </div>
+                    <ReactMarkdown
+                        className="text-gray-200 break-words"
+                        components={{
+                            code: ({ className, children, ...props }: any) => {
+                                const match = /language-(\w+)/.exec(className || '');
+                                const inline = !match;
+                                return !inline ? (
+                                    <SyntaxHighlighter
+                                        language={match ? match[1] : ''}
+                                        style={vscDarkPlus}
+                                        PreTag="div"
+                                        wrapLines={true}
+                                        wrapLongLines={true}
+                                    >
+                                        {String(children).replace(/\n$/, '')}
+                                    </SyntaxHighlighter>
+                                ) : (
+                                    <code className={className} {...props}>
+                                        {children}
+                                    </code>
+                                );
+                            }
+                        }}
+                    >
+                        {message.content}
+                    </ReactMarkdown>
+                </div>
+            )}
         </div>
     );
 };
