@@ -41,6 +41,27 @@ const RagSelector: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (selectedRag) {
+      const selected = rags.find(r => r.name === selectedRag);
+      if (selected) {
+        fetch('/api/auto_coder_conf_router', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            rag_type: 'simple',
+            rag_url: selected.base_url,
+            rag_token: selected.api_key
+          })
+        }).catch(err => {
+          console.error('Failed to configure RAG', err);
+        });
+      }
+    }
+  }, [selectedRag, rags]);
+
   const handleRefresh = () => {
     fetchRags();
   };
