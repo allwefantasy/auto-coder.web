@@ -325,7 +325,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                     {['Output', 'Terminal'].map((tab, index) => (
                       <button
                         key={tab}
-                        className={`px-3 py-1 text-xs rounded-t transition-colors ${activeToolPanel === tab.toLowerCase()
+                        className={`px-2 py-0.5 text-xs rounded-t transition-colors ${activeToolPanel === tab.toLowerCase()
                             ? 'text-white bg-[#2d2d2d]'
                             : 'text-gray-400 hover:text-white'
                           }`}
