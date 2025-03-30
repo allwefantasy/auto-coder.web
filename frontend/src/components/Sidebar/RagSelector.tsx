@@ -104,6 +104,7 @@ const RagSelector: React.FC = () => {
       </div>
       
       {showFileSelector && (
+        <>
         <div className="relative">
           <Select
             className="w-full custom-rag-select"
@@ -166,6 +167,8 @@ const RagSelector: React.FC = () => {
           </div>
         </div>
       </Modal>
+      </>
+      )}
     </div>
   );
 };
