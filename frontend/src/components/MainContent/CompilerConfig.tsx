@@ -275,7 +275,7 @@ const CompilerConfig: React.FC = () => {
           >
             <Input 
               className="dark-input" 
-              placeholder={getMessage('enterBuildTool') || 'Enter build tool (e.g. vite, maven)'}
+              placeholder={getMessage('compilerTypePlaceholder') || 'Enter build tool type (e.g. maven, vite)'}
             />
           </Form.Item>
           
@@ -284,7 +284,10 @@ const CompilerConfig: React.FC = () => {
             label={getMessage('workingDirectory') || 'Working Directory'}
             rules={[{ required: true, message: getMessage('workingDirRequired') || 'Please enter a working directory' }]}
           >
-            <Input className="dark-input" />
+            <Input 
+              className="dark-input" 
+              placeholder={getMessage('workingDirPlaceholder') || 'Enter relative path for working directory'}
+            />
           </Form.Item>
           
           <Form.Item
@@ -303,7 +306,7 @@ const CompilerConfig: React.FC = () => {
               mode="tags"
               className="dark-select compiler-select compiler-tag-select"
               dropdownClassName="dark-select-dropdown"
-              placeholder={getMessage('enterArguments') || 'Enter arguments'}
+              placeholder={getMessage('enterArguments') || 'Enter arguments, separated by spaces'}
               tokenSeparators={[' ']}
             />
           </Form.Item>

@@ -1330,6 +1330,19 @@ export const messages: { [key: string]: Message } = {
   enableAutoFixCompileDescription: {
     en: "Automatically fixes compilation errors in generated code",
     zh: "自动修复生成代码中的编译错误"
+  },
+  // Compiler Configuration Placeholders
+  workingDirPlaceholder: {
+    en: "Enter relative path for working directory",
+    zh: "请输入相对路径的工作目录"
+  },
+  compilerTypePlaceholder: {
+    en: "Enter build tool type (e.g. maven, vite)",
+    zh: "请输入构建工具类型 (例如 maven, vite)"
+  },
+  enterArguments: {
+    en: "Enter arguments, separated by spaces",
+    zh: "输入参数，用空格分隔"
   }
 };
 
