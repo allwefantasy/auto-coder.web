@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { message as AntdMessage, Modal, Input, Select, Button, Layout, Divider, Typography, Space, Dropdown, Menu, Tooltip } from 'antd';
-import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined, SaveOutlined } from '@ant-design/icons';
+import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined, SaveOutlined, ClearOutlined } from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
 import ChatListDropdown from './ChatListDropdown';
 import './ChatPanel.css';
@@ -846,6 +846,36 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             getChatTitle={getChatTitle}
             renameChatList={renameChatList}
           />
+          
+          <Tooltip title="清空当前对话">
+            <Button 
+              icon={<ClearOutlined style={{ fontSize: '10px' }} />} 
+              onClick={() => {
+                if (chatListName) {
+                  Modal.confirm({
+                    title: '确认清空',
+                    content: '确定要清空当前对话中的所有消息吗？此操作不可撤销。',
+                    okText: '清空',
+                    okType: 'danger',
+                    cancelText: '取消',
+                    onOk: async () => {
+                      // 清空消息列表
+                      setMessages([]);
+                      // 触发会话更新逻辑
+                      if (chatListName) {
+                        await saveChatList(chatListName, []);
+                        AntdMessage.success('对话已清空');
+                      }
+                    },
+                  });
+                } else {
+                  AntdMessage.warning('请先选择或创建一个对话');
+                }
+              }}
+              className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
+              size="small"
+            />
+          </Tooltip>
           
           <Tooltip title="保存当前对话">
             <Button 
