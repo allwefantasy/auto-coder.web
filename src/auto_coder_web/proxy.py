@@ -65,10 +65,10 @@ class ProxyServer:
         self.index_html_path = pkg_resources.resource_filename(
             "auto_coder_web", "web/index.html")
         self.resource_dir = os.path.dirname(self.index_html_path)
-        self.static_dir = os.path.join(self.resource_dir, "static")
+        self.static_dir = os.path.join(self.resource_dir, "assets")
         
         self.app.mount(
-            "/static", StaticFiles(directory=self.static_dir), name="static")
+            "/assets", StaticFiles(directory=self.static_dir), name="assets")
         
         self.app.mount(
             "/monaco-editor", StaticFiles(directory=os.path.join(self.resource_dir, "monaco-editor")), name="monaco-editor")
