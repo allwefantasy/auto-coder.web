@@ -23,6 +23,10 @@ export const EVENTS = {
   FILE_GROUP_SELECT: {
     // 聚焦文件组选择事件 EditorComponent.tsx 发布, FileGroupSelect.tsx 订阅
     FOCUS: 'file.group.select.focus'
+  },
+  CHAT: {
+    // 从特定消息重新开始对话事件 UserMessage.tsx 发布, ChatPanel.tsx 订阅
+    REFRESH_FROM_MESSAGE: 'chat.refresh.from.message'
   }
 };
 

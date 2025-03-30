@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import type { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
 import './MessageStyles.css';
+import eventBus, { EVENTS } from '../../../services/eventBus';
 
 interface UserMessageProps {
     message: MessageProps;
@@ -15,7 +16,17 @@ interface UserMessageProps {
 const UserMessage: React.FC<UserMessageProps> = ({ message, messageIndex, onRefresh }) => {
 
     const handleRefresh = () => {
-        onRefresh(messageIndex);
+        // 使用eventBus发布刷新事件，传递消息内容和索引
+        eventBus.publish(EVENTS.CHAT.REFRESH_FROM_MESSAGE, {
+            messageIndex,
+            messageContent: message.content,
+            messageId: message.id
+        });
+        
+        // 保留原有的回调，以保持向后兼容
+        if (onRefresh) {
+            onRefresh(messageIndex);
+        }
     };
 
     return (

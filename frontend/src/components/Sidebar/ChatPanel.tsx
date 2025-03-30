@@ -690,17 +690,57 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     service.on('taskComplete', handleTaskCompletion);
   };
 
+  // 处理从特定消息重新开始对话
+  const handleRefreshFromMessage = useCallback((data: { messageIndex: number, messageContent: string, messageId: string }) => {
+    // 清理该消息后面的所有消息
+    setMessages(prevMessages => {
+      // 找到消息在数组中的实际位置
+      const messagePosition = prevMessages.findIndex(msg => msg.id === data.messageId);
+      if (messagePosition === -1) return prevMessages; // 如果找不到消息，不做任何改变
+      
+      // 只保留到该消息的所有消息（包括该消息）
+      return prevMessages.slice(0, messagePosition + 1);
+    });
+    
+    // 设置编辑器内容为该消息的内容，准备重新发送
+    if (editorRef.current) {
+      editorRef.current.setValue(data.messageContent);
+      
+      // 等待DOM更新后，聚焦编辑器并自动提交消息
+      setTimeout(() => {
+        if (editorRef.current) {
+          editorRef.current.focus();
+          // 可选：自动提交消息
+          // handleSendMessage();
+        }
+      }, 100);
+    }
+    
+    // 滚动到底部
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 200);
+    
+  }, []);
+
   // 在组件挂载时设置事件监听器
   useEffect(() => {
     setupMessageListener(chatService);
     setupMessageListener(codingService);
+    
+    // 订阅刷新消息事件
+    const unsubscribeRefresh = eventBus.subscribe(
+      EVENTS.CHAT.REFRESH_FROM_MESSAGE, 
+      handleRefreshFromMessage
+    );
 
     // 在组件卸载时清理事件监听器
     return () => {
       chatService.removeAllListeners();
       codingService.removeAllListeners();
+      unsubscribeRefresh();
     };
-  }, []);
+  }, [handleRefreshFromMessage]);
   
   // 新消息到达时自动滚动到底部
   // useEffect(() => {
