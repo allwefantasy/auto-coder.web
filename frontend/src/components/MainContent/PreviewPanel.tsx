@@ -5,6 +5,7 @@ import Split from 'react-split';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import './PreviewPanel.css';
 import { getLanguageByFileName } from '../../utils/fileUtils';
+import axios from 'axios';
 
 interface PreviewPanelProps {
   files: { path: string; content: string }[];
@@ -14,12 +15,52 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
   const [activeFileIndex, setActiveFileIndex] = React.useState(0);
   const [showWebPreview, setShowWebPreview] = React.useState(false);
   const [previewUrl, setPreviewUrl] = React.useState('http://127.0.0.1:3000');
+  const [debouncedPreviewUrl, setDebouncedPreviewUrl] = React.useState('');
   const [isUrlFocused, setIsUrlFocused] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   useEffect(() => {
+    // 获取保存的预览URL
+    const fetchPreviewUrl = async () => {
+      try {
+        const response = await axios.get('/api/config/ui/preview-url');
+        if (response.data && response.data.preview_url) {
+          setPreviewUrl(response.data.preview_url);
+        }
+      } catch (error) {
+        console.error('Failed to fetch preview URL:', error);
+      }
+    };
+    
+    fetchPreviewUrl();
     setShowWebPreview(true);
   }, []);
+
+  // 使用防抖来保存URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedPreviewUrl(previewUrl);
+    }, 1000); // 1秒后保存URL
+    
+    return () => clearTimeout(timer);
+  }, [previewUrl]);
+  
+  // 当防抖的URL变化时保存到后端
+  useEffect(() => {
+    if (debouncedPreviewUrl && debouncedPreviewUrl !== 'http://127.0.0.1:3000') {
+      const savePreviewUrl = async () => {
+        try {
+          await axios.put('/api/config/ui/preview-url', {
+            preview_url: debouncedPreviewUrl
+          });
+        } catch (error) {
+          console.error('Failed to save preview URL:', error);
+        }
+      };
+      
+      savePreviewUrl();
+    }
+  }, [debouncedPreviewUrl]);
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPreviewUrl(e.target.value);

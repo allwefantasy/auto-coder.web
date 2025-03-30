@@ -9,6 +9,7 @@ router = APIRouter()
 
 class UIConfig(BaseModel):
     mode: str = "agent"  # agent/expert
+    preview_url: str = "http://127.0.0.1:3000"
 
 async def get_project_path(request: Request) -> str:
     """从FastAPI请求上下文中获取项目路径"""
@@ -64,3 +65,28 @@ async def update_ui_mode(
     await save_config(config, config_path)
     
     return {"mode": update.mode}
+
+@router.get("/api/config/ui/preview-url")
+async def get_preview_url(request: Request):
+    """获取预览URL"""
+    project_path = await get_project_path(request)
+    config_path = await get_config_path(project_path)
+    config = await load_config(config_path)
+    return {"preview_url": config.preview_url}
+
+class PreviewUrlUpdate(BaseModel):
+    preview_url: str
+
+@router.put("/api/config/ui/preview-url")
+async def update_preview_url(
+    update: PreviewUrlUpdate,
+    request: Request
+):
+    """更新预览URL"""
+    project_path = await get_project_path(request)
+    config_path = await get_config_path(project_path)
+    config = await load_config(config_path)
+    config.preview_url = update.preview_url
+    await save_config(config, config_path)
+    
+    return {"preview_url": update.preview_url}
