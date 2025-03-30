@@ -45,13 +45,11 @@ const RagSelector: React.FC = () => {
     if (selectedRag) {
       const selected = rags.find(r => r.name === selectedRag);
       if (selected) {
-        axios.post('/api/auto_coder_conf_router', {
+        axios.post('/api/conf', {
           rag_type: 'simple',
           rag_url: selected.base_url,
           rag_token: selected.api_key
-        }).catch(err => {
-          console.error('Failed to configure RAG', err);
-        });
+        })        
       }
     }
   }, [selectedRag, rags]);

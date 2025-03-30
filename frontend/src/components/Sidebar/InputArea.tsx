@@ -53,7 +53,10 @@ const InputArea: React.FC<InputAreaProps> = ({
   const [showConfig, setShowConfig] = useState<boolean>(false);
   const [config, setLocalConfig] = useState<ConfigState>({
     project_type: '',
-    skip_build_index: false
+    skip_build_index: false,
+    human_as_model: false,
+    extra_conf: {},
+    available_keys: []
   });
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [indexBuilding, setIndexBuilding] = useState<boolean>(false);
@@ -160,7 +163,10 @@ const InputArea: React.FC<InputAreaProps> = ({
         const apiConfig = response.data.conf;
         const newConfig: ConfigState = {
           project_type: apiConfig.project_type || '',
-          skip_build_index: apiConfig.skip_build_index === 'true'
+          skip_build_index: apiConfig.skip_build_index === 'true',
+          human_as_model: apiConfig.human_as_model === 'true',
+          extra_conf: apiConfig.extra_conf || {},
+          available_keys: apiConfig.available_keys || []
         };
         setLocalConfig(newConfig);
         setConfig(newConfig);
