@@ -10,25 +10,27 @@ interface AdvancedSettingsProps {
 }
 
 interface AdvancedSettingsState {
+  enable_auto_fix_merge: boolean;
   enable_auto_fix_lint: boolean;
+  enable_auto_fix_compile: boolean;
   enable_active_context: boolean;
   enable_task_history: boolean;
   include_project_structure: boolean;
   skip_filter_index: boolean;
-  enable_auto_fix_compile: boolean;
-  enable_rag: boolean; // Add enable_rag state
+  enable_rag: boolean;
 }
 
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSettingChange }) => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<AdvancedSettingsState>({
+    enable_auto_fix_merge: false,
     enable_auto_fix_lint: false,
+    enable_auto_fix_compile: false,
     enable_active_context: false,
     enable_task_history: false,
     include_project_structure: true,
     skip_filter_index: false,
-    enable_auto_fix_compile: false,
-    enable_rag: false // Initialize enable_rag state
+    enable_rag: false
   });
 
   // Fetch current configuration
@@ -46,28 +48,28 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
         // Update settings with current configuration
         const updatedSettings = { ...settings };
         
+        if (currentConfig.enable_auto_fix_merge !== undefined) {
+          updatedSettings.enable_auto_fix_merge = currentConfig.enable_auto_fix_merge === "true";
+        }
         if (currentConfig.enable_auto_fix_lint !== undefined) {
           updatedSettings.enable_auto_fix_lint = currentConfig.enable_auto_fix_lint === "true";
         }
-        
+        if (currentConfig.enable_auto_fix_compile !== undefined) {
+          updatedSettings.enable_auto_fix_compile = currentConfig.enable_auto_fix_compile === "true";
+        }
         if (currentConfig.enable_active_context !== undefined) {
           updatedSettings.enable_active_context = currentConfig.enable_active_context === "true";
         }
-        
         if (currentConfig.enable_task_history !== undefined) {
           updatedSettings.enable_task_history = currentConfig.enable_task_history === "true";
         }
-        
         if (currentConfig.include_project_structure !== undefined) {
           updatedSettings.include_project_structure = currentConfig.include_project_structure === "true";
         }
         if (currentConfig.skip_filter_index !== undefined) {
           updatedSettings.skip_filter_index = currentConfig.skip_filter_index === "true";
         }
-        if (currentConfig.enable_auto_fix_compile !== undefined) {
-          updatedSettings.enable_auto_fix_compile = currentConfig.enable_auto_fix_compile === "true";
-        }
-        if (currentConfig.enable_rag !== undefined) { // Fetch enable_rag
+        if (currentConfig.enable_rag !== undefined) {
           updatedSettings.enable_rag = currentConfig.enable_rag === "true";
         }
         
@@ -87,8 +89,14 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
     const initialSettings = { ...settings };
 
     availableKeys.forEach(key => {
+      if (key.key === 'enable_auto_fix_merge' && initialSettings.enable_auto_fix_merge === undefined) {
+        initialSettings.enable_auto_fix_merge = key.default === "true";
+      }
       if (key.key === 'enable_auto_fix_lint' && initialSettings.enable_auto_fix_lint === undefined) {
         initialSettings.enable_auto_fix_lint = key.default === "true";
+      }
+      if (key.key === 'enable_auto_fix_compile' && initialSettings.enable_auto_fix_compile === undefined) {
+        initialSettings.enable_auto_fix_compile = key.default === "true";
       }
       if (key.key === 'enable_active_context' && initialSettings.enable_active_context === undefined) {
         initialSettings.enable_active_context = key.default === "true";
@@ -102,10 +110,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
       if (key.key === 'skip_filter_index' && initialSettings.skip_filter_index === undefined) {
         initialSettings.skip_filter_index = key.default === "true";
       }
-      if (key.key === 'enable_auto_fix_compile' && initialSettings.enable_auto_fix_compile === undefined) {
-        initialSettings.enable_auto_fix_compile = key.default === "true";
-      }
-      if (key.key === 'enable_rag' && initialSettings.enable_rag === undefined) { // Initialize enable_rag from availableKeys
+      if (key.key === 'enable_rag' && initialSettings.enable_rag === undefined) {
         initialSettings.enable_rag = key.default === "true";
       }
     });
@@ -133,6 +138,18 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
       <div className="space-y-4">
         <div className="model-config-item">
           <div className="flex justify-between items-center">
+            <label className="model-config-label">{getMessage('enableAutoFixMerge')}</label>
+            <Switch
+              checked={settings.enable_auto_fix_merge}
+              onChange={(checked) => handleSettingChange('enable_auto_fix_merge', checked)}
+              className="bg-gray-600"
+            />
+          </div>
+          <p className="model-config-description">{getMessage('enableAutoFixMergeDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <div className="flex justify-between items-center">
             <label className="model-config-label">{getMessage('enableAutoFixLint')}</label>
             <Switch
               checked={settings.enable_auto_fix_lint}
@@ -141,6 +158,18 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
             />
           </div>
           <p className="model-config-description">{getMessage('enableAutoFixLintDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <div className="flex justify-between items-center">
+            <label className="model-config-label">{getMessage('enableAutoFixCompile')}</label>
+            <Switch
+              checked={settings.enable_auto_fix_compile}
+              onChange={(checked) => handleSettingChange('enable_auto_fix_compile', checked)}
+              className="bg-gray-600"
+            />
+          </div>
+          <p className="model-config-description">{getMessage('enableAutoFixCompileDescription')}</p>
         </div>
 
         <div className="model-config-item">
@@ -189,18 +218,6 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
             />
           </div>
           <p className="model-config-description">{getMessage('skipFilterIndexDescription')}</p>
-        </div>
-
-        <div className="model-config-item">
-          <div className="flex justify-between items-center">
-            <label className="model-config-label">{getMessage('enableAutoFixCompile')}</label>
-            <Switch
-              checked={settings.enable_auto_fix_compile}
-              onChange={(checked) => handleSettingChange('enable_auto_fix_compile', checked)}
-              className="bg-gray-600"
-            />
-          </div>
-          <p className="model-config-description">{getMessage('enableAutoFixCompileDescription')}</p>
         </div>
 
         {/* Add RAG Toggle Switch */}
