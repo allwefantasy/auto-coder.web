@@ -1,0 +1,56 @@
+/* BasicSettings 组件的自定义样式 */
+
+.settings-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--dark-text-primary);
+}
+
+.model-config-item {
+  background-color: var(--dark-bg-secondary);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--dark-border);
+}
+
+.model-config-label {
+  font-weight: 500;
+  color: var(--dark-text-secondary);
+}
+
+.model-config-description {
+  font-size: 0.875rem;
+  color: var(--dark-text-tertiary);
+  margin-top: 0.5rem;
+}
+
+/* 应用暗色主题样式到组件 */
+.model-config-item .ant-input-number {
+  background-color: var(--dark-bg-primary) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text-primary) !important;
+}
+
+.model-config-item .ant-select-selector {
+  background-color: var(--dark-bg-primary) !important;
+  border-color: var(--dark-border) !important;
+}
+
+.model-config-item .ant-select-selection-item {
+  color: var(--dark-text-primary) !important;
+}
+
+.model-config-item .ant-input-number-handler-wrap {
+  background-color: var(--dark-bg-secondary) !important;
+}
+
+.model-config-item .ant-input-number-handler {
+  border-color: var(--dark-border) !important;
+}
+
+.model-config-item .ant-input-number-handler-up-inner,
+.model-config-item .ant-input-number-handler-down-inner {
+  color: var(--dark-text-tertiary) !important;
+}
