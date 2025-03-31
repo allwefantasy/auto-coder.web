@@ -1412,10 +1412,6 @@ export const messages: { [key: string]: Message } = {
   advancedSettings_enableAutoFixMergeDescription: {
     en: "Automatically fixes merge failure in generated code",
     zh: "自动修复无法合并代码的情况"
-  },
-  basicSettings: {
-    en: "Basic Settings",
-    zh: "基础设置"
   }
 };
 
