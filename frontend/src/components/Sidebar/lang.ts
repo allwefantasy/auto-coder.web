@@ -1431,8 +1431,8 @@ export const messages: { [key: string]: Message } = {
     zh: "自动合并方法"
   },
   autoMergeMethodDescription: {
-    en: "Method used to merge code changes when conflicts occur",
-    zh: "发生冲突时用于合并代码更改的方法"
+    en: "Format of generated code and corresponding merge method",
+    zh: "生成代码的格式以及对应的合并方式"
   },
   wholeFile: {
     en: "Whole File",
