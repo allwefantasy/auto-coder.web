@@ -411,7 +411,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     });
 
     // 添加新建对话快捷键
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN, () => {
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
       // 触发新建对话事件
       eventBus.publish(EVENTS.CHAT.NEW_CHAT);
       return null;
