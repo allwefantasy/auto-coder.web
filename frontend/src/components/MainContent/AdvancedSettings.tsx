@@ -17,7 +17,6 @@ interface AdvancedSettingsState {
   enable_task_history: boolean;
   include_project_structure: boolean;
   skip_filter_index: boolean;
-  enable_rag: boolean;
 }
 
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSettingChange }) => {
@@ -29,8 +28,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
     enable_active_context: false,
     enable_task_history: false,
     include_project_structure: true,
-    skip_filter_index: false,
-    enable_rag: false
+    skip_filter_index: false,    
   });
 
   // Fetch current configuration
@@ -69,10 +67,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
         if (currentConfig.skip_filter_index !== undefined) {
           updatedSettings.skip_filter_index = currentConfig.skip_filter_index === "true";
         }
-        if (currentConfig.enable_rag !== undefined) {
-          updatedSettings.enable_rag = currentConfig.enable_rag === "true";
-        }
-        
+                
         setSettings(updatedSettings);
       } catch (error) {
         console.error('Error fetching current configuration:', error);
@@ -109,10 +104,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
       }
       if (key.key === 'skip_filter_index' && initialSettings.skip_filter_index === undefined) {
         initialSettings.skip_filter_index = key.default === "true";
-      }
-      if (key.key === 'enable_rag' && initialSettings.enable_rag === undefined) {
-        initialSettings.enable_rag = key.default === "true";
-      }
+      }      
     });
 
     setSettings(initialSettings);
@@ -214,23 +206,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
             <Switch
               checked={settings.skip_filter_index}
               onChange={(checked) => handleSettingChange('skip_filter_index', checked)}
-              className="bg-gray-600"
-            />
-          </div>
           <p className="model-config-description">{getMessage('skipFilterIndexDescription')}</p>
-        </div>
-
-        {/* Add RAG Toggle Switch */}
-        <div className="model-config-item">
-          <div className="flex justify-between items-center">
-            <label className="model-config-label">{getMessage('enableRag')}</label>
-            <Switch
-              checked={settings.enable_rag}
-              onChange={(checked) => handleSettingChange('enable_rag', checked)}
-              className="bg-gray-600"
-            />
-          </div>
-          <p className="model-config-description">{getMessage('enableRagDescription')}</p>
         </div>
       </div>
     </div>
