@@ -127,6 +127,12 @@ const SettingsPanel: React.FC = () => {
       <Divider className="border-gray-700 my-2" />
       
       <Tabs defaultActiveKey="general" className="settings-tabs">
+        <TabPane tab={<span className="text-gray-300">{getMessage('basicSettings')}</span>} key="basic">
+          <BasicSettings 
+            availableKeys={config.available_keys} 
+            onSettingChange={updateConfig}
+          />
+        </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('modelConfiguration')}</span>} key="general">
           <ModelConfig 
             availableKeys={config.available_keys} 
