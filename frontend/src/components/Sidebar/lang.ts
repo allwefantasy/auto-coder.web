@@ -1451,25 +1451,3 @@ export const getMessage = (key: keyof typeof messages, params: { [key: string]: 
     String(message)
   );
 };
-
-export const getMessage = (key: string): string => {
-  const messages: Record<string, string> = {
-    'enableAutoFixMerge': 'Enable Auto Fix Merge',
-    'enableAutoFixMergeDescription': 'Automatically fix merge conflicts when detected',
-    'enableAutoFixLint': 'Enable Auto Fix Lint',
-    'enableAutoFixLintDescription': 'Automatically fix linting errors when detected',
-    'enableAutoFixCompile': 'Enable Auto Fix Compile',
-    'enableAutoFixCompileDescription': 'Automatically fix compilation errors when detected',
-    'enableActiveContext': 'Enable Active Context',
-    'enableActiveContextDescription': 'Maintain active context for better code understanding',
-    'enableTaskHistory': 'Enable Task History',
-    'enableTaskHistoryDescription': 'Keep track of previous tasks and their results',
-    'includeProjectStructure': 'Include Project Structure',
-    'includeProjectStructureDescription': 'Include project structure in context for better understanding',
-    'skipFilterIndex': 'Skip Filter Index',
-    'skipFilterIndexDescription': 'Skip filtering index files when processing project',
-    'advancedSettings': 'Advanced Settings',
-    'loading': 'Loading...'
-  };
-  return messages[key] || '';
-};
