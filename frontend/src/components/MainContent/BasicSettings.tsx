@@ -86,9 +86,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
   }
 
   return (
-    <div className="p-2">
-      <h3 className="settings-title">{getMessage('basicSettings')}</h3>
-      
+    <div className="p-2 text-white">
       <div className="space-y-2">
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('indexMaxInputLength')}</label>

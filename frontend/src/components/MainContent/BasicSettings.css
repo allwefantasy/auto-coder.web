@@ -1,11 +1,5 @@
 /* BasicSettings 组件的自定义样式 */
 
-.settings-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: var(--vscode-editor-foreground);
-}
 
 .model-config-item {
   background-color: var(--vscode-editorWidget-background);
@@ -18,13 +12,13 @@
 .model-config-label {
   font-weight: 500;
   font-size: 0.875rem;
-  color: var(--vscode-editor-foreground);
+  color: white;
   margin-bottom: 0.25rem;
 }
 
 .model-config-description {
   font-size: 0.75rem;
-  color: var(--vscode-descriptionForeground);
+  color: white;
   margin-top: 0.25rem;
 }
 
