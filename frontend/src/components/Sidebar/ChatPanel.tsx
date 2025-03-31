@@ -92,6 +92,53 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   };
 
+  // 创建新对话，无需用户确认
+  const handleNewChatDirectly = async () => {
+    // 设置默认的新对话名称
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const defaultNewChatName = `chat_${timestamp}`;
+
+    try {
+      // 清空当前对话内容
+      setMessages([]);
+      
+      // 设置新的对话名称
+      setChatListName(defaultNewChatName);
+      setChatLists(prev => [defaultNewChatName, ...prev.filter(name => name !== defaultNewChatName)]); // Add new name, prevent duplicates
+      
+      // 保存新的空对话列表
+      await saveChatList(defaultNewChatName, []);
+      
+      // 设置当前会话名称
+      await setCurrentSessionName(defaultNewChatName);
+      
+      // 向聊天路由器发送 /new 命令
+      try {
+        const response = await fetch('/api/chat-command', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            command: '/new',
+          }),
+        });
+        
+        if (!response.ok) {
+          console.warn('Failed to send /new command to chat router');
+        }
+      } catch (cmdError) {
+        console.error('Error sending /new command:', cmdError);
+        // 不向用户显示错误，因为这是后台操作
+      }
+      
+      AntdMessage.success('New chat created successfully');
+    } catch (error) {
+      console.error('Error creating new chat directly:', error);
+      AntdMessage.error('Failed to create new chat');
+    }
+  };
+
   const [messages, setMessages] = useState<AutoModeMessage[]>([]);
   const [fileGroups, setFileGroups] = useState<FileGroup[]>([]);
   const [showConfig, setShowConfig] = useState(false);
@@ -120,7 +167,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
   // 添加RAG启用状态
   const [enableRag, setEnableRag] = useState<boolean>(false);
-  
+
   // 添加消息ID计数器，用于生成唯一的消息ID
   const [messageIdCounter, setMessageIdCounter] = useState<number>(0);
 
@@ -747,10 +794,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       }
     );
     
-    // 订阅新建对话事件
+    // 订阅新建对话事件 - 使用直接创建函数
     const unsubscribeNewChat = eventBus.subscribe(
       EVENTS.CHAT.NEW_CHAT,
-      showNewChatModal
+      handleNewChatDirectly
     );
 
     // 在组件卸载时清理事件监听器
