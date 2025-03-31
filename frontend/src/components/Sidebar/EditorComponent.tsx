@@ -410,40 +410,11 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       return null;
     });
 
-    // 添加新建对话快捷键 (使用 / 键)
-    editor.addCommand(monaco.KeyCode.US_SLASH, () => {
-      // 检查是否在行首或者前面是空白字符，避免在输入路径时触发
-      const position = editor.getPosition();
-      const model = editor.getModel();
-      if (position && model) {
-          const lineContent = model.getLineContent(position.lineNumber);
-          const charBefore = position.column > 1 ? lineContent.charAt(position.column - 2) : '';
-          
-          // 仅当 / 是行的第一个字符或者前面是空格时触发
-          if (position.column === 1 || /\s/.test(charBefore)) {
-              // 触发新建对话事件
-              eventBus.publish(EVENTS.CHAT.NEW_CHAT);
-              
-              // 阻止默认的 / 输入行为
-              // Note: Returning null might not be enough, 
-              // we might need preventDefault if this was a standard DOM event.
-              // In Monaco's command context, returning null is standard,
-              // but we also need to make sure the '/' character isn't inserted.
-              // A common pattern is to execute an edit to remove the character if needed,
-              // but let's first see if simply triggering the event is sufficient.
-              // If '/' still gets inserted, we might need to add:
-              // editor.executeEdits("slash-command", [{ range: new monaco.Range(position.lineNumber, position.column -1, position.lineNumber, position.column), text: "" }]);
-              return null; 
-          }
-      }
-      // If conditions aren't met, let the default '/' insertion happen
-      // We need an explicit way to tell Monaco *not* to run default handler if our command runs.
-      // A better way might be to use a precondition or context key service,
-      // but for simplicity, let's try returning null first.
-      // If '/' is still inserted, we might need to handle it differently or choose another key.
-      // For now, let's assume returning null is sufficient *if* the command logic runs.
-      // If the `if` condition is false, the command effectively does nothing, and '/' should be typed.
-
+    // 添加新建对话快捷键
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN, () => {
+      // 触发新建对话事件
+      eventBus.publish(EVENTS.CHAT.NEW_CHAT);
+      return null;
     });
     
     // 添加粘贴事件监听器到编辑器实例
