@@ -206,6 +206,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
             <Switch
               checked={settings.skip_filter_index}
               onChange={(checked) => handleSettingChange('skip_filter_index', checked)}
+              className="bg-gray-600"
+            />
+          </div>
           <p className="model-config-description">{getMessage('skipFilterIndexDescription')}</p>
         </div>
       </div>
