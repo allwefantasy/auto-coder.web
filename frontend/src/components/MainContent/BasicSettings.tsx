@@ -14,13 +14,17 @@ interface BasicSettingsProps {
 interface BasicSettingsState {
   index_filter_model_max_input_length: number;
   auto_merge: string;
+  generate_times_same_model: number;
+  rank_times_same_model: number;
 }
 
 const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingChange }) => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<BasicSettingsState>({
     index_filter_model_max_input_length: 51200,
-    auto_merge: 'editblock'
+    auto_merge: 'editblock',
+    generate_times_same_model: 1,
+    rank_times_same_model: 1,
   });
 
   // Fetch current configuration
@@ -44,6 +48,12 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         if (currentConfig.auto_merge !== undefined) {
           updatedSettings.auto_merge = currentConfig.auto_merge;
         }
+        if (currentConfig.generate_times_same_model !== undefined) {
+          updatedSettings.generate_times_same_model = Number(currentConfig.generate_times_same_model);
+        }
+        if (currentConfig.rank_times_same_model !== undefined) {
+          updatedSettings.rank_times_same_model = Number(currentConfig.rank_times_same_model);
+        }
                 
         setSettings(updatedSettings);
       } catch (error) {
@@ -66,6 +76,12 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
       }
       if (key.key === 'auto_merge' && initialSettings.auto_merge === undefined) {
         initialSettings.auto_merge = key.default || 'editblock';
+      }
+      if (key.key === 'generate_times_same_model' && initialSettings.generate_times_same_model === undefined) {
+        initialSettings.generate_times_same_model = Number(key.default) || 1;
+      }
+      if (key.key === 'rank_times_same_model' && initialSettings.rank_times_same_model === undefined) {
+        initialSettings.rank_times_same_model = Number(key.default) || 1;
       }
     });
 
@@ -120,6 +136,35 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
           </div>
           <p className="model-config-description">{getMessage('autoMergeMethodDescription')}</p>
         </div>
+
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('generateTimesSameModel')}</label>
+          <div className="mt-1">
+            <InputNumber
+              value={settings.generate_times_same_model}
+              onChange={(value) => handleSettingChange('generate_times_same_model', value || 1)}
+              min={1}
+              max={10}
+              size="small"
+            />
+          </div>
+          <p className="model-config-description">{getMessage('generateTimesSameModelDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('rankTimesSameModel')}</label>
+          <div className="mt-1">
+            <InputNumber
+              value={settings.rank_times_same_model}
+              onChange={(value) => handleSettingChange('rank_times_same_model', value || 1)}
+              min={1}
+              max={10}
+              size="small"
+            />
+          </div>
+          <p className="model-config-description">{getMessage('rankTimesSameModelDescription')}</p>
+        </div>
+
       </div>
     </div>
   );

@@ -1449,6 +1449,22 @@ export const messages: { [key: string]: Message } = {
   strictDiff: {
     en: "Strict Diff",
     zh: "严格差异"
+  },
+  generateTimesSameModel: {
+    en: "Generate Times per Model",
+    zh: "单个模型生成次数"
+  },
+  generateTimesSameModelDescription: {
+    en: "Number of candidate code generations per model",
+    zh: "单个模型生成多少份候选代码"
+  },
+  rankTimesSameModel: {
+    en: "Rank Times per Model",
+    zh: "单个投票模型投票次数"
+  },
+  rankTimesSameModelDescription: {
+    en: "Number of voting rounds per ranking model",
+    zh: "单个投票模型进行几次投票"
   }
 };
 
