@@ -1,0 +1,10 @@
+.provider-selector-container {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.provider-item {
+  flex: 1;
+  min-width: 0;
+}
