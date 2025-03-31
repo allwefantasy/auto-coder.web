@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { InputNumber, Select, message } from 'antd';
 import { getMessage } from '../Sidebar/lang';
-import '../../styles/custom_antd.css';
 import type { AutoCoderArgs } from './types';
 import './ModelConfig.css';
 
