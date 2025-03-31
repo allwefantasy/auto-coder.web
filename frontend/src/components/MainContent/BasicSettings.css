@@ -1,56 +1,63 @@
 /* BasicSettings 组件的自定义样式 */
 
 .settings-title {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--dark-text-primary);
+  margin-bottom: 0.75rem;
+  color: var(--vscode-editor-foreground);
 }
 
 .model-config-item {
-  background-color: var(--dark-bg-secondary);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border: 1px solid var(--dark-border);
+  background-color: var(--vscode-editorWidget-background);
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--vscode-editorWidget-border);
 }
 
 .model-config-label {
   font-weight: 500;
-  color: var(--dark-text-secondary);
+  font-size: 0.875rem;
+  color: var(--vscode-editor-foreground);
+  margin-bottom: 0.25rem;
 }
 
 .model-config-description {
-  font-size: 0.875rem;
-  color: var(--dark-text-tertiary);
-  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--vscode-descriptionForeground);
+  margin-top: 0.25rem;
 }
 
 /* 应用暗色主题样式到组件 */
 .model-config-item .ant-input-number {
-  background-color: var(--dark-bg-primary) !important;
-  border-color: var(--dark-border) !important;
-  color: var(--dark-text-primary) !important;
+  background-color: var(--vscode-input-background) !important;
+  border-color: var(--vscode-input-border) !important;
+  color: var(--vscode-input-foreground) !important;
 }
 
 .model-config-item .ant-select-selector {
-  background-color: var(--dark-bg-primary) !important;
-  border-color: var(--dark-border) !important;
+  background-color: var(--vscode-input-background) !important;
+  border-color: var(--vscode-input-border) !important;
 }
 
 .model-config-item .ant-select-selection-item {
-  color: var(--dark-text-primary) !important;
+  color: var(--vscode-input-foreground) !important;
 }
 
 .model-config-item .ant-input-number-handler-wrap {
-  background-color: var(--dark-bg-secondary) !important;
+  background-color: var(--vscode-input-background) !important;
+  border-left-color: var(--vscode-input-border) !important;
 }
 
 .model-config-item .ant-input-number-handler {
-  border-color: var(--dark-border) !important;
+  border-color: var(--vscode-input-border) !important;
 }
 
 .model-config-item .ant-input-number-handler-up-inner,
 .model-config-item .ant-input-number-handler-down-inner {
-  color: var(--dark-text-tertiary) !important;
+  color: var(--vscode-input-foreground) !important;
+}
+
+.model-config-item .ant-input-number-input {
+  color: var(--vscode-input-foreground) !important;
 }

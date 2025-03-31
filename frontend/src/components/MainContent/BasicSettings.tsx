@@ -86,31 +86,32 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
   }
 
   return (
-    <div>
+    <div className="p-2">
       <h3 className="settings-title">{getMessage('basicSettings')}</h3>
       
-      <div className="space-y-4">
+      <div className="space-y-2">
         <div className="model-config-item">
-          <div className="flex justify-between items-center">
-            <label className="model-config-label">{getMessage('indexMaxInputLength')}</label>
+          <label className="model-config-label">{getMessage('indexMaxInputLength')}</label>
+          <div className="mt-1">
             <InputNumber
               value={settings.index_filter_model_max_input_length}
               onChange={(value) => handleSettingChange('index_filter_model_max_input_length', value || 51200)}
-              className="bg-gray-600 text-white"
               min={1000}
               max={1000000}
+              size="small"
             />
           </div>
           <p className="model-config-description">{getMessage('indexMaxInputLengthDescription')}</p>
         </div>
 
         <div className="model-config-item">
-          <div className="flex justify-between items-center">
-            <label className="model-config-label">{getMessage('autoMergeMethod')}</label>
+          <label className="model-config-label">{getMessage('autoMergeMethod')}</label>
+          <div className="mt-1">
             <Select
               value={settings.auto_merge}
               onChange={(value) => handleSettingChange('auto_merge', value)}
-              className="bg-gray-600 w-40"
+              size="small"
+              style={{ width: '100%' }}
               options={[
                 { value: 'wholefile', label: getMessage('wholeFile') },
                 { value: 'editblock', label: getMessage('editBlock') },
