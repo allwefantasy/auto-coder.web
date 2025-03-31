@@ -1404,6 +1404,14 @@ export const messages: { [key: string]: Message } = {
   enterArguments: {
     en: "Enter arguments, separated by spaces",
     zh: "输入参数，用空格分隔"
+  },
+  advancedSettings_enableAutoFixMerge: {
+    en: "Enable Auto Fix Merge",
+    zh: "启用自动修复合并"
+  },
+  advancedSettings_enableAutoFixMergeDescription: {
+    en: "Automatically fixes merge failure in generated code",
+    zh: "自动修复无法合并代码的情况"
   }
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Switch, message } from 'antd';
-import { getMessage } from '@lang';
+import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 import './ModelConfig.css';
 
@@ -130,14 +130,14 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
       <div className="space-y-4">
         <div className="model-config-item">
           <div className="flex justify-between items-center">
-            <label className="model-config-label">{getMessage('advancedSettings.enableAutoFixMerge')}</label>
+            <label className="model-config-label">{getMessage('advancedSettings_enableAutoFixMerge')}</label>
             <Switch
               checked={settings.enable_auto_fix_merge}
               onChange={(checked) => handleSettingChange('enable_auto_fix_merge', checked)}
               className="bg-gray-600"
             />
           </div>
-          <p className="model-config-description">{getMessage('advancedSettings.enableAutoFixMergeDescription')}</p>
+          <p className="model-config-description">{getMessage('advancedSettings_enableAutoFixMergeDescription')}</p>
         </div>
 
         <div className="model-config-item">
