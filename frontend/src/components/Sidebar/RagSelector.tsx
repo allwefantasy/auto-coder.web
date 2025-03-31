@@ -64,7 +64,7 @@ const RagSelector: React.FC = () => {
 
 
   return (
-    <div className="w-full mb-2">
+    <div className="mb-2"> {/* Removed w-full, parent controls width */}
       <div className="flex items-center justify-between mb-1">
         <Tooltip title="Select a Retrieval-Augmented Generation provider">
           <div 

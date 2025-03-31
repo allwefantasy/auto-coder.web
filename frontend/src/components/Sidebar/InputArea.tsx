@@ -6,7 +6,7 @@ import { getMessage } from './lang';
 import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
 import FileGroupSelect from './FileGroupSelect';
 import { chatService } from '../../services/chatService';
-import RagSelector from './RagSelector';
+import ProviderSelectors from './ProviderSelectors'; // Import the new parent component
 import { codingService } from '../../services/codingService';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import axios from 'axios';
@@ -449,10 +449,11 @@ const InputArea: React.FC<InputAreaProps> = ({
         )}
 
         <div className="h-[1px] bg-gray-700/50 my-1 w-full"></div>
-        <div className="w-full">
-          {!isWriteMode && (
-            <RagSelector />
-          )}
+        {/* Provider Selectors (RAG/MCPs) */}
+        <ProviderSelectors isWriteMode={isWriteMode} />
+
+        {/* File Group Selector */}
+        <div className="w-full mt-1"> {/* Add margin top if needed */}
           <FileGroupSelect
             fileGroups={fileGroups}
             selectedGroups={selectedGroups}
