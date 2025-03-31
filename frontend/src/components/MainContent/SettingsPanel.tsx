@@ -7,6 +7,7 @@ import ModelManagement from './ModelManagement';
 import ProviderManagement from './ProviderManagement';
 import CompilerConfig from './CompilerConfig';
 import RagConfig from './RagConfig';
+import BasicSettings from './BasicSettings';
 import AdvancedSettings from './AdvancedSettings';
 import './ModelConfig.css';
 
@@ -143,6 +144,12 @@ const SettingsPanel: React.FC = () => {
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('ragConfiguration') || 'RAG Configuration'}</span>} key="rags">
           <RagConfig />
+        </TabPane>
+        <TabPane tab={<span className="text-gray-300">{getMessage('basicSettings')}</span>} key="basic">
+          <BasicSettings 
+            availableKeys={config.available_keys} 
+            onSettingChange={updateConfig}
+          />
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('advancedSettings')}</span>} key="advanced">
           <AdvancedSettings 
