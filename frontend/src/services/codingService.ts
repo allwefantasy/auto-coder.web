@@ -196,9 +196,10 @@ class CodingService extends EventEmitter {
   private handleResultEvent(event: AutoCommandEvent, messageId: string) {
     const content = event.content as ResultContent;
 
+    console.log('原始消息', event);
     let messageContent: string;
     let contentType = content.content_type;
-    let metadata = { ...content.metadata, ...event.metadata };
+    let metadata = { ...content.metadata, ...event.metadata };        
 
     // Determine the type of content and format accordingly
     if (typeof content.content === 'string') {
@@ -274,6 +275,7 @@ class CodingService extends EventEmitter {
       // Default for any other object type
       messageContent = JSON.stringify(content.content);
     }
+    
 
     const message: AutoModeMessage = {
       id: messageId,
@@ -283,6 +285,8 @@ class CodingService extends EventEmitter {
       metadata: metadata,
       eventId: event.event_id,
     };
+
+    console.log('处理过后的', message);
 
     this.emit('message', message);
   }
