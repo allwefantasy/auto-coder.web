@@ -17,7 +17,8 @@ import {
     CodeRankMessage,
     CodeLintMessage,
     IndexBuildMessage,
-    UserMessage
+    UserMessage,
+    CodeMergeMessage
 } from './MessageTypes';
 
 
@@ -97,6 +98,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
 
         if (message.metadata?.stream_out_type === "code_rank") {
             return <CodeRankMessage message={message} />;
+        }
+
+        // 未合并代码块的展示
+        if (message.metadata?.stream_out_type === "unmerged_blocks") {
+            return <CodeMergeMessage message={message} />;
         }
 
         // For summary content
