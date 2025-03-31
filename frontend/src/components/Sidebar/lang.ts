@@ -1412,6 +1412,43 @@ export const messages: { [key: string]: Message } = {
   advancedSettings_enableAutoFixMergeDescription: {
     en: "Automatically fixes merge failure in generated code",
     zh: "自动修复无法合并代码的情况"
+  },
+  // BasicSettings component
+  basicSettings: {
+    en: "Basic Settings",
+    zh: "基本设置"
+  },
+  indexMaxInputLength: {
+    en: "Index Max Input Length",
+    zh: "索引最大输入长度"
+  },
+  indexMaxInputLengthDescription: {
+    en: "Maximum token length for index filter model input",
+    zh: "索引过滤模型输入的最大令牌长度"
+  },
+  autoMergeMethod: {
+    en: "Auto Merge Method",
+    zh: "自动合并方法"
+  },
+  autoMergeMethodDescription: {
+    en: "Method used to merge code changes when conflicts occur",
+    zh: "发生冲突时用于合并代码更改的方法"
+  },
+  wholeFile: {
+    en: "Whole File",
+    zh: "整个文件"
+  },
+  editBlock: {
+    en: "Edit Block",
+    zh: "编辑块"
+  },
+  diff: {
+    en: "Diff",
+    zh: "差异"
+  },
+  strictDiff: {
+    en: "Strict Diff",
+    zh: "严格差异"
   }
 };
 

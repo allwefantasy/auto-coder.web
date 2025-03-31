@@ -110,10 +110,10 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
               onChange={(value) => handleSettingChange('auto_merge', value)}
               className="bg-gray-600 w-40"
               options={[
-                { value: 'wholefile', label: 'Whole File' },
-                { value: 'editblock', label: 'Edit Block' },
-                { value: 'diff', label: 'Diff' },
-                { value: 'strict_diff', label: 'Strict Diff' }
+                { value: 'wholefile', label: getMessage('wholeFile') },
+                { value: 'editblock', label: getMessage('editBlock') },
+                { value: 'diff', label: getMessage('diff') },
+                { value: 'strict_diff', label: getMessage('strictDiff') }
               ]}
             />
           </div>
