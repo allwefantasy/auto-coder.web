@@ -746,6 +746,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         setEnableRag(enabled);
       }
     );
+    
+    // 订阅新建对话事件
+    const unsubscribeNewChat = eventBus.subscribe(
+      EVENTS.CHAT.NEW_CHAT,
+      showNewChatModal
+    );
 
     // 在组件卸载时清理事件监听器
     return () => {
@@ -753,6 +759,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       codingService.removeAllListeners();
       unsubscribeRefresh();
       unsubscribeRagEnabled();
+      unsubscribeNewChat();
     };
   }, [handleRefreshFromMessage]);
   

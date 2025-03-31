@@ -409,6 +409,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       eventBus.publish(EVENTS.FILE_GROUP_SELECT.FOCUS);
       return null;
     });
+
+    // 添加新建对话快捷键
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN, () => {
+      // 触发新建对话事件
+      eventBus.publish(EVENTS.CHAT.NEW_CHAT);
+      return null;
+    });
     
     // 添加粘贴事件监听器到编辑器实例
     editor.onDidPaste(() => {
