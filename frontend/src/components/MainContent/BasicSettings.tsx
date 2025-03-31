@@ -3,6 +3,7 @@ import { InputNumber, Select, message } from 'antd';
 import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 import './ModelConfig.css';
+import '../../styles/custom_antd.css';
 
 interface BasicSettingsProps {
   availableKeys: AutoCoderArgs[];
