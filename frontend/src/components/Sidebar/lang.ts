@@ -1115,6 +1115,14 @@ export const messages: { [key: string]: Message } = {
     en: "Include project directory structure in context. Set to false for large projects.",
     zh: "在上下文中包含项目目录结构。如果项目很大，请设置为false。"
   },
+  enableRag: {
+    en: "Enable RAG",
+    zh: "启用 RAG"
+  },
+  enableRagDescription: {
+    en: "Prefix messages with /rag when enabled and not in write mode.",
+    zh: "启用后，在非写入模式下，消息将自动添加 /rag 前缀。"
+  },
   // FileGroupSelect相关
   fileGroupSelectPlaceholder: {
     en: "Select file groups or search for files",

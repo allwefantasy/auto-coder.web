@@ -16,6 +16,7 @@ interface AdvancedSettingsState {
   include_project_structure: boolean;
   skip_filter_index: boolean;
   enable_auto_fix_compile: boolean;
+  enable_rag: boolean; // Add enable_rag state
 }
 
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSettingChange }) => {
@@ -26,7 +27,8 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
     enable_task_history: false,
     include_project_structure: true,
     skip_filter_index: false,
-    enable_auto_fix_compile: false
+    enable_auto_fix_compile: false,
+    enable_rag: false // Initialize enable_rag state
   });
 
   // Fetch current configuration
@@ -65,6 +67,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
         if (currentConfig.enable_auto_fix_compile !== undefined) {
           updatedSettings.enable_auto_fix_compile = currentConfig.enable_auto_fix_compile === "true";
         }
+        if (currentConfig.enable_rag !== undefined) { // Fetch enable_rag
+          updatedSettings.enable_rag = currentConfig.enable_rag === "true";
+        }
         
         setSettings(updatedSettings);
       } catch (error) {
@@ -99,6 +104,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
       }
       if (key.key === 'enable_auto_fix_compile' && initialSettings.enable_auto_fix_compile === undefined) {
         initialSettings.enable_auto_fix_compile = key.default === "true";
+      }
+      if (key.key === 'enable_rag' && initialSettings.enable_rag === undefined) { // Initialize enable_rag from availableKeys
+        initialSettings.enable_rag = key.default === "true";
       }
     });
 
@@ -193,6 +201,19 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
             />
           </div>
           <p className="model-config-description">{getMessage('enableAutoFixCompileDescription')}</p>
+        </div>
+
+        {/* Add RAG Toggle Switch */}
+        <div className="model-config-item">
+          <div className="flex justify-between items-center">
+            <label className="model-config-label">{getMessage('enableRag')}</label>
+            <Switch
+              checked={settings.enable_rag}
+              onChange={(checked) => handleSettingChange('enable_rag', checked)}
+              className="bg-gray-600"
+            />
+          </div>
+          <p className="model-config-description">{getMessage('enableRagDescription')}</p>
         </div>
       </div>
     </div>
