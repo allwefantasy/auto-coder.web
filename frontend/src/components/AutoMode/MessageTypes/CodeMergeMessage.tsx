@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -6,26 +6,44 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './MessageStyles.css';
 import eventBus, { EVENTS } from '../../../services/eventBus';
 
+interface CodeMergeContent {
+    timestamp: number;
+    metadata: Record<string, any>;
+    content: string;
+    content_type: string;
+}
+
 interface CodeMergeMessageProps {
     message: MessageProps;
 }
 
 const CodeMergeMessage: React.FC<CodeMergeMessageProps> = ({ message }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
-    
+
+    // Parse the message content as JSON
+    const parsedContent = useMemo(() => {
+        try {
+            const parsed: CodeMergeContent = JSON.parse(message.content);
+            return parsed.content || ''; // Return the inner content or empty string if not found
+        } catch (error) {
+            console.error("Failed to parse CodeMergeMessage content:", error);
+            return message.content; // Fallback to original content if parsing fails
+        }
+    }, [message.content]);
+
     // Determine language for syntax highlighting
-    const language = message.language || 'javascript';
-    
+    const language = message.language || 'javascript'; // Assuming default language if not specified
+
     // 处理最大化按钮点击
     const handleMaximize = () => {
         eventBus.publish(EVENTS.UI.SHOW_MODAL, {
-            content: message.content,
+            content: parsedContent, // Use parsed content for modal
             format: 'markdown',
             language: language,
             title: getMessage('unmergedBlocks')
         });
     };
-    
+
     return (
         <div className="message-font">
             <div className="message-title">
@@ -56,9 +74,9 @@ const CodeMergeMessage: React.FC<CodeMergeMessageProps> = ({ message }) => {
                 <span className="text-blue-400 message-title-text text-xs">{getMessage('unmergedBlocks') || 'Unmerged Blocks'}</span>
                 
                 {/* 添加复制和最大化按钮 */}
-                <button 
+                <button
                     onClick={() => {
-                        navigator.clipboard.writeText(message.content);
+                        navigator.clipboard.writeText(parsedContent); // Copy parsed content
                     }}
                     className="ml-auto message-copy-button text-gray-400 hover:text-blue-400"
                     title={getMessage('copy') || 'Copy'}
@@ -93,8 +111,8 @@ const CodeMergeMessage: React.FC<CodeMergeMessageProps> = ({ message }) => {
                             }}
                             wrapLines={true}
                             wrapLongLines={true}
-                        >                    
-                            {message.content}
+                        >
+                            {parsedContent} {/* Render parsed content */}
                         </SyntaxHighlighter>
                     </div>
                 </div>
