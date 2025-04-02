@@ -190,7 +190,6 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
           </div>
           <p className="model-config-description">{getMessage('enableAgenticFilterDescription')}</p>
         </div>
-
       </div>
     </div>
   );

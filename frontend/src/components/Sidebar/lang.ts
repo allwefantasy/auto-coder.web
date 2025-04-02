@@ -1473,6 +1473,23 @@ export const messages: { [key: string]: Message } = {
   agenticFilterCommandResult: {
     en: "Read the result of {{command}}...",
     zh: "阅读 {{command}} 的执行结果..."
+  },
+  // Basic Settings
+  enableAgenticFilter: {
+    en: "Enable Agentic Filter",
+    zh: "开启Agent模式过滤"
+  },
+  enableAgenticFilterDescription: {
+    en: "Enable agentic filter for more accurate file selection",
+    zh: "启用Agent模式过滤以进行更准确的文件选择"
+  },
+  enable: {
+    en: "Enable",
+    zh: "启用"
+  },
+  disable: {
+    en: "Disable",
+    zh: "禁用"
   }
 };
 
