@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
+import { formatNumberToFixed } from '../../../utils/formatUtils';
 
 interface IndexBuildMessageProps {
     message: MessageProps;
@@ -83,10 +84,10 @@ const IndexBuildMessage: React.FC<IndexBuildMessageProps> = ({ message }) => {
                         <div className="flex items-center">
                             <span>{getMessage('apiCost')}: </span>
                             <span className="text-white ml-1">
-                                ${(message.metadata.input_cost + message.metadata.output_cost).toFixed(5)}
+                                ${formatNumberToFixed(message.metadata.input_cost + message.metadata.output_cost, 5)}
                             </span>
                         </div>
-                    )}                    
+                    )}
                 </>
             )}
         </div>
