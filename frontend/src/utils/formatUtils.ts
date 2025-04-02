@@ -43,3 +43,29 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
+
+/**
+ * Formats a number to a specified number of decimal places.
+ * @param num The number to format.
+ * @param precision The number of decimal places to keep (default: 2).
+ * @returns A string representation of the number with the specified precision.
+ */
+export function formatNumberToFixed(num: number | string, precision: number = 2): string {
+  let numericValue: number;
+
+  if (typeof num === 'string') {
+    numericValue = parseFloat(num);
+    if (isNaN(numericValue)) {
+      return ''; // Or handle error as appropriate, e.g., return 'NaN' or throw error
+    }
+  } else {
+    numericValue = num;
+  }
+
+  if (typeof numericValue !== 'number' || isNaN(numericValue)) {
+     return ''; // Handle cases where conversion might still fail or input was not a number
+  }
+
+  const effectivePrecision = precision < 0 ? 0 : precision;
+  return numericValue.toFixed(effectivePrecision);
+}
