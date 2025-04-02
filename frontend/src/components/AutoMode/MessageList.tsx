@@ -20,6 +20,8 @@ import {
     UserMessage,
     CodeMergeMessage
 } from './MessageTypes';
+import AgenticFilterExecuteMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterExecuteMessage';
+import AgenticFilterPrepareMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterPrepareMessage';
 
 
 export interface MessageProps {
@@ -68,6 +70,19 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         
         if (message.isUser) {
             return <UserMessage message={message} />;
+        }
+
+        if (message.metadata?.stream_out_type === "agentic_filter") {
+             if (message.contentType === "command_execute_stat"){
+                return <AgenticFilterExecuteMessage message={message} />;
+             }
+             if (message.contentType === "command_prepare") {
+                return <AgenticFilterPrepareMessage message={message} />;
+             }
+
+             if (message.contentType === "command_execute") {
+                return <AgenticFilterExecuteMessage message={message} />;
+             }
         }
 
         // For completion events
@@ -145,7 +160,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         }        
         
         // Default text content
-        return <DefaultMessage message={message} />;
+        // return <DefaultMessage message={message} />;
+        return <></>
     };
 
     return (

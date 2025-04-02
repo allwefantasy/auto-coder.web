@@ -1465,6 +1465,10 @@ export const messages: { [key: string]: Message } = {
   rankTimesSameModelDescription: {
     en: "Number of voting rounds per ranking model",
     zh: "单个投票模型进行几次投票"
+  },
+  agenticFilterContext: {
+    en: "Agentic Filter Context",
+    zh: "智能查找上下文"
   }
 };
 

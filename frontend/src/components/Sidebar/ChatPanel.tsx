@@ -750,7 +750,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       if (messagePosition === -1) return prevMessages; // 如果找不到消息，不做任何改变
       
       // 只保留到该消息的所有消息（包括该消息）
-      return prevMessages.slice(0, messagePosition + 1);
+      return prevMessages.slice(0, messagePosition);
     });
     
     // 设置编辑器内容为该消息的内容，准备重新发送
