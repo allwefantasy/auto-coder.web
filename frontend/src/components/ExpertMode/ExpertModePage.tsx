@@ -8,7 +8,7 @@ import SettingsPanel from '../MainContent/SettingsPanel';
 import HistoryPanel from '../MainContent/HistoryPanel';
 import TerminalManager from '../Terminal/TerminalManager';
 import OutputPanel from '../Terminal/OutputPanel';
-import PreviewPanel from '../MainContent/PreviewPanel';
+import EditablePreviewPanel from '../MainContent/EditablePreviewPanel';
 import TodoPanel from '../MainContent/TodoPanel';
 import { getMessage } from '../Sidebar/lang';
 import { FileMetadata } from '../../types/file_meta';
@@ -300,7 +300,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                     </div>
                   </div>
                   <div className={`h-full ${activePanel === 'preview' ? 'block' : 'hidden'}`}>
-                    <PreviewPanel files={previewFiles} />
+                    <EditablePreviewPanel files={previewFiles} />
                   </div>
                   <div className={`h-full ${activePanel === 'history' ? 'block' : 'hidden'}`}>
                     <HistoryPanel />

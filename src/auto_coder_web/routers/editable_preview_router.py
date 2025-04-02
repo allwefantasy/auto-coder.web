@@ -1,4 +1,5 @@
 import logging
+from pydantic import BaseModel
 import requests
 from fastapi import APIRouter, HTTPException, Request, Query, Body
 from fastapi.responses import HTMLResponse
@@ -133,6 +134,8 @@ async def proxy_external_url(request: Request, url: str = Query(...)):
         # Remove security headers that prevent framing (use with caution)
         resp_headers.pop('X-Frame-Options', None)
         resp_headers.pop('Content-Security-Policy', None)
+        # Remove Content-Length header
+        resp_headers.pop('Content-Length', None)
         # Ensure correct content type
         resp_headers['Content-Type'] = 'text/html; charset=utf-8' # Force UTF-8
 
