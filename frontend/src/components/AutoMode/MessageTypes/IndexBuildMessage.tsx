@@ -7,6 +7,16 @@ interface IndexBuildMessageProps {
     message: MessageProps;
 }
 
+// Helper function to format API cost
+const formatApiCost = (inputCost?: number, outputCost?: number, precision: number = 5): string => {
+    if (inputCost === undefined || outputCost === undefined) {
+        return '$0.00000'; // Or some default/error value
+    }
+    const totalCost = inputCost + outputCost;
+    return `$${formatNumberToFixed(totalCost, precision)}`;
+};
+}
+
 const IndexBuildMessage: React.FC<IndexBuildMessageProps> = ({ message }) => {
     // Ref for container element to measure width
     const containerRef = useRef<HTMLDivElement>(null);
@@ -84,7 +94,7 @@ const IndexBuildMessage: React.FC<IndexBuildMessageProps> = ({ message }) => {
                         <div className="flex items-center">
                             <span>{getMessage('apiCost')}: </span>
                             <span className="text-white ml-1">
-                                ${formatNumberToFixed(message.metadata.input_cost + message.metadata.output_cost, 5)}
+                                {formatApiCost(message.metadata.input_cost, message.metadata.output_cost, 5)}
                             </span>
                         </div>
                     )}
