@@ -48,7 +48,7 @@ const IndexBuildMessage: React.FC<IndexBuildMessageProps> = ({ message }) => {
                     {/* First data format: file_number and total_files */}
                     {message.metadata.file_number !== undefined && message.metadata.total_files !== undefined && (
                         <div className="flex items-center">                            
-                            <span>{getMessage('indexingFiles')}: </span>
+                            <span>{getMessage('indexingFiles', { file_number: message.metadata.file_number, file_increment: message.metadata.file_number/message.metadata.total_files })}: </span>
                             <span className="text-blue-500 ml-1">
                                 {message.metadata.file_number}/{message.metadata.total_files}
                             </span>

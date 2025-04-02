@@ -1215,8 +1215,8 @@ export const messages: { [key: string]: Message } = {
   },
   // Index build related messages
   indexingFiles: {
-    en: "Preparing to build index files(files will build/total files)",
-    zh: "准备构建索引文件(待构建/总文件数)"
+    en: "Preparing to build index files... {{file_number}} will be updated, {{file_increment}}",
+    zh: "准备构建索引文件...待构建文件数 {{file_number}} 需要文件增量： {{file_increment}} "
   },
   updatedFiles: {
     en: "Updated Files",
@@ -1509,10 +1509,10 @@ export const getCurrentLanguage = () => {
 };
 
 // 获取消息文本
-export const getMessage = (key: keyof typeof messages, params: { [key: string]: string } = {}): string => {
+export const getMessage = (key: keyof typeof messages, params: { [key: string]: any } = {}): string => {
   const message = messages[key]?.[currentLanguage] || messages[key]?.en || String(key);
   return Object.entries(params).reduce(
-    (text, [key, value]) => String(text).replace(`{${key}}`, value),
+    (text, [key, value]) => String(text).replace(`{{${key}}}`, value),
     String(message)
   );
 };

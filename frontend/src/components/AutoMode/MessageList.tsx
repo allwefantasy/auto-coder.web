@@ -22,6 +22,7 @@ import {
 } from './MessageTypes';
 import AgenticFilterExecuteMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterExecuteMessage';
 import AgenticFilterPrepareMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterPrepareMessage';
+import AgenticFilterSuggestionMessage from './MessageTypes/AgenticFilterMessageTypes/AgentiFilterSuggestionMessage';
 
 
 export interface MessageProps {
@@ -80,10 +81,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
              if (message.contentType === "command_prepare") {
                 return <AgenticFilterPrepareMessage message={message} />;
              }
-
-             if (message.contentType === "command_execute") {
-                return <AgenticFilterExecuteMessage message={message} />;
-             }
+                          
+             return <AgenticFilterSuggestionMessage message={message} />;
         }
 
         // For completion events
