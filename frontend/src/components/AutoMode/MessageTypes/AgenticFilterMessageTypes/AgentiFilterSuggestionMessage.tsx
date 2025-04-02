@@ -114,7 +114,7 @@ const RegularCommandMessage: React.FC<{ message: MessageProps }> = ({ message })
                     </svg>
                 </span>
                 
-                <span className="text-blue-400 message-title-text">{getMessage('commandSuggestionTitle')}</span>
+                <span className="text-blue-400 message-title-text">{getMessage('agenticFilterCommandChoose',{command:message.content.split("(")[0]})}</span>
             </div>
             
             {!isCollapsed && (

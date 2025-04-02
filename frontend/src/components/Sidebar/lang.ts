@@ -1215,8 +1215,8 @@ export const messages: { [key: string]: Message } = {
   },
   // Index build related messages
   indexingFiles: {
-    en: "Preparing to build index files... {{file_number}} will be updated, {{file_increment}}",
-    zh: "准备构建索引文件...待构建文件数 {{file_number}} 需要文件增量： {{file_increment}} "
+    en: "Preparing to build index files... files to be updated: {{file_number}},increment:{{file_increment}}",
+    zh: "准备构建索引文件...待构建文件数 {{file_number}},增量占比：{{file_increment}} "
   },
   updatedFiles: {
     en: "Updated Files",
@@ -1466,9 +1466,13 @@ export const messages: { [key: string]: Message } = {
     en: "Number of voting rounds per ranking model",
     zh: "单个投票模型进行几次投票"
   },
-  agenticFilterContext: {
-    en: "Agentic Filter Context",
-    zh: "智能查找上下文"
+  agenticFilterCommandChoose: {
+    en: "{{command}}",
+    zh: "{{command}}"
+  },
+  agenticFilterCommandResult: {
+    en: "Read the result of {{command}}...",
+    zh: "阅读 {{command}} 的执行结果..."
   }
 };
 

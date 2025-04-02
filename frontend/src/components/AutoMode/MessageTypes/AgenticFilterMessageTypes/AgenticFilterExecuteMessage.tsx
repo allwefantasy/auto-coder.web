@@ -64,7 +64,7 @@ const AgenticFilterExecuteMessage: React.FC<AgenticFilterExecuteMessageProps> = 
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                     </span>
-                    <span className="text-indigo-400 message-title-text">{getMessage('commandExecution')}({getMessage('agenticFilterContext')})</span>
+                    <span className="text-indigo-400 message-title-text">{getMessage('agenticFilterCommandResult',{command:message.metadata?.command})}</span>
                 </div>
                 <div className="text-gray-400">
                     <svg 
@@ -77,17 +77,7 @@ const AgenticFilterExecuteMessage: React.FC<AgenticFilterExecuteMessageProps> = 
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </div>
-            </div>
-
-            {/* Command display with subtle background - always visible */}
-            <div className="px-4 py-3 bg-gray-800/50 border-b border-gray-700">
-                <div className="flex items-center">
-                    <span className="text-gray-400 mr-2">{getMessage('command')}:</span>
-                    <span className="text-white font-semibold font-mono bg-gray-700/50 px-2 py-1 rounded">
-                        {message.metadata?.command}
-                    </span>
-                </div>
-            </div>
+            </div>            
 
             {/* Command output with markdown rendering or file display - collapsible */}
             {isExpanded && (

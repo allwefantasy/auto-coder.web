@@ -63,7 +63,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             message.contentType !== 'command_prepare_stat' && 
             !(message.type === "STREAM" && streamOutTypesToFilter.includes(message.metadata?.stream_out_type))
         );
-        
+        // console.log([...filteredMessages, lastMessage])
         // Add the last message back to the filtered results
         return [...filteredMessages, lastMessage];
     };
@@ -81,7 +81,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
              if (message.contentType === "command_prepare") {
                 return <AgenticFilterPrepareMessage message={message} />;
              }
-                          
+             if (message.contentType === "text"){
+                return <DefaultMessage message={message} />;
+             }
              return <AgenticFilterSuggestionMessage message={message} />;
         }
 

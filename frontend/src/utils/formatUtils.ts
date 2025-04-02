@@ -69,17 +69,3 @@ export function formatNumberToFixed(num: number | string, precision: number = 2)
   const effectivePrecision = precision < 0 ? 0 : precision;
   return numericValue.toFixed(effectivePrecision);
 }
-
-/**
- * Formats two numbers as a fraction string "numerator/denominator".
- * @param numerator The numerator value.
- * @param denominator The denominator value.
- * @returns A string representation of the fraction.
- */
-export function formatFraction(numerator: number | undefined, denominator: number | undefined): string {
-  if (numerator === undefined || denominator === undefined) {
-    return 'N/A'; // Or handle missing values as appropriate
-  }
-  // You might add checks for denominator === 0 if needed
-  return `${numerator}/${denominator}`;
-}
