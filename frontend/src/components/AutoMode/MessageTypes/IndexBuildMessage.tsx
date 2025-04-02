@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
-import { formatNumberToFixed } from '../../../utils/formatUtils';
+import { formatNumberToFixed, formatFraction } from '../../../utils/formatUtils';
 
 interface IndexBuildMessageProps {
     message: MessageProps;
@@ -58,9 +58,9 @@ const IndexBuildMessage: React.FC<IndexBuildMessageProps> = ({ message }) => {
                     {/* First data format: file_number and total_files */}
                     {message.metadata.file_number !== undefined && message.metadata.total_files !== undefined && (
                         <div className="flex items-center">                            
-                            <span>{getMessage('indexingFiles', { file_number: message.metadata.file_number, file_increment: message.metadata.file_number/message.metadata.total_files })}: </span>
+                            <span>{getMessage('indexingFiles', { file_number: message.metadata.file_number, file_increment: message.metadata.total_files ? (message.metadata.file_number / message.metadata.total_files).toFixed(2) : 'N/A' })}: </span>
                             <span className="text-blue-500 ml-1">
-                                {message.metadata.file_number}/{message.metadata.total_files}
+                                {formatFraction(message.metadata.file_number, message.metadata.total_files)}
                             </span>
                         </div>
                     )}
