@@ -96,7 +96,6 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
 
     setSettings(initialSettings);
   }, [availableKeys]);
-  };
 
   const handleSettingChange = (key: keyof BasicSettingsState, value: string | number | boolean) => {
     setSettings(prev => ({ ...prev, [key]: value }));
