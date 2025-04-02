@@ -521,27 +521,36 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     // 注册自动完成提供者
     if (!providerRegistered.current) {
       monaco.languages.registerCompletionItemProvider('markdown', {
-        triggerCharacters: ['@'],
-        provideCompletionItems: async (model: any, position: any) => {                    
-          // const wordText = model.getWordUntilPosition(position);
-          // 获取查询文本
-          // const query = wordText.word;
-          
-          // 获取当前行的内容
-          const lineContent = model.getLineContent(position.lineNumber);
-          // 获取光标前的文本
-          const textBeforeCursor = lineContent.substring(0, position.column - 1);
-          
-          // 检查是否有@字符，并从@字符后开始提取查询文本
-          const atSignIndex = textBeforeCursor.lastIndexOf('@');
-          
-          // 如果找到@字符，则从@后面开始提取；否则返回空字符串
-          let query = '';
-          if (atSignIndex !== -1) {
-            query = textBeforeCursor.substring(atSignIndex + 1); // +1 跳过@字符本身
+        triggerCharacters: ['@'], // 保持触发字符为@
+        provideCompletionItems: async (model: any, position: any, context: any) => {
+          // 仅处理由@触发或未完成补全的重新触发
+          if (
+            context.triggerCharacter !== '@' &&
+            context.triggerKind !== monaco.languages.CompletionTriggerKind.TriggerForIncompleteCompletions
+          ) {
+            return { suggestions: [], incomplete: false };
           }
 
-          console.log('提取的查询:', query, '原始文本:', textBeforeCursor);
+          // 获取当前行文本及光标前内容
+          const lineContent = model.getLineContent(position.lineNumber);
+          const textBeforeCursor = lineContent.substring(0, position.column - 1);
+
+          // 查找最近的@符号位置
+          const atSignIndex = textBeforeCursor.lastIndexOf('@');
+          if (atSignIndex === -1) return { suggestions: [], incomplete: false };
+
+          // 提取@符号后的内容
+          const afterAtContent = textBeforeCursor.substring(atSignIndex + 1);
+
+          // 检查@后是否有空格（无效场景）
+          if (/\s/.test(afterAtContent)) {
+            return { suggestions: [], incomplete: false };
+          }
+
+          // 提取查询内容（@符号后的部分）
+          const query = afterAtContent;
+
+          console.log('提取的查询:', query, '原始文本:', textBeforeCursor, '触发类型:', context.triggerKind);
 
           // 并行获取文件和符号补全
           const [fileResponse, symbolResponse] = await Promise.all([
@@ -572,6 +581,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 title: '选择完成',
                 arguments: [item.name, item.path, 'file', enhancedItem]
               },
+              // 定义替换范围，从@符号后开始到当前光标位置
+              range: new monaco.Range(
+                position.lineNumber,
+                atSignIndex + 2, // +2 跳过@符号
+                position.lineNumber,
+                position.column
+              ),
               insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
             };
           });
@@ -594,14 +610,21 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 title: '选择完成',
                 arguments: [item.name, item.path, 'symbol', enhancedItem]
               },
+              // 定义替换范围，从@符号后开始到当前光标位置
+              range: new monaco.Range(
+                position.lineNumber,
+                atSignIndex + 2, // +2 跳过@符号
+                position.lineNumber,
+                position.column
+              ),
               insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
             };
           });
 
-          // 合并建议
+          // 合并建议并标记为未完成
           return {
             suggestions: [...fileSuggestions, ...symbolSuggestions],
-            incomplete: true
+            incomplete: true // 关键：允许继续输入触发
           };
         }
       });
