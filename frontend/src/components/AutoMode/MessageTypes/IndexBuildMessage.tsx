@@ -15,7 +15,6 @@ const formatApiCost = (inputCost?: number, outputCost?: number, precision: numbe
     const totalCost = inputCost + outputCost;
     return `$${formatNumberToFixed(totalCost, precision)}`;
 };
-}
 
 const IndexBuildMessage: React.FC<IndexBuildMessageProps> = ({ message }) => {
     // Ref for container element to measure width
