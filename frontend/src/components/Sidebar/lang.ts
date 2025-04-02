@@ -1493,7 +1493,7 @@ export const messages: { [key: string]: Message } = {
   },  
   unmergedBlocks: {
     en: "Unmerged File Path Found",
-    zh: "发现未合并的文件"
+    zh: "有未合并的文件"
   }
 };
 

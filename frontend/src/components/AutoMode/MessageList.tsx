@@ -118,8 +118,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         }
 
         // 未合并代码块的展示
-        if (message.metadata?.stream_out_type === "unmerged_blocks") {
-            console.log(message)
+        if (message.metadata?.stream_out_type === "unmerged_blocks") {            
             return <CodeMergeMessage message={message} />;
         }
 
