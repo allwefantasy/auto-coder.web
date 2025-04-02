@@ -16,6 +16,7 @@ interface BasicSettingsState {
   auto_merge: string;
   generate_times_same_model: number;
   rank_times_same_model: number;
+  enable_agentic_filter: boolean;
 }
 
 const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingChange }) => {
@@ -25,6 +26,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
     auto_merge: 'editblock',
     generate_times_same_model: 1,
     rank_times_same_model: 1,
+    enable_agentic_filter: false,
   });
 
   // Fetch current configuration
@@ -53,6 +55,10 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         }
         if (currentConfig.rank_times_same_model !== undefined) {
           updatedSettings.rank_times_same_model = Number(currentConfig.rank_times_same_model);
+        }
+        if (currentConfig.enable_agentic_filter !== undefined) {
+          // Assuming the backend sends boolean or string "true"/"false"
+          updatedSettings.enable_agentic_filter = String(currentConfig.enable_agentic_filter).toLowerCase() === 'true';
         }
                 
         setSettings(updatedSettings);
@@ -83,16 +89,20 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
       if (key.key === 'rank_times_same_model' && initialSettings.rank_times_same_model === undefined) {
         initialSettings.rank_times_same_model = Number(key.default) || 1;
       }
+      if (key.key === 'enable_agentic_filter' && initialSettings.enable_agentic_filter === undefined) {
+        initialSettings.enable_agentic_filter = String(key.default).toLowerCase() === 'true' || false;
+      }
     });
 
     setSettings(initialSettings);
   }, [availableKeys]);
-
-  const handleSettingChange = (key: keyof BasicSettingsState, value: string | number) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-    onSettingChange(key, value);
   };
 
+  const handleSettingChange = (key: keyof BasicSettingsState, value: string | number | boolean) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+    // Convert boolean to string for backend compatibility if needed, or handle appropriately
+    onSettingChange(key, typeof value === 'boolean' ? String(value) : value);
+  };
   if (loading) {
     return (
       <div className="p-4 text-white">
@@ -163,6 +173,23 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
             />
           </div>
           <p className="model-config-description">{getMessage('rankTimesSameModelDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('enableAgenticFilter')}</label>
+          <div className="mt-1">
+            <Select
+              value={settings.enable_agentic_filter}
+              onChange={(value) => handleSettingChange('enable_agentic_filter', value)}
+              size="small"
+              style={{ width: '100%' }}
+              options={[
+                { value: true, label: getMessage('enable') },
+                { value: false, label: getMessage('disable') },
+              ]}
+            />
+          </div>
+          <p className="model-config-description">{getMessage('enableAgenticFilterDescription')}</p>
         </div>
 
       </div>
