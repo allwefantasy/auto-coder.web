@@ -56,10 +56,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         // Get the last message
         const lastMessage = messages[messages.length - 1];
         
-        // Filter out command_prepare_stat messages and STREAM messages with code_generate type
+        // Filter out command_prepare_stat messages and STREAM messages with specific stream_out_types
         const filteredMessages = messagesWithoutLast.filter(message => 
             message.contentType !== 'command_prepare_stat' && 
-            !(message.type === "STREAM" && message.metadata?.stream_out_type === "code_generate")
+            !(message.type === "STREAM" && (message.metadata?.stream_out_type === "code_generate" || message.metadata?.stream_out_type === "agentic_filter"))
         );
         
         // Add the last message back to the filtered results
