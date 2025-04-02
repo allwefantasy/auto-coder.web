@@ -1490,6 +1490,23 @@ export const messages: { [key: string]: Message } = {
   disable: {
     en: "Disable",
     zh: "禁用"
+  },
+  // UnmergeCodeBlock related
+  unmergeFilePath: {
+    en: "File Path",
+    zh: "文件路径"
+  },
+  unmergeHead: {
+    en: "Head",
+    zh: "头部"
+  },
+  unmergeUpdate: {
+    en: "Update",
+    zh: "更新"
+  },
+  unmergeSimilarity: {
+    en: "Similarity",
+    zh: "相似度"
   }
 };
 
