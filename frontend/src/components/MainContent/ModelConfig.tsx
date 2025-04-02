@@ -48,6 +48,33 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     }
   };
 
+  // Function to delete a specific configuration key
+  const deleteConfigKey = async (key: string) => {
+    try {
+      const response = await fetch(`/api/conf/${key}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        // Try to parse error message from backend if available
+        let errorDetail = 'Failed to delete configuration key';
+        try {
+          const errorData = await response.json();
+          if (errorData && errorData.detail) {
+            errorDetail = errorData.detail;
+          }
+        } catch (parseError) {
+          // Ignore if response is not JSON or empty
+        }
+        throw new Error(errorDetail);
+      }
+      // Optionally show success message or handle UI update if needed
+      // message.success(`Configuration key '${key}' deleted successfully.`);
+    } catch (error: any) {
+      console.error(`Error deleting configuration key ${key}:`, error);
+      message.error(error.message || `Failed to delete ${key}`);
+    }
+  };
+
   useEffect(() => {
     fetchModels();
   }, []);
@@ -121,13 +148,22 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
   }, [availableKeys]);
 
   const handleModelChange = (key: string, value: string | string[]) => {
-    setSelectedModels(prev => ({ ...prev, [key]: value }));
+    const isEmpty = Array.isArray(value) ? value.length === 0 : value === '';
     
-    // For code_model, convert array to comma-separated string when sending to backend
-    if (key === 'code_model' && Array.isArray(value)) {
-      onModelChange(key, value.join(','));
+    setSelectedModels(prev => ({ ...prev, [key]: value }));
+
+    if (isEmpty) {
+      // If the value is empty, call the delete endpoint for this specific key
+      deleteConfigKey(key);
+      // Also notify the parent component about the change (to empty)
+      onModelChange(key, Array.isArray(value) ? '' : value); 
     } else {
-      onModelChange(key, value as string);
+      // If the value is not empty, format it (e.g., for code_model) and notify the parent
+      let formattedValue = value;
+      if (key === 'code_model' && Array.isArray(value)) {
+        formattedValue = value.join(',');
+      }
+      onModelChange(key, formattedValue as string);
     }
   };
 
@@ -174,10 +210,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           <label className="model-config-label">{getMessage('defaultModel')}</label>
           <Select
             {...selectProps}
-            value={selectedModels.model}
-            onChange={(value) => handleModelChange('model', value)}
+            allowClear // Add allowClear prop
+            value={selectedModels.model || undefined} // Handle empty string for placeholder/clear
+            onChange={(value) => handleModelChange('model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,
+              value: model.name,              
               label: model.name
             }))}
           />
@@ -188,11 +225,12 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           <label className="model-config-label">{getMessage('codeModel')}</label>
           <Select
             {...selectProps}
+            allowClear // Add allowClear prop
             mode="multiple"
-            value={selectedModels.code_model as string[]}
-            onChange={(value) => handleModelChange('code_model', value)}
+            value={selectedModels.code_model as string[] || []} // Handle potential undefined/null
+            onChange={(value) => handleModelChange('code_model', value || [])} // Ensure empty array on clear
             options={models.map(model => ({
-              value: model.name,
+              value: model.name,              
               label: model.name
             }))}
             tagRender={(props) => {
@@ -216,10 +254,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           <label className="model-config-label">{getMessage('chatModel')}</label>
           <Select
             {...selectProps}
-            value={selectedModels.chat_model}
-            onChange={(value) => handleModelChange('chat_model', value)}
+            allowClear // Add allowClear prop
+            value={selectedModels.chat_model || undefined} // Handle empty string for placeholder/clear
+            onChange={(value) => handleModelChange('chat_model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,
+              value: model.name,              
               label: model.name
             }))}
           />
@@ -230,10 +269,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           <label className="model-config-label">{getMessage('rerankModel')}</label>
           <Select
             {...selectProps}
-            value={selectedModels.generate_rerank_model}
-            onChange={(value) => handleModelChange('generate_rerank_model', value)}
+            allowClear // Add allowClear prop
+            value={selectedModels.generate_rerank_model || undefined} // Handle empty string for placeholder/clear
+            onChange={(value) => handleModelChange('generate_rerank_model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,
+              value: model.name,              
               label: model.name
             }))}
           />
@@ -244,10 +284,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           <label className="model-config-label">{getMessage('indexModel')}</label>
           <Select
             {...selectProps}
-            value={selectedModels.index_model}
-            onChange={(value) => handleModelChange('index_model', value)}
+            allowClear // Add allowClear prop
+            value={selectedModels.index_model || undefined} // Handle empty string for placeholder/clear
+            onChange={(value) => handleModelChange('index_model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,
+              value: model.name,              
               label: model.name
             }))}
           />
@@ -258,10 +299,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           <label className="model-config-label">{getMessage('indexFilterModel')}</label>
           <Select
             {...selectProps}
-            value={selectedModels.index_filter_model}
-            onChange={(value) => handleModelChange('index_filter_model', value)}
+            allowClear // Add allowClear prop
+            value={selectedModels.index_filter_model || undefined} // Handle empty string for placeholder/clear
+            onChange={(value) => handleModelChange('index_filter_model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,
+              value: model.name,              
               label: model.name
             }))}
           />
