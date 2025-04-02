@@ -725,6 +725,39 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
                   width="100%"
                   height="100%"
                   className={`border-0 transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation" // Adjust sandbox as needed, allow-same-origin is crucial for proxy
+                  // IMPORTANT Sandbox attributes:
+                  // allow-scripts: Needed for the bridge script and the page's own JS.
+                  // allow-same-origin: Crucial! Allows the script inside the iframe (served from our proxy) to communicate back via postMessage, treating it as same-origin relative to the proxy endpoint. It does NOT make it same-origin with the parent window. Also needed for scripts within the iframe to potentially access their own origin's resources if they make requests.
+                  // allow-forms: If the page has forms.
+                  // allow-popups, allow-modals: If the page uses these features.
+                  // allow-top-navigation: Risky, allows iframe to potentially navigate the top window. Consider removing if not needed. Use 'allow-top-navigation-by-user-activation' for slightly more safety. Or 'allow-popups-to-escape-sandbox'.
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                   onError={(e) => {
-                      console.error("Iframe loading error:", e);
+                      console.error("Iframe loading error event:", e);
+                      message.error('Failed to load the preview content. Check the URL and browser console.');
+                      setIsLoading(false); // Stop loading on error
+                      setIsIframeReady(false);
+                  }}
+                  onLoad={() => {
+                      console.log("EditablePreviewPanel: Iframe onLoad event fired.");
+                      // The 'ready' message from the bridge script is a more reliable indicator
+                      // but onLoad can signal the basic frame structure is loaded.
+                      // Setting isLoading(false) here might be too early if the bridge isn't ready.
+                      // Rely on the 'ready' message from the bridge script instead.
+                      // setIsLoading(false);
+                  }}
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400">
+                  { previewUrl ? 'Loading preview...' : 'Enter a URL above to start the preview' }
+                </div>
+              )}
+            </div>
+          </div>
+        </Split>
+      </div>
+    </div>
+  );
+};
+
+export default EditablePreviewPanel;
