@@ -16,3 +16,4 @@ export { default as CodeLintMessage } from './CodeLintMessage';
 export { default as IndexBuildMessage } from './IndexBuildMessage';
 export { default as UserMessage } from './UserMessage';
 export { default as CodeMergeMessage } from './CodeMergeMessage';
+export { default as CodeCompileMessage } from './CodeCompileMessage';

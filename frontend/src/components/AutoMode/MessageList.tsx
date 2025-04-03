@@ -19,7 +19,7 @@ import {
     IndexBuildMessage,
     UserMessage,
     CodeMergeMessage,
-    CodeCompileMessage // Import the new component
+    CodeCompileMessage
 } from './MessageTypes';
 import AgenticFilterExecuteMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterExecuteMessage';
 import AgenticFilterPrepareMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterPrepareMessage';
