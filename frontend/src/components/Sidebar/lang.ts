@@ -1500,8 +1500,8 @@ export const messages: { [key: string]: Message } = {
     zh: "禁用"
   },  
   unmergedBlocks: {
-    en: "Unmerged File Path Found",
-    zh: "有未合并的文件"
+    en: "Try to fix unmerged file...",
+    zh: "尝试修正未合并的文件..."
   }
 };
 
