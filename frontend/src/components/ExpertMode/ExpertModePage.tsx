@@ -295,21 +295,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       </svg>
                       <span>{getMessage('previewChangesStatic')}</span>
                     </button>
-                    {/* Editable Preview Button */}
-                    <button
-                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300
-                        ${activePanel === 'preview_editable'
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 hover:from-purple-600 hover:to-pink-700 transform hover:-translate-y-0.5' // Different color scheme
-                          : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
-                        } flex items-center space-x-1`} // Reduced space for icon+text
-                      onClick={() => setActivePanel('preview_editable')}
-                      title={getMessage('previewChangesEditable')}
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                      </svg>
-                      <span>{getMessage('previewChangesEditable')}</span>
-                    </button>
+                    {/* Editable Preview Button moved to More dropdown */}
                     <button
                       className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300
                         ${activePanel === 'filegroup'
@@ -371,6 +357,24 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                               </svg>
                               <span>{getMessage('clipboard')}</span>
+                            </button>
+                            {/* Editable Preview Button in Dropdown */}
+                            <button
+                              className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${
+                                activePanel === 'preview_editable'
+                                  ? 'bg-purple-600 text-white' // Use a distinct color for active state
+                                  : 'text-gray-300 hover:bg-gray-700'
+                              }`}
+                              onClick={() => {
+                                setActivePanel('preview_editable');
+                                setShowToolsDropdown(false);
+                              }}
+                              title={getMessage('previewChangesEditable')}
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                              </svg>
+                              <span>{getMessage('previewChangesEditable')}</span>
                             </button>
                           </div>
                         </div>
