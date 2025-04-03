@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import Split from 'react-split';
 import { LeftOutlined, RightOutlined, EditOutlined, SaveOutlined, EyeOutlined, LoadingOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Button, Input, message, Spin, Tooltip } from 'antd';
+import { Button, Input, message, Spin, Tooltip, Modal, Form } from 'antd';
 import './PreviewPanel.css'; // Reuse existing styles if applicable, or create new ones
 import { getLanguageByFileName } from '../../utils/fileUtils';
 import axios from 'axios';
@@ -22,6 +22,7 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
   const [isLoading, setIsLoading] = useState(false); // Loading state for iframe/saving
   const [isIframeReady, setIsIframeReady] = useState(false); // Track if bridge script is ready
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [editingElement, setEditingElement] = useState<{ path: string; attributes: any } | null>(null);
 
   const [debouncedPreviewUrl, setDebouncedPreviewUrl] = useState('');
 
@@ -189,6 +190,11 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
             // Handle the received DOM content - likely save it
             saveDOM(data.content);
             break;
+          case 'elementSelected':
+            // Handle element selection from iframe
+            console.log('EditablePreviewPanel: Element selected in iframe:', data);
+            openElementEditor(data.path, data.attributes);
+            break;
           case 'commandResponse':
              console.log(`EditablePreviewPanel: Received command response for '${data.command}':`, data);
              if (!data.success) {
@@ -197,6 +203,8 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
                 if(data.command === 'enableEditing') setIsEditing(false);
                 if(data.command === 'disableEditing') setIsEditing(true);
                 setIsLoading(false); // Stop loading if save command failed here
+             } else if (data.command === 'applyAttributes') {
+                message.success('Element attributes updated successfully');
              }
              // Optionally show success messages for commands
              // else { message.success(`Preview command '${data.command}' successful.`); }
@@ -315,7 +323,19 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
     sendCommandToIframe(newState ? 'enableEditing' : 'disableEditing');
     // Update state optimistically - message listener will correct if command fails
     setIsEditing(newState);
-    message.info(newState ? 'Editing enabled' : 'Editing disabled');
+    message.info(newState ? 'Editing enabled - Double-click on elements to select' : 'Editing disabled');
+  };
+  
+  // Element editing functions
+  const openElementEditor = (path: string, attributes: any) => {
+    console.log('Opening element editor for:', path, attributes);
+    setEditingElement({ path, attributes });
+  };
+  
+  const applyAttributes = (xpath: string, attributes: any) => {
+    console.log('Applying attributes:', xpath, attributes);
+    sendCommandToIframe('applyAttributes', { xpath, attributes });
+    setEditingElement(null);
   };
 
   const requestDOM = () => {
@@ -519,6 +539,33 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
           </div>
         </Split>
       </div>
+      
+      {/* Element Attribute Editor Modal */}
+      <Modal
+        title="编辑元素属性"
+        open={!!editingElement}
+        onCancel={() => setEditingElement(null)}
+        footer={null}
+      >
+        {editingElement && (
+          <Form
+            layout="vertical"
+            initialValues={editingElement.attributes}
+            onFinish={(values) => applyAttributes(editingElement.path, values)}
+          >
+            <Form.Item label="ID" name="id">
+              <Input />
+            </Form.Item>
+            <Form.Item label="Class" name="class">
+              <Input />
+            </Form.Item>
+            <Form.Item label="Style" name="style">
+              <Input.TextArea rows={3} />
+            </Form.Item>
+            <Button type="primary" htmlType="submit">应用</Button>
+          </Form>
+        )}
+      </Modal>
     </div>
   );
 };
