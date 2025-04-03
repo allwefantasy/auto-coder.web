@@ -87,7 +87,7 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
         except Exception as e:
             logger.error(f"Error executing auto command {file_id}: {str(e)}")
             get_event_manager(event_file).write_error(
-                EventContentCreator.create_error("500", "error", str(e)).to_dict()
+                EventContentCreator.create_error(error_code="500", error_message=str(e), details={}).to_dict()
             )
     
     # 创建并启动线程

@@ -146,7 +146,7 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
         except Exception as e:
             logger.error(f"Error executing coding command {file_id}: {str(e)}")
             get_event_manager(event_file).write_error(
-                EventContentCreator.create_error("500", "error", str(e)).to_dict()
+                EventContentCreator.create_error(error_code="500", error_message=str(e), details={}).to_dict()
             )
     
     # 创建并启动线程
@@ -379,7 +379,7 @@ async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(ge
                 # 写入取消事件
                 event_manager.write_error(
                     EventContentCreator.create_error(
-                        "499", "cancelled", "Task cancelled by user").to_dict()
+                        error_code="499", error_message="cancelled", details={}).to_dict()
                 )
                 
                 logger.info(f"Task {request.event_file_id} cancelled successfully")
