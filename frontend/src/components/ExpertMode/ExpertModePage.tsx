@@ -16,20 +16,9 @@ import { FileMetadata } from '../../types/file_meta';
 import './SplitStyles.css';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import ModalDialog from '../Common/ModalDialog';
-import AskUserDialog from '../AutoMode/AskUserDialog'; // Import AskUserDialog
-import { autoCommandService } from '../../services/autoCommandService'; // Import autoCommandService
-import { Message as ServiceMessage } from '../AutoMode/types'; // Import ServiceMessage type
 
-// Define the possible panel types
+// Define the possible panel types, including the new split preview types
 type ActivePanelType = 'todo' | 'code' | 'filegroup' | 'preview_static' | 'preview_editable' | 'clipboard' | 'history' | 'settings';
-
-// Define Message type extending ServiceMessage for AskUserDialog
-interface Message extends ServiceMessage {
-  id: string;
-  timestamp?: number;
-  isUser?: boolean; // Added to satisfy potential usage in handleUserResponse if mimicking AutoModePage fully
-  responseTo?: string; // Added to satisfy potential usage in handleUserResponse
-}
 
 interface ExpertModePageProps {
   projectName: string;
@@ -62,9 +51,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
 }) => {
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
-  const [activeAskUserMessage, setActiveAskUserMessage] = useState<Message | null>(null); // State for AskUserDialog
-  const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null); // State for event file ID
-
+  
   // 弹出框状态
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
