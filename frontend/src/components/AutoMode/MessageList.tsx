@@ -18,7 +18,8 @@ import {
     CodeLintMessage,
     IndexBuildMessage,
     UserMessage,
-    CodeMergeMessage
+    CodeMergeMessage,
+    CodeCompileMessage // Import the new component
 } from './MessageTypes';
 import AgenticFilterExecuteMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterExecuteMessage';
 import AgenticFilterPrepareMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterPrepareMessage';
@@ -58,12 +59,20 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         const lastMessage = messages[messages.length - 1];
         
         // Filter out command_prepare_stat messages and STREAM messages with specific stream_out_types
-        const streamOutTypesToFilter = ["code_generate", "agentic_filter"];
-        const filteredMessages = messagesWithoutLast.filter(message => 
-            message.contentType !== 'command_prepare_stat' && 
-            !(message.type === "STREAM" && streamOutTypesToFilter.includes(message.metadata?.stream_out_type))
-        );
-        // console.log([...filteredMessages, lastMessage])
+        // We usually don't want to filter out the final result of a stream like compile or lint
+        const streamOutTypesToFilterDuringStream = ["code_generate", "agentic_filter"]; 
+        const filteredMessages = messagesWithoutLast.filter(message => {
+            // Always hide command_prepare_stat
+            if (message.contentType === 'command_prepare_stat') {
+                return false;
+            }
+            // Hide specific STREAM types while they are actively streaming
+            if (message.type === "STREAM" && message.isStreaming && streamOutTypesToFilterDuringStream.includes(message.metadata?.stream_out_type)) {
+                 return false;
+            }
+            return true;
+        });
+        
         // Add the last message back to the filtered results
         return [...filteredMessages, lastMessage];
     };
@@ -111,6 +120,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         // 代码lint结果的展示
         if (message.metadata?.stream_out_type === "lint") {
             return <CodeLintMessage message={message} />;
+        }
+        
+        // 代码编译结果的展示
+        if (message.metadata?.stream_out_type === "compile") {
+            return <CodeCompileMessage message={message} />;
         }
 
         if (message.metadata?.stream_out_type === "code_rank") {

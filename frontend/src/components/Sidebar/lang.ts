@@ -1482,6 +1482,15 @@ export const messages: { [key: string]: Message } = {
     en: "Read the result of {{command}}...",
     zh: "阅读 {{command}} 的执行结果..."
   },
+  // Compile Results
+  compileResults: {
+    en: "Compile Results",
+    zh: "编译结果"
+  },
+  analyzingCompile: {
+      en: "Analyzing Compile...",
+      zh: "正在分析编译..."
+  },
   // Basic Settings
   enableAgenticFilter: {
     en: "Enable Agentic Filter",
