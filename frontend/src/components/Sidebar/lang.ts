@@ -833,8 +833,8 @@ export const messages: { [key: string]: Message } = {
     zh: "拆分任务失败"
   },
   taskSplitSuccess: {
-    en: "Successfully split into {count} sub-tasks",
-    zh: "成功拆分为 {count} 个子任务"
+    en: "Successfully split into {{count}} sub-tasks",
+    zh: "成功拆分为 {{count}} 个子任务"
   },
   editTask: {
     en: "Edit",
@@ -1165,16 +1165,16 @@ export const messages: { [key: string]: Message } = {
     zh: "被提到"
   },
   fileCount: {
-    en: "{count} files",
-    zh: "{count} 个文件"
+    en: "{{count}} files",
+    zh: "{{count}} 个文件"
   },
   moreFiles: {
-    en: "+{count} more...",
-    zh: "还有 {count} 个..."
+    en: "+{{count}} more...",
+    zh: "还有 {{count}} 个..."
   },
   updatedMentionFiles: {
-    en: "Updated mention files: {count}",
-    zh: "更新提到的文件: {count} 个"
+    en: "Updated mention files: {{count}}",
+    zh: "更新提到的文件: {{count}} 个"
   },
   // 控制台日志和错误消息
   editorTabsChanged: {

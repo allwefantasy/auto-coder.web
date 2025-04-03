@@ -59,6 +59,62 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       console.error('Failed to save task history:', error);
     }
   }, []);
+
+  // 处理用户对ASK_USER事件的响应
+  const handleUserResponse = async (response: string, eventId?: string) => {
+    if (!eventId) {
+      console.error('Cannot respond to event: No event ID provided');
+      return;
+    }
+    
+    if (!currentEventFileId) {
+      console.error('Cannot respond to event: No event file ID available');
+      return;
+    }
+    
+    // 如果匹配事件ID，关闭活动的ASK_USER对话框
+    if (activeAskUserMessage?.eventId === eventId) {
+      setActiveAskUserMessage(null);
+    }
+    
+    // 将用户响应添加到消息列表
+    setMessages(prev => [...prev, {
+      id: 'user-response-' + Date.now(),
+      type: 'USER_RESPONSE',
+      content: response,
+      isUser: true,
+      responseTo: eventId
+    }]);
+    
+    try {
+      // 将响应发送回服务器
+      const result = await fetch('/api/auto-command/response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event_id: eventId,
+          event_file_id: currentEventFileId,
+          response: response
+        })
+      });
+      
+      if (!result.ok) {
+        const errorData = await result.json();
+        throw new Error(`Failed to send response: ${errorData.detail || result.statusText}`);
+      }
+      
+      console.log('Response sent successfully to event:', eventId);
+    } catch (error) {
+      console.error('Error sending response to server:', error);
+      setMessages(prev => [...prev, {
+        id: 'error-' + Date.now(),
+        type: 'ERROR',
+        content: `Failed to send your response to the server: ${error instanceof Error ? error.message : String(error)}`
+      }]);
+    }
+  };
   
   // 组件挂载后的初始化效果
   useEffect(() => {
@@ -163,61 +219,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     };
   }, [lastSubmittedQuery, currentEventFileId, saveTaskHistory]);
 
-  // 处理用户对ASK_USER事件的响应
-  const handleUserResponse = async (response: string, eventId?: string) => {
-    if (!eventId) {
-      console.error('Cannot respond to event: No event ID provided');
-      return;
-    }
-    
-    if (!currentEventFileId) {
-      console.error('Cannot respond to event: No event file ID available');
-      return;
-    }
-    
-    // 如果匹配事件ID，关闭活动的ASK_USER对话框
-    if (activeAskUserMessage?.eventId === eventId) {
-      setActiveAskUserMessage(null);
-    }
-    
-    // 将用户响应添加到消息列表
-    setMessages(prev => [...prev, {
-      id: 'user-response-' + Date.now(),
-      type: 'USER_RESPONSE',
-      content: response,
-      isUser: true,
-      responseTo: eventId
-    }]);
-    
-    try {
-      // 将响应发送回服务器
-      const result = await fetch('/api/auto-command/response', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          event_id: eventId,
-          event_file_id: currentEventFileId,
-          response: response
-        })
-      });
-      
-      if (!result.ok) {
-        const errorData = await result.json();
-        throw new Error(`Failed to send response: ${errorData.detail || result.statusText}`);
-      }
-      
-      console.log('Response sent successfully to event:', eventId);
-    } catch (error) {
-      console.error('Error sending response to server:', error);
-      setMessages(prev => [...prev, {
-        id: 'error-' + Date.now(),
-        type: 'ERROR',
-        content: `Failed to send your response to the server: ${error instanceof Error ? error.message : String(error)}`
-      }]);
-    }
-  };
+  
 
   // 处理自动模式搜索提交
   const handleAutoSearch = async (e: React.FormEvent) => {
