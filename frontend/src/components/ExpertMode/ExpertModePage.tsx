@@ -8,6 +8,7 @@ import SettingsPanel from '../MainContent/SettingsPanel';
 import HistoryPanel from '../MainContent/HistoryPanel';
 import TerminalManager from '../Terminal/TerminalManager';
 import OutputPanel from '../Terminal/OutputPanel';
+import PreviewPanel from '../MainContent/PreviewPanel'; // Import static preview panel
 import EditablePreviewPanel from '../MainContent/EditablePreviewPanel';
 import TodoPanel from '../MainContent/TodoPanel';
 import { getMessage } from '../Sidebar/lang';
@@ -16,10 +17,13 @@ import './SplitStyles.css';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import ModalDialog from '../Common/ModalDialog';
 
+// Define the possible panel types, including the new split preview types
+type ActivePanelType = 'todo' | 'code' | 'filegroup' | 'preview_static' | 'preview_editable' | 'clipboard' | 'history' | 'settings';
+
 interface ExpertModePageProps {
   projectName: string;
-  activePanel: 'todo' | 'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings';
-  setActivePanel: (panel: 'todo' | 'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings') => void;
+  activePanel: ActivePanelType;
+  setActivePanel: (panel: ActivePanelType) => void;
   clipboardContent: string;
   setClipboardContent: (content: string) => void;
   previewFiles: { path: string, content: string }[];
@@ -190,22 +194,39 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       </svg>
                       <span>{getMessage('codeViewer')}</span>
                     </button>
+                    {/* Static Preview Button */}
                     <button
-                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 
-                        ${activePanel === 'preview'
+                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300
+                        ${activePanel === 'preview_static'
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
                           : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
-                        } flex items-center space-x-2`}
-                      onClick={() => setActivePanel('preview')}
+                        } flex items-center space-x-1`} // Reduced space for icon+text
+                      onClick={() => setActivePanel('preview_static')}
+                      title={getMessage('previewChangesStatic')}
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      <span>{getMessage('previewChanges')}</span>
+                      <span>{getMessage('previewChangesStatic')}</span>
+                    </button>
+                    {/* Editable Preview Button */}
+                    <button
+                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300
+                        ${activePanel === 'preview_editable'
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 hover:from-purple-600 hover:to-pink-700 transform hover:-translate-y-0.5' // Different color scheme
+                          : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
+                        } flex items-center space-x-1`} // Reduced space for icon+text
+                      onClick={() => setActivePanel('preview_editable')}
+                      title={getMessage('previewChangesEditable')}
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                      <span>{getMessage('previewChangesEditable')}</span>
                     </button>
                     <button
-                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 
+                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300
                         ${activePanel === 'filegroup'
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
                           : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
@@ -299,7 +320,13 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       />
                     </div>
                   </div>
-                  <div className={`h-full ${activePanel === 'preview' ? 'block' : 'hidden'}`}>
+                  {/* Static Preview Panel */}
+                  <div className={`h-full ${activePanel === 'preview_static' ? 'block' : 'hidden'}`}>
+                    <PreviewPanel files={previewFiles} />
+                  </div>
+                  {/* Editable Preview Panel */}
+                  <div className={`h-full ${activePanel === 'preview_editable' ? 'block' : 'hidden'}`}>
+                    {/* Pass the same files prop */}
                     <EditablePreviewPanel files={previewFiles} />
                   </div>
                   <div className={`h-full ${activePanel === 'history' ? 'block' : 'hidden'}`}>

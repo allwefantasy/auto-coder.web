@@ -406,9 +406,17 @@ export const messages: { [key: string]: Message } = {
     en: "File Groups",
     zh: "文件分组"
   },
-  previewChanges: {
+  previewChanges: { // Kept for potential other uses, but specific buttons below
     en: "Preview Changes",
     zh: "预览更改"
+  },
+  previewChangesStatic: {
+    en: "Preview (Static)",
+    zh: "预览(静态)"
+  },
+  previewChangesEditable: {
+    en: "Preview (Editable)",
+    zh: "预览(可编辑)"
   },
   clipboard: {
     en: "Clipboard",
