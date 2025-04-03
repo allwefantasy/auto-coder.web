@@ -38,13 +38,10 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
         const response = await axios.get('/api/config/ui/preview-url');
         if (response.data && response.data.preview_url) {
           setPreviewUrl(response.data.preview_url);
-        } else {
-        //    setPreviewUrl('http://127.0.0.1:5173'); // Default if not found
         }
         // setPreviewUrl('http://127.0.0.1:5173');
       } catch (error) {
-        console.error('Failed to fetch preview URL:', error);
-        // setPreviewUrl('http://127.0.0.1:5173'); // Default on error
+        console.error('Failed to fetch preview URL:', error);        
       } finally {
           // setIsLoading(false); // Loading will be stopped by iframe load later
       }

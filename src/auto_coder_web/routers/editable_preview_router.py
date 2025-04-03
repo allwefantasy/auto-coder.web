@@ -10,8 +10,9 @@ from pathlib import Path
 import json
 from datetime import datetime
 import uuid
+from loguru import logger as global_logger
 
-logger = logging.getLogger(__name__)
+logger = global_logger.bind(name="editable_preview")
 router = APIRouter()
 
 # --- Configuration ---
