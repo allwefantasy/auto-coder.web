@@ -23,98 +23,6 @@
       console.warn("Bridge: Cannot send message, no parent window detected or same window.");
     }
   }
-  
-  // Element selection and hierarchy visualization
-  window.addEventListener('dblclick', function(e) {
-    if (!isEditingEnabled) return; // Only allow when editing is enabled
-    e.preventDefault();
-    e.stopPropagation();
-    showElementHierarchy(e.target);
-  }, true);
-
-  function showElementHierarchy(target) {
-    clearExistingMarkers();
-
-    let current = target;
-    let hierarchy = [];
-    while (current && current !== document.body && current !== document.documentElement) {
-      if (current.tagName.toLowerCase() === 'div') {
-        hierarchy.push(current);
-      }
-      current = current.parentElement;
-    }
-
-    hierarchy.forEach(elem => {
-      const rect = elem.getBoundingClientRect();
-      const marker = document.createElement('div');
-      marker.className = '__bridge_marker__';
-      Object.assign(marker.style, {
-        position: 'fixed',
-        border: '1px dashed red',
-        left: rect.left + 'px',
-        top: rect.top + 'px',
-        width: rect.width + 'px',
-        height: rect.height + 'px',
-        pointerEvents: 'auto',
-        zIndex: 9999,
-        backgroundColor: 'rgba(255, 0, 0, 0.1)'
-      });
-      marker.addEventListener('click', (evt) => {
-        evt.stopPropagation();
-        evt.preventDefault();
-        sendMessageToParent({
-          type: 'elementSelected',
-          path: getElementXPath(elem),
-          attributes: getElementAttributes(elem)
-        });
-      });
-      document.body.appendChild(marker);
-    });
-  }
-
-  function clearExistingMarkers() {
-    document.querySelectorAll('.__bridge_marker__').forEach(el => el.remove());
-  }
-
-  function getElementXPath(element) {
-    if (element.id) {
-      return `//*[@id="${element.id}"]`;
-    }
-    const parts = [];
-    while (element && element.nodeType === Node.ELEMENT_NODE && element !== document.body) {
-      let nb = 0, sib = element.previousSibling;
-      while(sib) {
-        if(sib.nodeType === Node.ELEMENT_NODE && sib.nodeName === element.nodeName) nb++;
-        sib = sib.previousSibling;
-      }
-      const tagName = element.nodeName.toLowerCase();
-      const nth = (nb ? `[${nb+1}]` : '');
-      parts.unshift(`${tagName}${nth}`);
-      element = element.parentNode;
-    }
-    return parts.length ? `/${parts.join('/')}` : null;
-  }
-
-  function getElementAttributes(element) {
-    const attrs = {};
-    for (let attr of element.attributes) {
-      attrs[attr.name] = attr.value;
-    }
-    return attrs;
-  }
-
-  function getElementByXpath(xpath) {
-    const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-    return result.singleNodeValue;
-  }
-
-  // Clear markers on regular click
-  document.addEventListener('click', function(e) {
-    // Don't clear if clicking on a marker itself
-    if (!e.target.classList.contains('__bridge_marker__')) {
-      clearExistingMarkers();
-    }
-  }, true);
 
   // Function to enable/disable editing
   function setEditingMode(enable) {
@@ -219,23 +127,6 @@
           sendMessageToParent({ type: 'domContent', content: dom });
         } else {
            sendMessageToParent({ type: 'commandResponse', command: command, success: false, error: 'Failed to retrieve DOM' });
-        }
-        break;
-      case 'applyAttributes':
-        const elem = getElementByXpath(payload.xpath);
-        if (elem) {
-          Object.entries(payload.attributes).forEach(([attr, val]) => {
-            if (val) elem.setAttribute(attr, val);
-            else elem.removeAttribute(attr);
-          });
-          sendMessageToParent({ type: 'commandResponse', command: command, success: true });
-        } else {
-          sendMessageToParent({ 
-            type: 'commandResponse', 
-            command: command, 
-            success: false, 
-            error: 'Element not found with XPath: ' + payload.xpath 
-          });
         }
         break;
       // Add more commands as needed (e.g., highlight element, apply style)
