@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import Split from 'react-split';
 import { LeftOutlined, RightOutlined, EditOutlined, SaveOutlined, EyeOutlined, LoadingOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Button, Input, message, Spin, Tooltip, Modal, Form } from 'antd'; // Added Modal, Form
+import { Button, Input, message, Spin, Tooltip } from 'antd';
 import './PreviewPanel.css'; // Reuse existing styles if applicable, or create new ones
 import { getLanguageByFileName } from '../../utils/fileUtils';
 import axios from 'axios';
@@ -22,8 +22,6 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
   const [isLoading, setIsLoading] = useState(false); // Loading state for iframe/saving
   const [isIframeReady, setIsIframeReady] = useState(false); // Track if bridge script is ready
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [editingElement, setEditingElement] = useState<{ path: string; attributes: any } | null>(null); // State for element editor modal
-  const [elementForm] = Form.useForm(); // Form instance for the modal
 
   const [debouncedPreviewUrl, setDebouncedPreviewUrl] = useState('');
 
@@ -221,77 +219,8 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-       // Added saveDOM to dependency array if it relies on state/props, but it seems self-contained
-      const data = event.data;
-      console.log("EditablePreviewPanel: Received message from iframe:", data);
-
-      if (data && typeof data === 'object') {
-        switch (data.type) {
-          case 'status':
-            if (data.status === 'ready') {
-              setIsIframeReady(true);
-              setIsLoading(false); // Assume ready means loaded
-              console.log('EditablePreviewPanel: Iframe reported ready.');
-             // message.success('Preview loaded and ready.'); // Maybe too noisy
-              // If editing was toggled before ready, apply it now
-              if(isEditing){
-                  console.log("EditablePreviewPanel: Iframe ready, applying pending edit state.");
-                  sendCommandToIframe('enableEditing');
-              }
-            }
-            break;
-          case 'domContent':
-            // Handle the received DOM content - likely save it
-            saveDOM(data.content);
-            break;
-          case 'elementSelected': // Handle message from bridge.js
-             if (data.path && data.attributes) {
-                openElementEditor(data.path, data.attributes);
-             } else {
-                 console.warn("EditablePreviewPanel: Received incomplete elementSelected message:", data);
-                 message.warn("Could not get details for the selected element.");
-             }
-             break;
-          case 'commandResponse':
-             console.log(`EditablePreviewPanel: Received command response for '${data.command}':`, data);
-             if (!data.success) {
-                message.error(`Preview command '${data.command}' failed: ${data.error || 'Unknown error'}`);
-                // Revert state if command failed (e.g., if enableEditing failed)
-                if(data.command === 'enableEditing') setIsEditing(false);
-                if(data.command === 'disableEditing') setIsEditing(true);
-                // If applyAttributes failed, maybe reopen modal or notify user?
-                if(data.command === 'applyAttributes') {
-                    // Maybe re-open modal? For now, just show error.
-                    // setEditingElement( {path: currentlyEditingPath, attributes: currentlyEditingAttrs }); // Need to store this if reopening
-                }
-                setIsLoading(false); // Stop loading if save command failed here
-             } else {
-                  // Optional: Show success messages for commands
-                  // if (data.command === 'applyAttributes') {
-                  //    message.success('Attributes applied successfully.');
-                  // }
-             }
-            break;
-          case 'error':
-            console.error("EditablePreviewPanel: Error message from iframe:", data.message);
-            message.error(`Error from preview: ${data.message}`);
-            setIsLoading(false); // Stop loading on error
-            break;
-          // Handle other message types like 'domChanged' if using MutationObserver
-          default:
-            console.log("EditablePreviewPanel: Unknown message type received from iframe:", data.type);
-        }
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    // Cleanup listener on component unmount
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-       // Added previewUrl dependency for saveDOM
-  }, [sendCommandToIframe, iframeSrc, isEditing, previewUrl, saveDOM, openElementEditor]); // Added saveDOM and openElementEditor
+    // Added saveDOM to dependency array if it relies on state/props, but it seems self-contained
+  }, [sendCommandToIframe, iframeSrc, isEditing, previewUrl]); // Added previewUrl dependency for saveDOM
 
   // --- End Iframe Communication Logic ---
 
@@ -362,41 +291,8 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
         setIframeSrc('about:blank'); // Briefly set to blank
         setTimeout(() => setIframeSrc(currentSrc), 50); // Then set back
     }
-     // Setting isLoading will show the spinner until the 'ready' message is received
+    // Setting isLoading will show the spinner until the 'ready' message is received
   };
-
-  // --- Element Editing Modal ---
-  const openElementEditor = useCallback((path: string, attributes: any) => {
-    console.log("Opening element editor for:", path, attributes);
-    setEditingElement({ path, attributes });
-    // Reset form fields when opening
-    elementForm.resetFields();
-    // Set initial values after a short delay to ensure modal is rendered
-    setTimeout(() => {
-       elementForm.setFieldsValue(attributes || {});
-    }, 50);
-  }, [elementForm]); // Include elementForm in dependencies
-
-  const handleModalCancel = () => {
-    setEditingElement(null);
-    elementForm.resetFields();
-  };
-
-  const applyAttributes = (xpath: string, attributes: any) => {
-     // Filter out empty/null values before sending? Or let bridge handle it?
-     // Let's keep it simple and send all form values for now.
-     console.log("Applying attributes:", xpath, attributes);
-     sendCommandToIframe('applyAttributes', { xpath, attributes });
-     handleModalCancel(); // Close modal after applying
-   };
-
-  const handleFormFinish = (values: any) => {
-    if (editingElement) {
-      applyAttributes(editingElement.path, values);
-    }
-  };
-  // --- End Element Editing Modal ---
-
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -621,68 +517,10 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({ files, init
               )}
             </div>
           </div>
-         </Split>
-       </div>
-
-       {/* Element Attribute Editor Modal */}
-        <Modal
-          title="Edit Element Attributes"
-          open={!!editingElement} // Use 'open' instead of 'visible' for newer AntD versions
-          onCancel={handleModalCancel}
-          footer={null} // Remove default footer if using Form's button
-          destroyOnClose // Reset form state when modal is closed
-          maskClosable={false} // Prevent closing by clicking outside
-        >
-          {editingElement && (
-            <Form
-              form={elementForm}
-              layout="vertical"
-              // initialValues={editingElement.attributes} // Set dynamically in openElementEditor
-              onFinish={handleFormFinish} // Use Form's onFinish
-              // onFinishFailed={(errorInfo) => { console.log('Failed:', errorInfo); }} // Optional: Handle validation errors
-            >
-              <Form.Item
-                 label="XPath (Readonly)"
-                 name="_xpath_" // Use a dummy name or just display text
-              >
-                 <Input.TextArea value={editingElement.path} readOnly rows={2} style={{ cursor: 'default', color: '#aaa' }} />
-              </Form.Item>
-              <Form.Item
-                label="ID"
-                name="id"
-                rules={[{ required: false }]} // Adjust rules as needed
-              >
-                <Input placeholder="Element ID (optional)" />
-              </Form.Item>
-              <Form.Item
-                label="Class"
-                name="class"
-                rules={[{ required: false }]}
-              >
-                <Input placeholder="CSS classes (space-separated)" />
-              </Form.Item>
-              <Form.Item
-                label="Style"
-                name="style"
-                rules={[{ required: false }]}
-              >
-                <Input.TextArea rows={4} placeholder="Inline CSS styles (e.g., color: red;)" />
-              </Form.Item>
-              {/* Add other attributes here if needed */}
-              <Form.Item>
-                <Button type="primary" htmlType="submit" loading={isLoading}>
-                  Apply Changes
-                </Button>
-                <Button style={{ marginLeft: 8 }} onClick={handleModalCancel}>
-                  Cancel
-                </Button>
-              </Form.Item>
-            </Form>
-          )}
-        </Modal>
-
-     </div>
-   );
- };
+        </Split>
+      </div>
+    </div>
+  );
+};
 
 export default EditablePreviewPanel;
