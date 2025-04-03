@@ -11,6 +11,7 @@ import OutputPanel from '../Terminal/OutputPanel';
 import PreviewPanel from '../MainContent/PreviewPanel'; // Import static preview panel
 import EditablePreviewPanel from '../MainContent/EditablePreviewPanel';
 import TodoPanel from '../MainContent/TodoPanel';
+import AskUserDialog from '../AutoMode/AskUserDialog'; // Import AskUserDialog component
 import { getMessage } from '../Sidebar/lang';
 import { FileMetadata } from '../../types/file_meta';
 import './SplitStyles.css';
@@ -59,6 +60,10 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   const [modalLanguage, setModalLanguage] = useState('plaintext');
   const [modalTitle, setModalTitle] = useState('内容预览');
   
+  // AskUserDialog相关状态
+  const [activeAskUserMessage, setActiveAskUserMessage] = useState<any | null>(null);
+  const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null);
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -85,6 +90,30 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       unsubscribe();
     };
   }, [setActivePanel]);
+  
+  // 监听ASK_USER事件
+  useEffect(() => {
+    const unsubscribe = eventBus.subscribe(EVENTS.CHAT.NEW_MESSAGE, (message) => {
+      // 处理用户询问类型的消息
+      if (message.type === 'ASK_USER') {
+        const askUserMessage = {
+          ...message,
+          id: message.id || `msg-${Date.now()}`,
+          timestamp: Date.now()
+        };
+        setActiveAskUserMessage(askUserMessage);
+      }
+      
+      // 如果消息包含event_file_id，保存它以便用于用户响应
+      if (message.event_file_id && !currentEventFileId) {
+        setCurrentEventFileId(message.event_file_id);
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [currentEventFileId]);
 
   // 订阅显示弹出框事件
   useEffect(() => {
@@ -106,6 +135,53 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
     };
   }, []);
 
+  // 处理用户对ASK_USER事件的响应
+  const handleUserResponse = async (response: string, eventId?: string) => {
+    if (!eventId) {
+      console.error('Cannot respond to event: No event ID provided');
+      return;
+    }
+    
+    if (!currentEventFileId) {
+      console.error('Cannot respond to event: No event file ID available');
+      return;
+    }
+    
+    // 如果匹配事件ID，关闭活动的ASK_USER对话框
+    if (activeAskUserMessage?.eventId === eventId) {
+      setActiveAskUserMessage(null);
+    }
+    
+    try {
+      // 将响应发送回服务器
+      const result = await fetch('/api/auto-command/response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event_id: eventId,
+          event_file_id: currentEventFileId,
+          response: response
+        })
+      });
+      
+      if (!result.ok) {
+        const errorData = await result.json();
+        throw new Error(`Failed to send response: ${errorData.detail || result.statusText}`);
+      }
+      
+      console.log('Response sent successfully to event:', eventId);
+    } catch (error) {
+      console.error('Error sending response to server:', error);
+      // 可以通过eventBus发送错误消息
+      eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, {
+        type: 'ERROR',
+        content: `Failed to send your response to the server: ${error instanceof Error ? error.message : String(error)}`
+      });
+    }
+  };
+
   const toggleToolsDropdown = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowToolsDropdown(!showToolsDropdown);
@@ -113,6 +189,15 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
 
   return (
     <>
+      {/* 用户询问对话框 - 当需要用户输入时显示的模态框 */}
+      {activeAskUserMessage && (
+        <AskUserDialog 
+          message={activeAskUserMessage} 
+          onResponse={handleUserResponse}
+          onClose={() => setActiveAskUserMessage(null)}
+        />
+      )}
+      
       <Split 
         className="flex-1 flex"
         sizes={[25, 75]}
