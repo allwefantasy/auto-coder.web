@@ -12,8 +12,7 @@ from autocoder.common.mcp_server import (
     McpListRunningRequest,
     McpRefreshRequest,
     McpServerInfoRequest,
-    McpResponse,
-    # Import result types for type safety and response structuring
+    McpResponse,    
     InstallResult,
     RemoveResult,
     ListResult,
@@ -21,8 +20,9 @@ from autocoder.common.mcp_server import (
     RefreshResult,
     QueryResult,
     ErrorResult,
-    ServerInfo, # Used within ListRunningResult
-    ExternalServerInfo # Used within ListResult
+    ServerInfo, 
+    ExternalServerInfo,
+    ServerConfig # Added for InstallResult
 )
 from autocoder.common.printer import Printer # For messages
 from autocoder.chat_auto_coder_lang import get_message_with_format # For formatted messages
@@ -78,7 +78,7 @@ async def handle_mcp_response(request: Any, success_key: str, error_key: str, **
                 if formatted_success: # Check if formatting was successful
                     success_message = formatted_success
             except Exception:
-                 pass # Stick with the original result message
+                pass # Stick with the original result message
             # Return the formatted message and the raw Pydantic model result
             return {"status": "success", "message": success_message, "raw_result": response.raw_result}
     except HTTPException as http_exc:
@@ -131,7 +131,8 @@ async def list_mcp_servers():
             raise HTTPException(status_code=400, detail=detail)
         else:
             # Return the raw_result which should be of type ListResult
-            return {"status": "success", "raw_result": response.raw_result}
+            # Ensure the response is structured consistently
+            return {"status": "success", "message": "MCP servers listed successfully.", "raw_result": response.raw_result}
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
@@ -156,7 +157,8 @@ async def list_running_mcp_servers():
             raise HTTPException(status_code=400, detail=detail)
         else:
              # Return the raw_result which should be of type ListRunningResult
-            return {"status": "success", "raw_result": response.raw_result}
+             # Ensure the response is structured consistently
+            return {"status": "success", "message": "Running MCP servers listed successfully.", "raw_result": response.raw_result}
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
@@ -193,7 +195,10 @@ async def get_mcp_server_info(model: Optional[str] = None, product_mode: Optiona
         else:
             # Return the raw_result. It might be a string or a specific Pydantic model later.
             # For now, we assume it's included in McpResponse.raw_result
-            return {"status": "success", "raw_result": response.raw_result}
+            # Ensure the response is structured consistently
+            # The success message might vary or be generic
+            success_message = get_message_with_format("mcp_server_info_success") or "Server info retrieved successfully."
+            return {"status": "success", "message": success_message, "raw_result": response.raw_result}
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
