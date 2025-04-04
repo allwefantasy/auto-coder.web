@@ -108,36 +108,48 @@ async def install_mcp_server(request: McpInstallRequestModel):
     Installs or updates an MCP server configuration based on name, JSON, or command-line args.
     Handles built-in, external, and custom server installations.
     """
-    # First try to get the marketplace item by name
+    # First, try to find the server in the marketplace list via McpListRequest
     try:
-        # Get MCP hub instance
-        mcp_hub = McpHub()
-        
-        # Get the marketplace item by name
-        marketplace_item = mcp_hub.get_marketplace_item(request.server_config)
-        
+        list_request = McpListRequest()
+        list_response: McpResponse = await send_mcp_request_async(list_request)
+
+        marketplace_item = None
+        if list_response.raw_result and isinstance(list_response.raw_result, ListResult):
+            for item in list_response.raw_result.marketplace_items:
+                if item.name == request.server_config:
+                    marketplace_item = item
+                    break
+
         if marketplace_item:
-            # If found, create request with the marketplace item
+            # If found in marketplace list, create install request with the item
             mcp_request = McpInstallRequest(market_install_item=marketplace_item)
+            logger.info(f"Found '{request.server_config}' in marketplace. Installing using item.")
         else:
-            # If not found, use the original string-based approach
+            # If not found, assume it's a built-in, external, or direct config string
             mcp_request = McpInstallRequest(server_name_or_config=request.server_config)
-            
+            logger.info(f"'{request.server_config}' not found in marketplace list. Installing using name/config string.")
+
+        # Proceed with installation using the determined request type
         return await handle_mcp_response(
             mcp_request,
             success_key="mcp_install_success",
             error_key="mcp_install_error",
             result=request.server_config # Pass original config for success message formatting
         )
+
+    except HTTPException as http_exc:
+        # Re-raise HTTP exceptions from handle_mcp_response or list request
+        raise http_exc
     except Exception as e:
-        logger.error(f"Error during marketplace lookup: {e}")
-        # Fallback to original behavior
+        logger.error(f"Error during MCP install process for '{request.server_config}': {e}")
+        # Fallback to original behavior if list fails or other errors occur
+        logger.warning("Falling back to direct install request due to previous error.")
         mcp_request = McpInstallRequest(server_name_or_config=request.server_config)
         return await handle_mcp_response(
             mcp_request,
             success_key="mcp_install_success",
             error_key="mcp_install_error",
-            result=request.server_config # Pass original config for success message formatting
+            result=request.server_config
         )
 
 @router.post("/api/mcp/add")
