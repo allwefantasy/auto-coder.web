@@ -28,7 +28,7 @@ async def load_config(config_path: Path) -> UIConfig:
         return UIConfig()
     
     try:
-        async with aiofiles.open(config_path, mode='r') as f:
+        async with aiofiles.open(config_path, mode='r', encoding='utf-8') as f:
             content = await f.read()
             config_data = json.loads(content)
             return UIConfig(**config_data)
@@ -40,7 +40,7 @@ async def load_config(config_path: Path) -> UIConfig:
 
 async def save_config(config: UIConfig, config_path: Path):
     """保存配置"""
-    async with aiofiles.open(config_path, mode='w') as f:
+    async with aiofiles.open(config_path, mode='w', encoding='utf-8') as f:
         await f.write(json.dumps(config.dict()))
 
 @router.get("/api/config/ui/mode")
