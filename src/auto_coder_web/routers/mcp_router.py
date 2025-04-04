@@ -23,11 +23,13 @@ from autocoder.common.mcp_server import (
     ServerInfo,
     ExternalServerInfo,
     ServerConfig, # Added for InstallResult
-    MarketplaceAddRequest, # Added for new add endpoint
-    MarketplaceAddResult # Added for new add endpoint
+    MarketplaceAddRequest,
+    MarketplaceAddResult,
+    MarketplaceUpdateRequest, # Added for update endpoint
+    MarketplaceUpdateResult  # Added for update endpoint
 )
 from autocoder.common.printer import Printer # For messages
-from autocoder.chat_auto_coder_lang import get_message_with_format # For formatted messages
+from autocoder.chat_auto_coder_lang import get_message_with_format, get_message # For formatted messages
 from loguru import logger
 
 router = APIRouter()
@@ -48,10 +50,21 @@ class MarketplaceAddRequestModel(BaseModel):
     name: str = Field(..., description="Name of the MCP server to add to the marketplace")
     description: Optional[str] = Field("", description="Description of the MCP server")
     mcp_type: str = Field("command", description="Type of MCP server (e.g., 'command', 'sse')")
-    command: Optional[str] = Field("", description="Command to run the server (if type is 'command')")
+    command: Optional[str] = Field(None, description="Command to run the server (if type is 'command')") # Allow None
     args: Optional[List[str]] = Field(None, description="Arguments for the command")
     env: Optional[Dict[str, str]] = Field(None, description="Environment variables for the command")
-    url: Optional[str] = Field("", description="URL endpoint for the server (if type is 'sse')")
+    url: Optional[str] = Field(None, description="URL endpoint for the server (if type is 'sse')") # Allow None
+
+# Model for the /api/mcp/update endpoint
+class MarketplaceUpdateRequestModel(BaseModel):
+    name: str = Field(..., description="Name of the MCP server to update (used as identifier)")
+    description: Optional[str] = Field(None, description="Updated description of the MCP server")
+    mcp_type: Optional[str] = Field(None, description="Updated type of MCP server") # Allow None if not changing
+    command: Optional[str] = Field(None, description="Updated command")
+    args: Optional[List[str]] = Field(None, description="Updated arguments")
+    env: Optional[Dict[str, str]] = Field(None, description="Updated environment variables (replaces existing)")
+    url: Optional[str] = Field(None, description="Updated URL endpoint")
+
 
 class McpRemoveRequestModel(BaseModel):
     server_name: str = Field(..., description="Name of the MCP server to remove")
@@ -179,6 +192,35 @@ async def add_marketplace_server(request: MarketplaceAddRequestModel):
         error_key="marketplace_add_error",
         name=request.name # Pass name for message formatting
     )
+
+@router.post("/api/mcp/update")
+async def update_marketplace_server(request: MarketplaceUpdateRequestModel):
+    """
+    Updates an existing MCP server configuration in the marketplace file.
+    Uses the 'name' field to identify the server to update.
+    """
+    # Convert API model to the internal McpHub model for update
+    # Note: We assume MarketplaceUpdateRequest exists in mcp_server
+    # and handles partial updates based on provided fields.
+    # If a field is None in the request, it might mean "don't update this field"
+    # or "set this field to None/empty", depending on McpHub's implementation.
+    # Here, we pass all fields from the request model.
+    mcp_request = MarketplaceUpdateRequest(
+        name=request.name, # Identifier
+        description=request.description,
+        mcp_type=request.mcp_type,
+        command=request.command,
+        args=request.args,
+        env=request.env,
+        url=request.url
+    )
+    return await handle_mcp_response(
+        mcp_request,
+        success_key="marketplace_update_success", # Define this message key
+        error_key="marketplace_update_error",     # Define this message key
+        name=request.name # Pass name for message formatting
+    )
+
 
 @router.post("/api/mcp/remove")
 async def remove_mcp_server(request: McpRemoveRequestModel):
