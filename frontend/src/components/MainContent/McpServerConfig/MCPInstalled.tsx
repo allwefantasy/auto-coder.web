@@ -5,10 +5,31 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getMessage } from '../../Sidebar/lang';
 
+// --- Interface Definitions ---
+// Corresponds to the backend's ServerInfo in ListRunningResult
+interface RunningServerInfo {
+  name: string;
+  // Add other fields if the backend eventually returns more info per server
+}
+
+// Corresponds to the backend's ListRunningResult Pydantic model
+interface ListRunningRawResult {
+  servers: RunningServerInfo[];
+  error: string | null;
+}
+
+// Corresponds to the overall API response structure for /api/mcp/list_running
+interface ListRunningApiResponse {
+  status: string;
+  message: string;
+  raw_result: ListRunningRawResult;
+}
+
+
 const MCPInstalled: React.FC = () => { // Renamed component function
-  const [runningServers, setRunningServers] = useState<string[]>([]);
+  const [runningServers, setRunningServers] = useState<RunningServerInfo[]>([]); // State now holds RunningServerInfo objects
   const [loading, setLoading] = useState(false);
-  const [removing, setRemoving] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null); // Keep track by name
   const [infoLoading, setInfoLoading] = useState(false);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
   const [serverInfo, setServerInfo] = useState<string>('');
@@ -22,8 +43,16 @@ const MCPInstalled: React.FC = () => { // Renamed component function
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Failed to fetch running servers');
       }
-      const data = await response.json();
-      setRunningServers(data.running_servers || []);
+      const data: ListRunningApiResponse = await response.json();
+
+      // Check for errors within the raw_result
+      if (data.raw_result?.error) {
+          throw new Error(data.raw_result.error);
+      }
+
+      // Set the state with the servers array from raw_result
+      setRunningServers(data.raw_result?.servers || []);
+
     } catch (error) {
       console.error('Error fetching running servers:', error);
       message.error(
@@ -149,22 +178,22 @@ const MCPInstalled: React.FC = () => { // Renamed component function
         ) : (
           <List
             itemLayout="horizontal"
-            dataSource={runningServers}
-            renderItem={(serverName) => (
+            dataSource={runningServers} // dataSource is now RunningServerInfo[]
+            renderItem={(server) => ( // Iterate over RunningServerInfo objects
               <List.Item
                 className="mcp-server-list-item"
                 actions={[
                   <Button
                     type="text"
                     icon={<EyeOutlined />}
-                    onClick={() => handleViewInfo(serverName)}
+                    onClick={() => handleViewInfo(server.name)} // Use server.name
                     className="dark-button"
                   >
                     {getMessage('details') || 'Details'}
                   </Button>,
                   <Popconfirm
                     title={getMessage('confirmRemoveMcp') || 'Remove this server?'}
-                    onConfirm={() => handleRemove(serverName)}
+                    onConfirm={() => handleRemove(server.name)} // Use server.name
                     okText={getMessage('yes') || 'Yes'}
                     cancelText={getMessage('no') || 'No'}
                     okButtonProps={{ className: "dark-button" }}
@@ -174,7 +203,7 @@ const MCPInstalled: React.FC = () => { // Renamed component function
                       type="text"
                       danger
                       icon={<DeleteOutlined />}
-                      loading={removing === serverName}
+                      loading={removing === server.name} // Check against server.name
                       disabled={!!removing}
                       className="dark-button"
                     >
@@ -184,7 +213,7 @@ const MCPInstalled: React.FC = () => { // Renamed component function
                 ]}
               >
                 <List.Item.Meta
-                  title={<span className="server-info">{serverName}</span>}
+                  title={<span className="server-info">{server.name}</span>} // Display server.name
                 />
               </List.Item>
             )}
