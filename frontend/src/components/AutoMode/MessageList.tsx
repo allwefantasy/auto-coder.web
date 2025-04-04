@@ -67,7 +67,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                 return false;
             }
             // Hide specific STREAM types while they are actively streaming
-            if (message.type === "STREAM" && message.isStreaming && streamOutTypesToFilterDuringStream.includes(message.metadata?.stream_out_type)) {
+            if (message.type === "STREAM" && !message.isStreaming && streamOutTypesToFilterDuringStream.includes(message.metadata?.stream_out_type)) {
                  return false;
             }
             return true;
