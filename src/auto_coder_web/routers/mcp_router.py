@@ -107,14 +107,38 @@ async def install_mcp_server(request: McpInstallRequestModel):
     """
     Installs or updates an MCP server configuration based on name, JSON, or command-line args.
     Handles built-in, external, and custom server installations.
-    """    
-    mcp_request = McpInstallRequest(server_name_or_config=request.server_config)
-    return await handle_mcp_response(
-        mcp_request,
-        success_key="mcp_install_success",
-        error_key="mcp_install_error",
-        result=request.server_config # Pass original config for success message formatting
-    )
+    """
+    # First try to get the marketplace item by name
+    try:
+        # Get MCP hub instance
+        mcp_hub = McpHub()
+        
+        # Get the marketplace item by name
+        marketplace_item = mcp_hub.get_marketplace_item(request.server_config)
+        
+        if marketplace_item:
+            # If found, create request with the marketplace item
+            mcp_request = McpInstallRequest(market_install_item=marketplace_item)
+        else:
+            # If not found, use the original string-based approach
+            mcp_request = McpInstallRequest(server_name_or_config=request.server_config)
+            
+        return await handle_mcp_response(
+            mcp_request,
+            success_key="mcp_install_success",
+            error_key="mcp_install_error",
+            result=request.server_config # Pass original config for success message formatting
+        )
+    except Exception as e:
+        logger.error(f"Error during marketplace lookup: {e}")
+        # Fallback to original behavior
+        mcp_request = McpInstallRequest(server_name_or_config=request.server_config)
+        return await handle_mcp_response(
+            mcp_request,
+            success_key="mcp_install_success",
+            error_key="mcp_install_error",
+            result=request.server_config # Pass original config for success message formatting
+        )
 
 @router.post("/api/mcp/add")
 async def add_marketplace_server(request: MarketplaceAddRequestModel):
