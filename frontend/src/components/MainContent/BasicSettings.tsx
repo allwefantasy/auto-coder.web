@@ -9,10 +9,9 @@ import './BasicSettings.css';
 interface BasicSettingsProps {
   availableKeys: AutoCoderArgs[];
   onSettingChange: (key: string, value: string | number) => void;
-import { Tooltip } from 'antd';
+}
 
 interface BasicSettingsState {
-  project_type: string; // Added project_type
   index_filter_model_max_input_length: number;
   auto_merge: string;
   generate_times_same_model: number;
@@ -21,9 +20,8 @@ interface BasicSettingsState {
 }
 
 const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingChange }) => {
-  const [loading, setLoading] = useState(true); // Start with loading true
+  const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<BasicSettingsState>({
-    project_type: '', // Initialize project_type
     index_filter_model_max_input_length: 51200,
     auto_merge: 'editblock',
     generate_times_same_model: 1,
@@ -41,14 +39,11 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
           throw new Error('Failed to fetch configuration');
         }
         const data = await response.json();
-        const currentConfig = data.conf || {}; // Ensure currentConfig is an object
-
+        const currentConfig = data.conf;
+        
         // Update settings with current configuration
-        const updatedSettings: BasicSettingsState = { ...settings };
-
-        if (currentConfig.project_type !== undefined) {
-          updatedSettings.project_type = currentConfig.project_type;
-        }
+        const updatedSettings = { ...settings };
+        
         if (currentConfig.index_filter_model_max_input_length !== undefined) {
           updatedSettings.index_filter_model_max_input_length = Number(currentConfig.index_filter_model_max_input_length);
         }
@@ -77,47 +72,30 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
     fetchCurrentConfig();
   }, []);
 
-  // Initialize settings from availableKeys as fallback (only if not fetched)
+  // Initialize settings from availableKeys as fallback
   useEffect(() => {
-    // This effect should ideally run only if the fetch failed or didn't provide values
-    // But given the current structure, we check if the state still holds the initial empty/default values
-    // Only apply defaults if the fetched config didn't set them.
-    if (!loading) { // Only run after fetch attempt is complete
-        const updatedSettings = { ...settings };
-        let changed = false;
+    const initialSettings = { ...settings };
 
-        availableKeys.forEach(key => {
-            if (key.key === 'project_type' && updatedSettings.project_type === '') {
-                updatedSettings.project_type = key.default || '';
-                changed = true;
-            }
-            if (key.key === 'index_filter_model_max_input_length' && updatedSettings.index_filter_model_max_input_length === 51200) { // Assuming 51200 is the default/initial
-                updatedSettings.index_filter_model_max_input_length = Number(key.default) || 51200;
-                 changed = true;
-            }
-            if (key.key === 'auto_merge' && updatedSettings.auto_merge === 'editblock') { // Assuming 'editblock' is the default/initial
-                updatedSettings.auto_merge = key.default || 'editblock';
-                 changed = true;
-            }
-            if (key.key === 'generate_times_same_model' && updatedSettings.generate_times_same_model === 1) { // Assuming 1 is the default/initial
-                updatedSettings.generate_times_same_model = Number(key.default) || 1;
-                 changed = true;
-            }
-            if (key.key === 'rank_times_same_model' && updatedSettings.rank_times_same_model === 1) { // Assuming 1 is the default/initial
-                updatedSettings.rank_times_same_model = Number(key.default) || 1;
-                 changed = true;
-            }
-             if (key.key === 'enable_agentic_filter' && updatedSettings.enable_agentic_filter === false) { // Assuming false is the default/initial
-                updatedSettings.enable_agentic_filter = String(key.default).toLowerCase() === 'true' || false;
-                 changed = true;
-            }
-        });
+    availableKeys.forEach(key => {
+      if (key.key === 'index_filter_model_max_input_length' && initialSettings.index_filter_model_max_input_length === undefined) {
+        initialSettings.index_filter_model_max_input_length = Number(key.default) || 51200;
+      }
+      if (key.key === 'auto_merge' && initialSettings.auto_merge === undefined) {
+        initialSettings.auto_merge = key.default || 'editblock';
+      }
+      if (key.key === 'generate_times_same_model' && initialSettings.generate_times_same_model === undefined) {
+        initialSettings.generate_times_same_model = Number(key.default) || 1;
+      }
+      if (key.key === 'rank_times_same_model' && initialSettings.rank_times_same_model === undefined) {
+        initialSettings.rank_times_same_model = Number(key.default) || 1;
+      }
+      if (key.key === 'enable_agentic_filter' && initialSettings.enable_agentic_filter === undefined) {
+        initialSettings.enable_agentic_filter = String(key.default).toLowerCase() === 'true' || false;
+      }
+    });
 
-        if (changed) {
-           setSettings(updatedSettings);
-        }
-    }
-  }, [availableKeys, loading, settings]); // Add settings to dependency array if needed, be cautious of loops
+    setSettings(initialSettings);
+  }, [availableKeys]);
 
   const handleSettingChange = (key: keyof BasicSettingsState, value: string | number | boolean) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -135,27 +113,6 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
   return (
     <div className="p-2 text-white">
       <div className="space-y-2">
-         {/* Project Type Setting */}
-         <div className="model-config-item">
-           <Tooltip title={getMessage('projectTypeTooltip')}>
-             <label className="model-config-label">{getMessage('projectType')}</label>
-           </Tooltip>
-           <div className="mt-1">
-             <Select
-               mode="tags"
-               size="small"
-               style={{ width: '100%' }}
-               placeholder="e.g. .py,.ts"
-               value={settings.project_type ? settings.project_type.split(',') : []}
-               onChange={(values) => handleSettingChange('project_type', values.join(','))}
-               className="custom-select"
-               tokenSeparators={[',']}
-               maxTagCount="responsive"
-             />
-           </div>
-           <p className="model-config-description">{getMessage('projectTypeDescription')}</p> {/* Add description if available */}
-         </div>
-
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('indexMaxInputLength')}</label>
           <div className="mt-1">
