@@ -68,7 +68,7 @@ const ManualInstallTab: React.FC = () => {
       setLoading(true);
       const serverConfig = buildServerConfigString(values);
 
-      const response = await fetch('/api/mcp/add', {
+      const response = await fetch('/api/mcp/install', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
