@@ -1,8 +1,6 @@
 import os
 import json
 import asyncio
-import aiofiles
-import aiofiles.os
 from typing import List, Dict, Any, Optional
 
 
@@ -266,23 +264,21 @@ async def async_read_file_content(project_path: str, file_path: str) -> Optional
     """Asynchronously read the content of a file"""
     full_path = os.path.join(project_path, file_path)
 
-    try:
-        # Check if the path exists and is a file before attempting to open
-        # aiofiles doesn't have direct async equivalents for exists/isfile, so use asyncio.to_thread
-        path_exists = await asyncio.to_thread(os.path.exists, full_path)
-        is_file = await asyncio.to_thread(os.path.isfile, full_path)
+    async def read_file():
+        try:
+            # Check if the path exists and is a file before attempting to open
+            if not await asyncio.to_thread(os.path.exists, full_path) or \
+               not await asyncio.to_thread(os.path.isfile, full_path):
+                 return None # Or raise a specific error like FileNotFoundError
 
-        if not path_exists or not is_file:
-            return None # Or raise a specific error like FileNotFoundError
+            with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+                return await asyncio.to_thread(f.read)
+        except IOError: # Catching only IOError
+             # Log the error here if needed
+            return None
+        except Exception as e:
+            # Catch any other unexpected error
+            # Log e
+            return None
 
-        # Use aiofiles for asynchronous file reading
-        async with aiofiles.open(full_path, mode='r', encoding='utf-8', errors='ignore') as f:
-            content = await f.read()
-        return content
-    except IOError: # Catch file-related errors
-        # Log the error here if needed
-        return None
-    except Exception as e:
-        # Catch any other unexpected error during path checks or reading
-        # Log e
-        return None
+    return await read_file()
