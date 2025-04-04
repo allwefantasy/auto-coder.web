@@ -1627,6 +1627,10 @@ export const messages: { [key: string]: Message } = {
     en: "Are you sure you want to remove this MCP server?",
     zh: "确定要移除此MCP服务吗？"
   },
+  mcpSseNotSupported: {
+    en: "SSE type is not currently supported.",
+    zh: "当前不支持 SSE 类型。"
+  },
   // Basic Settings continue...
   generateTimesSameModel: {
     en: "Generate Times per Model",

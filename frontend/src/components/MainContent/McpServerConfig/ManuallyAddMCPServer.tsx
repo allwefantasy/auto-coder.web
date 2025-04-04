@@ -124,7 +124,15 @@ const ManuallyAddMCPServer: React.FC = () => {
         label={getMessage('mcpServerType') || 'Type'}
         initialValue="command"
       >
-        <Select className="dark-select" placeholder="Select server type">
+        <Select
+          className="dark-select"
+          placeholder="Select server type"
+          onChange={(value) => {
+            if (value === 'sse') {
+              message.info(getMessage('mcpSseNotSupported') || 'SSE type is not currently supported.');
+            }
+          }}
+        >
           <Option value="command">Command</Option>
           <Option value="sse">SSE (Server-Sent Events)</Option>
         </Select>
