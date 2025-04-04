@@ -29,8 +29,6 @@ export interface ConfigKey {
 
 export interface ConfigState {
   human_as_model: boolean;
-  skip_build_index: boolean;
-  project_type: string;
   extra_conf: { [key: string]: string };
   available_keys: ConfigKey[];
 }

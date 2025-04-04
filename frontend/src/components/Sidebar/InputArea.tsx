@@ -52,8 +52,6 @@ const InputArea: React.FC<InputAreaProps> = ({
 }) => {  
   const [showConfig, setShowConfig] = useState<boolean>(false);
   const [config, setLocalConfig] = useState<ConfigState>({
-    project_type: '',
-    skip_build_index: false,
     human_as_model: false,
     extra_conf: {},
     available_keys: []
@@ -162,8 +160,6 @@ const InputArea: React.FC<InputAreaProps> = ({
       if (response.data && response.data.conf) {
         const apiConfig = response.data.conf;
         const newConfig: ConfigState = {
-          project_type: apiConfig.project_type || '',
-          skip_build_index: apiConfig.skip_build_index === 'true',
           human_as_model: apiConfig.human_as_model === 'true',
           extra_conf: apiConfig.extra_conf || {},
           available_keys: apiConfig.available_keys || []
@@ -418,33 +414,7 @@ const InputArea: React.FC<InputAreaProps> = ({
 
         {showConfig && (
           <div className="space-y-0 -mb-0.5 w-full">
-            <div className="flex flex-col space-y-0 w-full">
-              <Tooltip title={getMessage('projectTypeTooltip')}>
-                <span className="text-gray-300 text-[10px]">{getMessage('projectType')}</span>
-              </Tooltip>
-              <Select
-                mode="tags"
-                size="small"
-                style={{ width: '100%' }}
-                placeholder="e.g. .py,.ts"
-                value={config.project_type ? config.project_type.split(',') : []}
-                onChange={(values) => updateConfig('project_type', values.join(','))}
-                className="custom-select"
-                tokenSeparators={[',']}
-                maxTagCount="responsive"
-              >                
-              </Select>
-            </div>
-            <div className="flex items-center justify-between ">
-              <Tooltip title={getMessage('skipBuildIndexTooltip')}>
-                <span className="text-gray-300 text-[10px]">{getMessage('skipBuildIndex')}</span>
-              </Tooltip>
-              <Switch
-                size="small"
-                checked={config.skip_build_index}
-                onChange={(checked) => updateConfig('skip_build_index', checked)}
-              />
-            </div>                        
+            {/* Removed skip_build_index switch */}
           </div>
         )}
 
