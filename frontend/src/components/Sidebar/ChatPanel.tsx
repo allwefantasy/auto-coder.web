@@ -1142,11 +1142,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         
         {/* 输入区域 */}
         <div className="border-t border-gray-700 bg-gray-800 transition-all duration-300 shadow-inner">
-          <InputArea
-            showConfig={showConfig}
-            setShowConfig={setShowConfig}
-            config={config}
-            updateConfig={updateConfig}
+          <InputArea                                                
             fileGroups={fileGroups}
             selectedGroups={selectedGroups}
             setSelectedGroups={setSelectedGroups}
