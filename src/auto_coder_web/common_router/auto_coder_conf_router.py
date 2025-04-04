@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
 from autocoder.auto_coder_runner import get_memory, configure
+import asyncio
 
 router = APIRouter()
 
@@ -19,11 +20,10 @@ async def config(
     data = await request.json()
     try:
         for key, value in data.items():
-            configure(f"{key}:{str(value)}")
+            await asyncio.to_thread(configure(f"{key}:{str(value)}"))
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @router.delete("/api/conf/{key}")
 async def delete_config(

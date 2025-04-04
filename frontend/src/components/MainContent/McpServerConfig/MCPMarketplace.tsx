@@ -101,7 +101,7 @@ const MCPMarketplace: React.FC = () => {
   const handleInstall = async (serverName: string) => {
     setInstalling(serverName);
     try {
-      const serverConfig = `--name ${serverName}`; // Basic install command using name
+      const serverConfig = serverName; // Basic install command using name
       const response = await fetch('/api/mcp/install', {
         method: 'POST',
         headers: {

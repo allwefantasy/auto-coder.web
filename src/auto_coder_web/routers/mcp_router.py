@@ -107,7 +107,7 @@ async def install_mcp_server(request: McpInstallRequestModel):
     """
     Installs or updates an MCP server configuration based on name, JSON, or command-line args.
     Handles built-in, external, and custom server installations.
-    """
+    """    
     mcp_request = McpInstallRequest(server_name_or_config=request.server_config)
     return await handle_mcp_response(
         mcp_request,
