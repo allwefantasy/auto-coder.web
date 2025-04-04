@@ -1,6 +1,8 @@
 import os
 import json
 import asyncio
+import aiofiles
+import aiofiles.os
 from typing import List, Dict, Any, Optional
 
 
@@ -104,12 +106,15 @@ def get_directory_tree(root_path: str, path: str = None, lazy: bool = False) -> 
     # If no path provided, build tree from root 
     # If lazy is True, only immediate children are returned.
     # If lazy is False, the full tree is built recursively.
+    # If no path provided, build tree from root 
+    # If lazy is True, only immediate children are returned.
+    # If lazy is False, the full tree is built recursively.
     return build_tree(root_path)
 
 
-async def async_get_directory_tree(root_path: str, path: str = None, lazy: bool = False) -> List[Dict[str, Any]]:
+async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool = False) -> List[Dict[str, Any]]:
     """
-    Asynchronously generate a directory tree structure while ignoring common directories and files
+    Asynchronously generate a directory tree structure using aiofiles while ignoring common directories and files
     that should not be included in version control or IDE specific files.
 
     Args:
@@ -147,17 +152,12 @@ async def async_get_directory_tree(root_path: str, path: str = None, lazy: bool 
         # Ignore exact matches
         return name in IGNORE_PATTERNS
 
-    async def listdir_async(current_path: str):
-        return await asyncio.to_thread(os.listdir, current_path)
-
-    async def isdir_async(full_path: str):
-        return await asyncio.to_thread(os.path.isdir, full_path)
-
     async def build_tree(current_path: str) -> List[Dict[str, Any]]:
-        """Recursively build the directory tree asynchronously"""
+        """Recursively build the directory tree asynchronously using aiofiles"""
         items = []
         try:
-            child_names = await listdir_async(current_path)
+            # Use aiofiles.os.listdir
+            child_names = await aiofiles.os.listdir(current_path)
             tasks = []
             for name in sorted(child_names):
                 if should_ignore(name):
@@ -182,12 +182,16 @@ async def async_get_directory_tree(root_path: str, path: str = None, lazy: bool 
             full_path = os.path.join(current_path, name)
             relative_path = os.path.relpath(full_path, root_path)
 
-            if await isdir_async(full_path):
+            # Use aiofiles.os.path.isdir
+            is_dir = await aiofiles.os.path.isdir(full_path)
+
+            if is_dir:
                 if lazy:
                     # For lazy loading, check if directory has any visible children asynchronously
                     has_children = False
                     try:
-                        for child_name in await listdir_async(full_path):
+                        # Use aiofiles.os.listdir
+                        for child_name in await aiofiles.os.listdir(full_path):
                             if not should_ignore(child_name):
                                 has_children = True
                                 break
@@ -234,7 +238,8 @@ async def async_get_directory_tree(root_path: str, path: str = None, lazy: bool 
     if path:
         # If path is provided, get children of that specific directory
         potential_target_path = os.path.join(root_path, path)
-        if await isdir_async(potential_target_path):
+        # Use aiofiles.os.path.isdir for the check
+        if await aiofiles.os.path.isdir(potential_target_path):
              target_path = potential_target_path
         else:
             return [] # Path does not point to a valid directory
@@ -260,25 +265,25 @@ def read_file_content(project_path: str, file_path: str) -> str:
         return None
 
 
-async def async_read_file_content(project_path: str, file_path: str) -> Optional[str]:
-    """Asynchronously read the content of a file"""
+async def read_file_content_async(project_path: str, file_path: str) -> Optional[str]:
+    """Asynchronously read the content of a file using aiofiles"""
     full_path = os.path.join(project_path, file_path)
+    try:
+        # Check if the path exists and is a file before attempting to open using aiofiles.os
+        path_exists = await aiofiles.os.path.exists(full_path)
+        is_file = await aiofiles.os.path.isfile(full_path)
 
-    async def read_file():
-        try:
-            # Check if the path exists and is a file before attempting to open
-            if not await asyncio.to_thread(os.path.exists, full_path) or \
-               not await asyncio.to_thread(os.path.isfile, full_path):
-                 return None # Or raise a specific error like FileNotFoundError
+        if not path_exists or not is_file:
+             return None # Or raise a specific error like FileNotFoundError
 
-            with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
-                return await asyncio.to_thread(f.read)
-        except IOError: # Catching only IOError
-             # Log the error here if needed
-            return None
-        except Exception as e:
-            # Catch any other unexpected error
-            # Log e
-            return None
-
-    return await read_file()
+        # Use aiofiles for asynchronous file reading
+        async with aiofiles.open(full_path, mode='r', encoding='utf-8', errors='ignore') as f:
+            content = await f.read()
+        return content
+    except (IOError, FileNotFoundError): # Catch file-related errors
+        # Log the error here if needed
+        return None
+    except Exception as e:
+        # Catch any other unexpected error during path checks or reading
+        # Log e
+        return None
