@@ -16,8 +16,7 @@ interface AdvancedSettingsState {
   enable_active_context: boolean;
   enable_active_context_in_generate: boolean;
   enable_task_history: boolean;
-  include_project_structure: boolean;
-  skip_filter_index: boolean;
+  include_project_structure: boolean;    
 }
 
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSettingChange }) => {
@@ -220,17 +219,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
           <p className="model-config-description">{getMessage('includeProjectStructureDescription')}</p>
         </div>
 
-        <div className="model-config-item">
-          <div className="flex justify-between items-center">
-            <label className="model-config-label">{getMessage('skipFilterIndexToggle')}</label>
-            <Switch
-              checked={settings.skip_filter_index}
-              onChange={(checked) => handleSettingChange('skip_filter_index', checked)}
-              className="bg-gray-600"
-            />
-          </div>
-          <p className="model-config-description">{getMessage('skipFilterIndexDescription')}</p>
-        </div>
+
       </div>
     </div>
   );
