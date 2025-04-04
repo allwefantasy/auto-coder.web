@@ -9,6 +9,7 @@ import CompilerConfig from './CompilerConfig';
 import RagConfig from './RagConfig';
 import BasicSettings from './BasicSettings';
 import AdvancedSettings from './AdvancedSettings';
+import McpServerConfig from './McpServerConfig/McpServerConfig'; // Import the new component
 import './ModelConfig.css';
 
 const { TabPane } = Tabs;
@@ -156,6 +157,9 @@ const SettingsPanel: React.FC = () => {
             availableKeys={config.available_keys} 
             onSettingChange={updateConfig}
           />
+        </TabPane>
+        <TabPane tab={<span className="text-gray-300">{getMessage('mcpServerConfiguration') || 'MCP Servers'}</span>} key="mcp">
+          <McpServerConfig />
         </TabPane>
       </Tabs>
     </div>
