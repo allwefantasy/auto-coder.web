@@ -462,6 +462,14 @@ export const messages: { [key: string]: Message } = {
     en: "Skip building index for better performance",
     zh: "跳过构建索引以提高性能"
   },
+  skipBuildIndexDescription: {
+    en: "Skip indexing means the system won't automatically build indexes, saving time",
+    zh: "跳过索引表示不会自动构建索引，从而节约时间"
+  },
+  projectTypeDescription: {
+    en: "The file extensions list that auto-coder.web will focus on. Files with extensions not in the list will be ignored",
+    zh: "让 auto-coder.web 关注的后后缀名里列表，不在名单里的，auto-coder.web 不会关注"
+  },
   projectType: {
     en: "Project Type",
     zh: "项目类型"

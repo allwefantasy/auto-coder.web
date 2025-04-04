@@ -150,7 +150,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
               {/* Options can be added here if needed, but tags mode allows free input */}
             </Select>
           </div>
-          <p className="model-config-description">{getMessage('projectTypeDescription') || 'Comma-separated file extensions relevant to your project.'}</p>
+          <p className="model-config-description">{getMessage('projectTypeDescription')}</p>
         </div>
 
         {/* Skip Build Index Setting - Added */}
@@ -170,7 +170,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
               ]}
             />
           </div>
-          <p className="model-config-description">{getMessage('skipBuildIndexDescription') || 'Skips the automatic index building process.'}</p>
+          <p className="model-config-description">{getMessage('skipBuildIndexDescription')}</p>
         </div>
 
         {/* Existing Settings */}
