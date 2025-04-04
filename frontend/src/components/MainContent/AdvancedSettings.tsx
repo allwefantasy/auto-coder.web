@@ -14,6 +14,7 @@ interface AdvancedSettingsState {
   enable_auto_fix_lint: boolean;
   enable_auto_fix_compile: boolean;
   enable_active_context: boolean;
+  enable_active_context_in_generate: boolean;
   enable_task_history: boolean;
   include_project_structure: boolean;
   skip_filter_index: boolean;
@@ -26,6 +27,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
     enable_auto_fix_lint: false,
     enable_auto_fix_compile: false,
     enable_active_context: false,
+    enable_active_context_in_generate: false,
     enable_task_history: false,
     include_project_structure: true,
     skip_filter_index: false,    
@@ -57,6 +59,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
         }
         if (currentConfig.enable_active_context !== undefined) {
           updatedSettings.enable_active_context = currentConfig.enable_active_context === "true";
+        }
+        if (currentConfig.enable_active_context_in_generate !== undefined) {
+          updatedSettings.enable_active_context_in_generate = currentConfig.enable_active_context_in_generate === "true";
         }
         if (currentConfig.enable_task_history !== undefined) {
           updatedSettings.enable_task_history = currentConfig.enable_task_history === "true";
@@ -95,6 +100,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
       }
       if (key.key === 'enable_active_context' && initialSettings.enable_active_context === undefined) {
         initialSettings.enable_active_context = key.default === "true";
+      }
+      if (key.key === 'enable_active_context_in_generate' && initialSettings.enable_active_context_in_generate === undefined) {
+        initialSettings.enable_active_context_in_generate = key.default === "true";
       }
       if (key.key === 'enable_task_history' && initialSettings.enable_task_history === undefined) {
         initialSettings.enable_task_history = key.default === "true";
@@ -174,6 +182,18 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
             />
           </div>
           <p className="model-config-description">{getMessage('enableActiveContextDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <div className="flex justify-between items-center">
+            <label className="model-config-label">{getMessage('enableActiveContextInGenerate')}</label>
+            <Switch
+              checked={settings.enable_active_context_in_generate}
+              onChange={(checked) => handleSettingChange('enable_active_context_in_generate', checked)}
+              className="bg-gray-600"
+            />
+          </div>
+          <p className="model-config-description">{getMessage('enableActiveContextInGenerateDescription')}</p>
         </div>
 
         <div className="model-config-item">

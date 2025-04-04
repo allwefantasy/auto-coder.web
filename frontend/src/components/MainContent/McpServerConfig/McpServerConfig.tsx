@@ -1,9 +1,9 @@
 import React from 'react';
 import { Tabs } from 'antd';
 import { getMessage } from '../../Sidebar/lang';
-import MarketplaceTab from './MarketplaceTab';
+import MCPMarketplace from './MCPMarketplace'; // Renamed import
 import ManualInstallTab from './ManualInstallTab';
-import InstalledTab from './InstalledTab';
+import MCPInstalled from './MCPInstalled'; // Renamed import
 import './McpServerConfig.css';
 import '../../../styles/custom_antd.css'; // Ensure shared dark theme styles are applied
 
@@ -17,13 +17,13 @@ const McpServerConfig: React.FC = () => {
           tab={<span className="text-gray-300">{getMessage('installed') || 'Installed'}</span>}
           key="installed"
         >
-          <InstalledTab />
+          <MCPInstalled /> {/* Renamed component usage */}
         </TabPane>
         <TabPane
           tab={<span className="text-gray-300">{getMessage('marketplace') || 'Marketplace'}</span>}
           key="marketplace"
         >
-          <MarketplaceTab />
+          <MCPMarketplace /> {/* Renamed component usage */}
         </TabPane>
         <TabPane
           tab={<span className="text-gray-300">{getMessage('manualInstall') || 'Manual Add to Marketplace'}</span>}

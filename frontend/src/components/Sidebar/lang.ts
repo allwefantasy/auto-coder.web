@@ -1107,6 +1107,14 @@ export const messages: { [key: string]: Message } = {
     en: "Memory system will become more familiar with your system in each iteration.",
     zh: "记忆系统会在每次迭代中都会对你的系统更加熟悉"
   },
+  enableActiveContextInGenerate: {
+    en: "Enable Memory in Generation",
+    zh: "在代码生成时使用记忆系统"
+  },
+  enableActiveContextInGenerateDescription: {
+    en: "Use memory system during code generation for more contextually aware results.",
+    zh: "在代码生成过程中使用记忆系统，使生成结果更符合上下文"
+  },
   enableTaskHistory: {
     en: "Enable Task History",
     zh: "启用任务历史"
@@ -1532,52 +1540,52 @@ export const messages: { [key: string]: Message } = {
     zh: "请为SSE服务器输入URL地址"
   },
   mcpInstallSuccess: {
-    en: "MCP Server installed successfully: {result}",
-    zh: "MCP 服务安装成功: {result}"
+    en: "MCP Server installed successfully: {{result}}",
+    zh: "MCP 服务安装成功: {{result}}"
   },
   mcpInstallError: {
-    en: "Failed to install MCP Server: {error}",
-    zh: "MCP 服务安装失败: {error}"
+    en: "Failed to install MCP Server: {{error}}",
+    zh: "MCP 服务安装失败: {{error}}"
   },
   mcpRemoveSuccess: {
-    en: "MCP Server removed successfully: {result}",
-    zh: "MCP 服务移除成功: {result}"
+    en: "MCP Server removed successfully: {{result}}",
+    zh: "MCP 服务移除成功: {{result}}"
   },
   mcpRemoveError: {
-    en: "Failed to remove MCP Server: {error}",
-    zh: "MCP 服务移除失败: {error}"
+    en: "Failed to remove MCP Server: {{error}}",
+    zh: "MCP 服务移除失败: {{error}}"
   },
   addToMarketplace: {
     en: "Add to Marketplace",
     zh: "添加到市场"
   },
   marketplaceAddSuccess: {
-    en: "Successfully added to marketplace: {name}",
-    zh: "成功添加到市场: {name}"
+    en: "Successfully added to marketplace: {{name}}",
+    zh: "成功添加到市场: {{name}}"
   },
   marketplaceAddError: {
-    en: "Failed to add to marketplace: {error}",
-    zh: "添加到市场失败: {error}"
+    en: "Failed to add to marketplace: {{error}}",
+    zh: "添加到市场失败: {{error}}"
   },
   mcpListBuiltinError: {
-    en: "Failed to list available MCP servers: {error}",
-    zh: "获取可用MCP服务列表失败: {error}"
+    en: "Failed to list available MCP servers: {{error}}",
+    zh: "获取可用MCP服务列表失败: {{error}}"
   },
   mcpListRunningError: {
-    en: "Failed to list running MCP servers: {error}",
-    zh: "获取运行中MCP服务列表失败: {error}"
+    en: "Failed to list running MCP servers: {{error}}",
+    zh: "获取运行中MCP服务列表失败: {{error}}"
   },
   mcpServerInfoError: {
-    en: "Failed to get MCP server info: {error}",
-    zh: "获取MCP服务信息失败: {error}"
+    en: "Failed to get MCP server info: {{error}}",
+    zh: "获取MCP服务信息失败: {{error}}"
   },
   mcpRefreshSuccess: {
     en: "MCP server connections refreshed successfully.",
     zh: "MCP 服务连接刷新成功。"
   },
   mcpRefreshError: {
-    en: "Failed to refresh MCP server connections: {error}",
-    zh: "刷新MCP服务连接失败: {error}"
+    en: "Failed to refresh MCP server connections: {{error}}  ",
+    zh: "刷新MCP服务连接失败: {{error}}"
   },
   mcpQueryEmpty: {
     en: "MCP query cannot be empty.",

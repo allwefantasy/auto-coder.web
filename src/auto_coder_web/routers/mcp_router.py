@@ -29,13 +29,14 @@ from autocoder.common.mcp_server import (
 from autocoder.common.printer import Printer # For messages
 from autocoder.chat_auto_coder_lang import get_message_with_format # For formatted messages
 from loguru import logger
-from byzerllm.utils.langutil import asyncfy_with_semaphore
-
-# Use asyncfy_with_semaphore to wrap the synchronous send_request method
-async_send_request = asyncfy_with_semaphore(get_mcp_server().send_request) 
 
 router = APIRouter()
 printer = Printer() # Initialize printer for messages
+
+# Helper function to run the synchronous send_request in a thread
+async def send_mcp_request_async(*args, **kwargs) -> McpResponse:
+    """Runs the synchronous MCP send_request in a separate thread."""
+    return await asyncio.to_thread(get_mcp_server().send_request, *args, **kwargs)
 
 # --- Pydantic Models for Requests ---
 
@@ -69,7 +70,7 @@ class McpInfoRequestModel(BaseModel):
 async def handle_mcp_response(request: Any, success_key: str, error_key: str, **kwargs) -> Dict[str, Any]:
     """Handles sending request to MCP server and formatting the response."""
     try:
-        response: McpResponse = await async_send_request(request)
+        response: McpResponse = await send_mcp_request_async(request)
         if response.error:
             logger.error(f"MCP Error ({error_key}): {response.error}")
             # Use get_message_with_format if available, otherwise use the raw error
@@ -153,8 +154,8 @@ async def list_mcp_servers():
     """Lists all available built-in and external MCP servers."""
     mcp_request = McpListRequest()
     # Specific handling for list as the result is the data itself
-    try:
-        response: McpResponse = await async_send_request(mcp_request)
+    try:        
+        response: McpResponse = await send_mcp_request_async(mcp_request)
         if response.error:
             logger.error(f"MCP Error (mcp_list_builtin_error): {response.error}")
             error_message = get_message_with_format("mcp_list_builtin_error", error=response.error) or response.error
@@ -180,7 +181,7 @@ async def list_running_mcp_servers():
     mcp_request = McpListRunningRequest()
     # Specific handling for list_running
     try:
-        response: McpResponse = await async_send_request(mcp_request)
+        response: McpResponse = await send_mcp_request_async(mcp_request)
         if response.error:
             logger.error(f"MCP Error (mcp_list_running_error): {response.error}")
             error_message = get_message_with_format("mcp_list_running_error", error=response.error) or response.error
@@ -217,7 +218,7 @@ async def get_mcp_server_info(model: Optional[str] = None, product_mode: Optiona
     mcp_request = McpServerInfoRequest(model=model, product_mode=product_mode)
     # Specific handling for info
     try:
-        response: McpResponse = await async_send_request(mcp_request)
+        response: McpResponse = await send_mcp_request_async(mcp_request)
         if response.error:
             logger.error(f"MCP Error (mcp_server_info_error): {response.error}")
             error_message = get_message_with_format("mcp_server_info_error", error=response.error) or response.error

@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getMessage } from '../../Sidebar/lang';
 
-const InstalledTab: React.FC = () => {
+const MCPInstalled: React.FC = () => { // Renamed component function
   const [runningServers, setRunningServers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
@@ -212,4 +212,4 @@ const InstalledTab: React.FC = () => {
   );
 };
 
-export default InstalledTab;
+export default MCPInstalled; // Updated export
