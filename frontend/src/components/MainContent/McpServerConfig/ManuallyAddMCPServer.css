@@ -1,0 +1,30 @@
+.mcp-server-add-container .env-var-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mcp-server-add-container .dark-tabs {
+  margin-bottom: 16px;
+}
+
+.mcp-server-add-container .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+.mcp-server-add-container .ant-tabs-tab {
+  background-color: #1f1f1f;
+  border-color: #333;
+  color: #ddd;
+}
+
+.mcp-server-add-container .ant-tabs-tab.ant-tabs-tab-active {
+  background-color: #2a2a2a;
+  border-bottom-color: #2a2a2a;
+}
+
+.mcp-server-add-container .ant-tabs-content {
+  background-color: #2a2a2a;
+  padding: 8px;
+  border-radius: 0 4px 4px 4px;
+}
