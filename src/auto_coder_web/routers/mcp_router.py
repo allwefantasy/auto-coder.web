@@ -9,10 +9,20 @@ from autocoder.common.mcp_server import (
     McpInstallRequest, 
     McpRemoveRequest, 
     McpListRequest, 
-    McpListRunningRequest, 
-    McpRefreshRequest, 
+    McpListRunningRequest,
+    McpRefreshRequest,
     McpServerInfoRequest,
-    McpResponse
+    McpResponse,
+    # Import result types for type safety and response structuring
+    InstallResult,
+    RemoveResult,
+    ListResult,
+    ListRunningResult,
+    RefreshResult,
+    QueryResult,
+    ErrorResult,
+    ServerInfo, # Used within ListRunningResult
+    ExternalServerInfo # Used within ListResult
 )
 from autocoder.common.printer import Printer # For messages
 from autocoder.chat_auto_coder_lang import get_message_with_format # For formatted messages
@@ -69,7 +79,8 @@ async def handle_mcp_response(request: Any, success_key: str, error_key: str, **
                     success_message = formatted_success
             except Exception:
                  pass # Stick with the original result message
-            return {"status": "success", "message": success_message, "data": response.result} # Include raw data too
+            # Return the formatted message and the raw Pydantic model result
+            return {"status": "success", "message": success_message, "raw_result": response.raw_result}
     except HTTPException as http_exc:
         raise http_exc # Re-raise HTTPException
     except Exception as e:
@@ -113,11 +124,14 @@ async def list_mcp_servers():
         if response.error:
             logger.error(f"MCP Error (mcp_list_builtin_error): {response.error}")
             error_message = get_message_with_format("mcp_list_builtin_error", error=response.error) or response.error
-            raise HTTPException(status_code=400, detail=error_message)
+            # Ensure raw_result is included in the error detail if it's an ErrorResult
+            detail = error_message
+            if isinstance(response.raw_result, ErrorResult):
+                detail = f"{error_message} (Details: {response.raw_result.error})"
+            raise HTTPException(status_code=400, detail=detail)
         else:
-            # Split the result string into a list for better JSON representation
-            server_list = response.result.strip().split('\n') if response.result else []
-            return {"status": "success", "servers": server_list}
+            # Return the raw_result which should be of type ListResult
+            return {"status": "success", "raw_result": response.raw_result}
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
@@ -135,13 +149,14 @@ async def list_running_mcp_servers():
         if response.error:
             logger.error(f"MCP Error (mcp_list_running_error): {response.error}")
             error_message = get_message_with_format("mcp_list_running_error", error=response.error) or response.error
-            raise HTTPException(status_code=400, detail=error_message)
+            # Ensure raw_result is included in the error detail if it's an ErrorResult
+            detail = error_message
+            if isinstance(response.raw_result, ErrorResult):
+                 detail = f"{error_message} (Details: {response.raw_result.error})"
+            raise HTTPException(status_code=400, detail=detail)
         else:
-             # Split the result string into a list
-            running_server_list = response.result.strip().split('\n') if response.result else []
-            # Clean up list (remove potential leading hyphens/spaces)
-            cleaned_list = [s.strip().lstrip('-').strip() for s in running_server_list if s.strip()]
-            return {"status": "success", "running_servers": cleaned_list}
+             # Return the raw_result which should be of type ListRunningResult
+            return {"status": "success", "raw_result": response.raw_result}
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
@@ -170,10 +185,15 @@ async def get_mcp_server_info(model: Optional[str] = None, product_mode: Optiona
         if response.error:
             logger.error(f"MCP Error (mcp_server_info_error): {response.error}")
             error_message = get_message_with_format("mcp_server_info_error", error=response.error) or response.error
-            raise HTTPException(status_code=400, detail=error_message)
+            # Ensure raw_result is included in the error detail if it's an ErrorResult
+            detail = error_message
+            if isinstance(response.raw_result, ErrorResult):
+                 detail = f"{error_message} (Details: {response.raw_result.error})"
+            raise HTTPException(status_code=400, detail=detail)
         else:
-            # The result is likely a markdown string or complex structure. Return as is.
-            return {"status": "success", "info": response.result}
+            # Return the raw_result. It might be a string or a specific Pydantic model later.
+            # For now, we assume it's included in McpResponse.raw_result
+            return {"status": "success", "raw_result": response.raw_result}
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
