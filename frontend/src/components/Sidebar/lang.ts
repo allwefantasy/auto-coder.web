@@ -1631,6 +1631,58 @@ export const messages: { [key: string]: Message } = {
     en: "SSE type is not currently supported.",
     zh: "当前不支持 SSE 类型。"
   },
+  fetchServerError: {
+    en: "Failed to fetch MCP servers",
+    zh: "获取MCP服务器列表失败"
+  },
+  mcpServerNamePlaceholder: {
+    en: "e.g., my-custom-server",
+    zh: "例如：my-custom-server"
+  },
+  mcpServerDescriptionPlaceholder: {
+    en: "e.g., My custom MCP server",
+    zh: "例如：我的自定义MCP服务器"
+  },
+  mcpServerTypePlaceholder: {
+    en: "Select server type",
+    zh: "选择服务器类型"
+  },
+  mcpTypeCommand: {
+    en: "Command",
+    zh: "命令"
+  },
+  mcpTypeSse: {
+    en: "SSE (Server-Sent Events)",
+    zh: "SSE (服务器发送事件)"
+  },
+  mcpServerCommandPlaceholder: {
+    en: "e.g., python, npm, npx, /path/to/executable",
+    zh: "例如：python, npm, npx, /path/to/executable"
+  },
+  mcpServerArgsPlaceholder: {
+    en: "Enter arguments and press Enter/Space",
+    zh: "输入参数并按回车/空格"
+  },
+  mcpServerUrlPlaceholder: {
+    en: "e.g., http://localhost:8000/events",
+    zh: "例如：http://localhost:8000/events"
+  },
+  builtInMcpServer: {
+    en: "Built-in MCP Server",
+    zh: "内置MCP服务器"
+  },
+  selectBuiltInServer: {
+    en: "Select Built-in Server",
+    zh: "选择内置服务器"
+  },
+  selectBuiltInServerPlaceholder: {
+    en: "Select a built-in MCP server",
+    zh: "选择一个内置MCP服务器"
+  },
+  externalMcpServer: {
+    en: "External MCP Server",
+    zh: "外部MCP服务器"
+  },
   // Basic Settings continue...
   generateTimesSameModel: {
     en: "Generate Times per Model",

@@ -38,9 +38,9 @@ const ManuallyAddMCPServer: React.FC = () => {
         setFetchingServers(true);
         const response = await fetch('/api/mcp/list');
         if (!response.ok) {
-          throw new Error('Failed to fetch MCP servers');
+          throw new Error(getMessage('fetchServerError') || 'Failed to fetch MCP servers');
         }
-        
+
         const data = await response.json();
         if (data.raw_result && data.raw_result.builtin_servers) {
           setBuiltInServers(data.raw_result.builtin_servers);
@@ -115,7 +115,7 @@ const ManuallyAddMCPServer: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || data.message || 'Adding server to marketplace failed');
+        throw new Error(data.detail || data.message || getMessage('addToMarketplaceFailed') || 'Adding server to marketplace failed');
       }
 
       message.success(data.message || getMessage('marketplaceAddSuccess', { name: values.name }));
@@ -175,41 +175,41 @@ const ManuallyAddMCPServer: React.FC = () => {
     >
       <Form.Item
         name="name"
-        label={getMessage('mcpServerName') || 'Name'}
-        rules={[{ required: true, message: getMessage('nameRequired') || 'Please enter a name' }]}
+        label={getMessage('mcpServerName')}
+        rules={[{ required: true, message: getMessage('nameRequired') }]}
       >
-        <Input className="dark-input" placeholder="e.g., my-custom-server" />
+        <Input className="dark-input" placeholder={getMessage('mcpServerNamePlaceholder')} />
       </Form.Item>
 
       <Form.Item
         name="description"
-        label={getMessage('mcpServerDescription') || 'Description'}
+        label={getMessage('mcpServerDescription')}
       >
-        <Input className="dark-input" placeholder="e.g., My custom MCP server" />
+        <Input className="dark-input" placeholder={getMessage('mcpServerDescriptionPlaceholder')} />
       </Form.Item>
 
       <Form.Item
         name="type"
-        label={getMessage('mcpServerType') || 'Type'}
+        label={getMessage('mcpServerType')}
         initialValue="command"
       >
         <Select
           className="dark-select"
-          placeholder="Select server type"
+          placeholder={getMessage('mcpServerTypePlaceholder')}
           onChange={(value) => {
             if (value === 'sse') {
               message.info(getMessage('mcpSseNotSupported') || 'SSE type is not currently supported.');
             }
           }}
         >
-          <Option value="command">Command</Option>
-          <Option value="sse">SSE (Server-Sent Events)</Option>
+          <Option value="command">{getMessage('mcpTypeCommand')}</Option>
+          <Option value="sse">{getMessage('mcpTypeSse')}</Option>
         </Select>
       </Form.Item>
 
       <Form.Item
         name="command"
-        label={getMessage('mcpServerCommand') || 'Command'}
+        label={getMessage('mcpServerCommand')}
         // Required only if type is 'command' or not specified
         rules={[
           ({ getFieldValue }) => ({
@@ -217,39 +217,39 @@ const ManuallyAddMCPServer: React.FC = () => {
               if (getFieldValue('type') === 'sse' || value) {
                 return Promise.resolve();
               }
-              return Promise.reject(new Error(getMessage('commandRequired') || 'Please enter a command'));
+              return Promise.reject(new Error(getMessage('commandRequired')));
             },
           }),
         ]}
       >
-        <Input className="dark-input" placeholder="e.g., python, npm, npx, /path/to/executable" />
+        <Input className="dark-input" placeholder={getMessage('mcpServerCommandPlaceholder')} />
       </Form.Item>
 
       <Form.Item
         name="args"
-        label={getMessage('mcpServerArgs') || 'Arguments'}
+        label={getMessage('mcpServerArgs')}
       >
         <Select
           mode="tags"
           className="dark-select compiler-select compiler-tag-select" // Reuse compiler styles
           dropdownClassName="dark-select-dropdown"
-          placeholder="Enter arguments and press Enter/Space"
+          placeholder={getMessage('mcpServerArgsPlaceholder')}
           tokenSeparators={[' ', '\n', '\t']} // Allow space, newline, tab as separators
         />
       </Form.Item>
 
-      <Form.Item label={getMessage('mcpServerEnv') || 'Environment Variables'}>
+      <Form.Item label={getMessage('mcpServerEnv')}>
         {envVars.map((env, index) => (
           <div key={env.id} className="env-var-item">
             <Input
               className="dark-input"
-              placeholder={getMessage('mcpServerKey') || 'Key'}
+              placeholder={getMessage('mcpServerKey')}
               value={env.key}
               onChange={(e) => handleEnvChange(env.id, 'key', e.target.value)}
             />
             <Input
               className="dark-input"
-              placeholder={getMessage('mcpServerValue') || 'Value'}
+              placeholder={getMessage('mcpServerValue')}
               value={env.value}
               onChange={(e) => handleEnvChange(env.id, 'value', e.target.value)}
             />
@@ -268,30 +268,30 @@ const ManuallyAddMCPServer: React.FC = () => {
           icon={<PlusOutlined />}
           className="dark-dashed-button w-full"
         >
-          {getMessage('mcpServerAddEnv') || 'Add Variable'}
+          {getMessage('mcpServerAddEnv')}
         </Button>
       </Form.Item>
 
       <Form.Item
         name="url"
-        label={getMessage('mcpServerUrl') || 'URL'}
+        label={getMessage('mcpServerUrl')}
         rules={[
           ({ getFieldValue }) => ({
             validator(_, value) {
               if (getFieldValue('type') !== 'sse' || value) {
                 return Promise.resolve();
               }
-              return Promise.reject(new Error(getMessage('urlRequired') || 'Please enter a URL for SSE server'));
+              return Promise.reject(new Error(getMessage('urlRequired')));
             },
           }),
         ]}
       >
-        <Input className="dark-input" placeholder="e.g., http://localhost:8000/events" />
+        <Input className="dark-input" placeholder={getMessage('mcpServerUrlPlaceholder')} />
       </Form.Item>
 
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading} className="dark-button">
-          {getMessage('addToMarketplace') || 'Add to Marketplace'}
+          {getMessage('addToMarketplace')}
         </Button>
       </Form.Item>
     </Form>
@@ -317,17 +317,17 @@ const ManuallyAddMCPServer: React.FC = () => {
         className="settings-tabs dark-tabs"
       >
         <TabPane
-          tab={<span className="text-gray-300">{getMessage('builtInMcpServer') || 'Built-in MCP Server'}</span>}
+          tab={<span className="text-gray-300">{getMessage('builtInMcpServer')}</span>}
           key="builtin"
         >
           <div className="p-4">
-            <Form.Item 
-              label={getMessage('selectBuiltInServer') || 'Select Built-in Server'}
+            <Form.Item
+              label={getMessage('selectBuiltInServer')}
               className="mb-6"
             >
               <Select
                 className="dark-select w-full"
-                placeholder={getMessage('selectBuiltInServerPlaceholder') || 'Select a built-in MCP server'}
+                placeholder={getMessage('selectBuiltInServerPlaceholder')}
                 loading={fetchingServers}
                 onChange={handleBuiltInServerSelect}
               >
@@ -342,7 +342,7 @@ const ManuallyAddMCPServer: React.FC = () => {
           </div>
         </TabPane>
         <TabPane
-          tab={<span className="text-gray-300">{getMessage('externalMcpServer') || 'External MCP Server'}</span>}
+          tab={<span className="text-gray-300">{getMessage('externalMcpServer')}</span>}
           key="external"
         >
           {renderForm()}
