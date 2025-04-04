@@ -364,7 +364,7 @@ async def refresh_mcp_connections(request: McpRefreshRequestModel):
 
 @router.get("/api/mcp/info")
 async def get_mcp_server_info(
-    model: Optional[str] = None, product_mode: Optional[str] = None
+    model: Optional[str] = None, product_mode: Optional[str] = "lite"
 ):
     """Gets detailed information about connected MCP servers."""
     # TODO: Determine how to get model/product_mode - from app state, global config, or request?
