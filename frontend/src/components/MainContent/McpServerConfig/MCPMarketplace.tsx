@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { List, Button, message, Spin, Empty, Modal, Form, Input, Select, Space } from 'antd';
-import { DownloadOutlined, EditOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { List, Button, message, Spin, Empty } from 'antd';
+import { DownloadOutlined } from '@ant-design/icons';
 import { getMessage } from '../../Sidebar/lang';
-
-const { Option } = Select;
 
 // Matches the structure from the Python backend: MarketplaceMCPServerItem
 interface MarketplaceMCPServerItem {
@@ -16,17 +14,9 @@ interface MarketplaceMCPServerItem {
   url?: string;      // Optional as it has a default in Python
 }
 
-// Interface for the state, adding the display type and potentially an identifier
+// Interface for the state, adding the display type
 interface McpServerInfo extends MarketplaceMCPServerItem {
-  id?: string; // Add an optional ID if available, useful for keys
-  displayType: 'Built-in' | 'External' | 'Marketplace';
-}
-
-// Interface for Environment Variables within the Edit Form
-interface EnvVar {
-  id: number; // Unique ID for React key prop
-  key: string;
-  value: string;
+  displayType: 'Built-in' | 'External' | 'Marketplace'; // Renamed 'type' to avoid conflict and clarify purpose
 }
 
 // Interface for the API response structure (matching McpResponse with ListResult)
@@ -45,12 +35,6 @@ const MCPMarketplace: React.FC = () => {
   const [servers, setServers] = useState<McpServerInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [installing, setInstalling] = useState<string | null>(null);
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editingServer, setEditingServer] = useState<McpServerInfo | null>(null);
-  const [editForm] = Form.useForm();
-  const [editEnvVars, setEditEnvVars] = useState<EnvVar[]>([]);
-  const [nextEditEnvId, setNextEditEnvId] = useState(1);
-  const [updating, setUpdating] = useState(false);
 
   // Removed parseServerString function as it's no longer needed
 
