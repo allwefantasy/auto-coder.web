@@ -11,10 +11,12 @@ const ProviderSelectors: React.FC<ProviderSelectorsProps> = ({ isWriteMode }) =>
     <div className="w-full">
       {!isWriteMode && (
         <div className="flex space-x-2 w-full">
-          <div className="flex-1">
+          {/* RAG Selector takes more space */}
+          <div className="flex-grow"> 
             <RagSelector />
           </div>
-          <div className="flex-1">
+           {/* MCPs Selector takes less space */}
+          <div className="flex-shrink-0"> 
             <MCPsSelector />
           </div>
         </div>

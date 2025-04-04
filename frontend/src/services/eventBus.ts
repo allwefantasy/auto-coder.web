@@ -35,6 +35,10 @@ export const EVENTS = {
     UPDATED: 'rag.updated',
     // RAG启用状态变更事件 RagSelector.tsx 发布, ChatPanel.tsx 订阅
     ENABLED_CHANGED: 'rag.enabled.changed'
+  },
+  MCPS: { // 添加 MCPS 事件组
+    // MCPs启用状态变更事件 MCPsSelector.tsx 发布, ChatPanel.tsx 订阅
+    ENABLED_CHANGED: 'mcps.enabled.changed'
   }
 };
 

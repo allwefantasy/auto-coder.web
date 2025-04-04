@@ -167,6 +167,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
   // 添加RAG启用状态
   const [enableRag, setEnableRag] = useState<boolean>(false);
+  // 添加MCP启用状态
+  const [enableMCPs, setEnableMCPs] = useState<boolean>(false);
 
   // 添加消息ID计数器，用于生成唯一的消息ID
   const [messageIdCounter, setMessageIdCounter] = useState<number>(0);
@@ -784,13 +786,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       EVENTS.CHAT.REFRESH_FROM_MESSAGE, 
       handleRefreshFromMessage
     );
-    
+
     // 订阅RAG启用状态变更事件
     const unsubscribeRagEnabled = eventBus.subscribe(
       EVENTS.RAG.ENABLED_CHANGED,
       (enabled: boolean) => {
         console.log('ChatPanel: RAG enabled changed to', enabled);
         setEnableRag(enabled);
+      }
+    );
+
+    // 订阅MCP启用状态变更事件
+    const unsubscribeMCPsEnabled = eventBus.subscribe(
+      EVENTS.MCPS.ENABLED_CHANGED,
+      (enabled: boolean) => {
+        console.log('ChatPanel: MCPs enabled changed to', enabled);
+        setEnableMCPs(enabled);
       }
     );
     
@@ -807,8 +818,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       unsubscribeRefresh();
       unsubscribeRagEnabled();
       unsubscribeNewChat();
+      // 取消订阅 MCP 状态变更事件
+      unsubscribeMCPsEnabled();
     };
-  }, [handleRefreshFromMessage]);
+  }, [handleRefreshFromMessage]); // 依赖项数组保持不变，因为 handleRefreshFromMessage 是用 useCallback 包裹的
   
   // 新消息到达时自动滚动到底部
   // useEffect(() => {
@@ -839,12 +852,29 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       } else {
         // 聊天模式
         console.log('ChatPanel: Sending message to chatService');
-        
-        // 检查是否启用了RAG且不在写作模式
+
         let commandText = trimmedText;
-        if (enableRag && !isWriteMode) {
+
+        // 检查是否同时启用了 RAG 和 MCP
+        if (enableRag && enableMCPs && !isWriteMode) {
+          Modal.warning({
+            title: '冲突的设置',
+            content: 'RAG Provider 和 MCPs Provider 不能同时启用。请先禁用其中一个。',
+            centered: true,
+          });
+          setSendLoading(false); // 重置加载状态
+          return; // 阻止发送消息
+        }
+
+        // 检查是否启用了RAG（且未启用MCP）
+        if (enableRag && !enableMCPs && !isWriteMode) {
           console.log('ChatPanel: RAG enabled, prepending /rag to message');
           commandText = `/rag ${trimmedText}`;
+        } 
+        // 检查是否启用了MCP（且未启用RAG）
+        else if (enableMCPs && !enableRag && !isWriteMode) {
+          console.log('ChatPanel: MCPs enabled, prepending /mcp to message');
+          commandText = `/mcp ${trimmedText}`;
         }
         
         const result = await chatService.executeCommand(commandText);
