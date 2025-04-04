@@ -12,7 +12,7 @@ from autocoder.common.mcp_server import (
     McpListRunningRequest,
     McpRefreshRequest,
     McpServerInfoRequest,
-    McpResponse,    
+    McpResponse,
     InstallResult,
     RemoveResult,
     ListResult,
@@ -20,9 +20,11 @@ from autocoder.common.mcp_server import (
     RefreshResult,
     QueryResult,
     ErrorResult,
-    ServerInfo, 
+    ServerInfo,
     ExternalServerInfo,
-    ServerConfig # Added for InstallResult
+    ServerConfig, # Added for InstallResult
+    MarketplaceAddRequest, # Added for new add endpoint
+    MarketplaceAddResult # Added for new add endpoint
 )
 from autocoder.common.printer import Printer # For messages
 from autocoder.chat_auto_coder_lang import get_message_with_format # For formatted messages
@@ -37,8 +39,18 @@ printer = Printer() # Initialize printer for messages
 
 # --- Pydantic Models for Requests ---
 
-class McpAddRequest(BaseModel):
+class McpInstallRequestModel(BaseModel):
     server_config: str = Field(..., description="Server configuration string (command-line style or JSON)")
+
+# Model for the new /api/mcp/add endpoint
+class MarketplaceAddRequestModel(BaseModel):
+    name: str = Field(..., description="Name of the MCP server to add to the marketplace")
+    description: Optional[str] = Field("", description="Description of the MCP server")
+    mcp_type: str = Field("command", description="Type of MCP server (e.g., 'command', 'sse')")
+    command: Optional[str] = Field("", description="Command to run the server (if type is 'command')")
+    args: Optional[List[str]] = Field(None, description="Arguments for the command")
+    env: Optional[Dict[str, str]] = Field(None, description="Environment variables for the command")
+    url: Optional[str] = Field("", description="URL endpoint for the server (if type is 'sse')")
 
 class McpRemoveRequestModel(BaseModel):
     server_name: str = Field(..., description="Name of the MCP server to remove")
@@ -89,11 +101,11 @@ async def handle_mcp_response(request: Any, success_key: str, error_key: str, **
 
 # --- API Endpoints ---
 
-@router.post("/api/mcp/add")
-async def add_mcp_server(request: McpAddRequest):
+@router.post("/api/mcp/install")
+async def install_mcp_server(request: McpInstallRequestModel):
     """
-    Adds or updates an MCP server configuration.
-    Accepts command-line style args or a JSON string.
+    Installs or updates an MCP server configuration based on name, JSON, or command-line args.
+    Handles built-in, external, and custom server installations.
     """
     mcp_request = McpInstallRequest(server_name_or_config=request.server_config)
     return await handle_mcp_response(
@@ -101,6 +113,28 @@ async def add_mcp_server(request: McpAddRequest):
         success_key="mcp_install_success",
         error_key="mcp_install_error",
         result=request.server_config # Pass original config for success message formatting
+    )
+
+@router.post("/api/mcp/add")
+async def add_marketplace_server(request: MarketplaceAddRequestModel):
+    """
+    Adds a new MCP server configuration to the marketplace file.
+    """
+    # Convert API model to the internal McpHub model
+    mcp_request = MarketplaceAddRequest(
+        name=request.name,
+        description=request.description,
+        mcp_type=request.mcp_type,
+        command=request.command,
+        args=request.args,
+        env=request.env,
+        url=request.url
+    )
+    return await handle_mcp_response(
+        mcp_request,
+        success_key="marketplace_add_success",
+        error_key="marketplace_add_error",
+        name=request.name # Pass name for message formatting
     )
 
 @router.post("/api/mcp/remove")
