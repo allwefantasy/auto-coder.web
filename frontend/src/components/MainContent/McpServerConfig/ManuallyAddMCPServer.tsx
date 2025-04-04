@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Form, Input, Select, Button, message, Space } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Form, Input, Select, Button, message, Space, Tabs } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getMessage } from '../../Sidebar/lang';
 
 const { Option } = Select;
+const { TabPane } = Tabs;
 
 interface EnvVar {
   id: number;
@@ -11,11 +12,49 @@ interface EnvVar {
   value: string;
 }
 
+interface ServerItem {
+  name: string;
+  description: string;
+  mcp_type: string;
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  url?: string;
+}
+
 const ManuallyAddMCPServer: React.FC = () => {
   const [form] = Form.useForm();
   const [envVars, setEnvVars] = useState<EnvVar[]>([]);
   const [nextEnvId, setNextEnvId] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [builtInServers, setBuiltInServers] = useState<ServerItem[]>([]);
+  const [fetchingServers, setFetchingServers] = useState(false);
+  const [activeTab, setActiveTab] = useState('builtin');
+
+  // Fetch available MCP servers
+  useEffect(() => {
+    const fetchServers = async () => {
+      try {
+        setFetchingServers(true);
+        const response = await fetch('/api/mcp/list');
+        if (!response.ok) {
+          throw new Error('Failed to fetch MCP servers');
+        }
+        
+        const data = await response.json();
+        if (data.raw_result && data.raw_result.builtin_servers) {
+          setBuiltInServers(data.raw_result.builtin_servers);
+        }
+      } catch (error) {
+        console.error('Error fetching MCP servers:', error);
+        message.error(getMessage('fetchServerError') || 'Failed to fetch MCP servers');
+      } finally {
+        setFetchingServers(false);
+      }
+    };
+
+    fetchServers();
+  }, []);
 
   const addEnvVar = () => {
     setEnvVars([...envVars, { id: nextEnvId, key: '', value: '' }]);
@@ -97,7 +136,37 @@ const ManuallyAddMCPServer: React.FC = () => {
     }
   };
 
-  return (
+  const handleBuiltInServerSelect = (serverName: string) => {
+    const selectedServer = builtInServers.find(server => server.name === serverName);
+    if (!selectedServer) return;
+
+    // Transform env object to array of EnvVar objects
+    const newEnvVars: EnvVar[] = [];
+    let newNextEnvId = 1;
+
+    if (selectedServer.env) {
+      Object.entries(selectedServer.env).forEach(([key, value]) => {
+        newEnvVars.push({ id: newNextEnvId, key, value });
+        newNextEnvId++;
+      });
+    }
+
+    // Update form fields with selected server's values
+    form.setFieldsValue({
+      name: selectedServer.name,
+      description: selectedServer.description,
+      type: selectedServer.mcp_type,
+      command: selectedServer.command || '',
+      args: selectedServer.args || [],
+      url: selectedServer.url || '',
+    });
+
+    // Update environment variables
+    setEnvVars(newEnvVars);
+    setNextEnvId(newNextEnvId);
+  };
+
+  const renderForm = () => (
     <Form
       form={form}
       layout="vertical"
@@ -226,6 +295,60 @@ const ManuallyAddMCPServer: React.FC = () => {
         </Button>
       </Form.Item>
     </Form>
+  );
+
+  return (
+    <div className="manually-add-mcp-container">
+      <style>
+        {`
+          .env-var-item {
+            display: flex;
+            margin-bottom: 8px;
+            gap: 8px;
+          }
+          .env-var-item .ant-input {
+            flex: 1;
+          }
+        `}
+      </style>
+      <Tabs 
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        className="settings-tabs dark-tabs"
+      >
+        <TabPane
+          tab={<span className="text-gray-300">{getMessage('builtInMcpServer') || 'Built-in MCP Server'}</span>}
+          key="builtin"
+        >
+          <div className="p-4">
+            <Form.Item 
+              label={getMessage('selectBuiltInServer') || 'Select Built-in Server'}
+              className="mb-6"
+            >
+              <Select
+                className="dark-select w-full"
+                placeholder={getMessage('selectBuiltInServerPlaceholder') || 'Select a built-in MCP server'}
+                loading={fetchingServers}
+                onChange={handleBuiltInServerSelect}
+              >
+                {builtInServers.map(server => (
+                  <Option key={server.name} value={server.name}>
+                    {server.name} - {server.description}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            {renderForm()}
+          </div>
+        </TabPane>
+        <TabPane
+          tab={<span className="text-gray-300">{getMessage('externalMcpServer') || 'External MCP Server'}</span>}
+          key="external"
+        >
+          {renderForm()}
+        </TabPane>
+      </Tabs>
+    </div>
   );
 };
 

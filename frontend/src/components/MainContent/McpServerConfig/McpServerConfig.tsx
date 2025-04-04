@@ -2,7 +2,7 @@ import React from 'react';
 import { Tabs } from 'antd';
 import { getMessage } from '../../Sidebar/lang';
 import MCPMarketplace from './MCPMarketplace'; // Renamed import
-import ManualInstallTab from './ManualInstallTab';
+import ManuallyAddMCPServer from './ManuallyAddMCPServer';
 import MCPInstalled from './MCPInstalled'; // Renamed import
 import './McpServerConfig.css';
 import '../../../styles/custom_antd.css'; // Ensure shared dark theme styles are applied
@@ -29,7 +29,7 @@ const McpServerConfig: React.FC = () => {
           tab={<span className="text-gray-300">{getMessage('manualInstall') || 'Manual Add to Marketplace'}</span>}
           key="manual"
         >
-          <ManualInstallTab />
+          <ManuallyAddMCPServer />
         </TabPane>
       </Tabs>
     </div>
