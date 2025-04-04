@@ -115,19 +115,25 @@ async def install_mcp_server(request: McpInstallRequestModel):
 
         marketplace_item = None
         if list_response.raw_result and isinstance(list_response.raw_result, ListResult):
-            for item in list_response.raw_result.marketplace_items:
+            # Combine all server lists for searching
+            all_servers = (
+                list_response.raw_result.builtin_servers +
+                list_response.raw_result.external_servers +
+                list_response.raw_result.marketplace_items
+            )
+            for item in all_servers:
                 if item.name == request.server_config:
                     marketplace_item = item
                     break
 
         if marketplace_item:
-            # If found in marketplace list, create install request with the item
+            # If found in any list, create install request with the item
             mcp_request = McpInstallRequest(market_install_item=marketplace_item)
-            logger.info(f"Found '{request.server_config}' in marketplace. Installing using item.")
+            logger.info(f"Found '{request.server_config}' in available server lists. Installing using item.")
         else:
-            # If not found, assume it's a built-in, external, or direct config string
+            # If not found in any list, assume it's a direct config string or an unknown name
             mcp_request = McpInstallRequest(server_name_or_config=request.server_config)
-            logger.info(f"'{request.server_config}' not found in marketplace list. Installing using name/config string.")
+            logger.info(f"'{request.server_config}' not found in available server lists. Installing using name/config string.")
 
         # Proceed with installation using the determined request type
         return await handle_mcp_response(
