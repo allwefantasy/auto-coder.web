@@ -1,5 +1,6 @@
 import os
 import json
+import aiofiles
 from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from pathlib import Path
@@ -27,16 +28,20 @@ async def load_config(config_path: Path) -> UIConfig:
         return UIConfig()
     
     try:
-        with open(config_path, 'r') as f:
-            config_data = json.load(f)
+        async with aiofiles.open(config_path, mode='r') as f:
+            content = await f.read()
+            config_data = json.loads(content)
             return UIConfig(**config_data)
+    except FileNotFoundError:
+        return UIConfig()
     except json.JSONDecodeError:
+        # Handle cases where the file is corrupted or empty
         return UIConfig()
 
 async def save_config(config: UIConfig, config_path: Path):
     """保存配置"""
-    with open(config_path, 'w') as f:
-        json.dump(config.dict(), f)
+    async with aiofiles.open(config_path, mode='w') as f:
+        await f.write(json.dumps(config.dict()))
 
 @router.get("/api/config/ui/mode")
 async def get_ui_mode(request: Request):
