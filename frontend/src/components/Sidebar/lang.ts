@@ -1737,6 +1737,15 @@ export const messages: { [key: string]: Message } = {
   unmergedBlocks: {
     en: "Try to fix unmerged file...",
     zh: "尝试修正未合并的文件..."
+  },
+  // RAG/MCP Conflict Warning
+  ragMcpConflictTitle: {
+    en: "Conflicting Settings",
+    zh: "冲突的设置"
+  },
+  ragMcpConflictContent: {
+    en: "RAG Provider and MCPs Provider cannot be enabled simultaneously. Please disable one of them first.",
+    zh: "RAG Provider 和 MCPs Provider 不能同时启用。请先禁用其中一个。"
   }
 };
 

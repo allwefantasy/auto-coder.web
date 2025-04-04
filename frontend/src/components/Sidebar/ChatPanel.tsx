@@ -858,8 +858,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         // 检查是否同时启用了 RAG 和 MCP
         if (enableRag && enableMCPs && !isWriteMode) {
           Modal.warning({
-            title: '冲突的设置',
-            content: 'RAG Provider 和 MCPs Provider 不能同时启用。请先禁用其中一个。',
+            title: getMessage('ragMcpConflictTitle'),
+            content: getMessage('ragMcpConflictContent'),
             centered: true,
           });
           setSendLoading(false); // 重置加载状态
