@@ -178,11 +178,7 @@ async def install_mcp_server(request: McpInstallRequestModel):
             list_response.raw_result, ListResult
         ):
             # Combine all server lists for searching
-            all_servers = (
-                list_response.raw_result.builtin_servers
-                + list_response.raw_result.external_servers
-                + list_response.raw_result.marketplace_items
-            )
+            all_servers = list_response.raw_result.marketplace_items
             for item in all_servers:
                 if item.name == request.server_config:
                     marketplace_item = item
@@ -192,7 +188,7 @@ async def install_mcp_server(request: McpInstallRequestModel):
             # If found in any list, create install request with the item
             mcp_request = McpInstallRequest(market_install_item=marketplace_item)
             logger.info(
-                f"Found '{request.server_config}' in available server lists. Installing using item."
+                f"Found '{request.server_config}' in available server lists. Installing using item. {marketplace_item}"
             )
         else:
             # If not found in any list, assume it's a direct config string or an unknown name

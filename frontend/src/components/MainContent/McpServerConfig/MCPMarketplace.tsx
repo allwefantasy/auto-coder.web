@@ -40,10 +40,7 @@ const MCPMarketplace: React.FC = () => {
       }
 
 
-      const builtInServers: McpServerInfo[] = (apiData.raw_result.builtin_servers || []).map(s => ({
-        ...s, // Spread all fields from BackendServerInfo
-        displayType: 'Built-in', // Use the new displayType field
-      }));
+      const builtInServers: McpServerInfo[] = []
 
       const externalServers: McpServerInfo[] = (apiData.raw_result.external_servers || []).map(s => ({
         ...s, // Spread all fields from BackendServerInfo
