@@ -51,8 +51,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   showFileGroupSelect
 }) => {  
   const [showConfig, setShowConfig] = useState<boolean>(false);
-  const [config, setLocalConfig] = useState<ConfigState>({
-    project_type: '',
+  const [config, setLocalConfig] = useState<Omit<ConfigState, 'project_type'>>({
     skip_build_index: false,
     human_as_model: false,
     extra_conf: {},
@@ -161,14 +160,23 @@ const InputArea: React.FC<InputAreaProps> = ({
       const response = await axios.get('/api/conf');
       if (response.data && response.data.conf) {
         const apiConfig = response.data.conf;
+        // Filter out project_type from being set locally in InputArea
+        const { project_type, ...restConfig } = apiConfig;
         const newConfig: ConfigState = {
-          project_type: apiConfig.project_type || '',
-          skip_build_index: apiConfig.skip_build_index === 'true',
-          human_as_model: apiConfig.human_as_model === 'true',
-          extra_conf: apiConfig.extra_conf || {},
-          available_keys: apiConfig.available_keys || []
+          project_type: project_type || '', // Keep project_type in the ConfigState passed up
+          skip_build_index: restConfig.skip_build_index === 'true',
+          human_as_model: restConfig.human_as_model === 'true',
+          extra_conf: restConfig.extra_conf || {},
+          available_keys: restConfig.available_keys || []
         };
-        setLocalConfig(newConfig);
+        // Set local config without project_type
+        setLocalConfig({
+          skip_build_index: newConfig.skip_build_index,
+          human_as_model: newConfig.human_as_model,
+          extra_conf: newConfig.extra_conf,
+          available_keys: newConfig.available_keys
+        });
+        // Pass the full config including project_type up
         setConfig(newConfig);
       }
     } catch (error) {
@@ -177,24 +185,25 @@ const InputArea: React.FC<InputAreaProps> = ({
     }
   }, [setConfig]);
 
-  // 更新配置
-  const updateConfig = useCallback(async (key: string, value: boolean | string) => {
+  // 更新配置 (只更新 InputArea 管理的状态)
+  const updateConfig = useCallback(async (key: keyof Omit<ConfigState, 'project_type' | 'available_keys' | 'extra_conf'>, value: boolean) => {
     try {
       // 更新本地状态
-      setLocalConfig(prev => {
-        const newConfig = { ...prev, [key]: value };
-        // 同步到父组件
-        setConfig(newConfig);
-        return newConfig;
-      });
+      setLocalConfig(prev => ({ ...prev, [key]: value }));
+      // 同步到父组件
+      setConfig(prev => ({ ...prev, [key]: value }));
 
       // 发送到API
       await axios.post('/api/conf', { [key]: value });
     } catch (error) {
       console.error(`Error updating config ${key}:`, error);
       AntdMessage.error(`Failed to update ${key}`);
+      // Revert local state on error
+      setLocalConfig(prev => ({ ...prev, [key]: !value }));
+      setConfig(prev => ({ ...prev, [key]: !value }));
     }
   }, [setConfig]);
+
 
   useEffect(() => {
     checkIndexStatus();
@@ -417,25 +426,8 @@ const InputArea: React.FC<InputAreaProps> = ({
         </div>
 
         {showConfig && (
-          <div className="space-y-0 -mb-0.5 w-full">
-            <div className="flex flex-col space-y-0 w-full">
-              <Tooltip title={getMessage('projectTypeTooltip')}>
-                <span className="text-gray-300 text-[10px]">{getMessage('projectType')}</span>
-              </Tooltip>
-              <Select
-                mode="tags"
-                size="small"
-                style={{ width: '100%' }}
-                placeholder="e.g. .py,.ts"
-                value={config.project_type ? config.project_type.split(',') : []}
-                onChange={(values) => updateConfig('project_type', values.join(','))}
-                className="custom-select"
-                tokenSeparators={[',']}
-                maxTagCount="responsive"
-              >                
-              </Select>
-            </div>
-            <div className="flex items-center justify-between ">
+          <div className="space-y-1 -mb-0.5 w-full"> {/* Adjusted spacing */}
+            <div className="flex items-center justify-between">
               <Tooltip title={getMessage('skipBuildIndexTooltip')}>
                 <span className="text-gray-300 text-[10px]">{getMessage('skipBuildIndex')}</span>
               </Tooltip>
@@ -444,11 +436,12 @@ const InputArea: React.FC<InputAreaProps> = ({
                 checked={config.skip_build_index}
                 onChange={(checked) => updateConfig('skip_build_index', checked)}
               />
-            </div>                        
+            </div>
+            {/* Removed Human as Model switch, assuming it's managed elsewhere or not needed here */}
           </div>
         )}
 
-        <div className="h-[1px] bg-gray-700/50 my-1 w-full"></div>
+        {/* Removed the divider, adjust layout as needed */}
         {/* Provider Selectors (RAG/MCPs) */}
         <ProviderSelectors isWriteMode={isWriteMode} />
 
