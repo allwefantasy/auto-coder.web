@@ -15,6 +15,8 @@ from autocoder.index.symbols_utils import (
 from autocoder.auto_coder_runner import get_memory
 import json
 import asyncio
+import aiofiles
+import aiofiles.os
 
 
 router = APIRouter()
@@ -98,14 +100,19 @@ def find_files_in_project(patterns: List[str], project_path: str) -> List[str]:
 
     return list(matched_files)
 
-def get_symbol_list(project_path: str) -> List[SymbolItem]:
+async def get_symbol_list_async(project_path: str) -> List[SymbolItem]:
+    """Asynchronously reads the index file and extracts symbols."""
     list_of_symbols = []
-    index_file = os.path.join(
-        project_path, ".auto-coder", "index.json")
+    index_file = os.path.join(project_path, ".auto-coder", "index.json")
 
-    if os.path.exists(index_file):
-        with open(index_file, "r") as file:
-            index_data = json.load(file)
+    if await aiofiles.os.path.exists(index_file):
+        try:
+            async with aiofiles.open(index_file, "r", encoding='utf-8') as file:
+                content = await file.read()
+                index_data = json.loads(content)
+        except (IOError, json.JSONDecodeError):
+             # Handle file reading or JSON parsing errors
+             index_data = {}
     else:
         index_data = {}
 
@@ -169,7 +176,7 @@ async def get_symbol_completions(
     project_path: str = Depends(get_project_path)
 ):
     """获取符号补全"""
-    symbols = await asyncio.to_thread(get_symbol_list, project_path)
+    symbols = await get_symbol_list_async(project_path)
     matches = []
 
     for symbol in symbols:
