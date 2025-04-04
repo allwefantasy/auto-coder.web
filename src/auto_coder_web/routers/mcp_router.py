@@ -24,8 +24,7 @@ from autocoder.common.mcp_server import (
     ExternalServerInfo,
     ServerConfig, # Added for InstallResult
     MarketplaceAddRequest, # Added for new add endpoint
-    MarketplaceAddResult, # Added for new add endpoint
-    MarketplaceMCPServerItem # Import for install request model
+    MarketplaceAddResult # Added for new add endpoint
 )
 from autocoder.common.printer import Printer # For messages
 from autocoder.chat_auto_coder_lang import get_message_with_format # For formatted messages
@@ -42,10 +41,7 @@ async def send_mcp_request_async(*args, **kwargs) -> McpResponse:
 # --- Pydantic Models for Requests ---
 
 class McpInstallRequestModel(BaseModel):
-    server_name_or_config: Optional[str] = Field(None, description="Server name, configuration string (command-line style or JSON)")
-    market_install_item: Optional[MarketplaceMCPServerItem] = Field(None, description="Full marketplace item details for installation")
-
-    # TODO: Add validation to ensure exactly one field is provided if necessary
+    server_config: str = Field(..., description="Server configuration string (command-line style or JSON)")
 
 # Model for the new /api/mcp/add endpoint
 class MarketplaceAddRequestModel(BaseModel):
@@ -109,23 +105,15 @@ async def handle_mcp_response(request: Any, success_key: str, error_key: str, **
 @router.post("/api/mcp/install")
 async def install_mcp_server(request: McpInstallRequestModel):
     """
-    Installs or updates an MCP server configuration.
-    Accepts either a server name/config string or full marketplace item details.
-    """
-    # Create the backend request object based on the API model input
-    mcp_request = McpInstallRequest(
-        server_name_or_config=request.server_name_or_config,
-        market_install_item=request.market_install_item
-    )
-
-    # Determine the result identifier for messaging
-    result_identifier = request.server_name_or_config or (request.market_install_item.name if request.market_install_item else "Unknown")
-
+    Installs or updates an MCP server configuration based on name, JSON, or command-line args.
+    Handles built-in, external, and custom server installations.
+    """    
+    mcp_request = McpInstallRequest(server_name_or_config=request.server_config)
     return await handle_mcp_response(
         mcp_request,
         success_key="mcp_install_success",
         error_key="mcp_install_error",
-        result=result_identifier # Pass identifier for success message formatting
+        result=request.server_config # Pass original config for success message formatting
     )
 
 @router.post("/api/mcp/add")
