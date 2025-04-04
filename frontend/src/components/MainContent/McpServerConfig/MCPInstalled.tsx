@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { List, Button, message, Spin, Modal, Popconfirm, Empty } from 'antd';
-import { EyeOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { List, Button, message, Spin, Popconfirm, Empty } from 'antd';
+import { DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { getMessage } from '../../Sidebar/lang';
 
 // --- Interface Definitions ---
@@ -30,10 +28,7 @@ const MCPInstalled: React.FC = () => { // Renamed component function
   const [runningServers, setRunningServers] = useState<RunningServerInfo[]>([]); // State now holds RunningServerInfo objects
   const [loading, setLoading] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null); // Keep track by name
-  const [infoLoading, setInfoLoading] = useState(false);
-  const [infoModalVisible, setInfoModalVisible] = useState(false);
-  const [serverInfo, setServerInfo] = useState<string>('');
-  const [selectedServer, setSelectedServer] = useState<string | null>(null);
+
 
   const fetchRunningServers = useCallback(async () => {
     setLoading(true);
@@ -98,36 +93,6 @@ const MCPInstalled: React.FC = () => { // Renamed component function
     }
   };
 
-  const handleViewInfo = async (serverName: string) => {
-    setInfoLoading(true);
-    setSelectedServer(serverName);
-    setInfoModalVisible(true);
-    try {
-      // TODO: Determine how to get model/product_mode if needed by backend
-      // Assuming the info endpoint doesn't require specific server name for now
-      // as per the original code, but ideally it should take server_name.
-      // If backend needs it, adjust the fetch URL: `/api/mcp/info?server_name=${serverName}`
-      const response = await fetch(`/api/mcp/info?server_name=${encodeURIComponent(serverName)}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to fetch server info');
-      }
-      const data = await response.json();
-      // Assuming the backend returns info directly or within an 'info' key
-      setServerInfo(data.info || data.message || 'No details available.');
-    } catch (error) {
-      console.error(`Error fetching info for server ${serverName}:`, error);
-      message.error(
-        error instanceof Error
-          ? error.message
-          : getMessage('mcpServerInfoError', { error: 'Unknown error' })
-      );
-      setServerInfo('Error loading details.');
-    } finally {
-      setInfoLoading(false);
-    }
-  };
-
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -153,11 +118,6 @@ const MCPInstalled: React.FC = () => { // Renamed component function
     // setLoading(false) is handled in fetchRunningServers' finally block
   };
 
-  const handleModalClose = () => {
-    setInfoModalVisible(false);
-    setServerInfo('');
-    setSelectedServer(null);
-  };
 
   return (
     <div>
@@ -166,13 +126,13 @@ const MCPInstalled: React.FC = () => { // Renamed component function
           type="text"
           icon={<ReloadOutlined />}
           onClick={handleRefresh}
-          loading={loading && !infoLoading && !removing} // Only show main loading if not doing other actions
+          loading={loading && !removing} // Only show main loading if not removing
           className="dark-button"
         >
           {getMessage('refreshFromHere') || 'Refresh'}
         </Button>
       </div>
-      <Spin spinning={loading && !infoLoading && !removing}>
+      <Spin spinning={loading && !removing}>
         {runningServers.length === 0 && !loading ? (
           <Empty description={getMessage('noServersInstalled') || 'No servers installed'} />
         ) : (
@@ -183,14 +143,6 @@ const MCPInstalled: React.FC = () => { // Renamed component function
               <List.Item
                 className="mcp-server-list-item"
                 actions={[
-                  <Button
-                    type="text"
-                    icon={<EyeOutlined />}
-                    onClick={() => handleViewInfo(server.name)} // Use server.name
-                    className="dark-button"
-                  >
-                    {getMessage('details') || 'Details'}
-                  </Button>,
                   <Popconfirm
                     title={getMessage('confirmRemoveMcp') || 'Remove this server?'}
                     onConfirm={() => handleRemove(server.name)} // Use server.name
@@ -221,22 +173,7 @@ const MCPInstalled: React.FC = () => { // Renamed component function
         )}
       </Spin>
 
-      <Modal
-        title={`${getMessage('mcpServerDetails') || 'Server Details'}: ${selectedServer || ''}`}
-        open={infoModalVisible}
-        onCancel={handleModalClose}
-        footer={null} // No OK/Cancel buttons needed
-        width={800}
-        className="dark-modal mcp-server-container" // Apply container class for styling context
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
-      >
-        <Spin spinning={infoLoading}>
-          {/* Apply markdown-body class for styling */}
-          <div className="markdown-body">
-             <ReactMarkdown remarkPlugins={[remarkGfm]}>{serverInfo}</ReactMarkdown>
-          </div>
-        </Spin>
-      </Modal>
+
     </div>
   );
 };
