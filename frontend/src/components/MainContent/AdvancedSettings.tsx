@@ -17,7 +17,6 @@ interface AdvancedSettingsState {
   enable_active_context_in_generate: boolean;
   enable_task_history: boolean;
   include_project_structure: boolean;
-  skip_filter_index: boolean;
 }
 
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSettingChange }) => {
@@ -29,8 +28,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
     enable_active_context: false,
     enable_active_context_in_generate: false,
     enable_task_history: false,
-    include_project_structure: true,
-    skip_filter_index: false,    
+    include_project_structure: true,    
   });
 
   // Fetch current configuration
@@ -69,9 +67,6 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
         if (currentConfig.include_project_structure !== undefined) {
           updatedSettings.include_project_structure = currentConfig.include_project_structure === "true";
         }
-        if (currentConfig.skip_filter_index !== undefined) {
-          updatedSettings.skip_filter_index = currentConfig.skip_filter_index === "true";
-        }
                 
         setSettings(updatedSettings);
       } catch (error) {
@@ -109,9 +104,6 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
       }
       if (key.key === 'include_project_structure' && initialSettings.include_project_structure === undefined) {
         initialSettings.include_project_structure = key.default === "true" || key.default === undefined;
-      }
-      if (key.key === 'skip_filter_index' && initialSettings.skip_filter_index === undefined) {
-        initialSettings.skip_filter_index = key.default === "true";
       }      
     });
 
@@ -218,18 +210,6 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ availableKeys, onSe
             />
           </div>
           <p className="model-config-description">{getMessage('includeProjectStructureDescription')}</p>
-        </div>
-
-        <div className="model-config-item">
-          <div className="flex justify-between items-center">
-            <label className="model-config-label">{getMessage('skipFilterIndexToggle')}</label>
-            <Switch
-              checked={settings.skip_filter_index}
-              onChange={(checked) => handleSettingChange('skip_filter_index', checked)}
-              className="bg-gray-600"
-            />
-          </div>
-          <p className="model-config-description">{getMessage('skipFilterIndexDescription')}</p>
         </div>
       </div>
     </div>

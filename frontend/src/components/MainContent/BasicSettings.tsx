@@ -19,6 +19,7 @@ interface BasicSettingsState {
   rank_times_same_model: number;
   enable_agentic_filter: boolean;
   skip_build_index: boolean; // Added skip_build_index
+  skip_filter_index: boolean; // Added skip_filter_index
 }
 
 const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingChange }) => {
@@ -31,6 +32,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
     rank_times_same_model: 1,
     enable_agentic_filter: false,
     skip_build_index: false, // Initialize skip_build_index
+    skip_filter_index: false, // Initialize skip_filter_index
   });
 
   // Fetch current configuration
@@ -68,6 +70,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         }
         if (currentConfig.skip_build_index !== undefined) { // Fetch skip_build_index
           updatedSettings.skip_build_index = String(currentConfig.skip_build_index).toLowerCase() === 'true';
+        }
+        if (currentConfig.skip_filter_index !== undefined) { // Fetch skip_filter_index
+          updatedSettings.skip_filter_index = String(currentConfig.skip_filter_index).toLowerCase() === 'true';
         }
 
         setSettings(updatedSettings);
@@ -107,6 +112,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
       }
       if (key.key === 'skip_build_index' && initialSettings.skip_build_index === undefined) { // Fallback for skip_build_index
         initialSettings.skip_build_index = String(key.default).toLowerCase() === 'true' || false;
+      }
+      if (key.key === 'skip_filter_index' && initialSettings.skip_filter_index === undefined) { // Fallback for skip_filter_index
+        initialSettings.skip_filter_index = String(key.default).toLowerCase() === 'true' || false;
       }
     });
 
@@ -173,6 +181,44 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
           <p className="model-config-description">{getMessage('skipBuildIndexDescription')}</p>
         </div>
 
+        {/* Skip Filter Index Setting - Added */}
+        <div className="model-config-item">
+          <Tooltip title={getMessage('skipFilterIndexTooltip') || 'If enabled, the system will skip filtering the index when processing queries.'}>
+            <label className="model-config-label">{getMessage('skipFilterIndexToggle') || 'Skip Filter Index'}</label>
+          </Tooltip>
+          <div className="mt-1">
+            <Select
+              value={settings.skip_filter_index}
+              onChange={(value) => handleSettingChange('skip_filter_index', value)}
+              size="small"
+              style={{ width: '100%' }}
+              options={[
+                { value: true, label: getMessage('enable') },
+                { value: false, label: getMessage('disable') },
+              ]}
+            />
+          </div>
+          <p className="model-config-description">{getMessage('skipFilterIndexDescription')}</p>
+        </div>
+
+        {/* Enable Agentic Filter - Moved here */}
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('enableAgenticFilter')}</label>
+          <div className="mt-1">
+            <Select
+              value={settings.enable_agentic_filter}
+              onChange={(value) => handleSettingChange('enable_agentic_filter', value)}
+              size="small"
+              style={{ width: '100%' }}
+              options={[
+                { value: true, label: getMessage('enable') },
+                { value: false, label: getMessage('disable') },
+              ]}
+            />
+          </div>
+          <p className="model-config-description">{getMessage('enableAgenticFilterDescription')}</p>
+        </div>
+
         {/* Existing Settings */}
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('indexMaxInputLength')}</label>
@@ -233,23 +279,6 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
             />
           </div>
           <p className="model-config-description">{getMessage('rankTimesSameModelDescription')}</p>
-        </div>
-
-        <div className="model-config-item">
-          <label className="model-config-label">{getMessage('enableAgenticFilter')}</label>
-          <div className="mt-1">
-            <Select
-              value={settings.enable_agentic_filter}
-              onChange={(value) => handleSettingChange('enable_agentic_filter', value)}
-              size="small"
-              style={{ width: '100%' }}
-              options={[
-                { value: true, label: getMessage('enable') },
-                { value: false, label: getMessage('disable') },
-              ]}
-            />
-          </div>
-          <p className="model-config-description">{getMessage('enableAgenticFilterDescription')}</p>
         </div>
       </div>
     </div>

@@ -50,7 +50,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   isFullScreen,
   showFileGroupSelect
 }) => {  
-  const [showConfig, setShowConfig] = useState<boolean>(false);
+  const [showConfig, setShowConfig] = useState<boolean>(true);
   const [config, setLocalConfig] = useState<ConfigState>({
     human_as_model: false,
     extra_conf: {},
