@@ -1,0 +1,186 @@
+/* McpServerConfig specific styles */
+
+/* Ensure consistent dark theme styling */
+.mcp-server-container .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+.mcp-server-container .ant-tabs-tab {
+  color: #d1d5db; /* gray-300 */
+}
+
+.mcp-server-container .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff; /* white */
+}
+
+.mcp-server-container .ant-tabs-ink-bar {
+  background-color: #3b82f6; /* blue-500 */
+}
+
+.mcp-server-list-item {
+  background-color: #1f2937; /* gray-800 */
+  border: 1px solid #374151; /* gray-700 */
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mcp-server-list-item .server-info {
+  color: #f3f4f6; /* gray-100 */
+}
+
+.mcp-server-list-item .server-description {
+  color: #9ca3af; /* gray-400 */
+  font-size: 0.875rem;
+}
+
+.mcp-server-container .ant-form-item-label > label {
+  color: #d1d5db; /* gray-300 */
+}
+
+.mcp-server-container .ant-input,
+.mcp-server-container .ant-select-selector {
+  background-color: #1f2937 !important; /* gray-800 */
+  color: #f3f4f6 !important; /* gray-100 */
+  border-color: #374151 !important; /* gray-700 */
+}
+
+.mcp-server-container .ant-select-selection-placeholder {
+  color: #9ca3af !important; /* gray-400 */
+}
+
+.mcp-server-container .ant-select-dropdown {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #374151; /* gray-700 */
+}
+
+.mcp-server-container .ant-select-item {
+  color: #f3f4f6; /* gray-100 */
+}
+
+.mcp-server-container .ant-select-item-option-active {
+  background-color: #374151 !important; /* gray-700 */
+}
+
+.mcp-server-container .ant-select-item-option-selected {
+  background-color: #111827 !important; /* gray-900 */
+  color: #ffffff !important;
+}
+
+.mcp-server-container .ant-tag {
+  background-color: #374151; /* gray-700 */
+  color: #f3f4f6; /* gray-100 */
+  border: none;
+}
+
+.mcp-server-container .ant-tag .anticon-close {
+  color: #9ca3af; /* gray-400 */
+}
+.mcp-server-container .ant-tag .anticon-close:hover {
+  color: #ffffff;
+}
+
+.mcp-server-container .ant-btn-primary {
+  background-color: #2563eb; /* blue-600 */
+  border-color: #2563eb;
+}
+.mcp-server-container .ant-btn-primary:hover {
+  background-color: #1d4ed8; /* blue-700 */
+  border-color: #1d4ed8;
+}
+
+.mcp-server-container .ant-btn-text {
+  color: #9ca3af; /* gray-400 */
+}
+.mcp-server-container .ant-btn-text:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mcp-server-container .ant-btn-dangerous {
+  color: #ef4444; /* red-500 */
+}
+.mcp-server-container .ant-btn-dangerous:hover {
+  color: #ffffff;
+  background-color: #ef4444; /* red-500 */
+  border-color: #ef4444;
+}
+
+.mcp-server-container .env-var-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.mcp-server-container .env-var-item .ant-input {
+  flex: 1;
+}
+
+.mcp-server-container .ant-modal-content {
+  background-color: #111827; /* gray-900 */
+  color: #f3f4f6; /* gray-100 */
+}
+
+.mcp-server-container .ant-modal-header {
+  background-color: #1f2937; /* gray-800 */
+  border-bottom: 1px solid #374151; /* gray-700 */
+}
+
+.mcp-server-container .ant-modal-title {
+  color: #f3f4f6; /* gray-100 */
+}
+
+.mcp-server-container .ant-modal-close-x {
+  color: #9ca3af; /* gray-400 */
+}
+
+.mcp-server-container .ant-modal-footer {
+  border-top: 1px solid #374151; /* gray-700 */
+}
+
+.mcp-server-container .ant-empty-description {
+    color: #9ca3af; /* gray-400 */
+}
+
+.mcp-server-container .markdown-body {
+    background-color: #1f2937; /* gray-800 */
+    padding: 15px;
+    border-radius: 6px;
+    color: #f3f4f6; /* gray-100 */
+    border: 1px solid #374151; /* gray-700 */
+}
+
+.mcp-server-container .markdown-body pre {
+    background-color: #111827; /* gray-900 */
+    color: #d1d5db; /* gray-300 */
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.mcp-server-container .markdown-body code {
+    background-color: #374151; /* gray-700 */
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    border-radius: 3px;
+}
+
+.mcp-server-container .markdown-body pre code {
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: inherit;
+    border-radius: 0;
+}
+
+.mcp-server-container .markdown-body h1,
+.mcp-server-container .markdown-body h2,
+.mcp-server-container .markdown-body h3 {
+    color: #ffffff; /* white */
+    border-bottom: 1px solid #374151; /* gray-700 */
+    padding-bottom: 0.3em;
+}

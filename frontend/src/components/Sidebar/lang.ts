@@ -1458,6 +1458,148 @@ export const messages: { [key: string]: Message } = {
     en: "Strict Diff",
     zh: "严格差异"
   },
+  // MCP Server Configuration
+  mcpServerConfiguration: {
+    en: "MCP Servers",
+    zh: "MCP服务"
+  },
+  marketplace: {
+    en: "Marketplace",
+    zh: "市场"
+  },
+  manualInstall: {
+    en: "Manual Install",
+    zh: "手动安装"
+  },
+  installed: {
+    en: "Installed",
+    zh: "已安装"
+  },
+  install: {
+    en: "Install",
+    zh: "安装"
+  },
+  remove: {
+    en: "Remove",
+    zh: "移除"
+  },
+  details: {
+    en: "Details",
+    zh: "详情"
+  },
+  mcpServerName: {
+    en: "Name",
+    zh: "名称"
+  },
+  mcpServerType: {
+    en: "Type",
+    zh: "类型"
+  },
+  mcpServerCommand: {
+    en: "Command",
+    zh: "命令"
+  },
+  mcpServerArgs: {
+    en: "Arguments",
+    zh: "参数"
+  },
+  mcpServerEnv: {
+    en: "Environment Variables",
+    zh: "环境变量"
+  },
+  mcpServerAddEnv: {
+    en: "Add Variable",
+    zh: "添加变量"
+  },
+  mcpServerKey: {
+    en: "Key",
+    zh: "键"
+  },
+  mcpServerValue: {
+    en: "Value",
+    zh: "值"
+  },
+  mcpInstallSuccess: {
+    en: "MCP Server installed successfully: {result}",
+    zh: "MCP 服务安装成功: {result}"
+  },
+  mcpInstallError: {
+    en: "Failed to install MCP Server: {error}",
+    zh: "MCP 服务安装失败: {error}"
+  },
+  mcpRemoveSuccess: {
+    en: "MCP Server removed successfully: {result}",
+    zh: "MCP 服务移除成功: {result}"
+  },
+  mcpRemoveError: {
+    en: "Failed to remove MCP Server: {error}",
+    zh: "MCP 服务移除失败: {error}"
+  },
+  mcpListBuiltinError: {
+    en: "Failed to list available MCP servers: {error}",
+    zh: "获取可用MCP服务列表失败: {error}"
+  },
+  mcpListRunningError: {
+    en: "Failed to list running MCP servers: {error}",
+    zh: "获取运行中MCP服务列表失败: {error}"
+  },
+  mcpServerInfoError: {
+    en: "Failed to get MCP server info: {error}",
+    zh: "获取MCP服务信息失败: {error}"
+  },
+  mcpRefreshSuccess: {
+    en: "MCP server connections refreshed successfully.",
+    zh: "MCP 服务连接刷新成功。"
+  },
+  mcpRefreshError: {
+    en: "Failed to refresh MCP server connections: {error}",
+    zh: "刷新MCP服务连接失败: {error}"
+  },
+  mcpQueryEmpty: {
+    en: "MCP query cannot be empty.",
+    zh: "MCP 查询不能为空。"
+  },
+  mcpErrorTitle: {
+    en: "MCP Error",
+    zh: "MCP 错误"
+  },
+  mcpResponseTitle: {
+    en: "MCP Response",
+    zh: "MCP 响应"
+  },
+  mcpServerDetails: {
+    en: "MCP Server Details",
+    zh: "MCP 服务详情"
+  },
+  noServersAvailable: {
+    en: "No servers available in the marketplace.",
+    zh: "市场中没有可用的服务。"
+  },
+  noServersInstalled: {
+    en: "No MCP servers currently running.",
+    zh: "当前没有运行中的MCP服务。"
+  },
+  nameRequired: {
+    en: "Please enter a name",
+    zh: "请输入名称"
+  },
+  commandRequired: {
+    en: "Please enter a command",
+    zh: "请输入命令"
+  },
+  envKeyRequired: {
+    en: "Environment variable key is required",
+    zh: "环境变量键不能为空"
+  },
+  envValueRequired: {
+    en: "Environment variable value is required",
+    zh: "环境变量值不能为空"
+  },
+  confirmRemoveMcp: {
+    en: "Are you sure you want to remove this MCP server?",
+    zh: "确定要移除此MCP服务吗？"
+  },
+  // Basic Settings continue...
   generateTimesSameModel: {
     en: "Generate Times per Model",
     zh: "单个模型生成次数"
