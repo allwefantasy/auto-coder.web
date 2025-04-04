@@ -26,7 +26,7 @@ const McpServerConfig: React.FC = () => {
           <MarketplaceTab />
         </TabPane>
         <TabPane
-          tab={<span className="text-gray-300">{getMessage('manualInstall') || 'Manual Install'}</span>}
+          tab={<span className="text-gray-300">{getMessage('manualInstall') || 'Manual Add to Marketplace'}</span>}
           key="manual"
         >
           <ManualInstallTab />

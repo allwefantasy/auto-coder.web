@@ -1468,8 +1468,8 @@ export const messages: { [key: string]: Message } = {
     zh: "市场"
   },
   manualInstall: {
-    en: "Manual Install",
-    zh: "手动安装"
+    en: "Manual Add to Marketplace",
+    zh: "手动添加到市场"
   },
   installed: {
     en: "Installed",
@@ -1519,6 +1519,18 @@ export const messages: { [key: string]: Message } = {
     en: "Value",
     zh: "值"
   },
+  mcpServerDescription: {
+    en: "Description",
+    zh: "描述"
+  },
+  mcpServerUrl: {
+    en: "URL",
+    zh: "URL地址"
+  },
+  urlRequired: {
+    en: "Please enter a URL for SSE server",
+    zh: "请为SSE服务器输入URL地址"
+  },
   mcpInstallSuccess: {
     en: "MCP Server installed successfully: {result}",
     zh: "MCP 服务安装成功: {result}"
@@ -1534,6 +1546,18 @@ export const messages: { [key: string]: Message } = {
   mcpRemoveError: {
     en: "Failed to remove MCP Server: {error}",
     zh: "MCP 服务移除失败: {error}"
+  },
+  addToMarketplace: {
+    en: "Add to Marketplace",
+    zh: "添加到市场"
+  },
+  marketplaceAddSuccess: {
+    en: "Successfully added to marketplace: {name}",
+    zh: "成功添加到市场: {name}"
+  },
+  marketplaceAddError: {
+    en: "Failed to add to marketplace: {error}",
+    zh: "添加到市场失败: {error}"
   },
   mcpListBuiltinError: {
     en: "Failed to list available MCP servers: {error}",
