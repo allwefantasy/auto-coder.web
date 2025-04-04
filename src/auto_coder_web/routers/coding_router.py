@@ -371,7 +371,7 @@ async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(ge
         def cancel_in_thread():
             try:
                 # 设置全局取消标志
-                global_cancel.set_cancel(request.event_file_id)
+                global_cancel.set()
                 
                 # 获取事件管理器
                 event_manager = get_event_manager(event_file)

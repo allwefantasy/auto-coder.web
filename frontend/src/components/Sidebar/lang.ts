@@ -391,16 +391,16 @@ export const messages: { [key: string]: Message } = {
     zh: "未选择项目"
   },
   todos: {
-    en: "Todos",
-    zh: "待办事项"
+    en: "Requirements",
+    zh: "需求管理"
   },
   devHistory: {
-    en: "Dev History",
-    zh: "开发历史"
+    en: "Change History",
+    zh: "变更历史"
   },
   codeViewer: {
-    en: "Code Viewer",
-    zh: "代码查看器"
+    en: "View Code",
+    zh: "查看代码"
   },
   fileGroups: {
     en: "File Groups",
@@ -411,8 +411,8 @@ export const messages: { [key: string]: Message } = {
     zh: "预览更改"
   },
   previewChangesStatic: {
-    en: "Preview (Static)",
-    zh: "预览(静态)"
+    en: "Preview",
+    zh: "预览"
   },
   previewChangesEditable: {
     en: "Preview (Editable)",
