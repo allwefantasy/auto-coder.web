@@ -51,7 +51,8 @@ const InputArea: React.FC<InputAreaProps> = ({
   showFileGroupSelect
 }) => {  
   const [showConfig, setShowConfig] = useState<boolean>(false);
-  const [config, setLocalConfig] = useState<ConfigState>({    
+  const [config, setLocalConfig] = useState<ConfigState>({
+    project_type: '',
     skip_build_index: false,
     human_as_model: false,
     extra_conf: {},
@@ -160,16 +161,15 @@ const InputArea: React.FC<InputAreaProps> = ({
       const response = await axios.get('/api/conf');
       if (response.data && response.data.conf) {
         const apiConfig = response.data.conf;
-        // Filter out project_type as it's managed in BasicSettings now
-        const { project_type, ...restConfig } = apiConfig;
-        const newConfig: ConfigState = {          
+        const newConfig: ConfigState = {
+          project_type: apiConfig.project_type || '',
           skip_build_index: apiConfig.skip_build_index === 'true',
-          human_as_model: restConfig.human_as_model === 'true',
-          extra_conf: restConfig.extra_conf || {},
-          available_keys: restConfig.available_keys || []
+          human_as_model: apiConfig.human_as_model === 'true',
+          extra_conf: apiConfig.extra_conf || {},
+          available_keys: apiConfig.available_keys || []
         };
         setLocalConfig(newConfig);
-        setConfig(newConfig); // Pass the filtered config up
+        setConfig(newConfig);
       }
     } catch (error) {
       console.error('Error fetching config:', error);
@@ -177,15 +177,18 @@ const InputArea: React.FC<InputAreaProps> = ({
     }
   }, [setConfig]);
 
-  // 更新配置 - Removed project_type handling
-  const updateConfig = useCallback(async (key: keyof Omit<ConfigState, 'project_type'>, value: boolean | string) => {
+  // 更新配置
+  const updateConfig = useCallback(async (key: string, value: boolean | string) => {
     try {
+      // 更新本地状态
       setLocalConfig(prev => {
         const newConfig = { ...prev, [key]: value };
-        setConfig(newConfig); // Pass the updated config up
+        // 同步到父组件
+        setConfig(newConfig);
         return newConfig;
       });
 
+      // 发送到API
       await axios.post('/api/conf', { [key]: value });
     } catch (error) {
       console.error(`Error updating config ${key}:`, error);
@@ -414,7 +417,24 @@ const InputArea: React.FC<InputAreaProps> = ({
         </div>
 
         {showConfig && (
-          <div className="space-y-0 -mb-0.5 w-full">            
+          <div className="space-y-0 -mb-0.5 w-full">
+            <div className="flex flex-col space-y-0 w-full">
+              <Tooltip title={getMessage('projectTypeTooltip')}>
+                <span className="text-gray-300 text-[10px]">{getMessage('projectType')}</span>
+              </Tooltip>
+              <Select
+                mode="tags"
+                size="small"
+                style={{ width: '100%' }}
+                placeholder="e.g. .py,.ts"
+                value={config.project_type ? config.project_type.split(',') : []}
+                onChange={(values) => updateConfig('project_type', values.join(','))}
+                className="custom-select"
+                tokenSeparators={[',']}
+                maxTagCount="responsive"
+              >                
+              </Select>
+            </div>
             <div className="flex items-center justify-between ">
               <Tooltip title={getMessage('skipBuildIndexTooltip')}>
                 <span className="text-gray-300 text-[10px]">{getMessage('skipBuildIndex')}</span>
@@ -424,7 +444,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 checked={config.skip_build_index}
                 onChange={(checked) => updateConfig('skip_build_index', checked)}
               />
-            </div>
+            </div>                        
           </div>
         )}
 

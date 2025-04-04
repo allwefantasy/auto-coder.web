@@ -9,12 +9,9 @@ import './BasicSettings.css';
 interface BasicSettingsProps {
   availableKeys: AutoCoderArgs[];
   onSettingChange: (key: string, value: string | number) => void;
-import '../../styles/custom_antd.css';
-
 }
 
 interface BasicSettingsState {
-  project_type: string; // Added project_type
   index_filter_model_max_input_length: number;
   auto_merge: string;
   generate_times_same_model: number;
@@ -23,9 +20,8 @@ interface BasicSettingsState {
 }
 
 const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingChange }) => {
-  const [loading, setLoading] = useState(true); // Set initial loading to true
+  const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<BasicSettingsState>({
-    project_type: '', // Initialize project_type
     index_filter_model_max_input_length: 51200,
     auto_merge: 'editblock',
     generate_times_same_model: 1,
@@ -44,14 +40,10 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         }
         const data = await response.json();
         const currentConfig = data.conf;
-
+        
         // Update settings with current configuration
         const updatedSettings = { ...settings };
-
-        // Update project_type
-        if (currentConfig.project_type !== undefined) {
-            updatedSettings.project_type = currentConfig.project_type;
-        }
+        
         if (currentConfig.index_filter_model_max_input_length !== undefined) {
           updatedSettings.index_filter_model_max_input_length = Number(currentConfig.index_filter_model_max_input_length);
         }
@@ -85,23 +77,19 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
     const initialSettings = { ...settings };
 
     availableKeys.forEach(key => {
-      // Initialize project_type from availableKeys if not already set
-      if (key.key === 'project_type' && initialSettings.project_type === '') {
-        initialSettings.project_type = key.default || '';
-      }
-      if (key.key === 'index_filter_model_max_input_length' && initialSettings.index_filter_model_max_input_length === 51200) { // Check against default
+      if (key.key === 'index_filter_model_max_input_length' && initialSettings.index_filter_model_max_input_length === undefined) {
         initialSettings.index_filter_model_max_input_length = Number(key.default) || 51200;
       }
-      if (key.key === 'auto_merge' && initialSettings.auto_merge === 'editblock') { // Check against default
+      if (key.key === 'auto_merge' && initialSettings.auto_merge === undefined) {
         initialSettings.auto_merge = key.default || 'editblock';
       }
       if (key.key === 'generate_times_same_model' && initialSettings.generate_times_same_model === undefined) {
         initialSettings.generate_times_same_model = Number(key.default) || 1;
       }
-      if (key.key === 'rank_times_same_model' && initialSettings.rank_times_same_model === 1) { // Check against default
+      if (key.key === 'rank_times_same_model' && initialSettings.rank_times_same_model === undefined) {
         initialSettings.rank_times_same_model = Number(key.default) || 1;
       }
-      if (key.key === 'enable_agentic_filter' && initialSettings.enable_agentic_filter === false) { // Check against default
+      if (key.key === 'enable_agentic_filter' && initialSettings.enable_agentic_filter === undefined) {
         initialSettings.enable_agentic_filter = String(key.default).toLowerCase() === 'true' || false;
       }
     });
@@ -125,27 +113,6 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
   return (
     <div className="p-2 text-white">
       <div className="space-y-2">
-        {/* Project Type Setting */}
-        <div className="model-config-item">
-          <label className="model-config-label">{getMessage('projectType')}</label>
-          <div className="mt-1">
-            <Select
-              mode="tags"
-              size="small"
-              style={{ width: '100%' }}
-              placeholder="e.g. .py,.ts"
-              value={settings.project_type ? settings.project_type.split(',') : []}
-              onChange={(values) => handleSettingChange('project_type', values.join(','))}
-              className="custom-select" // Ensure this class is defined or remove if not needed
-              tokenSeparators={[',']}
-              maxTagCount="responsive"
-            >
-            </Select>
-          </div>
-          <p className="model-config-description">{getMessage('projectTypeTooltip')}</p>
-        </div>
-
-        {/* Index Max Input Length Setting */}
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('indexMaxInputLength')}</label>
           <div className="mt-1">
