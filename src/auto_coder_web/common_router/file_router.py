@@ -20,8 +20,7 @@ async def get_auto_coder_runner(request: Request):
 
 @router.delete("/api/files/{path:path}")
 async def delete_file(
-    path: str,
-    path: str,
+    path: str,    
     project_path: str = Depends(get_project_path)
 ):
     try:
