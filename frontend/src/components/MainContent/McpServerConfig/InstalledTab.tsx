@@ -4,7 +4,6 @@ import { EyeOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getMessage } from '../../Sidebar/lang';
-import 'github-markdown-css/github-markdown-dark.css'; // Import dark theme markdown styles
 
 const InstalledTab: React.FC = () => {
   const [runningServers, setRunningServers] = useState<string[]>([]);

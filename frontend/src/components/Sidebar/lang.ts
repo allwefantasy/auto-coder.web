@@ -1578,11 +1578,7 @@ export const messages: { [key: string]: Message } = {
   noServersInstalled: {
     en: "No MCP servers currently running.",
     zh: "当前没有运行中的MCP服务。"
-  },
-  nameRequired: {
-    en: "Please enter a name",
-    zh: "请输入名称"
-  },
+  },  
   commandRequired: {
     en: "Please enter a command",
     zh: "请输入命令"

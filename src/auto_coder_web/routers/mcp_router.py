@@ -20,7 +20,7 @@ from loguru import logger
 from byzerllm.utils.langutil import asyncfy_with_semaphore
 
 # Use asyncfy_with_semaphore to wrap the synchronous send_request method
-async_send_request = asyncfy_with_semaphore(get_mcp_server().send_request, max_workers=5) 
+async_send_request = asyncfy_with_semaphore(get_mcp_server().send_request) 
 
 router = APIRouter()
 printer = Printer() # Initialize printer for messages

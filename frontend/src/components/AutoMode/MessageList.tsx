@@ -78,7 +78,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
     };
     // Function to render message content based on content type
     const renderMessageContent = (message: MessageProps) => { 
-        
+                
         if (message.isUser) {
             return <UserMessage message={message} />;
         }
@@ -122,8 +122,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             return <CodeLintMessage message={message} />;
         }
         
-        // 代码编译结果的展示
-        if (message.metadata?.stream_out_type === "compile") {
+        // 代码编译结果的展示        
+        if (message.metadata?.stream_out_type === "compile") {            
             return <CodeCompileMessage message={message} />;
         }
 

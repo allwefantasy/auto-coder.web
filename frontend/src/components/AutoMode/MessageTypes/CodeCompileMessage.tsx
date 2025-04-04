@@ -28,8 +28,7 @@ const CodeCompileMessage: React.FC<CodeCompileMessageProps> = ({ message }) => {
 
 // Streaming compile message component
 const StreamingCodeCompileMessage: React.FC<{ message: MessageProps; isCompleted: boolean }> = ({ message, isCompleted }) => {
-    const [isCollapsed, setIsCollapsed] = useState(isCompleted); // Collapse completed streams by default
-
+    const [isCollapsed, setIsCollapsed] = useState(isCompleted); // Collapse completed streams by default    
     // Format message content
     const messageContent = message.content || '';
     const contentLines = messageContent.split('\n');
@@ -103,6 +102,7 @@ const RegularCodeCompileMessage: React.FC<{ message: MessageProps }> = ({ messag
             return message.content; // Fallback to original content if not JSON or parsing fails
         }
     }, [message.content]);
+    
 
     // Determine language for syntax highlighting (use 'bash' or 'plaintext' for terminal output)
     const language = 'bash'; // Or determine based on metadata if available
