@@ -4,6 +4,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, PlusCircleOutlined, MinusCi
 import { getMessage } from '../Sidebar/lang';
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';
+import eventBus, { EVENTS } from '../../services/eventBus';
 
 // 定义模型数据结构
 interface ModelInfo {
@@ -31,7 +32,7 @@ const ProviderManagement: React.FC = () => {
 
   // 获取所有供应商
   const fetchProviders = async () => {
-  setLoading(true);
+    setLoading(true);
     try {
       const response = await fetch('/api/providers');
       if (!response.ok) {
@@ -88,6 +89,10 @@ const ProviderManagement: React.FC = () => {
       
       setModalVisible(false);
       fetchProviders();
+
+      // 发布供应商更新事件
+      eventBus.publish(EVENTS.PROVIDER.UPDATED);
+
     } catch (error) {
       console.error('Error saving provider:', error);
       message.error(getMessage('modelOperationFailed', { message: String(error) }));
@@ -107,6 +112,10 @@ const ProviderManagement: React.FC = () => {
 
       message.success(getMessage('providerDeleteSuccess'));
       fetchProviders();
+
+      // 发布供应商更新事件
+      eventBus.publish(EVENTS.PROVIDER.UPDATED);
+
     } catch (error) {
       console.error('Error deleting provider:', error);
       message.error(getMessage('modelOperationFailed', { message: String(error) }));
