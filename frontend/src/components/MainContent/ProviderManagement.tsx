@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Table, message, Popconfirm, Modal, Space, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
-import eventBus, { EVENTS } from '../../services/eventBus';
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';
 
@@ -32,7 +31,7 @@ const ProviderManagement: React.FC = () => {
 
   // 获取所有供应商
   const fetchProviders = async () => {
-    setLoading(true);
+  setLoading(true);
     try {
       const response = await fetch('/api/providers');
       if (!response.ok) {
@@ -89,8 +88,6 @@ const ProviderManagement: React.FC = () => {
       
       setModalVisible(false);
       fetchProviders();
-      // 广播供应商已变更事件
-      eventBus.publish(EVENTS.CONFIG.CODE_MODEL_UPDATED, []); // 可以传递空数组或其他数据
     } catch (error) {
       console.error('Error saving provider:', error);
       message.error(getMessage('modelOperationFailed', { message: String(error) }));
@@ -110,8 +107,6 @@ const ProviderManagement: React.FC = () => {
 
       message.success(getMessage('providerDeleteSuccess'));
       fetchProviders();
-      // 广播供应商已变更事件
-      eventBus.publish(EVENTS.CONFIG.CODE_MODEL_UPDATED, []);
     } catch (error) {
       console.error('Error deleting provider:', error);
       message.error(getMessage('modelOperationFailed', { message: String(error) }));
