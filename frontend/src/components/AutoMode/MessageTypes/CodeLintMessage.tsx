@@ -76,7 +76,7 @@ const StreamingCodeLintMessage: React.FC<{ message: MessageProps; isCompleted: b
             {/* Only show content when not collapsed */}
             {!isCollapsed && (
                 <div className="message-content-container border border-gray-800">
-                    <div className="p-2 whitespace-pre-wrap text-xs">
+                    <div className="p-2 whitespace-pre-wrap text-xs text-white">
                         {messageContent}
                     </div>
                 </div>
@@ -135,7 +135,7 @@ const RegularCodeLintMessage: React.FC<{ message: MessageProps }> = ({ message }
                     )}
 
                     {/* Lint content section */}
-                    <div className="p-2 whitespace-pre-wrap text-xs">
+                    <div className="p-2 whitespace-pre-wrap text-xs text-white">
                         {message.content}
                     </div>
                 </div>
