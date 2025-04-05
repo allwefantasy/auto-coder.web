@@ -1094,6 +1094,17 @@ export const messages: { [key: string]: Message } = {
     en: "Used for indexing content",
     zh: "用于内容索引"
   },
+
+  // Conversation prune safe zone tokens
+  conversationPruneSafeZoneTokens: {
+    en: "Conversation Prune Safe Zone Tokens",
+    zh: "上下文剪枝Token数安全区"
+  },
+  conversationPruneSafeZoneTokensDescription: {
+    en: "Reserved token count during context pruning to avoid losing important information.",
+    zh: "上下文剪枝时预留的安全Token数，避免丢失重要信息。默认51200"
+  },
+
   // Advanced settings
   advancedSettings: {
     en: "Advanced",
