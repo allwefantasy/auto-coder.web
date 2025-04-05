@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Select, Switch, Modal, Table, message, Popconfirm, Spin } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
+import eventBus, { EVENTS } from '../../services/eventBus'; // Import eventBus
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';
 
@@ -79,11 +80,23 @@ const ModelManagement: React.FC = () => {
     }
   };
 
-  // 初始加载
+  // 初始加载 和 事件订阅
   useEffect(() => {
     fetchModels();
     fetchProviders();
-  }, []);
+
+    // Subscribe to provider updates
+    const handleProviderUpdate = () => {
+      console.log("Received provider update event, refreshing providers...");
+      fetchProviders();
+    };
+    const unsubscribeProviderUpdate = eventBus.subscribe(EVENTS.PROVIDER.UPDATED, handleProviderUpdate);
+
+    // Cleanup subscription on component unmount
+    return () => {
+      unsubscribeProviderUpdate();
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   // 处理表单提交
   const handleSubmit = async (values: any) => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Table, message, Popconfirm, Modal, Space, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
+import eventBus, { EVENTS } from '../../services/eventBus'; // Import eventBus
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';
 
@@ -88,6 +89,7 @@ const ProviderManagement: React.FC = () => {
       
       setModalVisible(false);
       fetchProviders();
+      eventBus.publish(EVENTS.PROVIDER.UPDATED); // Publish event
     } catch (error) {
       console.error('Error saving provider:', error);
       message.error(getMessage('modelOperationFailed', { message: String(error) }));
@@ -107,6 +109,7 @@ const ProviderManagement: React.FC = () => {
 
       message.success(getMessage('providerDeleteSuccess'));
       fetchProviders();
+      eventBus.publish(EVENTS.PROVIDER.UPDATED); // Publish event
     } catch (error) {
       console.error('Error deleting provider:', error);
       message.error(getMessage('modelOperationFailed', { message: String(error) }));
