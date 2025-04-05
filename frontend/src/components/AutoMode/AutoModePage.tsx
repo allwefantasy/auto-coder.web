@@ -9,25 +9,6 @@ import { autoCommandService } from '../../services/autoCommandService';
 const CommitListPanel = lazy(() => import('./CommitListPanel'));
 const CurrentChangePanel = lazy(() => import('./CurrentChangePanel'));
 
-// 简单的全局事件总线
-export const eventBus = {
-  events: {} as Record<string, Array<(...args: any[]) => void>>,
-  on(event: string, callback: (...args: any[]) => void) {
-    if (!this.events[event]) {
-      this.events[event] = [];
-    }
-    this.events[event].push(callback);
-  },
-  off(event: string, callback: (...args: any[]) => void) {
-    if (!this.events[event]) return;
-    this.events[event] = this.events[event].filter(cb => cb !== callback);
-  },
-  emit(event: string, ...args: any[]) {
-    if (!this.events[event]) return;
-    this.events[event].forEach(cb => cb(...args));
-  }
-};
-
 
 interface AutoModePageProps {
   projectName: string;
@@ -210,8 +191,6 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         const data = await response.json();
         // 更新为新的数据结构：直接使用返回的提交数组
         setCurrentCommits(data.commits || []);
-        // 通过事件总线通知其他组件（如ModelManagement）有供应商发生变化
-        eventBus.emit('providerChanged', data.commits || []);
       } else {
         console.error('Failed to fetch current changes:', response.statusText);
       }
