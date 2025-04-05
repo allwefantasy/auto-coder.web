@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Select, message, Skeleton, Button, Tag } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';
+import eventBus, { EVENTS } from '../../services/eventBus';
 
 interface ModelConfigProps {
   availableKeys: AutoCoderArgs[];
@@ -145,7 +146,31 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
       }
     });
     setSelectedModels(initialModels);
-  }, [availableKeys]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableKeys]); // Keep dependencies minimal, only run when availableKeys change
+
+  // Subscribe to code model updates from event bus
+  useEffect(() => {
+    const handleCodeModelUpdate = (updatedModels: string[]) => {
+      // Ensure it's an array before comparing/setting
+      const modelsArray = Array.isArray(updatedModels) ? updatedModels : [];
+      setSelectedModels(prev => {
+        // Only update if the value is actually different
+        if (JSON.stringify(prev.code_model) !== JSON.stringify(modelsArray)) {
+          console.log("ModelConfig received update:", modelsArray);
+          return { ...prev, code_model: modelsArray };
+        }
+        return prev; // Return previous state if no change
+      });
+    };
+
+    const unsubscribe = eventBus.subscribe(EVENTS.CONFIG.CODE_MODEL_UPDATED, handleCodeModelUpdate);
+
+    // Cleanup subscription on component unmount
+    return () => {
+      unsubscribe();
+    };
+  }, []); // Empty dependency array: subscribe once on mount, unsubscribe on unmount
 
   const handleModelChange = (key: string, value: string | string[]) => {
     const isEmpty = Array.isArray(value) ? value.length === 0 : value === '';
@@ -161,11 +186,22 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
       // If the value is not empty, format it (e.g., for code_model) and notify the parent
       let formattedValue = value;
       if (key === 'code_model' && Array.isArray(value)) {
-        formattedValue = value.join(',');
-      }
-      onModelChange(key, formattedValue as string);
-    }
-  };
+       formattedValue = value.join(',');
+       }
+       onModelChange(key, formattedValue as string); // Notify parent (e.g., for saving)
+
+       // Publish event if code_model changed here
+       if (key === 'code_model' && !isEmpty) {
+         // Ensure we publish an array
+         const modelsArray = Array.isArray(value) ? value : [];
+         // Check if the current state actually matches the new value before publishing
+         if(JSON.stringify(selectedModels.code_model) !== JSON.stringify(modelsArray)) {
+            console.log("ModelConfig publishing update:", modelsArray);
+            eventBus.publish(EVENTS.CONFIG.CODE_MODEL_UPDATED, modelsArray);
+         }
+       }
+     }
+   };
 
   const selectProps = {
     loading: loading || configLoading,

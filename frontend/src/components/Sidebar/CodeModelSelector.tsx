@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Select, message, Tag, Tooltip } from 'antd';
 import { CodeOutlined } from '@ant-design/icons';
-import { getMessage } from './lang'; // Assuming lang file exists or adjust path
-import '../../styles/custom_antd.css'; // Assuming shared styles
-import './ragSelectorStyles.css'; // Reusing styles from RagSelector
+import { getMessage } from './lang';
+import '../../styles/custom_antd.css';
+import './ragSelectorStyles.css';
+import eventBus, { EVENTS } from '../../services/eventBus';
 
 interface Model {
   name: string;
@@ -96,12 +97,14 @@ const CodeModelSelector: React.FC = () => {
         }
         throw new Error(errorDetail);
       }
+       // Publish event on successful update/delete
+       eventBus.publish(EVENTS.CONFIG.CODE_MODEL_UPDATED, value);
        // Optionally show success message
        // message.success(`Configuration '${key}' ${isEmpty ? 'cleared' : 'updated'} successfully.`);
     } catch (error: any) {
       console.error(`Error ${isEmpty ? 'deleting' : 'updating'} configuration key ${key}:`, error);
       message.error(error.message || `Failed to update ${key}`);
-      // Refetch to show the actual current state after failure
+      // Refetch to show the actual current state after failure to revert UI optimisic update
       fetchCurrentConfig();
     } finally {
       setIsUpdating(false);
@@ -114,9 +117,34 @@ const CodeModelSelector: React.FC = () => {
     fetchCurrentConfig();
   }, []);
 
+  // Subscribe to code model updates from event bus
+  useEffect(() => {
+    const handleCodeModelUpdate = (updatedModels: string[]) => {
+      // Ensure it's an array before comparing/setting
+      const modelsArray = Array.isArray(updatedModels) ? updatedModels : [];
+      setSelectedCodeModels(prev => {
+        // Only update if the value is actually different
+        if (JSON.stringify(prev) !== JSON.stringify(modelsArray)) {
+          console.log("CodeModelSelector received update:", modelsArray);
+          return modelsArray;
+        }
+        return prev; // Return previous state if no change
+      });
+    };
+
+    const unsubscribe = eventBus.subscribe(EVENTS.CONFIG.CODE_MODEL_UPDATED, handleCodeModelUpdate);
+
+    // Cleanup subscription on component unmount
+    return () => {
+      unsubscribe();
+    };
+  }, []); // Empty dependency array: subscribe once on mount, unsubscribe on unmount
+
   const handleModelChange = (value: string[]) => {
     const validValues = Array.isArray(value) ? value : []; // Ensure it's always an array
+    // Optimistically update UI
     setSelectedCodeModels(validValues);
+    // Trigger API update (which will publish event on success)
     updateOrDeleteConfig('code_model', validValues);
   };
 

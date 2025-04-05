@@ -39,6 +39,10 @@ export const EVENTS = {
   MCPS: { // 添加 MCPS 事件组
     // MCPs启用状态变更事件 MCPsSelector.tsx 发布, ChatPanel.tsx 订阅
     ENABLED_CHANGED: 'mcps.enabled.changed'
+  },
+  CONFIG: { // 配置相关事件
+    // Code Model 配置更新事件 CodeModelSelector.tsx/ModelConfig.tsx 发布, 两者互相订阅
+    CODE_MODEL_UPDATED: 'config.code_model.updated'
   }
 };
 
