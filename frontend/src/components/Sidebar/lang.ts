@@ -186,16 +186,16 @@ export const messages: { [key: string]: Message } = {
     zh: "代码生成完成"
   },
   rankingCode: {
-    en: "Ranking code...",
-    zh: "正在对代码进行排序..."
+    en: "Code Ranking...",
+    zh: "代码排序..."
   },
   codeRankingComplete: {
-    en: "Code ranking complete",
-    zh: "代码排序完成"
+    en: "Code Ranking...",
+    zh: "代码排序..."
   },
   rankedCode: {
-    en: "Code Rank Result",
-    zh: "代码排序结果"
+    en: "Code Ranking...",
+    zh: "代码排序..."
   },
   priorityP0: {
     en: "P0 - Urgent",
@@ -1743,8 +1743,8 @@ export const messages: { [key: string]: Message } = {
     zh: "禁用"
   },  
   unmergedBlocks: {
-    en: "Merging.....",
-    zh: "合并进行中..."
+    en: "Merge Check.....",
+    zh: "合并检查..."
   },
   // RAG/MCP Conflict Warning
   ragMcpConflictTitle: {
