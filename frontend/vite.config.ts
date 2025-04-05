@@ -27,9 +27,9 @@ export default defineConfig({
         main: path.resolve(__dirname, 'index.html'), // 绝对路径避免复杂相对路径问题
       },
       output: {
-        entryFileNames: '[name].js',
-        chunkFileNames: '[name]-[hash].js',
-        assetFileNames: '[name]-[hash][extname]',
+        entryFileNames: 'assets/[name].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
       }
     }
   }
