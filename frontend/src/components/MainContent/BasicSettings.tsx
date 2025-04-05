@@ -14,6 +14,7 @@ interface BasicSettingsProps {
 interface BasicSettingsState {
   project_type: string; // Added project_type
   index_filter_model_max_input_length: number;
+  conversation_prune_safe_zone_tokens: number; // Added conversation_prune_safe_zone_tokens
   auto_merge: string;
   generate_times_same_model: number;
   rank_times_same_model: number;
@@ -27,6 +28,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
   const [settings, setSettings] = useState<BasicSettingsState>({
     project_type: '', // Initialize project_type
     index_filter_model_max_input_length: 51200,
+    conversation_prune_safe_zone_tokens: 51200, // Initialize conversation_prune_safe_zone_tokens
     auto_merge: 'editblock',
     generate_times_same_model: 1,
     rank_times_same_model: 1,
@@ -55,6 +57,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         }
         if (currentConfig.index_filter_model_max_input_length !== undefined) {
           updatedSettings.index_filter_model_max_input_length = Number(currentConfig.index_filter_model_max_input_length);
+        }
+        if (currentConfig.conversation_prune_safe_zone_tokens !== undefined) {
+          updatedSettings.conversation_prune_safe_zone_tokens = Number(currentConfig.conversation_prune_safe_zone_tokens);
         }
         if (currentConfig.auto_merge !== undefined) {
           updatedSettings.auto_merge = currentConfig.auto_merge;
@@ -97,6 +102,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
       }
       if (key.key === 'index_filter_model_max_input_length' && initialSettings.index_filter_model_max_input_length === undefined) {
         initialSettings.index_filter_model_max_input_length = Number(key.default) || 51200;
+      }
+      if (key.key === 'conversation_prune_safe_zone_tokens' && initialSettings.conversation_prune_safe_zone_tokens === undefined) {
+        initialSettings.conversation_prune_safe_zone_tokens = Number(key.default) || 51200;
       }
       if (key.key === 'auto_merge' && initialSettings.auto_merge === undefined) {
         initialSettings.auto_merge = key.default || 'editblock';
@@ -232,6 +240,21 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
             />
           </div>
           <p className="model-config-description">{getMessage('indexMaxInputLengthDescription')}</p>
+        </div>
+
+        {/* Conversation Prune Safe Zone Tokens */}
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('conversationPruneSafeZoneTokens') || 'Conversation Prune Safe Zone Tokens'}</label>
+          <div className="mt-1">
+            <InputNumber
+              value={settings.conversation_prune_safe_zone_tokens}
+              onChange={(value) => handleSettingChange('conversation_prune_safe_zone_tokens', value ?? 51200)} // Default to 51200
+              min={1000}
+              max={1000000}
+              size="small"
+            />
+          </div>
+          <p className="model-config-description">{getMessage('conversationPruneSafeZoneTokensDescription') || 'Reserved token count during context pruning to avoid losing important information.'}</p>
         </div>
 
         <div className="model-config-item">
