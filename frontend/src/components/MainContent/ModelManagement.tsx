@@ -300,6 +300,17 @@ const ModelManagement: React.FC = () => {
     },
   ];
 
+  useEffect(() => {
+    // 订阅供应商变更事件
+    const unsubscribe = eventBus.subscribe(EVENTS.PROVIDER.UPDATED, () => {
+      console.log("Received PROVIDER.UPDATED event, refreshing providers");
+      fetchProviders();
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   return (
     <div className="model-management-container p-2 overflow-y-auto h-full bg-gray-900">
       <div className="flex justify-between items-center mb-4">
