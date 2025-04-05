@@ -50,7 +50,7 @@ def get_repo(project_path: str) -> Repo:
 
 @router.get("/api/commits")
 async def get_commits(
-    limit: int = 50, 
+    limit: int = 10, 
     skip: int = 0, 
     project_path: str = Depends(get_project_path)
 ):
