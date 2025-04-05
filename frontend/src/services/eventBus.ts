@@ -43,9 +43,6 @@ export const EVENTS = {
   CONFIG: { // 配置相关事件
     // Code Model 配置更新事件 CodeModelSelector.tsx/ModelConfig.tsx 发布, 两者互相订阅
     CODE_MODEL_UPDATED: 'config.code_model.updated'
-  },
-  PROVIDER: {
-    UPDATED: 'provider.updated'  // 新增供应商变更事件
   }
 };
 
