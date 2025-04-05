@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'; // Import lazy and Suspense
 import { getMessage } from '../Sidebar/lang';
 import { Message as ServiceMessage, HistoryCommand } from './types';
 import { ChatPanel } from './index';
 import InputPanel from './InputPanel';
 import AskUserDialog from './AskUserDialog'; // Import the new component
 import { autoCommandService } from '../../services/autoCommandService';
-import { CommitListPanel, CurrentChangePanel } from './index';
+// Lazy load CommitListPanel and CurrentChangePanel
+const CommitListPanel = lazy(() => import('./CommitListPanel'));
+const CurrentChangePanel = lazy(() => import('./CurrentChangePanel'));
 
 
 interface AutoModePageProps {
@@ -403,12 +405,18 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                     onUserResponse={handleUserResponse}
                   />
                 ) : activeTab === 'current-change' ? (
-                  <CurrentChangePanel 
-                    projectName={projectName} 
-                    commits={currentCommits} 
-                  />
+                  // Wrap CurrentChangePanel with Suspense
+                  <Suspense fallback={<div className="p-4 text-gray-400 text-center">Loading Changes...</div>}>
+                    <CurrentChangePanel 
+                      projectName={projectName} 
+                      commits={currentCommits} 
+                    />
+                  </Suspense>
                 ) : (
-                  <CommitListPanel projectName={projectName} />
+                  // Wrap CommitListPanel with Suspense
+                  <Suspense fallback={<div className="p-4 text-gray-400 text-center">Loading Commits...</div>}>
+                    <CommitListPanel projectName={projectName} />
+                  </Suspense>
                 )}
               </div>
             </div>
