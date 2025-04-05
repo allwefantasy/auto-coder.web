@@ -1,33 +1,34 @@
 import React from 'react';
 import RagSelector from './RagSelector';
 import MCPsSelector from './MCPsSelector';
+import CodeModelSelector from './CodeModelSelector'; // Import the new component
 
 interface ProviderSelectorsProps {
-    isWriteMode: boolean; // To conditionally render RagSelector
+    isWriteMode: boolean; // Keep this prop if needed for RagSelector visibility
 }
 
 const ProviderSelectors: React.FC<ProviderSelectorsProps> = ({ isWriteMode }) => {
   return (
-    <div className="w-full">
+    <div className="w-full space-y-2"> {/* Add vertical spacing */}
+      {/* Conditionally render RAG based on write mode */}
       {!isWriteMode && (
-        <div className="flex space-x-2 w-full">
-          {/* RAG Selector takes more space */}
-          <div className="flex-grow"> 
-            <RagSelector />
-          </div>
-           {/* MCPs Selector takes less space */}
-          <div className="flex-shrink-0"> 
-            <MCPsSelector />
-          </div>
-        </div>
+          <RagSelector />
       )}
-      {/* Render only MCPsSelector or nothing if in write mode and RAG shouldn't show */}
-      {isWriteMode && (
-         <div className="w-full"> {/* Or adjust layout as needed for write mode */}
-            {/* Optionally show MCPs or other selectors in write mode */}
-            {/* <MCPsSelector /> */}
-         </div>
-      )}
+
+      {/* Always render MCPs and Code Model selectors (or adjust based on requirements) */}
+      {/* Use flex layout for MCPs and Code Model if they should be side-by-side */}
+      {/* Or stack them vertically */}
+      
+      {/* Example: Stacking them vertically */}
+      <MCPsSelector />
+      <CodeModelSelector />
+
+      {/* Example: Placing them side-by-side (adjust flex properties as needed) */}
+      {/* <div className="flex space-x-2 w-full">
+        <div className="flex-1"> <MCPsSelector /> </div>
+        <div className="flex-1"> <CodeModelSelector /> </div>
+      </div> */}
+      
     </div>
   );
 };

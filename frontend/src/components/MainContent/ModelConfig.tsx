@@ -221,14 +221,17 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           <p className="model-config-description">{getMessage('defaultModelDescription')}</p>
         </div>
 
+        {/* Code Model Selector is now moved to the Sidebar (CodeModelSelector.tsx) */}
+        {/* Remove the section below if it's fully handled by the sidebar component */}
+        {/* 
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('codeModel')}</label>
           <Select
             {...selectProps}
-            allowClear // Add allowClear prop
+            allowClear 
             mode="multiple"
-            value={selectedModels.code_model as string[] || []} // Handle potential undefined/null
-            onChange={(value) => handleModelChange('code_model', value || [])} // Ensure empty array on clear
+            value={selectedModels.code_model as string[] || []} 
+            onChange={(value) => handleModelChange('code_model', value || [])} 
             options={models.map(model => ({
               value: model.name,              
               label: model.name
@@ -248,7 +251,8 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             }}
           />
           <p className="model-config-description">{getMessage('codeModelDescription')}</p>
-        </div>
+        </div> 
+        */}
 
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('chatModel')}</label>
