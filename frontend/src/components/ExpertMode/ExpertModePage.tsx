@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, Suspense, lazy } from 'react'; // Import Suspense and lazy
 import { Editor } from '@monaco-editor/react';
 import Split from 'react-split';
 import ChatPanel from '../Sidebar/ChatPanel';
 import CodeEditorPanel from '../MainContent/CodeEditorPanel';
 import FileGroupPanel from '../MainContent/FileGroupPanel';
 import SettingsPanel from '../MainContent/SettingsPanel';
-import HistoryPanel from '../MainContent/HistoryPanel';
+// Lazy load HistoryPanel
+const HistoryPanel = lazy(() => import('../MainContent/HistoryPanel'));
 import TerminalManager from '../Terminal/TerminalManager';
 import OutputPanel from '../Terminal/OutputPanel';
 import PreviewPanel from '../MainContent/PreviewPanel'; // Import static preview panel
@@ -416,10 +417,14 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                   {/* Editable Preview Panel */}
                   <div className={`h-full ${activePanel === 'preview_editable' ? 'block' : 'hidden'}`}>
                     {/* Pass the same files prop */}
+                    {/* Pass the same files prop */}
                     <EditablePreviewPanel files={previewFiles} />
                   </div>
                   <div className={`h-full ${activePanel === 'history' ? 'block' : 'hidden'}`}>
-                    <HistoryPanel />
+                    {/* Wrap HistoryPanel with Suspense for lazy loading */}
+                    <Suspense fallback={<div className='p-4 text-gray-400 text-center'>Loading History...</div>}>
+                      <HistoryPanel />
+                    </Suspense>
                   </div>
                   <div className={`h-full ${activePanel === 'settings' ? 'block' : 'hidden'}`}>
                     <SettingsPanel />
