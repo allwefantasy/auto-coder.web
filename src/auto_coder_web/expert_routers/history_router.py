@@ -87,7 +87,7 @@ async def validate_and_load_history(
         历史记录查询列表
     """
     # 定义在线程中执行的函数
-    def load_history_task(project_path, max_history_count=50):
+    def load_history_task(project_path, max_history_count=10):
         try:
             # 过滤出聊天动作事件
             action_manager = ActionYmlFileManager(project_path)
