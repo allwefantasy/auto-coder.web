@@ -1234,8 +1234,8 @@ export const messages: { [key: string]: Message } = {
     zh: "正在分析代码"
   },
   lintResults: {
-    en: "Lint Results",
-    zh: "代码检查结果"
+    en: "Lint Check....",
+    zh: "代码检查...."
   },
   // Index build related messages
   indexingFiles: {
@@ -1714,12 +1714,12 @@ export const messages: { [key: string]: Message } = {
   },
   agenticFilterCommandResult: {
     en: "Read the result of {{command}}...",
-    zh: "阅读 {{command}} 的执行结果..."
+    zh: "阅读 {{command}} 执行结果..."
   },
   // Compile Results
   compileResults: {
     en: "Compile Results",
-    zh: "编译结果"
+    zh: "编译检查...."
   },
   analyzingCompile: {
       en: "Analyzing Compile...",
@@ -1743,8 +1743,8 @@ export const messages: { [key: string]: Message } = {
     zh: "禁用"
   },  
   unmergedBlocks: {
-    en: "Try to fix unmerged file...",
-    zh: "尝试修正未合并的文件..."
+    en: "Merging.....",
+    zh: "合并进行中..."
   },
   // RAG/MCP Conflict Warning
   ragMcpConflictTitle: {

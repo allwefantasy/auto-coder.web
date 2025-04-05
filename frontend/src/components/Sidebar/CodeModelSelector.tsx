@@ -53,7 +53,7 @@ const CodeModelSelector: React.FC = () => {
 
       if (currentConfig && currentConfig.code_model) {
           const models = typeof currentConfig.code_model === 'string'
-              ? currentConfig.code_model.split(',').map(m => m.trim()).filter(m => m) // Handle empty strings after split
+              ? currentConfig.code_model.split(',').map((m: string) => m.trim()).filter((m: string) => m) // Handle empty strings after split
               : Array.isArray(currentConfig.code_model) ? currentConfig.code_model : []; // Ensure it's an array
           setSelectedCodeModels(models);
       } else {
@@ -73,17 +73,23 @@ const CodeModelSelector: React.FC = () => {
   const updateOrDeleteConfig = async (key: string, value: string[]) => {
     setIsUpdating(true);
     const isEmpty = value.length === 0;
-    const url = `/api/conf${isEmpty ? `/${key}` : ''}`; // Use DELETE path if empty
-    const method = isEmpty ? 'DELETE' : 'POST';
-    const body = isEmpty ? undefined : JSON.stringify({ [key]: value.join(',') });
-    const headers = isEmpty ? {} : { 'Content-Type': 'application/json' };
-
+    
     try {
-      const response = await fetch(url, {
-        method: method,
-        headers: headers,
-        body: body,
-      });
+      let response;
+      
+      if (isEmpty) {
+        // Use DELETE endpoint with key in path
+        response = await fetch(`/api/conf/${key}`, {
+          method: 'DELETE',
+        });
+      } else {
+        // Use POST endpoint with key-value in body
+        response = await fetch('/api/conf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ [key]: value.join(',') }),
+        });
+      }
 
       if (!response.ok) {
         let errorDetail = `Failed to ${isEmpty ? 'delete' : 'update'} configuration key`;
@@ -97,14 +103,15 @@ const CodeModelSelector: React.FC = () => {
         }
         throw new Error(errorDetail);
       }
-       // Publish event on successful update/delete
-       eventBus.publish(EVENTS.CONFIG.CODE_MODEL_UPDATED, value);
-       // Optionally show success message
-       // message.success(`Configuration '${key}' ${isEmpty ? 'cleared' : 'updated'} successfully.`);
+      
+      // Publish event on successful update/delete
+      eventBus.publish(EVENTS.CONFIG.CODE_MODEL_UPDATED, value);
+      // Optionally show success message
+      // message.success(`Configuration '${key}' ${isEmpty ? 'cleared' : 'updated'} successfully.`);
     } catch (error: any) {
       console.error(`Error ${isEmpty ? 'deleting' : 'updating'} configuration key ${key}:`, error);
       message.error(error.message || `Failed to update ${key}`);
-      // Refetch to show the actual current state after failure to revert UI optimisic update
+      // Refetch to show the actual current state after failure to revert UI optimistic update
       fetchCurrentConfig();
     } finally {
       setIsUpdating(false);

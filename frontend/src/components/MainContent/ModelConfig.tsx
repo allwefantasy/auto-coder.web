@@ -136,7 +136,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
   // Initialize selected models from available keys as fallback
   useEffect(() => {
     // Only initialize from availableKeys if we don't have a value from config
-    const initialModels: Record<string, string> = { ...selectedModels };
+    const initialModels: Record<string, string | string[]> = { ...selectedModels };
     availableKeys.forEach(key => {
       if ((key.key === 'model' || key.key === 'code_model' || 
           key.key === 'chat_model' || key.key === 'generate_rerank_model' ||
@@ -157,7 +157,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
       setSelectedModels(prev => {
         // Only update if the value is actually different
         if (JSON.stringify(prev.code_model) !== JSON.stringify(modelsArray)) {
-          console.log("ModelConfig received update:", modelsArray);
+          console.log("ModelConfig received update:", modelsArray);          
           return { ...prev, code_model: modelsArray };
         }
         return prev; // Return previous state if no change
@@ -256,10 +256,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           />
           <p className="model-config-description">{getMessage('defaultModelDescription')}</p>
         </div>
-
-        {/* Code Model Selector is now moved to the Sidebar (CodeModelSelector.tsx) */}
-        {/* Remove the section below if it's fully handled by the sidebar component */}
-        {/* 
+                        
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('codeModel')}</label>
           <Select
@@ -288,7 +285,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           />
           <p className="model-config-description">{getMessage('codeModelDescription')}</p>
         </div> 
-        */}
+       
 
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('chatModel')}</label>

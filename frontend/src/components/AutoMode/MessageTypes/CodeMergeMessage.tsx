@@ -24,8 +24,7 @@ const CodeMergeMessage: React.FC<CodeMergeMessageProps> = ({ message }) => {
         try {
             const parsed: CodeMergeContent = JSON.parse(message.content);
             return parsed.content || ''; // Return the inner content or empty string if not found
-        } catch (error) {
-            console.error("Failed to parse CodeMergeMessage content:", error);
+        } catch (error) {            
             return message.content; // Fallback to original content if parsing fails
         }
     }, [message.content]);

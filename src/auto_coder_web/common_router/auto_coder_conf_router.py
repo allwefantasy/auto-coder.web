@@ -20,7 +20,7 @@ async def config(
     data = await request.json()
     try:
         for key, value in data.items():
-            await asyncio.to_thread(configure(f"{key}:{str(value)}"))
+            await asyncio.to_thread(configure, f"{key}:{str(value)}")
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -31,7 +31,7 @@ async def delete_config(
 ):
     """删除配置项"""
     try:
-        configure(f"/drop {key}")
+        await asyncio.to_thread(configure, f"/drop {key}")
         return {"status": "success"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
