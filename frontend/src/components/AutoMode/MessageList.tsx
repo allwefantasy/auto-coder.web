@@ -176,8 +176,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         }        
         
         // Default text content
-        // return <DefaultMessage message={message} />;
-        return <></>
+        return <DefaultMessage message={message} />;
+        // return <></>
     };
 
     return (

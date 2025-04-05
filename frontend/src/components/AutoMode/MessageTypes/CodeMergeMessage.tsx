@@ -18,8 +18,7 @@ interface CodeMergeMessageProps {
 }
 
 const CodeMergeMessage: React.FC<CodeMergeMessageProps> = ({ message }) => {
-    const [isCollapsed, setIsCollapsed] = useState(true);
-
+    const [isCollapsed, setIsCollapsed] = useState(true);    
     // Parse the message content as JSON
     const parsedContent = useMemo(() => {
         try {

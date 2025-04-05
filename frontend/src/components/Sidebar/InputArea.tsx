@@ -411,13 +411,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           </div>
          
         </div>
-
-        {showConfig && (
-          <div className="space-y-0 -mb-0.5 w-full">
-            {/* Removed skip_build_index switch */}
-          </div>
-        )}
-
+        
         <div className="h-[1px] bg-gray-700/50 my-1 w-full"></div>
         {/* Provider Selectors (RAG/MCPs) */}
         <ProviderSelectors isWriteMode={isWriteMode} />
