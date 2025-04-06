@@ -59,6 +59,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [indexBuilding, setIndexBuilding] = useState<boolean>(false);
   const [indexStatus, setIndexStatus] = useState<string>('');
+  const [agenticActive, setAgenticActive] = useState(false);
   const [isInputAreaMaximized, setIsInputAreaMaximized] = useState<boolean>(false);
   const originalLayoutRef = useRef<{
     position: string,
@@ -474,6 +475,14 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </div>
               </div>
               
+              <button
+                className={`mr-1 p-0.5 rounded-md transition-all duration-200
+                  ${agenticActive ? 'text-blue-500 hover:text-blue-400' : 'text-gray-400 hover:text-gray-300'}`}
+                onClick={() => setAgenticActive(!agenticActive)}
+              >
+                new agentic
+              </button>
+
               <button
                 className={`p-0.5 rounded-md transition-all duration-200
                   focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
