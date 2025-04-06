@@ -1848,8 +1848,8 @@ export const messages: { [key: string]: Message } = {
     zh: "输出"
   },
   cost: {
-    en: "Cost ($)",
-    zh: "花费（美元）"
+    en: "Cost",
+    zh: "花费"
   },
   processedDirs: {
     en: "Processed Dirs",
