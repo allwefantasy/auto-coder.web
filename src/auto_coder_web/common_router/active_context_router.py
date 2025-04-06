@@ -48,13 +48,43 @@ def get_active_context_manager() -> ActiveContextManager:
 @router.get("/api/active-context/tasks", response_model=TaskListResponse)
 async def list_active_context_tasks():
     """
-    获取所有活动上下文任务的列表
+    获取最新的50条活动上下文任务，按开始时间降序排列
     """
     try:
         manager = get_active_context_manager()
         all_tasks_raw = manager.get_all_tasks()
+
+        # 排序，降序，优先使用 start_time，没有则用 completion_time，没有则不排序
+        def get_sort_time(t):
+            st = t.get('start_time')
+            ct = t.get('completion_time')
+            if st:
+                if isinstance(st, str):
+                    try:
+                        import datetime
+                        return datetime.datetime.strptime(st, "%Y-%m-%d %H:%M:%S")
+                    except:
+                        return st
+                else:
+                    return st
+            elif ct:
+                if isinstance(ct, str):
+                    try:
+                        import datetime
+                        return datetime.datetime.strptime(ct, "%Y-%m-%d %H:%M:%S")
+                    except:
+                        return ct
+                else:
+                    return ct
+            else:
+                return 0
+
+        sorted_tasks = sorted(all_tasks_raw, key=get_sort_time, reverse=True)
+
+        latest_tasks = sorted_tasks[:50]
+
         tasks = []
-        for t in all_tasks_raw:
+        for t in latest_tasks:
             # 处理时间格式
             start_time = t.get('start_time')
             if isinstance(start_time, str):
