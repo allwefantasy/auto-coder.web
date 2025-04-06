@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
 import './MessageStyles.css';
@@ -45,15 +48,37 @@ const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message }) => {
                 </span>
                 <span className="text-gray-400 message-title-text">{getMessage('thinking') || 'Thinking'}</span>
             </div>
-            
             {/* Show content only if not collapsed or thinking is in progress */}
             {(!isCollapsed || message.isThinking || message.isStreaming) && (
-                <div className="flex items-center">
-                    <span className={`${message.isThinking ? 'italic text-gray-400' : 'text-gray-200'} mr-2`}>
+                <div className="prose prose-invert prose-xs max-w-none mt-1">
+                    <ReactMarkdown
+                        className={`${message.isThinking ? 'italic text-gray-400' : 'text-gray-200'} break-words`}
+                        components={{
+                            code: ({ className, children, ...props }: any) => {
+                                const match = /language-(\w+)/.exec(className || '');
+                                const inline = !match;
+                                return !inline ? (
+                                    <SyntaxHighlighter
+                                        language={match ? match[1] : ''}
+                                        style={vscDarkPlus}
+                                        PreTag="div"
+                                        wrapLines={true}
+                                        wrapLongLines={true}
+                                    >
+                                        {String(children).replace(/\n$/, '')}
+                                    </SyntaxHighlighter>
+                                ) : (
+                                    <code className={className} {...props}>
+                                        {children}
+                                    </code>
+                                );
+                            }
+                        }}
+                    >
                         {message.content}
-                    </span>
+                    </ReactMarkdown>
                     {(message.isThinking || message.isStreaming) && (
-                        <div className="flex space-x-1">
+                        <div className="flex space-x-1 mt-1">
                             <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                             <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                             <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
