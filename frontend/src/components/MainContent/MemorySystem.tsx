@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Tag, Spin, message } from 'antd';
 import '../../styles/custom_antd.css';
+import { getMessage } from '../Sidebar/lang';
 
 interface TaskInfo {
   task_id: string;
@@ -39,7 +40,7 @@ const MemorySystem: React.FC = () => {
       setTasks(data.tasks || []);
     } catch (error) {
       console.error('Error fetching memory system tasks:', error);
-      message.error('Failed to load memory system tasks');
+      message.error(getMessage('memorySystemLoadError') || 'Failed to load memory system tasks');
     } finally {
       setLoading(false);
     }
@@ -51,13 +52,13 @@ const MemorySystem: React.FC = () => {
 
   const columns = [
     {
-      title: 'Task ID',
+      title: getMessage('taskId') || 'Task ID',
       dataIndex: 'task_id',
       key: 'task_id',
       ellipsis: true,
     },
     {
-      title: 'Status',
+      title: getMessage('status') || 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
@@ -65,47 +66,47 @@ const MemorySystem: React.FC = () => {
       ),
     },
     {
-      title: 'File',
+      title: getMessage('file') || 'File',
       dataIndex: 'file_name',
       key: 'file_name',
       ellipsis: true,
     },
     {
-      title: 'Start Time',
+      title: getMessage('startTime') || 'Start Time',
       dataIndex: 'start_time',
       key: 'start_time',
     },
     {
-      title: 'Completion Time',
+      title: getMessage('completionTime') || 'Completion Time',
       dataIndex: 'completion_time',
       key: 'completion_time',
     },
     {
-      title: 'Tokens',
+      title: getMessage('tokens') || 'Tokens',
       key: 'tokens',
       render: (_: any, record: TaskInfo) => (
         <div>
-          <div>Total: {record.total_tokens}</div>
-          <div>Input: {record.input_tokens}</div>
-          <div>Output: {record.output_tokens}</div>
+          <div>{getMessage('total') || 'Total'}: {record.total_tokens}</div>
+          <div>{getMessage('input') || 'Input'}: {record.input_tokens}</div>
+          <div>{getMessage('output') || 'Output'}: {record.output_tokens}</div>
         </div>
       ),
     },
     {
-      title: 'Cost ($)',
+      title: getMessage('cost') || 'Cost ($)',
       dataIndex: 'cost',
       key: 'cost',
       render: (cost: number) => cost.toFixed(6),
     },
     {
-      title: 'Processed Dirs',
+      title: getMessage('processedDirs') || 'Processed Dirs',
       dataIndex: 'processed_dirs',
       key: 'processed_dirs',
       render: (dirs?: string[]) =>
         dirs && dirs.length > 0 ? dirs.join(', ') : '-',
     },
     {
-      title: 'Error',
+      title: getMessage('error') || 'Error',
       dataIndex: 'error',
       key: 'error',
       ellipsis: true,
@@ -114,7 +115,7 @@ const MemorySystem: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-lg font-semibold mb-4 text-white">Memory System Tasks</h2>
+      <h2 className="text-lg font-semibold mb-4 text-white">{getMessage('memorySystemTasks') || 'Memory System Tasks'}</h2>
       <Spin spinning={loading}>
         <Table
           dataSource={tasks}
