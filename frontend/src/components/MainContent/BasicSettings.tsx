@@ -33,6 +33,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
     generate_times_same_model: 1,
     rank_times_same_model: 1,
     enable_agentic_filter: false,
+    enable_agentic_edit: false, // Initialize to false
     skip_build_index: false, // Initialize skip_build_index
     skip_filter_index: false, // Initialize skip_filter_index
   });
@@ -72,6 +73,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         }
         if (currentConfig.enable_agentic_filter !== undefined) {
           updatedSettings.enable_agentic_filter = String(currentConfig.enable_agentic_filter).toLowerCase() === 'true';
+        }
+        if (currentConfig.enable_agentic_edit !== undefined) {
+          updatedSettings.enable_agentic_edit = String(currentConfig.enable_agentic_edit).toLowerCase() === 'true';
         }
         if (currentConfig.skip_build_index !== undefined) { // Fetch skip_build_index
           updatedSettings.skip_build_index = String(currentConfig.skip_build_index).toLowerCase() === 'true';
@@ -117,6 +121,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
       }
       if (key.key === 'enable_agentic_filter' && initialSettings.enable_agentic_filter === undefined) {
         initialSettings.enable_agentic_filter = String(key.default).toLowerCase() === 'true' || false;
+      }
+      if (key.key === 'enable_agentic_edit' && initialSettings.enable_agentic_edit === undefined) {
+        initialSettings.enable_agentic_edit = String(key.default).toLowerCase() === 'true' || false;
       }
       if (key.key === 'skip_build_index' && initialSettings.skip_build_index === undefined) { // Fallback for skip_build_index
         initialSettings.skip_build_index = String(key.default).toLowerCase() === 'true' || false;
@@ -225,6 +232,23 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
             />
           </div>
           <p className="model-config-description">{getMessage('enableAgenticFilterDescription')}</p>
+        </div>
+
+        {/* Enable Agentic Edit - New */}
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('enableAgenticEdit')}</label>
+          <div className="mt-1">
+            <Select
+              value={settings.enable_agentic_edit}
+              onChange={(value) => handleSettingChange('enable_agentic_edit', value)}
+              size="small"
+              style={{ width: '100%' }}
+              options={[
+                { value: true, label: getMessage('enable') },
+                { value: false, label: getMessage('disable') },
+              ]}
+            />
+          </div>
         </div>
 
         {/* Existing Settings */}
