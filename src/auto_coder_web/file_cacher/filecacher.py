@@ -32,7 +32,8 @@ class FileCacheHandler(FileSystemEventHandler):
 class FileCacher:
     def __init__(self, project_path):
         self.project_path = project_path
-        self.index_file = os.path.join(project_path, ".auto-coder", "file_cache.json")
+        self.index_file = os.path.join(
+            project_path, ".auto-coder", "cache", "file_cache.json")
         self.file_info = {}  # key: absolute path, value: metadata dict
         self.ready = False
         self.lock = threading.RLock()
@@ -55,10 +56,12 @@ class FileCacher:
 
     def _build_cache(self):
         """遍历项目目录，构建初始缓存"""
-        exclude_dirs = {".git", "node_modules", "dist", "build", "__pycache__", ".venv", ".auto-coder"}
+        exclude_dirs = {".git", "node_modules", "dist",
+                        "build", "__pycache__", ".venv", ".auto-coder"}
         for root, dirs, files in os.walk(self.project_path, followlinks=True):
             # 过滤目录
-            dirs[:] = [d for d in dirs if d not in exclude_dirs and not d.startswith('.')]
+            dirs[:] = [
+                d for d in dirs if d not in exclude_dirs and not d.startswith('.')]
             for f in files:
                 abs_path = os.path.join(root, f)
                 self._update_file(abs_path)
@@ -93,7 +96,8 @@ class FileCacher:
         """启动watchdog监控项目目录变更"""
         event_handler = FileCacheHandler(self)
         self.observer = Observer()
-        self.observer.schedule(event_handler, self.project_path, recursive=True)
+        self.observer.schedule(
+            event_handler, self.project_path, recursive=True)
         self.observer.daemon = True
         self.observer.start()
 
