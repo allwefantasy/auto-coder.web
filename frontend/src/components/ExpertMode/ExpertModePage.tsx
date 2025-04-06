@@ -93,28 +93,28 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   }, [setActivePanel]);
   
   // 监听ASK_USER事件
-  useEffect(() => {
-    const unsubscribe = eventBus.subscribe(EVENTS.CHAT.NEW_MESSAGE, (message) => {
-      // 处理用户询问类型的消息
-      if (message.type === 'ASK_USER') {
-        const askUserMessage = {
-          ...message,
-          id: message.id || `msg-${Date.now()}`,
-          timestamp: Date.now()
-        };
-        setActiveAskUserMessage(askUserMessage);
-      }
+  // useEffect(() => {
+  //   const unsubscribe = eventBus.subscribe(EVENTS.CHAT.NEW_MESSAGE, (message) => {
+  //     // 处理用户询问类型的消息
+  //     if (message.type === 'ASK_USER') {
+  //       const askUserMessage = {
+  //         ...message,
+  //         id: message.id || `msg-${Date.now()}`,
+  //         timestamp: Date.now()
+  //       };
+  //       setActiveAskUserMessage(askUserMessage);
+  //     }
       
-      // 如果消息包含event_file_id，保存它以便用于用户响应
-      if (message.event_file_id && !currentEventFileId) {
-        setCurrentEventFileId(message.event_file_id);
-      }
-    });
+  //     // 如果消息包含event_file_id，保存它以便用于用户响应
+  //     if (message.event_file_id && !currentEventFileId) {
+  //       setCurrentEventFileId(message.event_file_id);
+  //     }
+  //   });
     
-    return () => {
-      unsubscribe();
-    };
-  }, [currentEventFileId]);
+  //   return () => {
+  //     unsubscribe();
+  //   };
+  // }, [currentEventFileId]);
 
   // 订阅显示弹出框事件
   useEffect(() => {
@@ -176,10 +176,10 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
     } catch (error) {
       console.error('Error sending response to server:', error);
       // 可以通过eventBus发送错误消息
-      eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, {
-        type: 'ERROR',
-        content: `Failed to send your response to the server: ${error instanceof Error ? error.message : String(error)}`
-      });
+      // eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, {
+      //   type: 'ERROR',
+      //   content: `Failed to send your response to the server: ${error instanceof Error ? error.message : String(error)}`
+      // });
     }
   };
 

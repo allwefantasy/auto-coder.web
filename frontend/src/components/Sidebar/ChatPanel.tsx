@@ -15,6 +15,7 @@ import {
 import { FileMetadata } from '../../types/file_meta';
 import { chatService } from '../../services/chatService';
 import { codingService } from '../../services/codingService';
+import { agenticEditService } from '../../services/agenticEditService';
 import { autoCoderConfService } from '../../services/AutoCoderConfService';
 import { Message as AutoModeMessage } from '../../components/AutoMode/types';
 import MessageList, { MessageProps } from '../../components/AutoMode/MessageList';
@@ -145,9 +146,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [localRequestId, setLocalRequestId] = useState<string>('');
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [config, setConfig] = useState<ConfigState>({
-    human_as_model: false,
-    skip_build_index: true,
-    project_type: "py",
+    human_as_model: false,        
     extra_conf: {},
     available_keys: []
   });
@@ -719,7 +718,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   }, [messages, shouldSaveMessages, chatListName]);
 
   // 处理来自聊天和编码服务的消息事件
-  const setupMessageListener = (service: typeof chatService | typeof codingService) => {
+  const setupMessageListener = (service: typeof chatService | typeof codingService | typeof agenticEditService) => {
     service.on('message', (autoModeMessage: AutoModeMessage) => {
       // 直接添加或更新 AutoMode 消息到我们的消息状态
       console.log('ChatPanel: Received message from service:', 

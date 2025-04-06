@@ -83,6 +83,15 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             return <UserMessage message={message} />;
         }
 
+        if (message.metadata?.path?.startsWith("/agent/")) {
+            if(message.metadata?.path === "/agent/edit" || message.metadata?.path === "/agent/edit/thinking") {
+                return <ThinkingMessage message={message} />;
+            }
+            else{
+                return <DefaultMessage message={message} />;
+            }
+        }
+
         if (message.metadata?.stream_out_type === "agentic_filter") {
              if (message.contentType === "command_execute_stat"){
                 return <AgenticFilterExecuteMessage message={message} />;
