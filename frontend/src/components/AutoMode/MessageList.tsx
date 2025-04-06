@@ -28,7 +28,10 @@ import {
     AgenticEditListCodeDefinitionNamesTool,
     AgenticEditListFilesTool,
     AgenticEditReadFileTool,
-    AgenticEditSearchFilesTool
+    AgenticEditSearchFilesTool,
+    AgenticEditUseMcpTool,
+    AgenticEditAttemptCompletionTool,
+    AgenticEditPlanModeRespondTool
 } from './MessageTypes';
 import AgenticFilterExecuteMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterExecuteMessage';
 import AgenticFilterPrepareMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterPrepareMessage';
@@ -126,9 +129,22 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                 if (content.tool_name === "ReplaceInFileTool") {
                     return <AgenticEditReplaceInFileTool message={message} />;
                 }
+
+                if (content.tool_name === "UseMcpTool") {
+                    return <AgenticEditUseMcpTool message={message} />;
+                } 
+                
+                if (content.tool_name === "AttemptCompletionTool") {
+                    return <AgenticEditAttemptCompletionTool message={message} />;
+                }
+                
             }            
             if(message.metadata?.path === "/agent/edit/tool/result"){
                 return <AgenticEditToolResult message={message} />;
+            }            
+
+            if (message.metadata?.path === "/agent/edit/plan/mode/respond" || message.metadata?.path === "/agent/edit/completion"){
+                return <MarkdownMessage message={message} />;
             }
             return <DefaultMessage message={message} />;
         }

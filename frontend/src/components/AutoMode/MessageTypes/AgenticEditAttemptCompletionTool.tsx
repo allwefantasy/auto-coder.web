@@ -24,7 +24,7 @@ const AgenticEditAttemptCompletionTool: React.FC<AgenticEditAttemptCompletionToo
   const resultMessage: MessageProps = {
     ...message, // Keep original message properties like id, type etc.
     content: result,
-    format: 'markdown', // Tell MarkdownMessage to render it
+    // format: 'markdown', // Tell MarkdownMessage to render it
   };
 
   return (
@@ -38,7 +38,7 @@ const AgenticEditAttemptCompletionTool: React.FC<AgenticEditAttemptCompletionToo
         </span>
         {/* Title */}
         <span className="message-title-text text-lime-400 font-semibold">
-          AutoCoder is attempting task completion:
+          任务完成
         </span>
       </div>
       {/* Result (Rendered as Markdown) */}
