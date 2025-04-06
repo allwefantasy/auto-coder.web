@@ -48,9 +48,12 @@ def get_active_context_manager() -> ActiveContextManager:
 @router.get("/api/active-context/tasks", response_model=TaskListResponse)
 async def list_active_context_tasks():
     """
-    获取最新的50条活动上下文任务，按开始时间降序排列
+    获取最新的50条活动上下文任务，按开始时间降序排列。
+    如果发现有超过10分钟还未结束（running/queued）的任务，自动标记为failed。
     """
     try:
+        import datetime
+
         manager = get_active_context_manager()
         all_tasks_raw = manager.get_all_tasks()
 
@@ -61,7 +64,6 @@ async def list_active_context_tasks():
             if st:
                 if isinstance(st, str):
                     try:
-                        import datetime
                         return datetime.datetime.strptime(st, "%Y-%m-%d %H:%M:%S")
                     except:
                         return st
@@ -70,7 +72,6 @@ async def list_active_context_tasks():
             elif ct:
                 if isinstance(ct, str):
                     try:
-                        import datetime
                         return datetime.datetime.strptime(ct, "%Y-%m-%d %H:%M:%S")
                     except:
                         return ct
@@ -82,6 +83,30 @@ async def list_active_context_tasks():
         sorted_tasks = sorted(all_tasks_raw, key=get_sort_time, reverse=True)
 
         latest_tasks = sorted_tasks[:50]
+
+        now = datetime.datetime.now()
+
+        # 检查是否有超过10分钟还未完成的任务，将其状态置为failed
+        for t in latest_tasks:
+            status = t.get("status", "")
+            if status in ("running", "queued"):
+                st = t.get("start_time")
+                start_time_dt = None
+                if isinstance(st, str):
+                    try:
+                        start_time_dt = datetime.datetime.strptime(st, "%Y-%m-%d %H:%M:%S")
+                    except:
+                        start_time_dt = None
+                elif isinstance(st, datetime.datetime):
+                    start_time_dt = st
+                else:
+                    start_time_dt = None
+
+                if start_time_dt:
+                    elapsed = now - start_time_dt
+                    if elapsed.total_seconds() > 600:  # 超过10分钟
+                        t["status"] = "failed"
+                        t["error"] = "Timeout: Task exceeded 10 minutes and was automatically marked as failed."
 
         tasks = []
         for t in latest_tasks:
@@ -96,7 +121,7 @@ async def list_active_context_tasks():
                     start_time_str = str(start_time)
             else:
                 start_time_str = None
-            
+
             completion_time = t.get('completion_time')
             if isinstance(completion_time, str):
                 completion_time_str = completion_time
@@ -107,7 +132,7 @@ async def list_active_context_tasks():
                     completion_time_str = str(completion_time)
             else:
                 completion_time_str = None
-            
+
             task_info = TaskInfo(
                 task_id = t.get("task_id", ""),
                 status = t.get("status", ""),
