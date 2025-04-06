@@ -162,7 +162,7 @@ const SettingsPanel: React.FC = () => {
         <TabPane tab={<span className="text-gray-300">{getMessage('mcpServerConfiguration') || 'MCP Servers'}</span>} key="mcp">
           <McpServerConfig />
         </TabPane>
-        <TabPane tab={<span className="text-gray-300">Memory System</span>} key="memory">
+        <TabPane tab={<span className="text-gray-300">{getMessage('memorySystemTasks') || 'Memory System'}</span>} key="memory">
           <MemorySystem />
         </TabPane>
       </Tabs>
