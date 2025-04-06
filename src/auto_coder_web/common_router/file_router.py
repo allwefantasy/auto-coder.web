@@ -7,8 +7,14 @@ from auto_coder_web.file_manager import (
     get_directory_tree_async,
     read_file_content_async,
 )
+from pydantic import BaseModel
+from typing import List
 
 router = APIRouter()
+
+class FileInfo(BaseModel):
+    name: str
+    path: str
 
 async def get_project_path(request: Request) -> str:
     """获取项目路径作为依赖"""
@@ -102,3 +108,43 @@ async def get_file_content(
             status_code=404, detail="File not found or cannot be read")
 
     return {"content": content} 
+
+
+@router.get("/api/list-files", response_model=List[FileInfo])
+async def list_files_in_directory(
+    dir_path: str
+):
+    """
+    List all files (not directories) under the specified directory.
+    Returns list of file name and full path.
+    """
+    import asyncio
+
+    loop = asyncio.get_event_loop()
+
+    def sync_list_files():
+        if not os.path.exists(dir_path):
+            raise HTTPException(status_code=404, detail="Directory not found")
+        if not os.path.isdir(dir_path):
+            raise HTTPException(status_code=400, detail="Provided path is not a directory")
+
+        file_list = []
+        try:
+            for root, dirs, files in os.walk(dir_path):
+                for file in files:
+                    full_path = os.path.join(root, file)
+                    file_list.append(FileInfo(name=file, path=full_path))
+                # Only walk top-level directory
+                break
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+        return file_list
+
+    try:
+        result = await loop.run_in_executor(None, sync_list_files)
+        return result
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
