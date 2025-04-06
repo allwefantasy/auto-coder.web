@@ -81,7 +81,7 @@ class ProxyServer:
         self.app.state.project_path = self.project_path
         # Store auto_coder_runner in app state for dependency injection
         self.app.state.auto_coder_runner = self.auto_coder_runner
-        self.app.state.file_cacher = FileCacher(self.project_path)
+        # self.app.state.file_cacher = FileCacher(self.project_path)
         # Store initialization status
         self.app.state.is_initialized = self.is_initialized
 

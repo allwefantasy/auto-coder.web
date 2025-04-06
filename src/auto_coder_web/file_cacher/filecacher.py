@@ -4,7 +4,11 @@ import threading
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from pydantic import BaseModel
 
+class FileCacheResult(BaseModel):
+    miss: bool
+    files: list[str]
 
 class FileCacheHandler(FileSystemEventHandler):
     def __init__(self, cacher):
@@ -126,11 +130,6 @@ class FileCacher:
                 self.ready = True
         except Exception:
             pass
-
-    class FileCacheResult:
-        def __init__(self, miss: bool, files: list):
-            self.miss = miss  # 是否未命中缓存（即索引未准备好）
-            self.files = files  # 匹配到的文件路径列表（相对路径）
 
     def search_files(self, patterns):
         """
