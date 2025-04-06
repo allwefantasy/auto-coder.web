@@ -127,12 +127,21 @@ class FileCacher:
         except Exception:
             pass
 
+    class FileCacheResult:
+        def __init__(self, miss: bool, files: list):
+            self.miss = miss  # 是否未命中缓存（即索引未准备好）
+            self.files = files  # 匹配到的文件路径列表（相对路径）
+
     def search_files(self, patterns):
         """
         根据模式列表查找匹配文件
         :param patterns: list[str]
-        :return: list[str] 相对路径
+        :return: FileCacheResult(miss=True/False, files=List[str])
         """
+        if not self.ready:
+            # 索引未准备好，返回 miss = True，空文件列表
+            return self.FileCacheResult(miss=True, files=[])
+
         matched = set()
         default_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__", ".venv", ".auto-coder"]
         project_root = self.project_path
@@ -162,7 +171,7 @@ class FileCacher:
                     abs_path = info.get("abs_path", "")
                     if not should_exclude_path(rel_path):
                         matched.add(rel_path)
-                return list(matched)
+                return self.FileCacheResult(miss=False, files=list(matched))
 
             for pattern in patterns:
                 # 1. 在缓存中匹配文件名
@@ -184,4 +193,4 @@ class FileCacher:
                         matched.add(rel_p)
                     except:
                         matched.add(abs_pattern_path)
-        return list(matched)
+        return self.FileCacheResult(miss=False, files=list(matched))
