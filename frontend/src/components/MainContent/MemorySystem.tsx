@@ -116,7 +116,15 @@ const MemorySystem: React.FC = () => {
 
   return (
     <div className="memory-system-container p-4">
-      <h2 className="text-lg font-semibold mb-4">{getMessage('memorySystemTasks') || 'Memory System Tasks'}</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">{getMessage('memorySystemTasks') || 'Memory System Tasks'}</h2>
+        <button
+          onClick={fetchTasks}
+          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded"
+        >
+          {getMessage('refresh') || 'Refresh'}
+        </button>
+      </div>
       <Spin spinning={loading}>
         <Table
           dataSource={tasks}
