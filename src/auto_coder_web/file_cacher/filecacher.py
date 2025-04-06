@@ -134,10 +134,54 @@ class FileCacher:
         :return: list[str] 相对路径
         """
         matched = set()
+        default_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__", ".venv", ".auto-coder"]
+        project_root = self.project_path
+
+        def should_exclude_path(path: str) -> bool:
+            """检查路径是否应该被排除（路径中包含排除目录或以.开头的目录/文件）"""
+            # 处理相对/绝对路径
+            rel_path = path
+            if os.path.isabs(path):
+                try:
+                    rel_path = os.path.relpath(path, project_root)
+                except ValueError:
+                    rel_path = path
+
+            # 检查文件或目录本身是否以.开头
+            if os.path.basename(rel_path).startswith('.'):
+                return True
+
+            # 检查路径中是否包含排除目录
+            path_parts = rel_path.split(os.sep)
+            return any(part in default_exclude_dirs or part.startswith('.') for part in path_parts)
+
         with self.lock:
-            for rel_path, info in self.file_info.items():
-                filename = info.get("name", "")
-                for pattern in patterns:
-                    if pattern == "" or pattern in filename:
+            # 如果没有提供有效模式，返回过滤后的缓存列表
+            if not patterns or (len(patterns) == 1 and patterns[0] == ""):
+                for rel_path, info in self.file_info.items():
+                    abs_path = info.get("abs_path", "")
+                    if not should_exclude_path(rel_path):
                         matched.add(rel_path)
+                return list(matched)
+
+            for pattern in patterns:
+                # 1. 在缓存中匹配文件名
+                for rel_path, info in self.file_info.items():
+                    filename = info.get("name", "")
+                    abs_path = info.get("abs_path", "")
+                    if should_exclude_path(rel_path):
+                        continue
+                    if pattern in filename:
+                        matched.add(rel_path)
+
+                # 2. 如果pattern本身是存在的文件路径（绝对或相对）
+                abs_pattern_path = pattern
+                if not os.path.isabs(abs_pattern_path):
+                    abs_pattern_path = os.path.join(project_root, pattern)
+                if os.path.exists(abs_pattern_path) and os.path.isfile(abs_pattern_path) and not should_exclude_path(abs_pattern_path):
+                    try:
+                        rel_p = os.path.relpath(abs_pattern_path, project_root)
+                        matched.add(rel_p)
+                    except:
+                        matched.add(abs_pattern_path)
         return list(matched)
