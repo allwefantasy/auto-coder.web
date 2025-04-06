@@ -63,16 +63,16 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
     // Function to filter and organize messages before rendering
     const filterMessages = (messages: MessageProps[]): MessageProps[] => {
         if (messages.length === 0) return [];
-        
+
         // Get all messages except the last one
         const messagesWithoutLast = messages.slice(0, -1);
-        
+
         // Get the last message
         const lastMessage = messages[messages.length - 1];
-        
+
         // Filter out command_prepare_stat messages and STREAM messages with specific stream_out_types
         // We usually don't want to filter out the final result of a stream like compile or lint
-        const streamOutTypesToFilterDuringStream = ["code_generate", "agentic_filter"]; 
+        const streamOutTypesToFilterDuringStream = ["code_generate", "agentic_filter"];
         const filteredMessages = messagesWithoutLast.filter(message => {
             // Always hide command_prepare_stat
             if (message.contentType === 'command_prepare_stat') {
@@ -80,26 +80,26 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             }
             // Hide specific STREAM types while they are actively streaming
             if (message.type === "STREAM" && !message.isStreaming && streamOutTypesToFilterDuringStream.includes(message.metadata?.stream_out_type)) {
-                 return false;
+                return false;
             }
             return true;
         });
-        
+
         // Add the last message back to the filtered results
         return [...filteredMessages, lastMessage];
     };
     // Function to render message content based on content type
-    const renderMessageContent = (message: MessageProps) => { 
-                
+    const renderMessageContent = (message: MessageProps) => {
+
         if (message.isUser) {
             return <UserMessage message={message} />;
         }
 
         if (message.metadata?.path?.startsWith("/agent/")) {
-            if(message.metadata?.path === "/agent/edit" || message.metadata?.path === "/agent/edit/thinking") {
+            if (message.metadata?.path === "/agent/edit" || message.metadata?.path === "/agent/edit/thinking") {
                 return <ThinkingMessage message={message} />;
             }
-            if(message.metadata?.path === "/agent/edit/tool/call"){
+            if (message.metadata?.path === "/agent/edit/tool/call") {
                 const content = JSON.parse(message.content);
                 if (content.tool_name === "ReplaceInFileTool") {
                     return <AgenticEditReplaceInFileTool message={message} />;
@@ -132,52 +132,52 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
 
                 if (content.tool_name === "UseMcpTool") {
                     return <AgenticEditUseMcpTool message={message} />;
-                } 
-                
+                }
+
                 if (content.tool_name === "AttemptCompletionTool") {
                     return <AgenticEditAttemptCompletionTool message={message} />;
                 }
-                
-            }            
-            if(message.metadata?.path === "/agent/edit/tool/result"){
-                return <AgenticEditToolResult message={message} />;
-            }            
 
-            if (message.metadata?.path === "/agent/edit/plan/mode/respond" || message.metadata?.path === "/agent/edit/completion"){
+            }
+            if (message.metadata?.path === "/agent/edit/tool/result") {
+                return <AgenticEditToolResult message={message} />;
+            }
+
+            if (message.metadata?.path === "/agent/edit/plan/mode/respond" || message.metadata?.path === "/agent/edit/completion") {
                 return <MarkdownMessage message={message} />;
             }
-            return <DefaultMessage message={message} />;
+            return <MarkdownMessage message={message} />;
         }
 
         if (message.metadata?.stream_out_type === "agentic_filter") {
-             if (message.contentType === "command_execute_stat"){
+            if (message.contentType === "command_execute_stat") {
                 return <AgenticFilterExecuteMessage message={message} />;
-             }
-             if (message.contentType === "command_prepare") {
+            }
+            if (message.contentType === "command_prepare") {
                 return <AgenticFilterPrepareMessage message={message} />;
-             }
-             if (message.contentType === "text"){
+            }
+            if (message.contentType === "text") {
                 return <DefaultMessage message={message} />;
-             }
-             return <AgenticFilterSuggestionMessage message={message} />;
+            }
+            return <AgenticFilterSuggestionMessage message={message} />;
         }
 
         // For completion events
         if (message.type === 'COMPLETION') {
             return <CompletionMessage message={message} />;
         }
-        
+
 
         // For 上下文感知信息的展示
         if (message.metadata?.stream_out_type === "file_number_list") {
             return <ContextAwareMessage message={message} />;
         }
-        
+
         // 索引构建信息展示
         if (message.metadata?.stream_out_type === "index_build") {
             return <IndexBuildMessage message={message} />;
         }
-        
+
         // 代码生成结果的展示
         if (message.metadata?.stream_out_type === "code_generate") {
             return <CodeGenerateMessage message={message} />;
@@ -187,9 +187,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         if (message.metadata?.stream_out_type === "lint") {
             return <CodeLintMessage message={message} />;
         }
-        
+
         // 代码编译结果的展示        
-        if (message.metadata?.stream_out_type === "compile") {            
+        if (message.metadata?.stream_out_type === "compile") {
             return <CodeCompileMessage message={message} />;
         }
 
@@ -198,7 +198,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         }
 
         // 未合并代码块的展示
-        if (message.metadata?.stream_out_type === "unmerged_blocks") {            
+        if (message.metadata?.stream_out_type === "unmerged_blocks") {
             return <CodeMergeMessage message={message} />;
         }
 
@@ -226,12 +226,12 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         if (message.contentType === 'context_used') {
             return <ContextUsedMessage message={message} />;
         }
-        
+
         // For thinking or streaming content
         if (message.isThinking || message.isStreaming) {
             return <ThinkingMessage message={message} />;
         }
-        
+
         // AutoCommand 模式下专有的信息，一般是用来思考和展示思考结果
         if (message.metadata?.stream_out_type === "command_suggestion") {
             return <CommandSuggestionMessage message={message} />;
@@ -239,8 +239,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
 
         if (message.contentType === 'markdown' && !message.metadata?.stream_out_type) {
             return <MarkdownMessage message={message} />;
-        }        
-        
+        }
+
         // Default text content
         return <DefaultMessage message={message} />;
         // return <></>
