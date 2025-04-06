@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Tag, Spin, message } from 'antd';
+import '../../styles/custom_antd.css';
 
 interface TaskInfo {
   task_id: string;
