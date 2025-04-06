@@ -19,6 +19,13 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
     success = parsed.success ?? false;
     msg = parsed.message || '';
     content = parsed.content || '';
+
+    if (toolName === 'ReplaceInFileTool') {
+       toolName = '更新成功';
+    }
+    if (toolName === 'WriteToFileTool') {
+       toolName = '写入成功';
+    }
   } catch (e) {
     console.error('Failed to parse tool result content:', e);
     msg = message.content;

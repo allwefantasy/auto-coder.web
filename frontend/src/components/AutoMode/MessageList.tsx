@@ -92,7 +92,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             if(message.metadata?.path === "/agent/edit/tool/call"){
                 return <AgenticEditReplaceInFileTool message={message} />;
             }            
-            if(message.metadata?.path === "/agent/edit/tool/call/result"){
+            if(message.metadata?.path === "/agent/edit/tool/result"){
                 return <AgenticEditToolResult message={message} />;
             }
             return <DefaultMessage message={message} />;
