@@ -21,7 +21,14 @@ import {
     CodeMergeMessage,
     CodeCompileMessage,
     AgenticEditReplaceInFileTool,
-    AgenticEditToolResult    
+    AgenticEditToolResult,
+    AgenticEditWriteToFileTool,
+    AgenticEditAskFollowupQuestionTool,
+    AgenticEditExecuteCommandTool,
+    AgenticEditListCodeDefinitionNamesTool,
+    AgenticEditListFilesTool,
+    AgenticEditReadFileTool,
+    AgenticEditSearchFilesTool
 } from './MessageTypes';
 import AgenticFilterExecuteMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterExecuteMessage';
 import AgenticFilterPrepareMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterPrepareMessage';
@@ -90,7 +97,35 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                 return <ThinkingMessage message={message} />;
             }
             if(message.metadata?.path === "/agent/edit/tool/call"){
-                return <AgenticEditReplaceInFileTool message={message} />;
+                const content = JSON.parse(message.content);
+                if (content.tool_name === "ReplaceInFileTool") {
+                    return <AgenticEditReplaceInFileTool message={message} />;
+                }
+                if (content.tool_name === "WriteToFileTool") {
+                    return <AgenticEditWriteToFileTool message={message} />;
+                }
+                if (content.tool_name === "AskFollowupQuestionTool") {
+                    return <AgenticEditAskFollowupQuestionTool message={message} />;
+                }
+                if (content.tool_name === "ExecuteCommandTool") {
+                    return <AgenticEditExecuteCommandTool message={message} />;
+                }
+                if (content.tool_name === "ListCodeDefinitionNamesTool") {
+                    return <AgenticEditListCodeDefinitionNamesTool message={message} />;
+                }
+                if (content.tool_name === "ListFilesTool") {
+                    return <AgenticEditListFilesTool message={message} />;
+                }
+                if (content.tool_name === "ReadFileTool") {
+                    return <AgenticEditReadFileTool message={message} />;
+                }
+                if (content.tool_name === "SearchFilesTool") {
+                    return <AgenticEditSearchFilesTool message={message} />;
+                }
+
+                if (content.tool_name === "ReplaceInFileTool") {
+                    return <AgenticEditReplaceInFileTool message={message} />;
+                }
             }            
             if(message.metadata?.path === "/agent/edit/tool/result"){
                 return <AgenticEditToolResult message={message} />;
