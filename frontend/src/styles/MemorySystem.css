@@ -1,0 +1,59 @@
+/* MemorySystem.css - for vs-dark like styling adjustments */
+
+body {
+  /* fallback for general dark background */
+  background-color: #1e1e1e;
+}
+
+.memory-system-container {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+}
+
+/* Ant Design table overrides for vs-dark feel */
+.memory-system-container .ant-table {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+}
+
+.memory-system-container .ant-table-thead > tr > th {
+  background-color: #252526 !important;
+  color: #c5c5c5 !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+.memory-system-container .ant-table-tbody > tr > td {
+  background-color: #1e1e1e !important;
+  color: #d4d4d4 !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+.memory-system-container .ant-table-tbody > tr:hover > td {
+  background-color: #264f78 !important;
+}
+
+/* Spinner overlay background */
+.memory-system-container .ant-spin-nested-loading {
+  background-color: #1e1e1e;
+}
+
+/* Tag colors override if desired (optional) */
+/* .memory-system-container .ant-tag {
+} */
+
+/* Header title style */
+.memory-system-container h2 {
+  color: #d4d4d4;
+}
+
+/* Optional scrollbar dark style */
+.memory-system-container ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.memory-system-container ::-webkit-scrollbar-thumb {
+  background-color: #555;
+}
+.memory-system-container ::-webkit-scrollbar-track {
+  background-color: #1e1e1e;
+}

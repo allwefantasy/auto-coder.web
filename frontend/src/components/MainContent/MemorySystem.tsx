@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Tag, Spin, message } from 'antd';
 import '../../styles/custom_antd.css';
+import '../../styles/MemorySystem.css';
 import { getMessage } from '../Sidebar/lang';
 
 interface TaskInfo {
@@ -114,8 +115,8 @@ const MemorySystem: React.FC = () => {
   ];
 
   return (
-    <div className="p-4">
-      <h2 className="text-lg font-semibold mb-4 text-white">{getMessage('memorySystemTasks') || 'Memory System Tasks'}</h2>
+    <div className="memory-system-container p-4">
+      <h2 className="text-lg font-semibold mb-4">{getMessage('memorySystemTasks') || 'Memory System Tasks'}</h2>
       <Spin spinning={loading}>
         <Table
           dataSource={tasks}
