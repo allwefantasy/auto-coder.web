@@ -10,6 +10,7 @@ import RagConfig from './RagConfig';
 import BasicSettings from './BasicSettings';
 import AdvancedSettings from './AdvancedSettings';
 import McpServerConfig from './McpServerConfig/McpServerConfig'; // Import the new component
+import MemorySystem from './MemorySystem';
 import './ModelConfig.css';
 
 const { TabPane } = Tabs;
@@ -160,6 +161,9 @@ const SettingsPanel: React.FC = () => {
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('mcpServerConfiguration') || 'MCP Servers'}</span>} key="mcp">
           <McpServerConfig />
+        </TabPane>
+        <TabPane tab={<span className="text-gray-300">Memory System</span>} key="memory">
+          <MemorySystem />
         </TabPane>
       </Tabs>
     </div>
