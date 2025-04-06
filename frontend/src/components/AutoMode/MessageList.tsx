@@ -88,9 +88,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             if(message.metadata?.path === "/agent/edit" || message.metadata?.path === "/agent/edit/thinking") {
                 return <ThinkingMessage message={message} />;
             }
-            // if(message.metadata?.path === "/agent/edit/tool/call"){
-            //     return <AgenticEditReplaceInFileTool message={message.content as AgenticEditReplaceInFileToolProps} />;
-            // }
+            if(message.metadata?.path === "/agent/edit/tool/call"){
+                return <AgenticEditReplaceInFileTool message={message} />;
+            }
             return <DefaultMessage message={message} />;
         }
 

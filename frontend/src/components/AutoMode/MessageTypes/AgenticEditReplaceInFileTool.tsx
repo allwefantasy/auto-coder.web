@@ -8,10 +8,10 @@ interface AgenticEditReplaceInFileToolProps {
 
 const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> = ({ message }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const toolName = (message.content && (message as any).content.tool_name) || (typeof message.content === 'object' && (message.content as any).tool_name);
-  const path = (message.content && (message as any).content.path) || (typeof message.content === 'object' && (message.content as any).path);
-  const diff = (message.content && (message as any).content.diff) || (typeof message.content === 'object' && (message.content as any).diff);
+  const content = JSON.parse(message.content);
+  const toolName = content.tool_name;
+  const path = content.path;
+  const diff = content.diff;
 
   const renderDiffBlocks = (diffText: string) => {
     const blocks: { search: string; replace: string }[] = [];
@@ -83,17 +83,18 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
           </svg>
         </span>
         <span className="message-title-text ml-1 text-yellow-400 font-semibold">
-          {toolName || 'Edit File'}
+          auto-coder.web 想要替换此文件中的内容
         </span>
 
-        <span className="ml-2 truncate text-gray-300 text-xs" title={path}>
+        {/* <span className="ml-2 truncate text-gray-300 text-xs" title={path}>
           {path}
-        </span>
+        </span> */}
       </div>
 
-      {!isCollapsed && diff && (
-        <div className="mt-2">
-          {renderDiffBlocks(diff)}
+      {!isCollapsed && (
+        <div className="mt-2 text-white">                
+          {path}
+          {renderDiffBlocks(diff)}  
         </div>
       )}
     </div>
