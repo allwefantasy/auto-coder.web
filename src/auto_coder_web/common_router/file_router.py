@@ -116,13 +116,21 @@ async def list_files_in_directory(
 ):
     """
     List all files (not directories) under the specified directory.
-    Returns list of file name and full path.
+    If dir_path is a file, return info of that file.
     """
     if not await aiofiles.os.path.exists(dir_path):
-        raise HTTPException(status_code=404, detail="Directory not found")
-    if not await aiofiles.os.path.isdir(dir_path):
-        raise HTTPException(status_code=400, detail="Provided path is not a directory")
+        raise HTTPException(status_code=404, detail="Path not found")
 
+    # If path is a file, return info of the file
+    if await aiofiles.os.path.isfile(dir_path):
+        file_name = os.path.basename(dir_path)
+        return [FileInfo(name=file_name, path=dir_path)]
+
+    # If not a directory, error
+    if not await aiofiles.os.path.isdir(dir_path):
+        raise HTTPException(status_code=400, detail="Provided path is neither a directory nor a file")
+
+    # Else, list all files under directory
     try:
         entries = await aiofiles.os.listdir(dir_path)
     except Exception as e:
@@ -134,7 +142,7 @@ async def list_files_in_directory(
         try:
             if await aiofiles.os.path.isfile(full_path):
                 result.append(FileInfo(name=entry, path=full_path))
-        except Exception as e:
+        except Exception:
             continue  # ignore errors per file
 
     return result
