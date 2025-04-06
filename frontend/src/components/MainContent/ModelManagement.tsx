@@ -6,7 +6,7 @@ import eventBus, { EVENTS } from '../../services/eventBus'; // Import eventBus
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';
 
-// 定义模型数据结构
+  // 定义模型数据结构
 interface Model {
   name: string;
   description: string;
@@ -18,6 +18,7 @@ interface Model {
   input_price: number;
   output_price: number;
   average_speed: number;
+  max_output_tokens: number; // 新增最大输出长度
 }
 
 // 定义供应商配置
@@ -107,6 +108,7 @@ const ModelManagement: React.FC = () => {
         input_price: Number(values.input_price),
         output_price: Number(values.output_price),
         average_speed: Number(values.average_speed || 0),
+        max_output_tokens: Number(values.max_output_tokens || 8096), // 新增最大输出长度
         // model_type is now part of the form values, populated automatically
       };
 
@@ -484,6 +486,13 @@ const ModelManagement: React.FC = () => {
             label={<span className="text-white">{getMessage('modelAverageSpeed')}</span>}
           >
             <Input type="number" step="0.1" min="0" className="dark-input" />
+          </Form.Item>
+
+          <Form.Item
+            name="max_output_tokens"
+            label={<span className="text-white">{getMessage('maxOutputTokens') || 'Max Output Tokens'}</span>}
+          >
+            <Input type="number" step="1" min="1" placeholder="Defaults to 8096" className="dark-input" />
           </Form.Item>
 
           <Form.Item

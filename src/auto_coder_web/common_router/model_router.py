@@ -29,6 +29,7 @@ class Model(BaseModel):
     input_price: float = 0.0
     output_price: float = 0.0
     average_speed: float = 0.0
+    max_output_tokens: int = 8096
 
 @router.get("/api/models", response_model=List[Model])
 async def get_models():
