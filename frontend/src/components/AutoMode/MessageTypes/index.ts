@@ -26,3 +26,6 @@ export { default as AgenticEditListCodeDefinitionNamesTool } from './AgenticEdit
 export { default as AgenticEditListFilesTool } from './AgenticEditListFilesTool';
 export { default as AgenticEditReadFileTool } from './AgenticEditReadFileTool';
 export { default as AgenticEditSearchFilesTool } from './AgenticEditSearchFilesTool';
+export { default as AgenticEditUseMcpTool } from './AgenticEditUseMcpTool';
+export { default as AgenticEditAttemptCompletionTool } from './AgenticEditAttemptCompletionTool';
+export { default as AgenticEditPlanModeRespondTool } from './AgenticEditPlanModeRespondTool';
