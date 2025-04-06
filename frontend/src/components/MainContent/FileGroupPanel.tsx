@@ -327,6 +327,7 @@ const FileGroupPanel: React.FC = () => {
                 onFileSelect={handleFileSelect}
                 onAddFiles={handleAddFiles}
                 selectedGroup={selectedGroup}
+                onRefreshTree={fetchFileTree}
               />
             </div>
           </div>

@@ -23,6 +23,7 @@ interface FileDirectorySelectorProps {
   onFileSelect?: (path: string) => void;
   onAddFiles?: () => void;
   selectedGroup?: { name: string } | null;
+  onRefreshTree?: () => void;   // 新增刷新函数props
 }
 
 // 文件类型常量和颜色映射
@@ -79,7 +80,8 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
   onCheckedKeysChange,
   onFileSelect,
   onAddFiles,
-  selectedGroup
+  selectedGroup,
+  onRefreshTree
 }) => {
   const [filteredTreeData, setFilteredTreeData] = useState<DataNode[]>(treeData);
   const [searchValue, setSearchValue] = useState<string>('');
@@ -484,7 +486,7 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
   return (
     <div className="file-directory-selector">
       <div className="search-container">
-        <div className="search-header">
+        <div className="search-header" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <Input
             prefix={<SearchOutlined className="text-gray-400" />}
             placeholder="Search files..."
@@ -506,6 +508,19 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
               </Dropdown>
             }
           />
+          {onRefreshTree && (
+            <Tooltip title="刷新目录树">
+              <Button
+                icon={<UndoOutlined />}
+                onClick={() => {
+                  onRefreshTree();
+                  setSearchValue('');
+                  filterTreeData('');
+                }}
+                className="refresh-tree-button"
+              />
+            </Tooltip>
+          )}
         </div>
 
         {selectedGroup && (
