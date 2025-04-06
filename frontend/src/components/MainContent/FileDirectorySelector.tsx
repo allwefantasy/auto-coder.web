@@ -155,41 +155,6 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
       return;
     }
 
-    // 先判断用户输入是否正好是某个文件路径
-    const exactFileNode = (() => {
-      let foundNode: DataNode | null = null;
-
-      const searchFileNode = (nodes: DataNode[]) => {
-        for (const node of nodes) {
-          const nodePath = node.key.toString();
-          if (node.isLeaf && nodePath.toLowerCase() === searchTerm) {
-            foundNode = node;
-            return;
-          }
-          if (node.children) {
-            searchFileNode(node.children);
-            if (foundNode) return;
-          }
-        }
-      };
-
-      searchFileNode(data);
-      return foundNode;
-    })();
-
-    if (exactFileNode) {
-      // 如果是文件，直接只显示该文件节点
-      setFilteredTreeData([
-        {
-          ...exactFileNode,
-          children: undefined,  // 文件无子节点
-        }
-      ]);
-      // 不展开任何目录
-      setExpandedKeys([]);
-      return;
-    }
-
     // 递归查找并保持树形结构
     const filterData = (nodes: DataNode[]): DataNode[] => {
       return nodes.map(node => {
