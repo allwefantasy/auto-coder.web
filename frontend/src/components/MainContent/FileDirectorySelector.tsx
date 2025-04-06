@@ -16,6 +16,31 @@ import {
 import type { DataNode } from 'antd/es/tree';
 import './FileDirectorySelector.css';
 
+// 自定义防抖 hook
+function useDebounce(callback: (...args: any[]) => void, delay: number) {
+  const timer = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedFunction = (...args: any[]) => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
+    timer.current = setTimeout(() => {
+      callback(...args);
+    }, delay);
+  };
+
+  // 可选：在组件卸载时清除定时器
+  React.useEffect(() => {
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+    };
+  }, []);
+
+  return debouncedFunction;
+}
+
 interface FileDirectorySelectorProps {
   treeData: DataNode[];
   checkedKeys: React.Key[];
@@ -96,6 +121,11 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
   const [fileTypeFilters, setFileTypeFilters] = useState<string[]>([]);
   // 新增状态：跟踪当前是全选模式还是反选模式
   const [isSelectAllMode, setIsSelectAllMode] = useState<boolean>(true);
+
+  // 防抖搜索函数
+  const debouncedFilterTreeData = useDebounce((value: string) => {
+    filterTreeData(value);
+  }, 500);
 
   // 当treeData变化时更新filteredTreeData
   useEffect(() => {
@@ -496,7 +526,7 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
             onChange={(e) => {
               const value = e.target.value;
               setSearchValue(value);
-              filterTreeData(value);
+              debouncedFilterTreeData(value);
             }}
             suffix={
               <Dropdown
