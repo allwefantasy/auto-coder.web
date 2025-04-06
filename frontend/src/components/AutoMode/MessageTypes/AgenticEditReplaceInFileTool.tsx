@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
+import { MessageProps } from '../MessageList';
 import './MessageStyles.css';
 
 interface AgenticEditReplaceInFileToolProps {
-  message: {
-    tool_name: string;
-    path: string;
-    diff: string;
-    [key: string]: any;
-  };
+  message: MessageProps;
 }
 
 const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> = ({ message }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toolName = (message.content && (message as any).content.tool_name) || (typeof message.content === 'object' && (message.content as any).tool_name);
+  const path = (message.content && (message as any).content.path) || (typeof message.content === 'object' && (message.content as any).path);
+  const diff = (message.content && (message as any).content.diff) || (typeof message.content === 'object' && (message.content as any).diff);
 
   const renderDiffBlocks = (diffText: string) => {
     const blocks: { search: string; replace: string }[] = [];
@@ -83,17 +83,17 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
           </svg>
         </span>
         <span className="message-title-text ml-1 text-yellow-400 font-semibold">
-          Edit File
+          {toolName || 'Edit File'}
         </span>
 
-        <span className="ml-2 truncate text-gray-300 text-xs" title={message.path}>
-          {message.path}
+        <span className="ml-2 truncate text-gray-300 text-xs" title={path}>
+          {path}
         </span>
       </div>
 
-      {!isCollapsed && (
+      {!isCollapsed && diff && (
         <div className="mt-2">
-          {renderDiffBlocks(message.diff)}
+          {renderDiffBlocks(diff)}
         </div>
       )}
     </div>
