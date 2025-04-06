@@ -1769,6 +1769,63 @@ export const messages: { [key: string]: Message } = {
   ragMcpConflictContent: {
     en: "RAG Provider and MCPs Provider cannot be enabled simultaneously. Please disable one of them first.",
     zh: "RAG Provider 和 MCPs Provider 不能同时启用。请先禁用其中一个。"
+  },
+  // Memory System related
+  memorySystemTasks: {
+    en: "Memory System Tasks",
+    zh: "记忆系统任务"
+  },
+  memorySystemLoadError: {
+    en: "Failed to load memory system tasks",
+    zh: "加载记忆系统任务失败"
+  },
+  taskId: {
+    en: "Task ID",
+    zh: "任务ID"
+  },
+  status: {
+    en: "Status",
+    zh: "状态"
+  },
+  file: {
+    en: "File",
+    zh: "文件"
+  },
+  startTime: {
+    en: "Start Time",
+    zh: "开始时间"
+  },
+  completionTime: {
+    en: "Completion Time",
+    zh: "完成时间"
+  },
+  tokens: {
+    en: "Tokens",
+    zh: "令牌数"
+  },
+  total: {
+    en: "Total",
+    zh: "总计"
+  },
+  input: {
+    en: "Input",
+    zh: "输入"
+  },
+  output: {
+    en: "Output",
+    zh: "输出"
+  },
+  cost: {
+    en: "Cost ($)",
+    zh: "花费（美元）"
+  },
+  processedDirs: {
+    en: "Processed Dirs",
+    zh: "处理的目录"
+  },
+  error: {
+    en: "Error",
+    zh: "错误"
   }
 };
 
@@ -1816,3 +1873,4 @@ export const getMessage = (key: keyof typeof messages, params: { [key: string]: 
     String(message)
   );
 };
+
