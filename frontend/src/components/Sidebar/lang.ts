@@ -1453,6 +1453,10 @@ export const messages: { [key: string]: Message } = {
     en: "Basic Settings",
     zh: "基本设置"
   },
+  maxOutputTokens: {
+    en: "Max Output Tokens",
+    zh: "最大输出长度"
+  },
   indexMaxInputLength: {
     en: "Index Max Input Length",
     zh: "索引最大输入长度"
