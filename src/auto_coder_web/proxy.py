@@ -26,6 +26,7 @@ from auto_coder_web.common_router import active_context_router
 from rich.console import Console
 from loguru import logger
 from auto_coder_web.lang import get_message
+from auto_coder_web.file_cacher.filecacher import FileCacher
 
 class ProxyServer:
     def __init__(self, project_path: str, quick: bool = False, product_mode: str = "pro"):    
@@ -80,6 +81,7 @@ class ProxyServer:
         self.app.state.project_path = self.project_path
         # Store auto_coder_runner in app state for dependency injection
         self.app.state.auto_coder_runner = self.auto_coder_runner
+        self.app.state.file_cacher = FileCacher(self.project_path)
         # Store initialization status
         self.app.state.is_initialized = self.is_initialized
 
