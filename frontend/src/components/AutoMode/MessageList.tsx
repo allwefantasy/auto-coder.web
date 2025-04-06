@@ -20,7 +20,8 @@ import {
     UserMessage,
     CodeMergeMessage,
     CodeCompileMessage,
-    AgenticEditReplaceInFileTool    
+    AgenticEditReplaceInFileTool,
+    AgenticEditToolResult    
 } from './MessageTypes';
 import AgenticFilterExecuteMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterExecuteMessage';
 import AgenticFilterPrepareMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterPrepareMessage';
@@ -90,6 +91,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             }
             if(message.metadata?.path === "/agent/edit/tool/call"){
                 return <AgenticEditReplaceInFileTool message={message} />;
+            }            
+            if(message.metadata?.path === "/agent/edit/tool/call/result"){
+                return <AgenticEditToolResult message={message} />;
             }
             return <DefaultMessage message={message} />;
         }
