@@ -388,19 +388,45 @@ const FileGroupPanel: React.FC = () => {
         }}
         onOk={async () => {
           if (!selectedGroup || !externalFilePath.trim()) return;
-          
+
+          const pathTrimmed = externalFilePath.trim();
+
+          // 判断是否为http/https链接
+          const isHttpUrl = pathTrimmed.startsWith('http://') || pathTrimmed.startsWith('https://');
+
           try {
+            let filesToAdd: string[] = [];
+
+            if (isHttpUrl) {
+              // 直接添加这个URL
+              filesToAdd = [pathTrimmed];
+            } else {
+              // 调用 /api/list-files 获取文件列表
+              const encodedPath = encodeURIComponent(pathTrimmed);
+              const response = await fetch(`/api/list-files?dir_path=${encodedPath}`);
+              if (!response.ok) throw new Error('Failed to list files');
+              const data = await response.json();
+
+              if (Array.isArray(data)) {
+                filesToAdd = data.map((item: { path: string }) => item.path);
+              } else {
+                message.error('Unexpected response from list-files API');
+                return;
+              }
+            }
+
+            // 调用添加接口
             await fetch(`/api/file-groups/${selectedGroup.name}/files`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ files: [externalFilePath.trim()] }),
+              body: JSON.stringify({ files: filesToAdd }),
             });
-            
-            message.success('External file added successfully');
+
+            message.success('External file(s) added successfully');
             setIsExternalFileModalVisible(false);
             setExternalFilePath('');
             fetchFileGroups();
-            
+
             // Refresh selected group data
             const updatedGroups = await (await fetch('/api/file-groups')).json();
             const updatedGroup = updatedGroups.groups.find((g: FileGroup) => g.name === selectedGroup.name);
@@ -408,7 +434,8 @@ const FileGroupPanel: React.FC = () => {
               setSelectedGroup(updatedGroup);
             }
           } catch (error) {
-            message.error('Failed to add external file');
+            console.error(error);
+            message.error('Failed to add external file(s)');
           }
         }}
         onCancel={() => {
