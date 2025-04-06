@@ -84,6 +84,7 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
   onRefreshTree
 }) => {
   const [filteredTreeData, setFilteredTreeData] = useState<DataNode[]>(treeData);
+  const [refreshLoading, setRefreshLoading] = useState(false);
   const [searchValue, setSearchValue] = useState<string>('');
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [rightClickNode, setRightClickNode] = useState<DataNode | null>(null);
@@ -511,11 +512,23 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
           {onRefreshTree && (
             <Tooltip title="刷新目录树">
               <Button
-                icon={<UndoOutlined />}
-                onClick={() => {
-                  onRefreshTree();
-                  setSearchValue('');
-                  filterTreeData('');
+                icon={
+                  refreshLoading ? (
+                    <UndoOutlined spin style={{ transition: 'transform 0.3s' }} />
+                  ) : (
+                    <UndoOutlined />
+                  )
+                }
+                loading={refreshLoading}
+                onClick={async () => {
+                  try {
+                    setRefreshLoading(true);
+                    await onRefreshTree();
+                    setSearchValue('');
+                    filterTreeData('');
+                  } finally {
+                    setRefreshLoading(false);
+                  }
                 }}
                 className="refresh-tree-button"
               />
