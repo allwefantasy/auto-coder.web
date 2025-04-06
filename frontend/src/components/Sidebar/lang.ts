@@ -41,8 +41,8 @@ export const messages: { [key: string]: Message } = {
     zh: "MCP服务器"
   },
   memorySystemTasks: {
-    en: "Memory System Tasks",
-    zh: "记忆系统任务"
+    en: "Memory System",
+    zh: "记忆系统"
   },
   // Settings Panel
   settingsTitle: {
@@ -1834,15 +1834,7 @@ export const messages: { [key: string]: Message } = {
   startTime: {
     en: "Start Time",
     zh: "开始时间"
-  },
-  completionTime: {
-    en: "Completion Time",
-    zh: "完成时间"
-  },
-  tokens: {
-    en: "Tokens",
-    zh: "令牌数"
-  },
+  }, 
   total: {
     en: "Total",
     zh: "总计"
