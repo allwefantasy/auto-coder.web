@@ -219,7 +219,10 @@ const InputArea: React.FC<InputAreaProps> = ({
       console.error('Error cancelling task:', error);
       setIsCancelling(false);
       AntdMessage.error('取消任务失败');
+    }finally {
+      // setIsCancelling(false);   // 确保状态重置
     }
+    
   };
 
 
