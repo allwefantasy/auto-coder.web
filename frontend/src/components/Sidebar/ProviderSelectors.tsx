@@ -10,20 +10,20 @@ interface ProviderSelectorsProps {
 const ProviderSelectors: React.FC<ProviderSelectorsProps> = ({ isWriteMode }) => {
   return (
     <div className="w-full"> 
-      <div className="flex space-x-2 w-full"> 
-        {/* Conditionally render RAG based on write mode */}
-        {!isWriteMode && (
+      <div className="flex space-x-2 w-full">        
+       
+                
+        <div className="flex-1">
+          <CodeModelSelector />
+        </div>
+
+         {!isWriteMode && (
             <div className="flex-1">
               <RagSelector />
             </div>
         )}
-
-        {/* Always render MCPs and Code Model selectors */}
         <div className="flex-1">
           <MCPsSelector />
-        </div>
-        <div className="flex-1">
-          <CodeModelSelector />
         </div>
       </div>
     </div>
