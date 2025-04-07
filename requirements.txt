@@ -1,6 +1,7 @@
 auto-coder>=0.1.340
 aiofiles
 psutil
+watchdog
 sse-starlette
 websockets
 pywinpty; sys_platform == 'win32'
