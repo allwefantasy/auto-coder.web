@@ -42,8 +42,7 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
   }
 
   return (
-    // Add message-font for consistency
-    <div className="message-font border border-[0.5px] border-gray-600 rounded-lg overflow-hidden bg-gray-800/50 mb-2">
+    <div className="message-font mb-2">
       <div
         className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-gray-700/50"
         onClick={() => setCollapsed(!collapsed)}
@@ -57,7 +56,6 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
           </svg>
-          {/* Remove text-sm to inherit from message-font */}
           <span className="font-semibold text-yellow-400">{toolName}</span>
           <span
             className={`text-xs px-2 py-0.5 rounded-full ${success ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'
