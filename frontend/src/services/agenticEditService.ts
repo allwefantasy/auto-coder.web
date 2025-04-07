@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { Message, AutoCommandEvent, StreamContent, ResultContent, AskUserContent, UserResponseContent, ErrorContent, CompletionContent, ResultTokenStatContent, ResultCommandPrepareStatContent, ResultCommandExecuteStatContent, ResultContextUsedContent, CodeContent, MarkdownContent, ResultSummaryContent, IndexBuildStartContent, IndexBuildEndContent } from '../components/AutoMode/types';
+import eventBus, { EVENTS } from './eventBus';
 
 
 class AgenticEditService extends EventEmitter {
@@ -365,6 +366,7 @@ class AgenticEditService extends EventEmitter {
     setTimeout(() => {
       // 发出错误任务完成事件
       this.emit('taskComplete', true);
+      eventBus.publish(EVENTS.CODING.TASK_COMPLETE, { success: true, event_file_id: this.eventFileId });
     }, 300); // 300毫秒延迟，足够React状态更新
   }
 
@@ -390,6 +392,7 @@ class AgenticEditService extends EventEmitter {
     setTimeout(() => {
       // 发出任务完成事件
       this.emit('taskComplete', false);
+      eventBus.publish(EVENTS.CODING.TASK_COMPLETE, { success: true, event_file_id: this.eventFileId });
     }, 1000); // 1000毫秒延迟，足够React状态更新
   }
 

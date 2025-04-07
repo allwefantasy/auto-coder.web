@@ -266,20 +266,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                 {/* Panel Switch Buttons */}
                 <div className="bg-gray-800 p-2 border-b border-gray-700">
                   <div className="flex space-x-2">
-                    <button
-                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 
-                        ${activePanel === 'todo'
-                          ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
-                          : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
-                        } flex items-center space-x-2`}
-                      onClick={() => setActivePanel('todo')}
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                      </svg>
-                      <span>{getMessage('todos')}</span>
-                    </button>
-                    <button
+                                        <button
                       className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 
                         ${activePanel === 'history'
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
@@ -383,6 +370,23 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                               </svg>
                               <span>{getMessage('clipboard')}</span>
+                            </button>
+
+                            <button
+                              className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${
+                                activePanel === 'todo'
+                                  ? 'bg-blue-600 text-white'
+                                  : 'text-gray-300 hover:bg-gray-700'
+                              }`}
+                              onClick={() => {
+                                setActivePanel('todo');
+                                setShowToolsDropdown(false);
+                              }}
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                              </svg>
+                              <span>{getMessage('todos')}</span>
                             </button>
                             {/* Editable Preview Button in Dropdown */}
                             {/* <button
