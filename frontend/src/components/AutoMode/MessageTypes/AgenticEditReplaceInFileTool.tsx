@@ -97,9 +97,9 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
           {getMessage('agenticEditReplaceInFileToolTitle')}
         </span>
 
-        {/* <span className="ml-2 truncate text-gray-300 text-xs" title={path}>
+        <span className="ml-2 truncate text-gray-300 text-xs" title={path}>
           {path}
-        </span> */}
+        </span> 
       </div>
 
       {!isCollapsed && (
