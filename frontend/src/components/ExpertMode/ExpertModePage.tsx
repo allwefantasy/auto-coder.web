@@ -66,6 +66,14 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<any | null>(null);
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null);
   
+  // 添加对requestId变化的监听，更新currentEventFileId
+  useEffect(() => {
+    if (requestId) {
+      setCurrentEventFileId(requestId);
+      console.log('ExpertModePage: Updated currentEventFileId from requestId:', requestId);
+    }
+  }, [requestId]);
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -93,30 +101,41 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
     };
   }, [setActivePanel]);
   
-  // 监听ASK_USER事件
-  // useEffect(() => {
-  //   const unsubscribe = eventBus.subscribe(EVENTS.CHAT.NEW_MESSAGE, (message) => {
-  //     // 处理用户询问类型的消息
-  //     if (message.type === 'ASK_USER') {
-  //       const askUserMessage = {
-  //         ...message,
-  //         id: message.id || `msg-${Date.now()}`,
-  //         timestamp: Date.now()
-  //       };
-  //       setActiveAskUserMessage(askUserMessage);
-  //     }
+  // 监听消息事件，只通过 eventBus 接收消息
+  useEffect(() => {
+    // 订阅新消息事件，包括 ASK_USER 和带有 event_file_id 的消息
+    const unsubscribeNewMessage = eventBus.subscribe(EVENTS.CHAT.NEW_MESSAGE, (message: any) => {
+      console.log('ExpertModePage: Received message via eventBus:', message.type);
       
-  //     // 如果消息包含event_file_id，保存它以便用于用户响应
-  //     if (message.event_file_id && !currentEventFileId) {
-  //       setCurrentEventFileId(message.event_file_id);
-  //     }
-  //   });
+      // 处理用户询问类型的消息
+      if (message.type === 'ASK_USER') {
+        const askUserMessage = {
+          ...message,
+          id: message.id || `msg-${Date.now()}`,
+          timestamp: Date.now()
+        };
+        setActiveAskUserMessage(askUserMessage);
+        console.log('ExpertModePage: Set activeAskUserMessage from eventBus');
+      }
+      
+      // 从消息中提取 event_file_id
+      if (message.event_file_id && !currentEventFileId) {
+        setCurrentEventFileId(message.event_file_id);
+        console.log('ExpertModePage: Set currentEventFileId from message:', message.event_file_id);
+      }
+      
+      // 从消息元数据中提取 event_file_id
+      if (message.metadata?.event_file_id && !currentEventFileId) {
+        setCurrentEventFileId(message.metadata.event_file_id);
+        console.log('ExpertModePage: Set currentEventFileId from message metadata:', message.metadata.event_file_id);
+      }
+    });
     
-  //   return () => {
-  //     unsubscribe();
-  //   };
-  // }, [currentEventFileId]);
-
+    return () => {
+      unsubscribeNewMessage();
+    };
+  }, [currentEventFileId]);
+  
   // 订阅显示弹出框事件
   useEffect(() => {
     const unsubscribe = eventBus.subscribe(EVENTS.UI.SHOW_MODAL, (data: {
@@ -155,6 +174,12 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
     }
     
     try {
+      console.log('ExpertModePage: Sending response to event:', {
+        event_id: eventId,
+        event_file_id: currentEventFileId,
+        response: response
+      });
+      
       // 将响应发送回服务器
       const result = await fetch('/api/auto-command/response', {
         method: 'POST',
@@ -176,11 +201,11 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       console.log('Response sent successfully to event:', eventId);
     } catch (error) {
       console.error('Error sending response to server:', error);
-      // 可以通过eventBus发送错误消息
-      // eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, {
-      //   type: 'ERROR',
-      //   content: `Failed to send your response to the server: ${error instanceof Error ? error.message : String(error)}`
-      // });
+      // 通过eventBus发送错误消息
+      eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, {
+        type: 'ERROR',
+        content: `Failed to send your response to the server: ${error instanceof Error ? error.message : String(error)}`
+      });
     }
   };
 
@@ -211,7 +236,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
         <div className="border-r border-gray-700 flex flex-col">
           <ChatPanel
             setPreviewFiles={setPreviewFiles}
-            setActivePanel={setActivePanel}
+            setActivePanel={setActivePanel as any}
             setClipboardContent={setClipboardContent}
             clipboardContent={clipboardContent}
             setRequestId={setRequestId}          

@@ -110,13 +110,13 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   };
   
   // 添加调试日志，检查取消按钮所需的条件
-  useEffect(() => {
-    console.log('SimpleEditor Debug Info:');
-    console.log('- isProcessing:', isProcessing);
-    console.log('- currentEventFileId:', currentEventFileId);
-    console.log('- onCancelTask exists:', !!onCancelTask);
-    console.log('- Should show cancel button:', isProcessing && currentEventFileId && onCancelTask);
-  }, [isProcessing, currentEventFileId, onCancelTask]);
+  // useEffect(() => {
+  //   console.log('SimpleEditor Debug Info:');
+  //   console.log('- isProcessing:', isProcessing);
+  //   console.log('- currentEventFileId:', currentEventFileId);
+  //   console.log('- onCancelTask exists:', !!onCancelTask);
+  //   console.log('- Should show cancel button:', isProcessing && currentEventFileId && onCancelTask);
+  // }, [isProcessing, currentEventFileId, onCancelTask]);
   
   // 当历史弹窗打开时刷新数据
   useEffect(() => {

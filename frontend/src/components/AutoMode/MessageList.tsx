@@ -82,6 +82,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             if (message.type === "STREAM" && !message.isStreaming && streamOutTypesToFilterDuringStream.includes(message.metadata?.stream_out_type)) {
                 return false;
             }
+
+            if (message.content === "Agent attempted task completion."){
+                return false;
+            }
             return true;
         });
 

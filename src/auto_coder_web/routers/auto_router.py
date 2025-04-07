@@ -225,10 +225,13 @@ async def response_user(request: UserResponseRequest, project_path: str = Depend
     """
     try:
         # 获取事件管理器
+        logger.info(f"Sending user response to event_file_id: {request.event_file_id}")
         event_file = get_event_file_path(file_id=request.event_file_id,project_path=project_path)
+        logger.info(f"Event file from event_file_id: {event_file}")
         event_manager = get_event_manager(event_file)
 
         # 调用respond_to_user方法发送用户响应
+        logger.info(f"Responding to user with event ID: {request.event_id}")
         response_event = event_manager.respond_to_user(
             request.event_id, request.response)
 

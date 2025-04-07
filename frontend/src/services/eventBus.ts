@@ -28,7 +28,9 @@ export const EVENTS = {
     // 从特定消息重新开始对话事件 UserMessage.tsx 发布, ChatPanel.tsx 订阅
     REFRESH_FROM_MESSAGE: 'chat.refresh.from.message',
     // 新建对话事件 EditorComponent.tsx 发布, ChatPanel.tsx 订阅
-    NEW_CHAT: 'chat.new'
+    NEW_CHAT: 'chat.new',
+    // 对话面板产生新消息事件， ChatPanel.tsx 发布, ExpertModePage.tsx 订阅
+    NEW_MESSAGE: 'chat.new.message'
   },
   RAG: {
     // RAG配置更新事件 RagConfig.tsx 发布, RagSelector.tsx 订阅

@@ -725,12 +725,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   // 处理来自聊天和编码服务的消息事件
   const setupMessageListener = (service: typeof chatService | typeof codingService | typeof agenticEditService) => {
+    
     service.on('message', (autoModeMessage: AutoModeMessage) => {
       // 直接添加或更新 AutoMode 消息到我们的消息状态
       console.log('ChatPanel: Received message from service:',
         service === chatService ? 'chatService' : 'codingService',
         autoModeMessage.type,
         autoModeMessage.id);
+
+      eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, autoModeMessage); 
+
       setMessages(prev => {
         const existingMessageIndex = prev.findIndex(msg => msg.id === autoModeMessage.id);
         if (existingMessageIndex !== -1) {

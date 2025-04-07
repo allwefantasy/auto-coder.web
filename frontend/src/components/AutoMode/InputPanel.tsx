@@ -51,11 +51,11 @@ const InputPanel: React.FC<InputPanelProps> = ({
   }, []);
   
   // 添加调试日志，检查 InputPanel 接收到的属性
-  React.useEffect(() => {
-    console.log('InputPanel Debug Info:');
-    console.log('- isProcessing:', isProcessing);
-    console.log('- currentEventFileId:', currentEventFileId);
-  }, [isProcessing, currentEventFileId]);
+  // React.useEffect(() => {
+  //   console.log('InputPanel Debug Info:');
+  //   console.log('- isProcessing:', isProcessing);
+  //   console.log('- currentEventFileId:', currentEventFileId);
+  // }, [isProcessing, currentEventFileId]);
 
   // 处理编辑器挂载
   const handleEditorDidMount = (editor: any, monaco: any) => {
