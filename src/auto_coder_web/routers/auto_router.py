@@ -97,7 +97,7 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
             # 创建AutoCoderRunnerWrapper实例，使用从应用上下文获取的项目路径
             wrapper = AutoCoderRunnerWrapper(project_path)
             wrapper.configure_wrapper(f"event_file:{event_file}")
-
+            prompt_text = request.command
 
             if request.include_conversation_history:
                 # 获取当前会话名称
@@ -131,14 +131,10 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
                                     messages.append(msg)
                         except Exception as e:                            
                             logger.error(f"Error reading chat history: {str(e)}")
-                
-                # 构建提示信息
-                prompt_text = ""
+                                                
                 if messages:
                     # 调用coding_prompt生成包含历史消息的提示
-                    prompt_text = prompt_text + coding_prompt.prompt(messages, request.command)                    
-                else:
-                    prompt_text = request.command
+                    prompt_text = coding_prompt.prompt(messages, request.command)                                    
 
             # 调用auto_command_wrapper方法            
             result = wrapper.auto_command_wrapper(prompt_text, {
