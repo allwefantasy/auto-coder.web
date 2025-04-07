@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Table, message, Popconfirm, Modal, Space, Select } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, PlusCircleOutlined, MinusCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
 import eventBus, { EVENTS } from '../../services/eventBus'; // Import eventBus
 import '../../styles/custom_antd.css';
@@ -275,7 +275,10 @@ const ProviderManagement: React.FC = () => {
                           {...restField}
                           name={[name, 'id']}
                           label={<span className="text-white">Model ID</span>}
-                          tooltip={getMessage('modelIdTooltip')}
+                          tooltip={{
+                            title: getMessage('modelIdTooltip'),
+                            icon: <QuestionCircleOutlined style={{ color: 'white' }} />
+                          }}
                           rules={[{ required: true, message: 'Please input model ID' }]}
                         >
                           <Input className="dark-input" />
@@ -284,7 +287,10 @@ const ProviderManagement: React.FC = () => {
                           {...restField}
                           name={[name, 'name']}
                           label={<span className="text-white">Model Name</span>}
-                          tooltip={getMessage('modelNameTooltip')}
+                          tooltip={{
+                            title: getMessage('modelNameTooltip'),
+                            icon: <QuestionCircleOutlined style={{ color: 'white' }} />
+                          }}
                           rules={[{ required: true, message: 'Please input model name' }]}
                         >
                           <Input className="dark-input" />
