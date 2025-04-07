@@ -26,10 +26,20 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
 
     return blocks.map((block, idx) => (
       <div key={idx} className="mb-2 border border-gray-600 rounded overflow-hidden text-xs font-mono">
-        <div className="bg-gray-800 px-2 py-1 font-semibold text-gray-300">SEARCH</div>
-        <pre className="bg-gray-900 px-2 py-1 whitespace-pre-wrap overflow-x-auto text-red-300">{block.search}</pre>
-        <div className="bg-gray-800 px-2 py-1 font-semibold text-gray-300 border-t border-gray-600">REPLACE</div>
-        <pre className="bg-gray-900 px-2 py-1 whitespace-pre-wrap overflow-x-auto text-green-300">{block.replace}</pre>
+        <div className="flex">
+          <div className="w-1/2 border-r border-gray-600">
+            <div className="bg-gray-800 px-2 py-1 font-semibold text-gray-300">SEARCH</div>
+            <div className="bg-gray-900 h-64 overflow-auto">
+              <pre className="px-2 py-1 whitespace-pre text-red-300 min-w-full">{block.search}</pre>
+            </div>
+          </div>
+          <div className="w-1/2">
+            <div className="bg-gray-800 px-2 py-1 font-semibold text-gray-300">REPLACE</div>
+            <div className="bg-gray-900 h-64 overflow-auto">
+              <pre className="px-2 py-1 whitespace-pre text-green-300 min-w-full">{block.replace}</pre>
+            </div>
+          </div>
+        </div>
       </div>
     ));
   };
