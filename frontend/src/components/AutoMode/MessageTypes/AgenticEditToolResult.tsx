@@ -43,12 +43,12 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
 
   return (
     // Add message-font for consistency
-    <div className="message-font border border-gray-600 rounded-lg overflow-hidden bg-gray-800/50 mb-4">
+    <div className="message-font border border-[0.5px] border-gray-600 rounded-lg overflow-hidden bg-gray-800/50 mb-2">
       <div
-        className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-700/50"
+        className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-gray-700/50"
         onClick={() => setCollapsed(!collapsed)}
       >
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           <svg
             className={`w-4 h-4 transition-transform duration-200 ${collapsed ? '' : 'rotate-90'} text-yellow-400`}
             fill="none"
@@ -67,13 +67,13 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
           </span>
         </div>        
       </div>
-      <div className="mt-1 text-xs text-gray-300 overflow-hidden px-3">
+      <div className="mt-1 text-xs text-gray-300 overflow-hidden px-2">
         <span title={msg} className="hover:underline cursor-help break-words">
           {msg}
         </span>
       </div>
       {!collapsed && content && (
-        <div className="p-3 bg-gray-900 overflow-auto text-xs font-mono whitespace-pre-wrap text-gray-200 border-t border-gray-700 max-h-[400px] scrollbar-thin scrollbar-thumb-gray-600">
+        <div className="p-2 bg-gray-900 overflow-auto text-xs font-mono whitespace-pre-wrap text-gray-200 border-t border-gray-700 max-h-[400px] scrollbar-thin scrollbar-thumb-gray-600">
           {content}
         </div>
       )}

@@ -89,8 +89,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
       // 标记用户已经滚动过
       setHasUserScrolled(true);
       
-      // 检查是否滚动到底部附近（允许20px的误差）
-      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+      // 检查是否滚动到底部附近（允许60px的误差）
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
       
       // 更新滚动状态
       setShouldAutoScroll(isAtBottom);

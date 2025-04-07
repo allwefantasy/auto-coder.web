@@ -12,7 +12,7 @@ import { FileMetadata } from './types/file_meta';
 
 
 const App: React.FC = () => {
-  const [activePanel, setActivePanel] = useState<'todo' | 'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings'>('todo');
+  const [activePanel, setActivePanel] = useState<'todo' | 'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings'>('code');
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [clipboardContent, setClipboardContent] = useState<string>('');
   const [projectName, setProjectName] = useState<string>('');

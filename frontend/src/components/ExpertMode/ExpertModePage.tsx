@@ -53,11 +53,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
 }) => {
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
-
-  // 默认激活代码查看面板
-  useEffect(() => {
-    setActivePanel('code');
-  }, [setActivePanel]);
+  
   
   // 弹出框状态
   const [modalOpen, setModalOpen] = useState(false);
