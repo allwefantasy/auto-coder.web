@@ -1874,6 +1874,24 @@ export const messages: { [key: string]: Message } = {
     zh: "(点击切换)"
   },
   
+  // AskUserDialog component
+  askUserDialogTitle: {
+    en: "User Input Required",
+    zh: "需要用户输入"
+  },
+  askUserDialogResponseRequired: {
+    en: "A response is required to continue",
+    zh: "需要回复才能继续"
+  },
+  askUserDialogPlaceholder: {
+    en: "Type your response...",
+    zh: "输入您的回复..."
+  },
+  askUserDialogSend: {
+    en: "Send",
+    zh: "发送"
+  },
+  
 };
 
 // 当前语言设置
