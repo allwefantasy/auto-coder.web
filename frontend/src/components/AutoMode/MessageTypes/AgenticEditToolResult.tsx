@@ -67,7 +67,7 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
           </span>
         </div>        
       </div>
-      <div className="text-xs text-gray-300 max-w-[300px] truncate overflow-hidden whitespace-nowrap">
+      <div className="mt-1 text-xs text-gray-300 overflow-hidden whitespace-nowrap">
         <span title={msg}>
           {msg}
         </span>
