@@ -10,7 +10,6 @@ const HistoryPanel = lazy(() => import('../MainContent/HistoryPanel'));
 import TerminalManager from '../Terminal/TerminalManager';
 import OutputPanel from '../Terminal/OutputPanel';
 import PreviewPanel from '../MainContent/PreviewPanel'; // Import static preview panel
-import EditablePreviewPanel from '../MainContent/EditablePreviewPanel';
 import TodoPanel from '../MainContent/TodoPanel';
 import AskUserDialog from '../AutoMode/AskUserDialog'; // Import AskUserDialog component
 import { getMessage } from '../Sidebar/lang';
@@ -441,11 +440,9 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                     <PreviewPanel files={previewFiles} />
                   </div>
                   {/* Editable Preview Panel */}
-                  <div className={`h-full ${activePanel === 'preview_editable' ? 'block' : 'hidden'}`}>
-                    {/* Pass the same files prop */}
-                    {/* Pass the same files prop */}
+                  {/* <div className={`h-full ${activePanel === 'preview_editable' ? 'block' : 'hidden'}`}>                    
                     <EditablePreviewPanel files={previewFiles} />
-                  </div>
+                  </div> */}
                   <div className={`h-full ${activePanel === 'history' ? 'block' : 'hidden'}`}>
                     {/* Wrap HistoryPanel with Suspense for lazy loading */}
                     <Suspense fallback={<div className='p-4 text-gray-400 text-center'>Loading History...</div>}>

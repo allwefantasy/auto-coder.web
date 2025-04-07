@@ -33,7 +33,7 @@ async def load_settings() -> SettingsModel:
         return SettingsModel()
     
     try:
-        async with aiofiles.open(SETTINGS_FILE, mode='r') as f:
+        async with aiofiles.open(SETTINGS_FILE, mode='r', encoding='utf-8') as f:
             content = await f.read()
             return SettingsModel(**json.loads(content))
     except (json.JSONDecodeError, FileNotFoundError):
@@ -42,8 +42,8 @@ async def load_settings() -> SettingsModel:
 
 async def save_settings(settings: SettingsModel):
     """异步保存设置"""
-    async with aiofiles.open(SETTINGS_FILE, mode='w') as f:
-        await f.write(settings.json(indent=2, ensure_ascii=False))
+    async with aiofiles.open(SETTINGS_FILE, mode='w', encoding='utf-8') as f:
+        await f.write(json.dumps(settings.model_dump(), indent=2, ensure_ascii=False))
 
 @router.get("/api/settings")
 async def get_settings():

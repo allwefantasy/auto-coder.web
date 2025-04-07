@@ -101,6 +101,7 @@ const SettingsPanel: React.FC = () => {
       setConfig(prev => ({ ...prev, language: value }));
       setLanguage(value as 'en' | 'zh');
       message.success(getMessage('settingsUpdateSuccess'));
+      message.info(getMessage('refreshToApplyLanguage') || 'Please refresh the page to apply the new language. 请刷新页面以应用新语言');
     } catch (error) {
       console.error('Error updating language settings:', error);
       message.error('Failed to update language settings');
