@@ -147,6 +147,7 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
             logger.info(f"Event file id: {file_id} completed successfully")
         except Exception as e:
             logger.error(f"Error executing auto command {file_id}: {str(e)}")
+            logger.exception(e)
             get_event_manager(event_file).write_error(
                 EventContentCreator.create_error(error_code="500", error_message=str(e), details={}).to_dict()
             )
@@ -239,6 +240,7 @@ async def response_user(request: UserResponseRequest, project_path: str = Depend
         }
     except Exception as e:
         logger.error(f"Error sending user response: {str(e)}")
+        logger.exception(e)
         raise HTTPException(
             status_code=500, detail=f"Failed to send user response: {str(e)}")
 

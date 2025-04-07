@@ -143,8 +143,9 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
                     "200", "completed", result).to_dict()
             )
             logger.info(f"Event file id: {file_id} completed successfully")
-        except Exception as e:
+        except Exception as e:                      
             logger.error(f"Error executing coding command {file_id}: {str(e)}")
+            logger.exception(e)  
             get_event_manager(event_file).write_error(
                 EventContentCreator.create_error(error_code="500", error_message=str(e), details={}).to_dict()
             )

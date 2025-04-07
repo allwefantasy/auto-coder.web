@@ -79,6 +79,7 @@ async def chat_command(request: ChatCommandRequest, project_path: str = Depends(
             logger.info(f"Event file id: {file_id} completed successfully")
         except Exception as e:
             logger.error(f"Error executing chat command {file_id}: {str(e)}")
+            logger.exception(e)
             get_event_manager(event_file).write_error(
                 EventContentCreator.create_error(error_code="500", error_message=str(e), details={}).to_dict()
             )
