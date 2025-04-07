@@ -67,8 +67,8 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
           </span>
         </div>        
       </div>
-      <div className="mt-1 text-xs text-gray-300 overflow-hidden whitespace-nowrap px-3">
-        <span title={msg} className="hover:underline cursor-help">
+      <div className="mt-1 text-xs text-gray-300 overflow-hidden px-3">
+        <span title={msg} className="hover:underline cursor-help break-words">
           {msg}
         </span>
       </div>

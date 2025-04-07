@@ -82,8 +82,17 @@
 /* Improve tooltip experience */
 .cursor-help {
   transition: all 0.2s ease;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .cursor-help:hover {
   color: #e5e7eb;
+}
+
+/* Ensure text wrapping */
+.break-words {
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
