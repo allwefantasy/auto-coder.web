@@ -779,6 +779,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   useEffect(() => {
     setupMessageListener(chatService);
     setupMessageListener(codingService);
+    setupMessageListener(agenticEditService);
     
     // 订阅刷新消息事件
     const unsubscribeRefresh = eventBus.subscribe(
@@ -814,6 +815,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     return () => {
       chatService.removeAllListeners();
       codingService.removeAllListeners();
+      agenticEditService.removeAllListeners();
       unsubscribeRefresh();
       unsubscribeRagEnabled();
       unsubscribeNewChat();

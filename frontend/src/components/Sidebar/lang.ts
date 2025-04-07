@@ -1858,6 +1858,11 @@ export const messages: { [key: string]: Message } = {
   error: {
     en: "Error",
     zh: "错误"
+  },
+  // Agentic Edit
+  enableAgenticEdit: {
+    en: "Enable Agentic Edit",
+    zh: "开启Agentic编辑"
   }
 };
 
