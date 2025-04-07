@@ -25,6 +25,7 @@ const SettingsPanel: React.FC = () => {
   });
   
   const [loading, setLoading] = useState(false);
+  const [showRefreshNotice, setShowRefreshNotice] = useState(false);
 
   // Fetch language setting
   useEffect(() => {
@@ -101,7 +102,7 @@ const SettingsPanel: React.FC = () => {
       setConfig(prev => ({ ...prev, language: value }));
       setLanguage(value as 'en' | 'zh');
       message.success(getMessage('settingsUpdateSuccess'));
-      message.info(getMessage('refreshToApplyLanguage') || 'Please refresh the page to apply the new language. 请刷新页面以应用新语言');
+      setShowRefreshNotice(true);
     } catch (error) {
       console.error('Error updating language settings:', error);
       message.error('Failed to update language settings');
@@ -124,6 +125,11 @@ const SettingsPanel: React.FC = () => {
               { value: 'zh', label: '中文' }
             ]}
           />
+          {showRefreshNotice && (
+            <div className="refresh-notice text-yellow-400 mt-1">
+              {getMessage('refreshToApplyLanguage')}
+            </div>
+          )}
         </div>
       </div>
       
