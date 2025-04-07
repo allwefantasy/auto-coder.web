@@ -20,10 +20,8 @@ const ProviderSelectors: React.FC<ProviderSelectorsProps> = ({ isWriteMode }) =>
       {/* Or stack them vertically */}
       
       {/* Example: Stacking them vertically */}
-      <div className="flex space-x-2 w-full">
-        <div className="flex-1"> <MCPsSelector /> </div>
-        <div className="flex-1"> <CodeModelSelector /> </div>
-      </div>
+      <MCPsSelector />
+      <CodeModelSelector />
 
       {/* Example: Placing them side-by-side (adjust flex properties as needed) */}
       {/* <div className="flex space-x-2 w-full">
