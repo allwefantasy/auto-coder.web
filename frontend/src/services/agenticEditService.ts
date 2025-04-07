@@ -16,14 +16,14 @@ class AgenticEditService extends EventEmitter {
 
   private eventFileId: string | null = null;
 
-  async executeCommand(command: string): Promise<{ event_file_id: string }> {
+  async executeCommand(command: string, includeConversationHistory: boolean = false): Promise<{ event_file_id: string }> {
     try {
       const response = await fetch('/api/auto-command', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ command }),
+        body: JSON.stringify({ command, include_conversation_history: includeConversationHistory }),
       });
 
       if (!response.ok) {

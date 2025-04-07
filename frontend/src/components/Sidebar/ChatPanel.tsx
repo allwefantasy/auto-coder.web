@@ -862,7 +862,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         // 编码模式
         if (enableAgenticMode) {
           console.log('ChatPanel: Step By Step enabled, using agenticEditService');
-          const result = await agenticEditService.executeCommand(trimmedText);
+          const result = await agenticEditService.executeCommand(trimmedText, true);
           console.log('ChatPanel: Received result from agenticEditService:', result);
           setRequestId(result.event_file_id);
           setLocalRequestId(result.event_file_id);

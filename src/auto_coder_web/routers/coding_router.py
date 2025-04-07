@@ -95,7 +95,7 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
             current_session_name = ""
             if os.path.exists(current_session_file):
                 try:
-                    with open(current_session_file, 'r') as f:
+                    with open(current_session_file, 'r',encoding="utf-8") as f:
                         session_data = json.load(f)
                         current_session_name = session_data.get("session_name", "")
                 except Exception as e:
