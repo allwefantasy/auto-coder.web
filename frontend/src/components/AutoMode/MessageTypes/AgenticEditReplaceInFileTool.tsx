@@ -96,15 +96,16 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
         <span className="message-title-text ml-1 text-yellow-400 font-semibold">
           {getMessage('agenticEditReplaceInFileToolTitle')}
         </span>
+      </div>
 
-        <span className="ml-2 truncate text-gray-300 text-xs" title={path}>
+      <div className="mt-1 text-gray-300 text-xs whitespace-pre-wrap break-words px-2 py-1">
+        <span title={path} className="hover:underline cursor-help">
           {path}
-        </span> 
+        </span>
       </div>
 
       {!isCollapsed && (
         <div className="mt-2 text-white">                
-          {path}
           {renderDiffBlocks(diff)}  
         </div>
       )}
