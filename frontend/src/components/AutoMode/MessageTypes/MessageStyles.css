@@ -63,3 +63,27 @@
 .message-maximize-button:hover {
   background-color: rgba(59, 130, 246, 0.1);
 } 
+
+/* Custom scrollbar styles */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+  border-radius: 2px;
+}
+
+.scrollbar-thumb-gray-600::-webkit-scrollbar-track {
+  background-color: rgba(75, 85, 99, 0.1);
+}
+
+/* Improve tooltip experience */
+.cursor-help {
+  transition: all 0.2s ease;
+}
+
+.cursor-help:hover {
+  color: #e5e7eb;
+}

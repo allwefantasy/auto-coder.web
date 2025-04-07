@@ -33,8 +33,10 @@ const AgenticEditReadFileTool: React.FC<AgenticEditReadFileToolProps> = ({ messa
         </span>
       </div>
       {/* File Path */}
-      <div className="mt-1 text-cyan-300 bg-gray-800 px-2 py-1 rounded text-sm font-mono break-all">
-        {path}
+      <div className="mt-1 text-cyan-300 bg-gray-800 px-2 py-1 rounded text-sm font-mono break-all max-h-[120px] overflow-auto scrollbar-thin scrollbar-thumb-gray-600">
+        <span title={path} className="hover:underline cursor-help">
+          {path}
+        </span>
       </div>
     </div>
   );

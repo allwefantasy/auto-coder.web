@@ -67,13 +67,13 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
           </span>
         </div>        
       </div>
-      <div className="mt-1 text-xs text-gray-300 overflow-hidden whitespace-nowrap">
-        <span title={msg}>
+      <div className="mt-1 text-xs text-gray-300 overflow-hidden whitespace-nowrap px-3">
+        <span title={msg} className="hover:underline cursor-help">
           {msg}
         </span>
       </div>
       {!collapsed && content && (
-        <div className="p-3 bg-gray-900 overflow-auto text-xs font-mono whitespace-pre-wrap text-gray-200 border-t border-gray-700 max-h-[400px]">
+        <div className="p-3 bg-gray-900 overflow-auto text-xs font-mono whitespace-pre-wrap text-gray-200 border-t border-gray-700 max-h-[400px] scrollbar-thin scrollbar-thumb-gray-600">
           {content}
         </div>
       )}
