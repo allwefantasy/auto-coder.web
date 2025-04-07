@@ -52,7 +52,7 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
   
   return (
     // 模态对话框背景 - 覆盖整个屏幕，半透明黑色
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       {/* 对话框内容容器 - 优化边框和阴影 */}
       <div 
         ref={dialogRef}
