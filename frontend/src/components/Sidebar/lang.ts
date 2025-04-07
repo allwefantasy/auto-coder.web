@@ -1906,8 +1906,13 @@ export const messages: { [key: string]: Message } = {
   },
   
   agentButtonLabel: {
-    en: "Agent(click to toggle)",
-    zh: "Agent(点击切换)"
+    en: "Agent",
+    zh: "Agent"
+  },
+
+  agentButtonLabelDesc: {
+    en: "(click to toggle)",
+    zh: "(点击切换)"
   },
   
 };

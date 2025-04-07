@@ -488,7 +488,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 title="Step By Step"
               >
                 <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>{getMessage('agentButtonLabel')}</span>
-              </button>
+              </button><span>{getMessage('agentButtonLabelDesc')}</span>
 
               <button
                 className={`p-0.5 rounded-md transition-all duration-200
