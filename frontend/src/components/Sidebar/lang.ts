@@ -1905,6 +1905,11 @@ export const messages: { [key: string]: Message } = {
     zh: "auto-coder.web 找到了与此模式匹配的以下文件:"
   },
   
+  agentButtonLabel: {
+    en: "Agent(click to toggle)",
+    zh: "Agent(点击切换)"
+  },
+  
 };
 
 // 当前语言设置

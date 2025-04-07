@@ -487,7 +487,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 }}
                 title="Step By Step"
               >
-                <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>Agent(click to toggle)</span>
+                <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>{getMessage('agentButtonLabel')}</span>
               </button>
 
               <button
