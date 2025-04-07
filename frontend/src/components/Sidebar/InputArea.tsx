@@ -477,7 +477,7 @@ const InputArea: React.FC<InputAreaProps> = ({
               
               <button
                 className={`mr-1 p-0.5 rounded-md transition-all duration-200
-                  ${agenticActive ? 'text-blue-500 hover:text-blue-400' : 'text-gray-400 hover:text-gray-300'}`}
+                  ${agenticActive ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300'}`}
                 onClick={() => {
                   const newActive = !agenticActive;
                   setAgenticActive(newActive);
