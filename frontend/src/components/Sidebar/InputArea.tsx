@@ -475,20 +475,25 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </div>
               </div>
               
-              <button
-                className={`mr-1 p-0.5 rounded-md transition-all duration-200
-                  ${agenticActive ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300'}`}
-                onClick={() => {
-                  const newActive = !agenticActive;
-                  setAgenticActive(newActive);
-                  import('../../services/eventBus').then(({ default: eventBus }) => {
-                    eventBus.publish('agentic.mode.changed', newActive);
-                  });
-                }}
-                title="Step By Step"
-              >
-                <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>{getMessage('agentButtonLabel')}</span>
-              </button><span>{getMessage('agentButtonLabelDesc')}</span>
+              <div className="flex items-center space-x-1 mr-1">
+                <button
+                  className={`p-0.5 rounded-md transition-all duration-200
+                    ${agenticActive ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300'}`}
+                  onClick={() => {
+                    const newActive = !agenticActive;
+                    setAgenticActive(newActive);
+                    import('../../services/eventBus').then(({ default: eventBus }) => {
+                      eventBus.publish('agentic.mode.changed', newActive);
+                    });
+                  }}
+                  title="Step By Step"
+                >
+                  <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>{getMessage('agentButtonLabel')}</span>
+                </button>
+                <span className="text-xs text-gray-400 opacity-70 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                  {getMessage('agentButtonLabelDesc')}
+                </span>
+              </div>
 
               <button
                 className={`p-0.5 rounded-md transition-all duration-200
