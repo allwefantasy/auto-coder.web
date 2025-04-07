@@ -275,6 +275,7 @@ const ProviderManagement: React.FC = () => {
                           {...restField}
                           name={[name, 'id']}
                           label={<span className="text-white">Model ID</span>}
+                          tooltip={getMessage('modelIdTooltip')}
                           rules={[{ required: true, message: 'Please input model ID' }]}
                         >
                           <Input className="dark-input" />
@@ -283,6 +284,7 @@ const ProviderManagement: React.FC = () => {
                           {...restField}
                           name={[name, 'name']}
                           label={<span className="text-white">Model Name</span>}
+                          tooltip={getMessage('modelNameTooltip')}
                           rules={[{ required: true, message: 'Please input model name' }]}
                         >
                           <Input className="dark-input" />

@@ -139,5 +139,13 @@ export const providerManagementMessages = {
   openrouter: {
     en: "OpenRouter",
     zh: "OpenRouter"
+  },
+  modelIdTooltip: {
+    en: "Model ID is the model name defined by the provider",
+    zh: "Model ID 表示供应商定义的模型名称"
+  },
+  modelNameTooltip: {
+    en: "Model Name is an alias for display, you can keep it the same as Model ID",
+    zh: "Model Name 则是你取的别名，方便展示用，你可以和 Model ID 保持一致"
   }
 };
