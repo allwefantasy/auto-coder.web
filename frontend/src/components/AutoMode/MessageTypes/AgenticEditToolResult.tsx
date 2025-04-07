@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import type { MessageProps } from '../MessageList';
-
+import { getMessage } from '../../../components/Sidebar/lang';
 interface AgenticEditToolResultProps {
   message: MessageProps;
 }
 
 const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   let toolName = '';
   let success = false;
@@ -21,11 +21,21 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
     content = parsed.content || '';
 
     if (toolName === 'ReplaceInFileTool') {
-       toolName = '更新成功';
+      toolName = getMessage('agenticEditToolResultReplaceInFileTool');
     }
     if (toolName === 'WriteToFileTool') {
-       toolName = '写入成功';
+      toolName = getMessage('agenticEditToolResultWriteToFileTool');
     }
+    if (toolName === 'ReadFileTool') {
+      toolName = getMessage('agenticEditToolResultReadFileTool');
+    }
+    if (toolName === 'ListFilesTool') {
+      toolName = getMessage('agenticEditToolResultListFilesTool');
+    }
+    if (toolName === 'SearchFilesTool') {
+      toolName = getMessage('agenticEditToolResultSearchFilesTool');
+    }
+
   } catch (e) {
     console.error('Failed to parse tool result content:', e);
     msg = message.content;
@@ -33,7 +43,7 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
 
   return (
     // Add message-font for consistency
-    <div className="message-font border border-gray-600 rounded-lg overflow-hidden bg-gray-800/50 mb-4"> 
+    <div className="message-font border border-gray-600 rounded-lg overflow-hidden bg-gray-800/50 mb-4">
       <div
         className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-700/50"
         onClick={() => setCollapsed(!collapsed)}
@@ -50,16 +60,17 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
           {/* Remove text-sm to inherit from message-font */}
           <span className="font-semibold text-yellow-400">{toolName}</span>
           <span
-            className={`text-xs px-2 py-0.5 rounded-full ${
-              success ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'
-            }`}
+            className={`text-xs px-2 py-0.5 rounded-full ${success ? 'bg-green-600/30 text-green-400' : 'bg-red-600/30 text-red-400'
+              }`}
           >
             {success ? 'Success' : 'Failed'}
           </span>
-          <span className="text-xs text-gray-300 truncate max-w-[300px]" title={msg}>
-            {msg}
-          </span>
-        </div>
+        </div>        
+      </div>
+      <div className="text-xs text-gray-300 max-w-[300px] truncate overflow-hidden whitespace-nowrap">
+        <span title={msg}>
+          {msg}
+        </span>
       </div>
       {!collapsed && content && (
         <div className="p-3 bg-gray-900 overflow-auto text-xs font-mono whitespace-pre-wrap text-gray-200 border-t border-gray-700 max-h-[400px]">

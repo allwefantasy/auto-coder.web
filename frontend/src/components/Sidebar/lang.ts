@@ -1863,7 +1863,48 @@ export const messages: { [key: string]: Message } = {
   enableAgenticEdit: {
     en: "Enable Agentic Edit",
     zh: "开启Agentic编辑"
-  }
+  },
+  agenticEditToolResultReplaceInFileTool: {
+    en: "auto-coder.web updated the file",
+    zh: "auto-coder.web 更新了文件"
+  },
+  agenticEditToolResultWriteToFileTool: {
+    en: "auto-coder.web wrote to the file",
+    zh: "auto-coder.web 写入了文件"
+  },
+  agenticEditToolResultReadFileTool: {
+    en: "auto-coder.web read the file",
+    zh: "auto-coder.web 读取了文件"
+  },
+  agenticEditReplaceInFileToolTitle:{
+    en: "auto-coder.web wants to replace the content of this file",
+    zh: "auto-coder.web 想要替换此文件中的内容"
+  },
+  agenticEditWriteToFileToolTitle:{
+    en: "auto-coder.web wants to write to this file",
+    zh: "auto-coder.web 想要写入此文件"
+  },
+  agenticEditReadFileToolTitle:{
+    en: "auto-coder.web wants to read this file",
+    zh: "auto-coder.web 想要读取此文件"
+  },
+  agenticEditListFilesToolTitle:{
+    en: "auto-coder.web wants to list files in this directory",
+    zh: "auto-coder.web 想要列出此目录中的文件"
+  },
+  agenticEditSearchFilesToolTitle:{
+    en: "auto-coder.web wants to search for files matching this pattern",
+    zh: "auto-coder.web 想要搜索与此模式匹配的文件"
+  },
+  agenticEditToolResultListFilesTool:{
+    en: "auto-coder.web listed the following files in this directory:",
+    zh: "auto-coder.web 列出了此目录中的以下文件:"
+  },
+  agenticEditToolResultSearchFilesTool:{
+    en: "auto-coder.web found the following files matching the pattern:",
+    zh: "auto-coder.web 找到了与此模式匹配的以下文件:"
+  },
+  
 };
 
 // 当前语言设置

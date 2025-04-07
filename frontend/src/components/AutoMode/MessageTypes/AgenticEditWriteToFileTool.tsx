@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { MessageProps } from '../MessageList';
 import './MessageStyles.css'; // Ensure styles are imported
-
+import { getMessage } from '../../Sidebar/lang';
 interface AgenticEditWriteToFileToolProps {
   message: MessageProps;
 }
@@ -43,7 +43,7 @@ const AgenticEditWriteToFileTool: React.FC<AgenticEditWriteToFileToolProps> = ({
         </span>
         {/* Title */}
         <span className="message-title-text text-purple-400 font-semibold">
-          AutoCoder wants to write to this file:
+          {getMessage('agenticEditWriteToFileToolTitle')}
         </span>
       </div>
       {/* File Path */}

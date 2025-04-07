@@ -22,14 +22,14 @@ import MessageList, { MessageProps } from '../../components/AutoMode/MessageList
 import eventBus from '../../services/eventBus';
 import { EVENTS } from '../../services/eventBus';
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ 
-  setPreviewFiles, 
-  setRequestId, 
-  setActivePanel, 
-  setClipboardContent, 
-  clipboardContent, 
+const ChatPanel: React.FC<ChatPanelProps> = ({
+  setPreviewFiles,
+  setRequestId,
+  setActivePanel,
+  setClipboardContent,
+  clipboardContent,
   projectName = '',
-  setSelectedFiles 
+  setSelectedFiles
 }) => {
 
   // Step By Step 模式标记
@@ -38,11 +38,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const showNewChatModal = () => {
     // 清空当前对话内容
     setMessages([]);
-    
+
     // 设置默认的新对话名称
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     setNewChatName(`chat_${timestamp}`);
-    
+
     // 显示新对话模态框
     setIsNewChatModalVisible(true);
   };
@@ -62,13 +62,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       setChatListName(newChatName);
       setMessages([]);
       setChatLists(prev => [newChatName, ...prev]);
-      
+
       // Save the new empty chat list
       await saveChatList(newChatName, []);
-      
+
       // 设置当前会话名称
       await setCurrentSessionName(newChatName);
-      
+
       // Send a /new command to the chat router
       try {
         const response = await fetch('/api/chat-command', {
@@ -80,7 +80,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             command: '/new',
           }),
         });
-        
+
         if (!response.ok) {
           console.warn('Failed to send /new command to chat router');
         }
@@ -88,7 +88,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         console.error('Error sending /new command:', cmdError);
         // Don't show error to user as this is a background operation
       }
-      
+
       AntdMessage.success('New chat created successfully');
       setIsNewChatModalVisible(false);
     } catch (error) {
@@ -106,17 +106,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     try {
       // 清空当前对话内容
       setMessages([]);
-      
+
       // 设置新的对话名称
       setChatListName(defaultNewChatName);
       setChatLists(prev => [defaultNewChatName, ...prev.filter(name => name !== defaultNewChatName)]); // Add new name, prevent duplicates
-      
+
       // 保存新的空对话列表
       await saveChatList(defaultNewChatName, []);
-      
+
       // 设置当前会话名称
       await setCurrentSessionName(defaultNewChatName);
-      
+
       // 向聊天路由器发送 /new 命令
       try {
         const response = await fetch('/api/chat-command', {
@@ -128,7 +128,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             command: '/new',
           }),
         });
-        
+
         if (!response.ok) {
           console.warn('Failed to send /new command to chat router');
         }
@@ -136,7 +136,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         console.error('Error sending /new command:', cmdError);
         // 不向用户显示错误，因为这是后台操作
       }
-      
+
       AntdMessage.success('New chat created successfully');
     } catch (error) {
       console.error('Error creating new chat directly:', error);
@@ -150,7 +150,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [localRequestId, setLocalRequestId] = useState<string>('');
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [config, setConfig] = useState<ConfigState>({
-    human_as_model: false,        
+    human_as_model: false,
     extra_conf: {},
     available_keys: []
   });
@@ -268,7 +268,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       // 初始化时设置isAtBottom
       handleScroll();
     }
-    
+
     // 清理函数
     return () => {
       const container = document.getElementById('chat-messages-container');
@@ -377,11 +377,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           session_name: name,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to set current session name');
       }
-      
+
       return true;
     } catch (error) {
       console.error('Error setting current session name:', error);
@@ -413,7 +413,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         setShowChatListInput(false);
         setChatListName('');
         fetchChatLists();
-        
+
         // 同步更新当前会话名称
         await setCurrentSessionName(name);
       } else {
@@ -459,12 +459,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       AntdMessage.error('Failed to load chat list');
     }
   };
-  
+
   // 获取对话标题
   const getChatTitle = () => {
     if (messages.length > 0) {
       // 找到第一条用户消息
-      const userMessage = messages.find(msg => 
+      const userMessage = messages.find(msg =>
         msg.isUser || (msg.type === 'USER_RESPONSE'));
       if (userMessage && userMessage.content) {
         // 取前四个字符，如果不足四个字符则取全部
@@ -563,19 +563,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       AntdMessage.error('Task completed with errors');
     } else {
       AntdMessage.success('Task completed successfully');
-      
+
       // 使用 ref 中的最新值
       const currentRequestId = localRequestIdRef.current;
       console.log('ChatPanel: Task completed successfully');
       console.log('ChatPanel: isWriteMode:', isWriteMode);
       console.log('ChatPanel: currentRequestId:', currentRequestId);
-      
+
       // 在任务完成时设置标记，表示应该保存消息
       // 而不是直接保存，让 useEffect 在消息状态更新后处理保存
       setShouldSaveMessages(true);
       // 等待一个渲染周期
       await new Promise(resolve => setTimeout(resolve, 0));
-      
+
       // 如果是编码模式且有eventFileId，获取变更文件并打开
       if (isWriteMode && currentRequestId) {
         try {
@@ -591,18 +591,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             if (!response.ok) {
               throw new Error('Failed to fetch commit details');
             }
-            const commit_data = await response.json();            
+            const commit_data = await response.json();
             const changed_files = commit_data["files"]
             console.log('ChatPanel: Changed files:', changed_files);
             // Convert changed_files to FileMetadata format
-            const fileMetadataList: FileMetadata[] = changed_files.map((file: {filename: string}) => ({
+            const fileMetadataList: FileMetadata[] = changed_files.map((file: { filename: string }) => ({
               path: file.filename,
               isSelected: true,
               modifiedBy: 'expert_chat_box'
             }));
             setSelectedFiles(fileMetadataList);
-            setActivePanel('code');            
-          }                    
+            setActivePanel('code');
+          }
         } catch (error) {
           console.error('Error fetching current changes:', error);
           AntdMessage.error('Failed to fetch changed files');
@@ -611,7 +611,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
     setSendLoading(false);
     setRequestId("");
-    setLocalRequestId("");    
+    setLocalRequestId("");
   }, [isWriteMode, setSelectedFiles, setActivePanel, setSendLoading, setRequestId, setLocalRequestId, setShouldSaveMessages]);
 
   const fetchFileGroups = useCallback(async () => {
@@ -646,7 +646,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     const uuid = uuidv4();
     const nextId = messageIdCounter + 1;
     setMessageIdCounter(nextId);
-    
+
     const newMessage: AutoModeMessage = {
       id: `user-${uuid}-${timestamp}-${nextId}`,
       type: 'USER_RESPONSE',
@@ -672,7 +672,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     const uuid = uuidv4();
     const nextId = messageIdCounter + 1;
     setMessageIdCounter(nextId);
-    
+
     const newMessage: AutoModeMessage = {
       id: `bot-${uuid}-${timestamp}-${nextId}`,
       type: 'RESULT',
@@ -704,7 +704,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     );
   };
 
-  const handleRevert = async () => {    
+  const handleRevert = async () => {
   };
 
   // 消息已经是 AutoMode 格式，所以不需要转换
@@ -727,9 +727,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const setupMessageListener = (service: typeof chatService | typeof codingService | typeof agenticEditService) => {
     service.on('message', (autoModeMessage: AutoModeMessage) => {
       // 直接添加或更新 AutoMode 消息到我们的消息状态
-      console.log('ChatPanel: Received message from service:', 
-        service === chatService ? 'chatService' : 'codingService', 
-        autoModeMessage.type, 
+      console.log('ChatPanel: Received message from service:',
+        service === chatService ? 'chatService' : 'codingService',
+        autoModeMessage.type,
         autoModeMessage.id);
       setMessages(prev => {
         const existingMessageIndex = prev.findIndex(msg => msg.id === autoModeMessage.id);
@@ -749,21 +749,21 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   // 处理从特定消息重新开始对话
-  const handleRefreshFromMessage = useCallback((data: { messageId: string,messageContent: string }) => {
+  const handleRefreshFromMessage = useCallback((data: { messageId: string, messageContent: string }) => {
     // 清理该消息后面的所有消息
     setMessages(prevMessages => {
       // 找到消息在数组中的实际位置
       const messagePosition = prevMessages.findIndex(msg => msg.id === data.messageId);
       if (messagePosition === -1) return prevMessages; // 如果找不到消息，不做任何改变
-      
+
       // 只保留到该消息的所有消息（包括该消息）
       return prevMessages.slice(0, messagePosition);
     });
-    
+
     // 设置编辑器内容为该消息的内容，准备重新发送
     if (editorRef.current) {
       editorRef.current.setValue(data.messageContent);
-      
+
       // 等待DOM更新后，聚焦编辑器并自动提交消息
       setTimeout(() => {
         if (editorRef.current) {
@@ -773,12 +773,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         }
       }, 100);
     }
-    
+
     // 滚动到底部
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 200);
-    
+
   }, []);
 
   // 在组件挂载时设置事件监听器
@@ -786,10 +786,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     setupMessageListener(chatService);
     setupMessageListener(codingService);
     setupMessageListener(agenticEditService);
-    
+
     // 订阅刷新消息事件
     const unsubscribeRefresh = eventBus.subscribe(
-      EVENTS.CHAT.REFRESH_FROM_MESSAGE, 
+      EVENTS.CHAT.REFRESH_FROM_MESSAGE,
       handleRefreshFromMessage
     );
 
@@ -810,7 +810,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         setEnableMCPs(enabled);
       }
     );
-    
+
     // 订阅新建对话事件 - 使用直接创建函数
     const unsubscribeNewChat = eventBus.subscribe(
       EVENTS.CHAT.NEW_CHAT,
@@ -838,7 +838,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       unsubscribeAgentic();
     };
   }, [handleRefreshFromMessage]); // 依赖项数组保持不变，因为 handleRefreshFromMessage 是用 useCallback 包裹的
-  
+
   // 新消息到达时自动滚动到底部
   // useEffect(() => {
   //   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -852,7 +852,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
 
     const messageId = addUserMessage(trimmedText);
-    editorRef.current?.setValue("");    
+    editorRef.current?.setValue("");
     setSendLoading(true);
     updateMessageStatus(messageId, 'sent');
 
@@ -860,11 +860,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       // 根据当前模式使用适当的服务
       if (isWriteMode) {
         // 编码模式
-        console.log('ChatPanel: Sending message to codingService');
-        const result = await codingService.executeCommand(`${trimmedText}`);
-        console.log('ChatPanel: Received result from codingService:', result);
-        setRequestId(result.event_file_id);
-        setLocalRequestId(result.event_file_id);
+        if (enableAgenticMode) {
+          console.log('ChatPanel: Step By Step enabled, using agenticEditService');
+          const result = await agenticEditService.executeCommand(trimmedText);
+          console.log('ChatPanel: Received result from agenticEditService:', result);
+          setRequestId(result.event_file_id);
+          setLocalRequestId(result.event_file_id);
+        } else {
+          console.log('ChatPanel: Sending message to codingService');
+          const result = await codingService.executeCommand(`${trimmedText}`);
+          console.log('ChatPanel: Received result from codingService:', result);
+          setRequestId(result.event_file_id);
+          setLocalRequestId(result.event_file_id);
+        }
+
       } else {
         // 聊天模式
         console.log('ChatPanel: Sending message to chatService');
@@ -886,32 +895,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         if (enableRag && !enableMCPs && !isWriteMode) {
           console.log('ChatPanel: RAG enabled, prepending /rag to message');
           commandText = `/rag ${trimmedText}`;
-        } 
+        }
         // 检查是否启用了MCP（且未启用RAG）
         else if (enableMCPs && !enableRag && !isWriteMode) {
           console.log('ChatPanel: MCPs enabled, prepending /mcp to message');
           commandText = `/mcp ${trimmedText}`;
         }
-        
-        if (enableAgenticMode && isWriteMode) {
-          console.log('ChatPanel: Step By Step enabled, using agenticEditService');
-          const result = await agenticEditService.executeCommand(commandText);
-          console.log('ChatPanel: Received result from agenticEditService:', result);
-          setRequestId(result.event_file_id);
-          setLocalRequestId(result.event_file_id);
-        } else if (!enableAgenticMode && isWriteMode) {
-          console.log('ChatPanel: Step By Step disabled, using chatService');
-          const result = await codingService.executeCommand(commandText);
-          console.log('ChatPanel: Received result from chatService:', result);
-          setRequestId(result.event_file_id);
-          setLocalRequestId(result.event_file_id);
-        }
-        else {
-          const result = await chatService.executeCommand(commandText);
-          console.log('ChatPanel: Received result from chatService:', result);
-          setRequestId(result.event_file_id);
-          setLocalRequestId(result.event_file_id);
-        }
+        const result = await chatService.executeCommand(commandText);
+        console.log('ChatPanel: Received result from chatService:', result);
+        setRequestId(result.event_file_id);
+        setLocalRequestId(result.event_file_id);
+
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -931,7 +925,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       } else {
         await chatService.cancelTask();
       }
-      
+
       AntdMessage.info(getMessage('generationStopped'));
       setSendLoading(false);
     } catch (error) {
@@ -974,10 +968,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       label: (
         <div className={`flex justify-between items-center w-full group ${chatListName === name ? 'bg-indigo-700/40 rounded-sm' : ''}`}>
           <span className={`truncate max-w-[180px] ${chatListName === name ? 'text-white font-medium' : 'text-gray-200'}`}>{name}</span>
-          <Button 
-            type="text" 
-            size="small" 
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-white" 
+          <Button
+            type="text"
+            size="small"
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-white"
             icon={<DeleteOutlined />}
             onClick={(e) => {
               e.stopPropagation();
@@ -991,247 +985,247 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   return (
     <>
-    <Layout className="h-screen flex flex-col overflow-hidden">
-      {/* 头部导航栏 */}
-      <Layout.Header className="bg-gray-800 px-2 py-0.5 h-8 flex justify-between items-center border-b border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-10">
-        <div className="flex items-center space-x-2 flex-1 min-w-0 overflow-hidden">
-          <div className="flex items-center flex-shrink-0">
-            <svg className="w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-transparent bg-clip-text font-bold text-xs">auto-coder.web</span>
-          </div>
-          <div className="flex items-center min-w-0 flex-1 overflow-hidden">
-            <span className="text-gray-400 text-xs mx-0.5">|</span>
-            <div className="flex items-center min-w-0 flex-1 overflow-hidden">
-              <span className="text-gray-200 text-xs font-medium truncate">
-                {projectName || getMessage('noProjectSelected')}
-              </span>
+      <Layout className="h-screen flex flex-col overflow-hidden">
+        {/* 头部导航栏 */}
+        <Layout.Header className="bg-gray-800 px-2 py-0.5 h-8 flex justify-between items-center border-b border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-10">
+          <div className="flex items-center space-x-2 flex-1 min-w-0 overflow-hidden">
+            <div className="flex items-center flex-shrink-0">
+              <svg className="w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-transparent bg-clip-text font-bold text-xs">auto-coder.web</span>
             </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-1 flex-shrink-0">
-          <ChatListDropdown
-            chatListName={chatListName}
-            chatLists={chatLists}
-            setChatListName={setChatListName}
-            loadChatList={loadChatList}
-            setCurrentSessionName={setCurrentSessionName}
-            showNewChatModal={showNewChatModal}
-            deleteChatList={deleteChatList}
-            getChatTitle={getChatTitle}
-            renameChatList={renameChatList}
-          />
-          
-          <Tooltip title="清空当前对话">
-            <Button 
-              icon={<ClearOutlined style={{ fontSize: '10px' }} />} 
-              onClick={() => {
-                if (chatListName) {
-                  Modal.confirm({
-                    title: '确认清空',
-                    content: '确定要清空当前对话中的所有消息吗？此操作不可撤销。',
-                    okText: '清空',
-                    okType: 'danger',
-                    cancelText: '取消',
-                    onOk: async () => {
-                      // 清空消息列表
-                      setMessages([]);
-                      // 触发会话更新逻辑
-                      if (chatListName) {
-                        await saveChatList(chatListName, []);
-                        AntdMessage.success('对话已清空');
-                      }
-                    },
-                  });
-                } else {
-                  AntdMessage.warning('请先选择或创建一个对话');
-                }
-              }}
-              className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
-              size="small"
-            />
-          </Tooltip>
-          
-          <Tooltip title="保存当前对话">
-            <Button 
-              icon={<SaveOutlined style={{ fontSize: '10px' }} />} 
-              onClick={() => {
-                if (chatListName && messages.length > 0) {
-                  // 使用与自动保存相同的机制
-                  setShouldSaveMessages(true);
-                  AntdMessage.success('对话已保存');
-                } else if (!chatListName) {
-                  AntdMessage.warning('请先选择或创建一个对话');
-                } else {
-                  AntdMessage.warning('没有消息可保存');
-                }
-              }}
-              className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
-              size="small"
-            />
-          </Tooltip>
-          
-          <Tooltip title="设置">
-            <Button 
-              icon={<SettingOutlined style={{ fontSize: '10px' }} />} 
-              onClick={() => setShowConfig(!showConfig)}
-              className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
-              size="small"
-            />
-          </Tooltip>
-        </div>
-      </Layout.Header>
-      
-      {/* 消息列表区域 */}
-      <Layout.Content className="flex-1 overflow-hidden flex flex-col">
-        <div 
-          className="flex-1 overflow-y-auto bg-gray-900 p-2 transition-all duration-300" 
-          id="chat-messages-container"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0)',
-            backgroundSize: '20px 20px'
-          }}
-        >
-          {/* Token统计组件 */}
-          {messages.length > 0 && (
-            <div className="sticky top-0 right-0 float-right bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-md p-2 m-1 shadow-md z-10">
-              <div className="font-mono text-xs text-gray-400 flex flex-col items-end gap-1 text-[11px]">
-                <div className="flex items-center">
-                  <span>{getMessage('tokens')}: </span>
-                  <span className="text-green-500 ml-1">↑ {accumulatedStats.inputTokens}</span>
-                  <span className="text-red-500 ml-1">↓ {accumulatedStats.outputTokens}</span>
-                </div>
-                {(accumulatedStats.cacheHits > 0 || accumulatedStats.cacheMisses > 0) && (
-                  <div className="flex items-center">
-                    <span>{getMessage('cache')}: </span>
-                    <span className="text-white ml-1">⊕ {accumulatedStats.cacheHits}</span>
-                    <span className="text-white ml-1">→ {accumulatedStats.cacheMisses}</span>
-                  </div>
-                )}
-                <div className="flex items-center">
-                  <span>{getMessage('apiCost')}: </span>
-                  <span className="text-white ml-1">${accumulatedStats.totalCost.toFixed(5)}</span>
-                </div>
+            <div className="flex items-center min-w-0 flex-1 overflow-hidden">
+              <span className="text-gray-400 text-xs mx-0.5">|</span>
+              <div className="flex items-center min-w-0 flex-1 overflow-hidden">
+                <span className="text-gray-200 text-xs font-medium truncate">
+                  {projectName || getMessage('noProjectSelected')}
+                </span>
               </div>
             </div>
-          )}
+          </div>
 
-          {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-gray-400 animate-fade-in">
-              <MessageOutlined style={{ fontSize: '36px', marginBottom: '10px', opacity: 0.5 }} />
-              <Typography.Title level={5} className="text-gray-300 mb-1">
-                开始一个新的对话
-              </Typography.Title>
-              <Typography.Text className="text-gray-400 text-center max-w-md text-xs">
-                有任何问题都可以在下方输入，我会尽力帮助您。
-              </Typography.Text>
-            </div>
-          ) : (
-            <div className="space-y-4 animate-fade-in">
-              <MessageList
-                messages={getAutoModeMessages()}
-                onUserResponse={async (response, eventId) => {
-                  if (eventId && pendingResponseEvent) {
-                    const { requestId, eventData } = pendingResponseEvent;
-                    await fetch('/api/event/response', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
+          <div className="flex items-center space-x-1 flex-shrink-0">
+            <ChatListDropdown
+              chatListName={chatListName}
+              chatLists={chatLists}
+              setChatListName={setChatListName}
+              loadChatList={loadChatList}
+              setCurrentSessionName={setCurrentSessionName}
+              showNewChatModal={showNewChatModal}
+              deleteChatList={deleteChatList}
+              getChatTitle={getChatTitle}
+              renameChatList={renameChatList}
+            />
+
+            <Tooltip title="清空当前对话">
+              <Button
+                icon={<ClearOutlined style={{ fontSize: '10px' }} />}
+                onClick={() => {
+                  if (chatListName) {
+                    Modal.confirm({
+                      title: '确认清空',
+                      content: '确定要清空当前对话中的所有消息吗？此操作不可撤销。',
+                      okText: '清空',
+                      okType: 'danger',
+                      cancelText: '取消',
+                      onOk: async () => {
+                        // 清空消息列表
+                        setMessages([]);
+                        // 触发会话更新逻辑
+                        if (chatListName) {
+                          await saveChatList(chatListName, []);
+                          AntdMessage.success('对话已清空');
+                        }
                       },
-                      body: JSON.stringify({
-                        request_id: requestId,
-                        event: eventData,
-                        response: JSON.stringify({ "value": response })
-                      })
                     });
-                    setPendingResponseEvent(null);
+                  } else {
+                    AntdMessage.warning('请先选择或创建一个对话');
                   }
                 }}
+                className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
+                size="small"
               />
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-          
-          {/* 添加"滚动到底部"按钮，当有新消息且用户不在底部时显示 */}
-          {!isAtBottom && messages.length > 0 && (
-            <Button
-              type="primary"
-              shape="circle"
-              size="small"
-              icon={<DownOutlined />}
-              onClick={() => {
-                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-                setIsAtBottom(true);
-              }}
-              className="fixed bottom-24 right-4 z-10 bg-indigo-600 hover:bg-indigo-700 border-0 shadow-lg flex items-center justify-center"
-              style={{ width: '36px', height: '36px' }}
-            />
-          )}
-        </div>
-        
-        {/* 输入区域 */}
-        <div className="border-t border-gray-700 bg-gray-800 transition-all duration-300 shadow-inner">
-          <InputArea                                                
-            fileGroups={fileGroups}
-            selectedGroups={selectedGroups}
-            setSelectedGroups={setSelectedGroups}
-            fetchFileGroups={fetchFileGroups}
-            isMaximized={isMaximized}
-            setIsMaximized={setIsMaximized}
-            handleEditorDidMount={handleEditorDidMount}
-            setShouldSendMessage={setShouldSendMessage}
-            isWriteMode={isWriteMode}
-            setIsWriteMode={setIsWriteMode}
-            handleRevert={handleRevert}
-            handleSendMessage={handleSendMessage}
-            handleStopGeneration={handleStopGeneration}
-            sendLoading={sendLoading}
-            setConfig={setConfig}
-            isFullScreen={isMaximized}
-            showFileGroupSelect={true}
-          />
-        </div>
-      </Layout.Content>
-    </Layout>
+            </Tooltip>
 
-    {/* 新建对话模态框 */}
-    <Modal
-      title={<span style={{ color: '#FFFFFF' }}>创建新对话</span>}
-      open={isNewChatModalVisible}
-      onOk={handleNewChatCreate}
-      onCancel={handleNewChatCancel}
-      okText="创建"
-      cancelText="取消"
-      centered
-      okButtonProps={{ 
-        disabled: !newChatName.trim(),
-        style: { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' } 
-      }}
-      bodyStyle={{ backgroundColor: '#1F2937', color: '#E5E7EB' }}
-      style={{ top: 20 }}
-      className="custom-modal"
-    >
-      <div className="mb-4">
-        <Typography.Text strong className="block mb-2" style={{ color: '#FFFFFF' }}>对话名称</Typography.Text>
-        <Input 
-          value={newChatName} 
-          onChange={(e) => setNewChatName(e.target.value)}
-          placeholder="请输入新对话的名称"
-          onPressEnter={handleNewChatCreate}
-          prefix={<MessageOutlined style={{ color: '#8B5CF6' }} />}
-          autoFocus
-          size="large"
-          style={{ backgroundColor: '#374151', borderColor: '#4B5563', color: '#FFFFFF' }}
-        />
-        {!newChatName.trim() && (
-          <Typography.Text type="danger" className="mt-1 block">
-            对话名称不能为空
-          </Typography.Text>
-        )}
-      </div>
-    </Modal>
+            <Tooltip title="保存当前对话">
+              <Button
+                icon={<SaveOutlined style={{ fontSize: '10px' }} />}
+                onClick={() => {
+                  if (chatListName && messages.length > 0) {
+                    // 使用与自动保存相同的机制
+                    setShouldSaveMessages(true);
+                    AntdMessage.success('对话已保存');
+                  } else if (!chatListName) {
+                    AntdMessage.warning('请先选择或创建一个对话');
+                  } else {
+                    AntdMessage.warning('没有消息可保存');
+                  }
+                }}
+                className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
+                size="small"
+              />
+            </Tooltip>
+
+            <Tooltip title="设置">
+              <Button
+                icon={<SettingOutlined style={{ fontSize: '10px' }} />}
+                onClick={() => setShowConfig(!showConfig)}
+                className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
+                size="small"
+              />
+            </Tooltip>
+          </div>
+        </Layout.Header>
+
+        {/* 消息列表区域 */}
+        <Layout.Content className="flex-1 overflow-hidden flex flex-col">
+          <div
+            className="flex-1 overflow-y-auto bg-gray-900 p-2 transition-all duration-300"
+            id="chat-messages-container"
+            style={{
+              backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0)',
+              backgroundSize: '20px 20px'
+            }}
+          >
+            {/* Token统计组件 */}
+            {messages.length > 0 && (
+              <div className="sticky top-0 right-0 float-right bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-md p-2 m-1 shadow-md z-10">
+                <div className="font-mono text-xs text-gray-400 flex flex-col items-end gap-1 text-[11px]">
+                  <div className="flex items-center">
+                    <span>{getMessage('tokens')}: </span>
+                    <span className="text-green-500 ml-1">↑ {accumulatedStats.inputTokens}</span>
+                    <span className="text-red-500 ml-1">↓ {accumulatedStats.outputTokens}</span>
+                  </div>
+                  {(accumulatedStats.cacheHits > 0 || accumulatedStats.cacheMisses > 0) && (
+                    <div className="flex items-center">
+                      <span>{getMessage('cache')}: </span>
+                      <span className="text-white ml-1">⊕ {accumulatedStats.cacheHits}</span>
+                      <span className="text-white ml-1">→ {accumulatedStats.cacheMisses}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center">
+                    <span>{getMessage('apiCost')}: </span>
+                    <span className="text-white ml-1">${accumulatedStats.totalCost.toFixed(5)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {messages.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-gray-400 animate-fade-in">
+                <MessageOutlined style={{ fontSize: '36px', marginBottom: '10px', opacity: 0.5 }} />
+                <Typography.Title level={5} className="text-gray-300 mb-1">
+                  开始一个新的对话
+                </Typography.Title>
+                <Typography.Text className="text-gray-400 text-center max-w-md text-xs">
+                  有任何问题都可以在下方输入，我会尽力帮助您。
+                </Typography.Text>
+              </div>
+            ) : (
+              <div className="space-y-4 animate-fade-in">
+                <MessageList
+                  messages={getAutoModeMessages()}
+                  onUserResponse={async (response, eventId) => {
+                    if (eventId && pendingResponseEvent) {
+                      const { requestId, eventData } = pendingResponseEvent;
+                      await fetch('/api/event/response', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          request_id: requestId,
+                          event: eventData,
+                          response: JSON.stringify({ "value": response })
+                        })
+                      });
+                      setPendingResponseEvent(null);
+                    }
+                  }}
+                />
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+
+            {/* 添加"滚动到底部"按钮，当有新消息且用户不在底部时显示 */}
+            {!isAtBottom && messages.length > 0 && (
+              <Button
+                type="primary"
+                shape="circle"
+                size="small"
+                icon={<DownOutlined />}
+                onClick={() => {
+                  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  setIsAtBottom(true);
+                }}
+                className="fixed bottom-24 right-4 z-10 bg-indigo-600 hover:bg-indigo-700 border-0 shadow-lg flex items-center justify-center"
+                style={{ width: '36px', height: '36px' }}
+              />
+            )}
+          </div>
+
+          {/* 输入区域 */}
+          <div className="border-t border-gray-700 bg-gray-800 transition-all duration-300 shadow-inner">
+            <InputArea
+              fileGroups={fileGroups}
+              selectedGroups={selectedGroups}
+              setSelectedGroups={setSelectedGroups}
+              fetchFileGroups={fetchFileGroups}
+              isMaximized={isMaximized}
+              setIsMaximized={setIsMaximized}
+              handleEditorDidMount={handleEditorDidMount}
+              setShouldSendMessage={setShouldSendMessage}
+              isWriteMode={isWriteMode}
+              setIsWriteMode={setIsWriteMode}
+              handleRevert={handleRevert}
+              handleSendMessage={handleSendMessage}
+              handleStopGeneration={handleStopGeneration}
+              sendLoading={sendLoading}
+              setConfig={setConfig}
+              isFullScreen={isMaximized}
+              showFileGroupSelect={true}
+            />
+          </div>
+        </Layout.Content>
+      </Layout>
+
+      {/* 新建对话模态框 */}
+      <Modal
+        title={<span style={{ color: '#FFFFFF' }}>创建新对话</span>}
+        open={isNewChatModalVisible}
+        onOk={handleNewChatCreate}
+        onCancel={handleNewChatCancel}
+        okText="创建"
+        cancelText="取消"
+        centered
+        okButtonProps={{
+          disabled: !newChatName.trim(),
+          style: { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' }
+        }}
+        bodyStyle={{ backgroundColor: '#1F2937', color: '#E5E7EB' }}
+        style={{ top: 20 }}
+        className="custom-modal"
+      >
+        <div className="mb-4">
+          <Typography.Text strong className="block mb-2" style={{ color: '#FFFFFF' }}>对话名称</Typography.Text>
+          <Input
+            value={newChatName}
+            onChange={(e) => setNewChatName(e.target.value)}
+            placeholder="请输入新对话的名称"
+            onPressEnter={handleNewChatCreate}
+            prefix={<MessageOutlined style={{ color: '#8B5CF6' }} />}
+            autoFocus
+            size="large"
+            style={{ backgroundColor: '#374151', borderColor: '#4B5563', color: '#FFFFFF' }}
+          />
+          {!newChatName.trim() && (
+            <Typography.Text type="danger" className="mt-1 block">
+              对话名称不能为空
+            </Typography.Text>
+          )}
+        </div>
+      </Modal>
     </>
   );
 };

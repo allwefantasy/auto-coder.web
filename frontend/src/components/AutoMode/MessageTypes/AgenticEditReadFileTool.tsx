@@ -1,7 +1,7 @@
 import React from 'react';
 import type { MessageProps } from '../MessageList';
 import './MessageStyles.css'; // Ensure styles are imported
-
+import { getMessage } from '../../Sidebar/lang';
 interface AgenticEditReadFileToolProps {
   message: MessageProps;
 }
@@ -29,7 +29,7 @@ const AgenticEditReadFileTool: React.FC<AgenticEditReadFileToolProps> = ({ messa
         </span>
         {/* Title */}
         <span className="message-title-text text-blue-400 font-semibold">
-          AutoCoder wants to read this file:
+          {getMessage('agenticEditReadFileToolTitle')}
         </span>
       </div>
       {/* File Path */}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { MessageProps } from '../MessageList';
 import './MessageStyles.css'; // Ensure styles are imported
+import { getMessage } from '../../Sidebar/lang';
 
 interface AgenticEditSearchFilesToolProps {
   message: MessageProps;
@@ -41,7 +42,7 @@ const AgenticEditSearchFilesTool: React.FC<AgenticEditSearchFilesToolProps> = ({
         </span>
         {/* Title */}
         <span className="message-title-text text-pink-400 font-semibold">
-          AutoCoder wants to search files in:
+          {getMessage('agenticEditSearchFilesToolTitle')}
         </span>
       </div>
       {/* Directory Path */}

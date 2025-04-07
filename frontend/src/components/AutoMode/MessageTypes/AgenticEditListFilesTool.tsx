@@ -1,7 +1,7 @@
 import React from 'react';
 import type { MessageProps } from '../MessageList';
 import './MessageStyles.css'; // Ensure styles are imported
-
+import { getMessage } from '../../Sidebar/lang';
 interface AgenticEditListFilesToolProps {
   message: MessageProps;
 }
@@ -30,7 +30,7 @@ const AgenticEditListFilesTool: React.FC<AgenticEditListFilesToolProps> = ({ mes
         </span>
         {/* Title */}
         <span className="message-title-text text-indigo-400 font-semibold">
-          AutoCoder wants to list files in:
+          {getMessage('agenticEditListFilesToolTitle')}
         </span>
       </div>
       {/* Directory Path */}

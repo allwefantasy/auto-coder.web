@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { MessageProps } from '../MessageList';
 import './MessageStyles.css';
+import { getMessage } from '../../Sidebar/lang';
 
 interface AgenticEditReplaceInFileToolProps {
   message: MessageProps;
 }
 
 const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> = ({ message }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const content = JSON.parse(message.content);
   const toolName = content.tool_name;
   const path = content.path;
@@ -93,7 +94,7 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
           </svg>
         </span>
         <span className="message-title-text ml-1 text-yellow-400 font-semibold">
-          auto-coder.web 想要替换此文件中的内容
+          {getMessage('agenticEditReplaceInFileToolTitle')}
         </span>
 
         {/* <span className="ml-2 truncate text-gray-300 text-xs" title={path}>
