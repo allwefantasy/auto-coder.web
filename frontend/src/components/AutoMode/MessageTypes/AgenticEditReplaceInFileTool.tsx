@@ -25,18 +25,18 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
     }
 
     return blocks.map((block, idx) => (
-      <div key={idx} className="mb-2 border border-gray-600 rounded overflow-hidden text-xs font-mono">
+      <div key={idx} className="mb-1.5 border border-gray-700 rounded overflow-hidden text-xs font-mono shadow-sm">
         <div className="flex">
-          <div className="w-1/2 border-r border-gray-600">
-            <div className="bg-gray-800 px-2 py-1 font-semibold text-gray-300">SEARCH</div>
-            <div className="bg-gray-900 h-64 overflow-auto">
-              <pre className="px-2 py-1 whitespace-pre text-red-300 min-w-full">{block.search}</pre>
+          <div className="w-1/2 border-r border-gray-700">
+            <div className="bg-gray-800 px-1.5 py-0.5 text-xs font-medium text-gray-300 border-b border-gray-700">SEARCH</div>
+            <div className="bg-gray-900 h-56 overflow-auto">
+              <pre className="px-1.5 py-1 whitespace-pre text-red-300 min-w-full text-xs">{block.search}</pre>
             </div>
           </div>
           <div className="w-1/2">
-            <div className="bg-gray-800 px-2 py-1 font-semibold text-gray-300">REPLACE</div>
-            <div className="bg-gray-900 h-64 overflow-auto">
-              <pre className="px-2 py-1 whitespace-pre text-green-300 min-w-full">{block.replace}</pre>
+            <div className="bg-gray-800 px-1.5 py-0.5 text-xs font-medium text-gray-300 border-b border-gray-700">REPLACE</div>
+            <div className="bg-gray-900 h-56 overflow-auto">
+              <pre className="px-1.5 py-1 whitespace-pre text-green-300 min-w-full text-xs">{block.replace}</pre>
             </div>
           </div>
         </div>
