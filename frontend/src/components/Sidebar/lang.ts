@@ -11,39 +11,7 @@ export const messages: { [key: string]: Message } = {
   modelConfiguration: {
     en: "Model Configuration",
     zh: "模型配置"
-  },
-  modelManagement: {
-    en: "Model Management",
-    zh: "模型管理"
-  },
-  providerManagement: {
-    en: "Provider Management",
-    zh: "供应商管理"
-  },
-  compilerConfiguration: {
-    en: "Compiler Configuration",
-    zh: "编译器配置"
-  },
-  ragConfiguration: {
-    en: "RAG Configuration",
-    zh: "知识库配置"
-  },
-  basicSettings: {
-    en: "Basic Settings",
-    zh: "基础设置"
-  },
-  advancedSettings: {
-    en: "Advanced Settings",
-    zh: "高级设置"
-  },
-  mcpServerConfiguration: {
-    en: "MCP Servers",
-    zh: "MCP服务器"
-  },
-  memorySystemTasks: {
-    en: "Memory System",
-    zh: "记忆系统"
-  },
+  },  
   // Settings Panel
   settingsTitle: {
     en: "Settings",
@@ -599,11 +567,7 @@ export const messages: { [key: string]: Message } = {
   modelPerformanceStats: {
     en: "Model Consumption Statistics",
     zh: "模型消费统计"
-  },
-  modelConfiguration: {
-    en: "Model Configuration",
-    zh: "模型配置"
-  },
+  },  
   totalTime: {
     en: "Total Time",
     zh: "总时间"
@@ -986,10 +950,6 @@ export const messages: { [key: string]: Message } = {
   maximizePanel: {
     en: "Maximize Panel",
     zh: "最大化面板"
-  },
-  languageSettings: {
-    en: "Language",
-    zh: "语言设置"
   },
   restorePanel: {
     en: "Restore Panel",
@@ -1903,12 +1863,7 @@ export const messages: { [key: string]: Message } = {
   agenticEditToolResultSearchFilesTool:{
     en: "auto-coder.web found the following files matching the pattern:",
     zh: "auto-coder.web 找到了与此模式匹配的以下文件:"
-  },
-  
-  agentButtonLabel: {
-    en: "Agent",
-    zh: "Agent"
-  },
+  },    
   
   agentButtonLabel: {
     en: "Agent",
