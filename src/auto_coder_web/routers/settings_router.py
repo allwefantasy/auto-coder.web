@@ -58,16 +58,19 @@ async def update_settings(settings: dict):
     await save_settings(updated_settings)
     return updated_settings
 
+class LanguageUpdate(BaseModel):
+    language: str
+
 @router.post("/api/settings/language")
-async def set_language(language: str):
+async def set_language(payload: LanguageUpdate):
     """设置语言"""
-    if language not in ["zh", "en"]:
+    if payload.language not in ["zh", "en"]:
         raise HTTPException(status_code=400, detail="Invalid language, must be 'zh' or 'en'")
     
     current_settings = await load_settings()
-    current_settings.language = language
+    current_settings.language = payload.language
     await save_settings(current_settings)
-    return {"status": "success", "language": language}
+    return {"status": "success", "language": payload.language}
 
 @router.get("/api/settings/language")
 async def get_language():

@@ -91,7 +91,7 @@ const SettingsPanel: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(value)
+        body: JSON.stringify({ language: value })
       });
       
       if (!response.ok) {
