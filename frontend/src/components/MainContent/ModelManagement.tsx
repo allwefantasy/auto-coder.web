@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Input, Select, Switch, Modal, Table, message, Popconfirm, Spin } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Button, Form, Input, Select, Switch, Modal, Table, message, Popconfirm, Spin, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
 import eventBus, { EVENTS } from '../../services/eventBus'; // Import eventBus
 import '../../styles/custom_antd.css';
@@ -375,7 +375,14 @@ const ModelManagement: React.FC = () => {
         >
           <Form.Item
             name="name"
-            label={<span className="text-white">{getMessage('modelName')}</span>}
+            label={
+              <span className="text-white">
+                <Tooltip title={getMessage('modelNameTooltip')}>
+                  <QuestionCircleOutlined style={{ color: 'white', marginRight: 4 }} />
+                </Tooltip>
+                {getMessage('modelName')}
+              </span>
+            }
             rules={[{ required: true, message: 'Please input model name' }]}
           >
             <Input className="dark-input" />
@@ -427,8 +434,14 @@ const ModelManagement: React.FC = () => {
 
           <Form.Item
             name="model_name"
-
-            label={<span className="text-white">{getMessage('modelType')}</span>}
+            label={
+              <span className="text-white">
+                <Tooltip title={getMessage('modelTypeTooltip')}>
+                  <QuestionCircleOutlined style={{ color: 'white', marginRight: 4 }} />
+                </Tooltip>
+                {getMessage('modelType')}
+              </span>
+            }
             rules={[{ required: true, message: 'Please select model type' }]}
           >
             <Select 

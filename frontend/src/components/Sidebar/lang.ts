@@ -1,4 +1,5 @@
 import { providerManagementMessages } from './langs/ProviderManagement.lang';
+import { modelManagementMessages } from './langs/ModelManagement.lang';
 
 interface Message {
   en: string;
@@ -7,6 +8,7 @@ interface Message {
 
 export const messages: { [key: string]: Message } = {
   ...providerManagementMessages,
+  ...modelManagementMessages,
   languageSettings: {
     en: "Language",
     zh: "语言设置"
