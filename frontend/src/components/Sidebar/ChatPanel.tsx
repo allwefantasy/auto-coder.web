@@ -893,13 +893,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           commandText = `/mcp ${trimmedText}`;
         }
         
-        if (enableAgenticMode) {
+        if (enableAgenticMode && isWriteMode) {
           console.log('ChatPanel: Step By Step enabled, using agenticEditService');
           const result = await agenticEditService.executeCommand(commandText);
           console.log('ChatPanel: Received result from agenticEditService:', result);
           setRequestId(result.event_file_id);
           setLocalRequestId(result.event_file_id);
-        } else {
+        } else if (!enableAgenticMode && isWriteMode) {
+          console.log('ChatPanel: Step By Step disabled, using chatService');
+          const result = await codingService.executeCommand(commandText);
+          console.log('ChatPanel: Received result from chatService:', result);
+          setRequestId(result.event_file_id);
+          setLocalRequestId(result.event_file_id);
+        }
+        else {
           const result = await chatService.executeCommand(commandText);
           console.log('ChatPanel: Received result from chatService:', result);
           setRequestId(result.event_file_id);
