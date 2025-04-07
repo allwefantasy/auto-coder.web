@@ -478,9 +478,24 @@ const InputArea: React.FC<InputAreaProps> = ({
               <button
                 className={`mr-1 p-0.5 rounded-md transition-all duration-200
                   ${agenticActive ? 'text-blue-500 hover:text-blue-400' : 'text-gray-400 hover:text-gray-300'}`}
-                onClick={() => setAgenticActive(!agenticActive)}
+                onClick={() => {
+                  const newActive = !agenticActive;
+                  setAgenticActive(newActive);
+                  import('../../services/eventBus').then(({ default: eventBus }) => {
+                    eventBus.publish('agentic.mode.changed', newActive);
+                  });
+                }}
+                title="Step By Step"
               >
-                new agentic
+                {agenticActive ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z" />
+                  </svg>
+                )}
               </button>
 
               <button

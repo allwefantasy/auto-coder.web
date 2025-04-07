@@ -31,6 +31,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   projectName = '',
   setSelectedFiles 
 }) => {
+
+  // Step By Step 模式标记
+  const [enableAgenticMode, setEnableAgenticMode] = React.useState<boolean>(false);
+
   const showNewChatModal = () => {
     // 清空当前对话内容
     setMessages([]);
@@ -168,6 +172,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [enableRag, setEnableRag] = useState<boolean>(false);
   // 添加MCP启用状态
   const [enableMCPs, setEnableMCPs] = useState<boolean>(false);
+
+  // Step By Step 模式标记已上移至顶部定义
 
   // 添加消息ID计数器，用于生成唯一的消息ID
   const [messageIdCounter, setMessageIdCounter] = useState<number>(0);
@@ -811,6 +817,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       handleNewChatDirectly
     );
 
+    // 订阅 Step By Step 状态变更事件
+    const unsubscribeAgentic = eventBus.subscribe(
+      'agentic.mode.changed',
+      (enabled: boolean) => {
+        console.log('ChatPanel: Step By Step mode changed to', enabled);
+        setEnableAgenticMode(enabled);
+      }
+    );
+
     // 在组件卸载时清理事件监听器
     return () => {
       chatService.removeAllListeners();
@@ -819,8 +834,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       unsubscribeRefresh();
       unsubscribeRagEnabled();
       unsubscribeNewChat();
-      // 取消订阅 MCP 状态变更事件
       unsubscribeMCPsEnabled();
+      unsubscribeAgentic();
     };
   }, [handleRefreshFromMessage]); // 依赖项数组保持不变，因为 handleRefreshFromMessage 是用 useCallback 包裹的
   
@@ -878,10 +893,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           commandText = `/mcp ${trimmedText}`;
         }
         
-        const result = await chatService.executeCommand(commandText);
-        console.log('ChatPanel: Received result from chatService:', result);
-        setRequestId(result.event_file_id);
-        setLocalRequestId(result.event_file_id);
+        if (enableAgenticMode) {
+          console.log('ChatPanel: Step By Step enabled, using agenticEditService');
+          const result = await agenticEditService.executeCommand(commandText);
+          console.log('ChatPanel: Received result from agenticEditService:', result);
+          setRequestId(result.event_file_id);
+          setLocalRequestId(result.event_file_id);
+        } else {
+          const result = await chatService.executeCommand(commandText);
+          console.log('ChatPanel: Received result from chatService:', result);
+          setRequestId(result.event_file_id);
+          setLocalRequestId(result.event_file_id);
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
