@@ -490,7 +490,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 >
                   <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>{getMessage('agentButtonLabel')}</span>
                 </button>
-                <span className="text-[10px] text-gray-400 opacity-70 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                <span className="text-[9px] text-gray-400 opacity-70 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                   {getMessage('agentButtonLabelDesc')}
                 </span>
               </div>
