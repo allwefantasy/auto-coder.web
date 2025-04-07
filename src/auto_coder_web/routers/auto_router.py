@@ -24,6 +24,7 @@ cancel_thread_pool = ThreadPoolExecutor(max_workers=5)
 class AutoCommandRequest(BaseModel):
     command: str
     include_conversation_history: bool = False
+    buildin_conversation_history: bool = False
 
 class EventPollRequest(BaseModel):
     event_file_id:str    
@@ -139,7 +140,7 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
                 else:
                     prompt_text = request.command
 
-            # 调用auto_command_wrapper方法
+            # 调用auto_command_wrapper方法            
             result = wrapper.auto_command_wrapper(prompt_text, {
                 "event_file_id": file_id
             })            
