@@ -68,6 +68,9 @@
   color: #ddd !important;
   border-radius: 4px !important;
   transition: all 0.3s ease !important;
+  height: 24px !important;
+  font-size: 11px !important;
+  padding: 0 6px !important;
 }
 
 .custom-input:hover, .custom-input:focus-within {
@@ -76,6 +79,9 @@
 
 .custom-input input {
   color: #ddd !important;
+  height: 22px !important;
+  font-size: 11px !important;
+  padding: 0 4px !important;
 }
 
 .custom-input .ant-input-prefix {
