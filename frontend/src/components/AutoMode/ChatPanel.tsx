@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import MessageList, { MessageProps } from './MessageList';
 import { getMessage } from '../Sidebar/lang';
+import html2canvas from 'html2canvas';
 
 interface ChatPanelProps {
   messages: MessageProps[];
@@ -156,31 +157,67 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
     <div className="flex flex-col h-full relative">
       {/* 固定在父容器顶部的状态栏 */}
       <div className="sticky top-0 z-10 bg-gray-800/90 backdrop-blur-sm border-b border-gray-700 shadow-md rounded-t-lg mb-4">
-        <div className="px-4 py-3">
-          {/* 当前任务 */}
-          <div className="mb-2 flex items-center">
-            <svg className="w-4 h-4 text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <h2 className="text-white font-medium text-sm truncate">{currentTask || getMessage('noActiveTask')}</h2>            
+        <div className="px-4 py-3 flex justify-between items-start">
+          <div className="flex flex-col">
+            {/* 当前任务 */}
+            <div className="mb-2 flex items-center">
+              <svg className="w-4 h-4 text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <h2 className="text-white font-medium text-sm truncate">{currentTask || getMessage('noActiveTask')}</h2>            
+            </div>
+            
+            {/* Token统计信息 */}
+            <div className="font-mono text-xs text-gray-400 flex flex-row items-center gap-2 flex-wrap text-[11px]">
+              <div className="flex items-center">
+                <span>{getMessage('tokens')}: </span>
+                <span className="text-green-500 ml-1">↑ {accumulatedStats.inputTokens}</span>
+                <span className="text-red-500 ml-1">↓ {accumulatedStats.outputTokens}</span>
+              </div>
+              <div className="flex items-center">
+                <span>{getMessage('cache')}: </span>
+                <span className="text-white ml-1">⊕ {accumulatedStats.cacheHits}</span>
+                <span className="text-white ml-1">→ {accumulatedStats.cacheMisses}</span>
+              </div>            
+              <div className="flex items-center">
+                <span>{getMessage('apiCost')}: </span>
+                <span className="text-white ml-1">${accumulatedStats.totalCost.toFixed(5)}</span>
+              </div>
+            </div>
           </div>
-          
-          {/* Token统计信息 */}
-          <div className="font-mono text-xs text-gray-400 flex flex-row items-center gap-2 flex-wrap text-[11px]">
-            <div className="flex items-center">
-              <span>{getMessage('tokens')}: </span>
-              <span className="text-green-500 ml-1">↑ {accumulatedStats.inputTokens}</span>
-              <span className="text-red-500 ml-1">↓ {accumulatedStats.outputTokens}</span>
-            </div>
-            <div className="flex items-center">
-              <span>{getMessage('cache')}: </span>
-              <span className="text-white ml-1">⊕ {accumulatedStats.cacheHits}</span>
-              <span className="text-white ml-1">→ {accumulatedStats.cacheMisses}</span>
-            </div>            
-            <div className="flex items-center">
-              <span>{getMessage('apiCost')}: </span>
-              <span className="text-white ml-1">${accumulatedStats.totalCost.toFixed(5)}</span>
-            </div>
+
+          {/* 右侧按钮区域 */}
+          <div className="flex items-center space-x-2">
+            {/* 假设已有保存按钮 */}
+            <button
+              className="p-1 rounded hover:bg-gray-700 text-gray-300"
+              title="保存会话"
+            >
+              💾
+            </button>
+
+            {/* 导出图片按钮 */}
+            <button
+              onClick={async () => {
+                const container = messageContainerRef.current;
+                if (!container) return;
+                try {
+                  const canvas = await html2canvas(container, { backgroundColor: '#1f2937' }); // Tailwind灰色背景
+                  const dataUrl = canvas.toDataURL('image/png');
+
+                  const link = document.createElement('a');
+                  link.href = dataUrl;
+                  link.download = 'chat-session.png';
+                  link.click();
+                } catch (error) {
+                  console.error('导出图片失败:', error);
+                }
+              }}
+              className="p-1 rounded hover:bg-gray-700 text-gray-300"
+              title="导出为图片"
+            >
+              ⬇️
+            </button>
           </div>
         </div>
       </div>
