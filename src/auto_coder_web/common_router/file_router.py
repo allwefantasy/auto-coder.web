@@ -2,15 +2,63 @@ import os
 import shutil
 import aiofiles
 import aiofiles.os
-from fastapi import APIRouter, Request, HTTPException, Depends
+import asyncio
+from fastapi import APIRouter, Request, HTTPException, Depends, Query
 from auto_coder_web.file_manager import (
     get_directory_tree_async,
     read_file_content_async,
 )
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+import pathspec
 
 router = APIRouter()
+
+DEFAULT_IGNORED_DIRS = ['.git', '.auto-coder', 'node_modules', '.mvn', '.idea', '__pycache__', '.venv', 'venv', 'dist', 'build', '.gradle']
+
+def load_ignore_spec(source_dir: str) -> Optional[pathspec.PathSpec]:
+    """
+    Loads .autocoderignore file from the source_dir if it exists.
+    Returns a PathSpec object or None if no ignore file.
+    """
+    ignore_file_path = os.path.join(source_dir, ".autocoderignore")
+    if not os.path.isfile(ignore_file_path):
+        return None
+    try:
+        with open(ignore_file_path, "r") as f:
+            ignore_patterns = f.read().splitlines()
+        spec = pathspec.PathSpec.from_lines("gitwildmatch", ignore_patterns)
+        return spec
+    except Exception:
+        return None
+
+
+def should_ignore(path: str, ignore_spec: Optional[pathspec.PathSpec], ignored_dirs: List[str], source_dir: str) -> bool:
+    """
+    Determine if a given path should be ignored based on ignore_spec and ignored_dirs.
+    - path: absolute path
+    - ignore_spec: PathSpec object or None
+    - ignored_dirs: list of directory names to ignore
+    - source_dir: root source directory absolute path
+    """
+    rel_path = os.path.relpath(path, source_dir)
+    parts = rel_path.split(os.sep)
+
+    # Always ignore if any part matches ignored_dirs
+    for part in parts:
+        if part in ignored_dirs:
+            return True
+
+    # If ignore_spec exists, use it to check
+    if ignore_spec:
+        # pathspec expects posix style paths
+        rel_path_posix = rel_path.replace(os.sep, "/")
+        # Check both file and dir ignoring
+        if ignore_spec.match_file(rel_path_posix):
+            return True
+
+    return False
+
 
 class FileInfo(BaseModel):
     name: str
@@ -146,3 +194,41 @@ async def list_files_in_directory(
             continue  # ignore errors per file
 
     return result
+
+
+@router.get("/api/search-in-files")
+async def search_in_files(
+    query: str = Query(..., description="Search text"),
+    project_path: str = Depends(get_project_path)
+):
+    """
+    Search for files under the project path containing the given query string.
+    Returns list of file paths.
+    """
+    matched_files = []
+    ignore_spec = load_ignore_spec(project_path)
+
+    for root, dirs, files in os.walk(project_path):
+        # Filter ignored directories in-place to avoid descending into them
+        dirs[:] = [d for d in dirs if not should_ignore(os.path.join(root, d), ignore_spec, DEFAULT_IGNORED_DIRS, project_path)]
+
+        for file in files:
+            file_path = os.path.join(root, file)
+            if should_ignore(file_path, ignore_spec, DEFAULT_IGNORED_DIRS, project_path):
+                continue
+            try:
+                async def read_and_check(fp):
+                    try:
+                        async with aiofiles.open(fp, mode='r', encoding='utf-8', errors='ignore') as f:
+                            content = await f.read()
+                            return query in content
+                    except Exception:
+                        return False
+
+                found = await read_and_check(file_path)
+                if found:
+                    matched_files.append(os.path.relpath(file_path, project_path))
+            except Exception:
+                continue  # ignore read errors
+
+    return {"files": matched_files}

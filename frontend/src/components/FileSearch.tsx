@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Modal, Input, List, Button } from 'antd';
+import { Modal, Input, List, Button, Checkbox } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { getMessage } from './Sidebar/lang';
 interface FileSearchProps {
@@ -14,6 +14,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [isLoading, setIsLoading] = useState(false);
   const [showSmartSearch, setShowSmartSearch] = useState(false);
+  const [contentSearch, setContentSearch] = useState(false);
   const searchInputRef = useRef<any>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -27,31 +28,45 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
     try {
       setIsLoading(true);
       
-      // 并行获取文件和符号搜索结果
-      const [fileResponse, symbolResponse] = await Promise.all([
-        fetch(`/api/completions/files?name=${encodeURIComponent(term)}`),
-        fetch(`/api/completions/symbols?name=${encodeURIComponent(term)}`)
-      ]);
-      
-      const fileData = await fileResponse.json();
-      const symbolData = await symbolResponse.json();
-      
-      // 合并文件和符号搜索结果
-      const combinedResults = [
-        ...fileData.completions,
-        ...symbolData.completions
-      ];
-      
-      setSearchResults(combinedResults);
-      setSelectedIndex(combinedResults.length > 0 ? 0 : -1);
-      setShowSmartSearch(combinedResults.length === 0);
+      if(contentSearch){
+        // 调用新接口，搜索文件内容
+        const resp = await fetch(`/api/search-in-files?query=${encodeURIComponent(term)}`);
+        const data = await resp.json();
+        const formattedResults = data.files.map((path: string) => ({
+          name: path.split('/').pop() || path,
+          path,
+          display: path
+        }));
+        setSearchResults(formattedResults);
+        setSelectedIndex(formattedResults.length > 0 ? 0 : -1);
+        setShowSmartSearch(formattedResults.length === 0);
+      }else{
+        // 并行获取文件和符号搜索结果
+        const [fileResponse, symbolResponse] = await Promise.all([
+          fetch(`/api/completions/files?name=${encodeURIComponent(term)}`),
+          fetch(`/api/completions/symbols?name=${encodeURIComponent(term)}`)
+        ]);
+        
+        const fileData = await fileResponse.json();
+        const symbolData = await symbolResponse.json();
+        
+        // 合并文件和符号搜索结果
+        const combinedResults = [
+          ...fileData.completions,
+          ...symbolData.completions
+        ];
+        
+        setSearchResults(combinedResults);
+        setSelectedIndex(combinedResults.length > 0 ? 0 : -1);
+        setShowSmartSearch(combinedResults.length === 0);
+      }
     } catch (error) {
       console.error('Error fetching completions:', error);
       setShowSmartSearch(true);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [contentSearch]);
 
   const handleSmartSearch = async () => {
     if (!searchTerm) return;
@@ -158,7 +173,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
         },
       }}
     >
-      <div className="my-4">
+      <div className="my-4 space-y-2">
         <Input
           ref={searchInputRef}
           autoFocus
@@ -182,6 +197,13 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
             color: '#e5e7eb',
           }}
         />
+        <Checkbox
+          checked={contentSearch}
+          onChange={e => setContentSearch(e.target.checked)}
+          style={{ color: '#e5e7eb' }}
+        >
+          搜索文件内容
+        </Checkbox>
       </div>
       <div ref={listRef} className="dark-theme-list max-h-96 overflow-y-auto">
         {isLoading ? (
