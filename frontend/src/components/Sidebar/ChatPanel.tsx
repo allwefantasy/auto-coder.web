@@ -939,19 +939,33 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   };
 
-  // 导出消息列表为图片
+  // 导出消息列表为完整图片（自动展开滚动区域）
   const handleExportMessagesAsImage = async () => {
     const container = document.getElementById('chat-messages-container');
     if (!container) {
       AntdMessage.error('未找到消息列表区域');
       return;
     }
+    // 记录原始样式
+    const originalHeight = container.style.height;
+    const originalMaxHeight = container.style.maxHeight;
+    const originalOverflow = container.style.overflow;
+
     try {
+      // 展开消息区域，确保完整内容渲染
+      container.style.height = container.scrollHeight + 'px';
+      container.style.maxHeight = 'none';
+      container.style.overflow = 'visible';
+
+      // 等待浏览器渲染
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
       const canvas = await html2canvas(container, {
-        backgroundColor: '#1a1a1a', // 深色背景
-        scale: 2, // 提高清晰度
+        backgroundColor: '#1a1a1a',
+        scale: 2,
         useCORS: true
       });
+
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
@@ -960,6 +974,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     } catch (error) {
       console.error('导出图片失败:', error);
       AntdMessage.error('导出图片失败');
+    } finally {
+      // 恢复原样式
+      container.style.height = originalHeight;
+      container.style.maxHeight = originalMaxHeight;
+      container.style.overflow = originalOverflow;
     }
   };
 
