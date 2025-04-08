@@ -196,25 +196,48 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
               💾
             </button>
 
-            {/* 导出图片按钮 */}
+            {/* 导出完整图片按钮 */}
             <button
               onClick={async () => {
                 const container = messageContainerRef.current;
                 if (!container) return;
-                try {
-                  const canvas = await html2canvas(container, { backgroundColor: '#1f2937' }); // Tailwind灰色背景
-                  const dataUrl = canvas.toDataURL('image/png');
 
+                // 记录原始样式
+                const originalHeight = container.style.height;
+                const originalMaxHeight = container.style.maxHeight;
+                const originalOverflow = container.style.overflow;
+
+                try {
+                  // 展开消息区域，确保完整内容渲染
+                  container.style.height = container.scrollHeight + 'px';
+                  container.style.maxHeight = 'none';
+                  container.style.overflow = 'visible';
+
+                  // 等待浏览器渲染
+                  await new Promise(resolve => requestAnimationFrame(resolve));
+
+                  const canvas = await html2canvas(container, { 
+                    backgroundColor: '#1f2937',
+                    scale: 2,
+                    useCORS: true
+                  });
+
+                  const dataUrl = canvas.toDataURL('image/png');
                   const link = document.createElement('a');
                   link.href = dataUrl;
-                  link.download = 'chat-session.png';
+                  link.download = `chat-session-${new Date().toISOString().replace(/[:.]/g, '-')}.png`;
                   link.click();
                 } catch (error) {
                   console.error('导出图片失败:', error);
+                } finally {
+                  // 恢复原始样式
+                  container.style.height = originalHeight;
+                  container.style.maxHeight = originalMaxHeight;
+                  container.style.overflow = originalOverflow;
                 }
               }}
               className="p-1 rounded hover:bg-gray-700 text-gray-300"
-              title="导出为图片"
+              title="导出完整图片"
             >
               ⬇️
             </button>
