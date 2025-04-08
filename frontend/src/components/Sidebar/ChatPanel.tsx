@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { message as AntdMessage, Modal, Input, Select, Button, Layout, Divider, Typography, Space, Dropdown, Menu, Tooltip } from 'antd';
-import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined, SaveOutlined, ClearOutlined } from '@ant-design/icons';
+import { PlusOutlined, SettingOutlined, DeleteOutlined, EditOutlined, MessageOutlined, CodeOutlined, MenuOutlined, DownOutlined, SaveOutlined, ClearOutlined, PictureOutlined } from '@ant-design/icons';
 import { v4 as uuidv4 } from 'uuid';
 import ChatListDropdown from './ChatListDropdown';
+import html2canvas from 'html2canvas';
 import './ChatPanel.css';
 import InputArea from './InputArea';
 import { getMessage } from './lang';
@@ -938,6 +939,30 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   };
 
+  // 导出消息列表为图片
+  const handleExportMessagesAsImage = async () => {
+    const container = document.getElementById('chat-messages-container');
+    if (!container) {
+      AntdMessage.error('未找到消息列表区域');
+      return;
+    }
+    try {
+      const canvas = await html2canvas(container, {
+        backgroundColor: '#1a1a1a', // 深色背景
+        scale: 2, // 提高清晰度
+        useCORS: true
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `chat_${new Date().toISOString().replace(/[:.]/g, '-')}.png`;
+      link.click();
+    } catch (error) {
+      console.error('导出图片失败:', error);
+      AntdMessage.error('导出图片失败');
+    }
+  };
+
   // 删除聊天列表的处理函数
   const handleDeleteChat = async (name: string) => {
     Modal.confirm({
@@ -1075,6 +1100,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               <Button
                 icon={<SettingOutlined style={{ fontSize: '10px' }} />}
                 onClick={() => setShowConfig(!showConfig)}
+                className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
+                size="small"
+              />
+            </Tooltip>
+
+            <Tooltip title="导出对话为图片">
+              <Button
+                icon={<PictureOutlined style={{ fontSize: '10px' }} />}
+                onClick={handleExportMessagesAsImage}
                 className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
                 size="small"
               />
