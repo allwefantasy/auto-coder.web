@@ -323,7 +323,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 line,
                 col + '![上传中...]()'.length
               ),
-              text: `<_img_>${response.path}</_img_>`,
+              text: `<_image_>${response.path}</_image_>`,
               forceMoveMarkers: true
             }]);
           } else {
@@ -335,7 +335,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 currentPosition.lineNumber,
                 currentPosition.column
               ),
-              text: `<_img_>${response.path}</_img_>`,
+              text: `<_image_>${response.path}</_image_>`,
               forceMoveMarkers: true
             }]);
           }
