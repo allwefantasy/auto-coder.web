@@ -74,7 +74,7 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
             </div>
             
             {!isCollapsed && (
-                <div className="prose prose-invert prose-xs max-w-none">
+                <div className="prose prose-invert prose-xs max-w-full break-words overflow-auto" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                     <ReactMarkdown
                         className="text-gray-200 break-words"
                         components={{
