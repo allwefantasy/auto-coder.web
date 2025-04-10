@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { MessageProps } from '../MessageList';
 import './MessageStyles.css'; // Ensure styles are imported
 
@@ -7,22 +7,23 @@ interface AgenticEditExecuteCommandToolProps {
 }
 
 const AgenticEditExecuteCommandTool: React.FC<AgenticEditExecuteCommandToolProps> = ({ message }) => {
-  const [isCollapsed, setIsCollapsed] = useState(true); // Start collapsed if command is long
-  let command = '';
-  let requiresApproval = false;
+  const [command, setCommand] = useState('');
+  const [requiresApproval, setRequiresApproval] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
-  try {
-    const parsed = JSON.parse(message.content || '{}');
-    command = parsed.command || 'N/A';
-    requiresApproval = parsed.requires_approval || false;
-    // Automatically expand if command is short
-    if (command.length < 80) {
-        setIsCollapsed(false);
+  useEffect(() => {
+    try {
+      const parsed = JSON.parse(message.content || '{}');
+      const cmd = parsed.command || 'N/A';
+      setCommand(cmd);
+      setRequiresApproval(parsed.requires_approval || false);
+      // Set collapsed state based on command length
+      setIsCollapsed(cmd.length >= 80);
+    } catch (e) {
+      console.error('Failed to parse ExecuteCommandTool content:', e);
+      setCommand('Error parsing content');
     }
-  } catch (e) {
-    console.error('Failed to parse ExecuteCommandTool content:', e);
-    command = 'Error parsing content';
-  }
+  }, [message.content]);
 
   return (
     <div className="message-font">

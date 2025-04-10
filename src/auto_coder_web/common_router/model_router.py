@@ -204,6 +204,13 @@ def load_providers() -> List[Dict]:
                     "input_price": 4.0,
                     "output_price": 16.0,
                     "is_reasoning": True
+                },                
+                {
+                    "id": "deepseek-v3-250324",
+                    "name": "Deepseek v3-250324",
+                    "input_price": 2.0,
+                    "output_price": 8.0,
+                    "is_reasoning": False
                 }
             ]
         },
@@ -225,6 +232,34 @@ def load_providers() -> List[Dict]:
                     "input_price": 22.0,
                     "output_price": 111.0,
                     "is_reasoning": False
+                },
+                {
+                    "id": "openrouter/quasar-alpha",
+                    "name": "quasar-alpha",
+                    "input_price": 0.0,
+                    "output_price": 0.0,
+                    "is_reasoning": False
+                },
+                {
+                    "id": "google/gemini-2.5-pro-preview-03-25",
+                    "name": "gemini-2.5-pro-preview-03-25",
+                    "input_price": 0.0,
+                    "output_price": 0.0,
+                    "is_reasoning": False
+                }
+            ]
+        },        
+        {
+            "name": "google",
+            "base_url": "default",
+            "model_type": "saas/gemini",
+            "models": [
+                {
+                    "id": "gemini-2.5-pro-exp-03-25",
+                    "name": "gemini-2.5-pro-exp-03-25",
+                    "input_price": 0,
+                    "output_price": 0,
+                    "is_reasoning": True
                 }
             ]
         }
