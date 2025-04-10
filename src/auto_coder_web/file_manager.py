@@ -147,7 +147,8 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
     def should_ignore(name: str) -> bool:
         """Check if a file or directory should be ignored"""
         # Ignore hidden files/directories (starting with '.')
-        if name.startswith('.') and name != ".auto-coder":
+        ## and name != ".auto-coder":
+        if name.startswith('.'):
             return True
         # Ignore exact matches
         return name in IGNORE_PATTERNS

@@ -21,6 +21,8 @@ interface AskUserDialogProps {
 
 const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onClose }) => {
   const [customResponse, setCustomResponse] = useState(''); // 存储用户自定义输入的响应
+  const [isRunning, setIsRunning] = useState(false); // 添加运行状态
+  const [selectedOption, setSelectedOption] = useState<string | null>(null); // 跟踪选中的选项
   const customResponseRef = useRef<HTMLInputElement>(null); // 自定义响应输入框引用
   const hasOptions = message.options && message.options.length > 0; // 检查是否有预定义选项
   
@@ -43,10 +45,37 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
   }, [message.responseRequired, onClose]);
   
   // 处理自定义响应提交
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (customResponse.trim()) {
-      onResponse(customResponse, message.eventId);
+    if (customResponse.trim() && !isRunning) {
+      setIsRunning(true);
+      try {
+        await onResponse(customResponse, message.eventId);
+      } catch (error) {
+        console.error('Error submitting response:', error);
+      } finally {
+        // The dialog will typically be closed by the parent component after response
+        // But we reset the state in case it doesn't
+        setIsRunning(false);
+      }
+    }
+  };
+
+  // 处理选项点击
+  const handleOptionClick = async (option: string) => {
+    if (!isRunning) {
+      setSelectedOption(option);
+      setIsRunning(true);
+      try {
+        await onResponse(option, message.eventId);
+      } catch (error) {
+        console.error('Error selecting option:', error);
+      } finally {
+        // The dialog will typically be closed by the parent component after response
+        // But we reset the state in case it doesn't
+        setIsRunning(false);
+        setSelectedOption(null);
+      }
     }
   };
   
@@ -86,10 +115,21 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
               {message.options!.map((option, index) => (
                 <button
                   key={index}
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded text-white text-sm transition-colors"
-                  onClick={() => onResponse(option, message.eventId)}
+                  className={`px-3 py-1.5 rounded text-white text-sm transition-colors flex items-center justify-center min-w-[80px] ${selectedOption === option ? 'bg-indigo-800' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                  onClick={() => handleOptionClick(option)}
+                  disabled={isRunning}
                 >
-                  {option}
+                  {selectedOption === option && isRunning ? (
+                    <>
+                      <span className="mr-2">{option}</span>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </>
+                  ) : (
+                    option
+                  )}
                 </button>
               ))}
             </div>
@@ -105,14 +145,22 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
                 placeholder={getMessage('askUserDialogPlaceholder')}
                 value={customResponse}
                 onChange={(e) => setCustomResponse(e.target.value)}
+                disabled={isRunning}
                 autoFocus
               />
               <button
                 type="submit"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded-r text-sm transition-colors border-l-0 border border-indigo-600 disabled:opacity-50"
-                disabled={!customResponse.trim()}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded-r text-sm transition-colors border-l-0 border border-indigo-600 disabled:opacity-50 min-w-[60px]"
+                disabled={!customResponse.trim() || isRunning}
               >
-                {getMessage('askUserDialogSend')}
+                {isRunning ? (
+                  <svg className="animate-spin h-4 w-4 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  getMessage('askUserDialogSend')
+                )}
               </button>
             </div>
           </form>
