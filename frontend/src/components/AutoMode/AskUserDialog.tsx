@@ -21,7 +21,6 @@ interface AskUserDialogProps {
 
 const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onClose }) => {
   const [customResponse, setCustomResponse] = useState(''); // 存储用户自定义输入的响应
-  const [loading, setLoading] = useState(false); // 运行中状态
   const customResponseRef = useRef<HTMLInputElement>(null); // 自定义响应输入框引用
   const hasOptions = message.options && message.options.length > 0; // 检查是否有预定义选项
   
@@ -44,15 +43,10 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
   }, [message.responseRequired, onClose]);
   
   // 处理自定义响应提交
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (customResponse.trim()) {
-      try {
-        setLoading(true);
-        await onResponse(customResponse, message.eventId);
-      } catch (error) {
-        console.error('Error during onResponse:', error);
-      }
+      onResponse(customResponse, message.eventId);
     }
   };
   
@@ -92,18 +86,10 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
               {message.options!.map((option, index) => (
                 <button
                   key={index}
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded text-white text-sm transition-colors disabled:opacity-50"
-                  disabled={loading}
-                  onClick={async () => {
-                    try {
-                      setLoading(true);
-                      await onResponse(option, message.eventId);
-                    } catch (error) {
-                      console.error('Error during onResponse:', error);
-                    }
-                  }}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded text-white text-sm transition-colors"
+                  onClick={() => onResponse(option, message.eventId)}
                 >
-                  {loading ? option + '...' : option}
+                  {option}
                 </button>
               ))}
             </div>
@@ -120,14 +106,13 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
                 value={customResponse}
                 onChange={(e) => setCustomResponse(e.target.value)}
                 autoFocus
-                disabled={loading}
               />
               <button
                 type="submit"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded-r text-sm transition-colors border-l-0 border border-indigo-600 disabled:opacity-50"
-                disabled={loading || !customResponse.trim()}
+                disabled={!customResponse.trim()}
               >
-                {loading ? getMessage('askUserDialogSend') + '...' : getMessage('askUserDialogSend')}
+                {getMessage('askUserDialogSend')}
               </button>
             </div>
           </form>
