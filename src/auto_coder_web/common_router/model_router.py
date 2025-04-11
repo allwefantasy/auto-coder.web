@@ -241,8 +241,8 @@ def load_providers() -> List[Dict]:
                     "is_reasoning": False
                 },
                 {
-                    "id": "openrouter/quasar-alpha",
-                    "name": "quasar-alpha",
+                    "id": "openrouter/optimus-alpha",
+                    "name": "optimus-alpha",
                     "input_price": 0.0,
                     "output_price": 0.0,
                     "is_reasoning": False
@@ -276,15 +276,24 @@ def load_providers() -> List[Dict]:
         return default_providers
     try:
         with open(PROVIDERS_FILE, 'r',encoding='utf-8') as f:
-            # 根据名字去重，优先保留文件中的提供商配置
+            # 根据名字去重，优先保留默认的提供上
             loaded_providers = json.load(f)
             providers_map = {provider["name"]: provider for provider in loaded_providers}
-            
-            # 只添加名字不重复的默认提供商
+                        
             for default_provider in default_providers:
-                if default_provider["name"] not in providers_map:
+                if default_provider["name"] not in providers_map:                
                     providers_map[default_provider["name"]] = default_provider
-            
+                else:
+                    # 根据 model id 去重合并 models 字段
+                    existing_models = providers_map[default_provider["name"]]["models"]
+                    existing_model_ids = {model["id"]: model for model in existing_models}
+                    
+                    # 添加默认提供商中不存在的模型
+                    for model in default_provider["models"]:
+                        existing_model_ids[model["id"]] = model
+                    
+                    # 更新模型列表
+                    providers_map[default_provider["name"]]["models"] = list(existing_model_ids.values())
             return list(providers_map.values())
     except Exception as e:
         print(f"Error loading providers: {e}")
