@@ -241,6 +241,13 @@ def load_providers() -> List[Dict]:
                     "is_reasoning": False
                 },
                 {
+                    "id": "openrouter/quasar-alpha",
+                    "name": "quasar-alpha",
+                    "input_price": 0.0,
+                    "output_price": 0.0,
+                    "is_reasoning": False
+                },
+                {
                     "id": "google/gemini-2.5-pro-preview-03-25",
                     "name": "gemini-2.5-pro-preview-03-25",
                     "input_price": 0.0,
