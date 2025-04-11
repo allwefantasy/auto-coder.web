@@ -113,7 +113,7 @@ const ModelManagement: React.FC = () => {
       };
 
       const url = editingModel 
-        ? `/api/models/${editingModel.name}` 
+        ? `/api/models/${encodeURIComponent(editingModel.name)}`
         : '/api/models';
       
       const method = editingModel ? 'PUT' : 'POST';
