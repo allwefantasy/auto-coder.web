@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Steps, Input, message, Spin } from 'antd';
+import { Button, Card, Steps, Input, message, Spin, Select } from 'antd';
 import { getMessage } from './Sidebar/lang';
 import '../styles/custom_antd.css';
 import '../styles/initialization.css';
@@ -8,11 +8,17 @@ interface InitializationPageProps {
   onInitializationComplete: () => void;
 }
 
+const languageOptions = [
+  { value: 'zh', label: '中文' },
+  { value: 'en', label: 'English' }
+];
+
 const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializationComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isInitializing, setIsInitializing] = useState(false);
   const [projectType, setProjectType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<'en' | 'zh'>('zh');
 
   // Fetch project type on step 2
   useEffect(() => {
@@ -20,6 +26,28 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
       fetchProjectType();
     }
   }, [currentStep]);
+
+  // Optionally: load last selected language from localStorage or API
+  useEffect(() => {
+    // Try to use localStorage or system/browser language
+    const lang = localStorage.getItem('auto-coder-language') as 'en' | 'zh' | null;
+    if (lang === 'en' || lang === 'zh') {
+      setCurrentLanguage(lang);
+    } else {
+      // fallback: try navigator.language
+      if (navigator.language.startsWith('zh')) {
+        setCurrentLanguage('zh');
+      } else {
+        setCurrentLanguage('en');
+      }
+    }
+  }, []);
+
+  // Persist language selection
+  const handleLanguageChange = (value: 'en' | 'zh') => {
+    setCurrentLanguage(value);
+    localStorage.setItem('auto-coder-language', value);
+  };
 
   const fetchProjectType = async () => {
     try {
@@ -44,11 +72,11 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
       if (response.ok) {
         setCurrentStep(1);
       } else {
-        message.error(getMessage('failedToInitialize') || 'Failed to initialize project');
+        message.error(getMessage('failedToInitialize', {}, currentLanguage) || 'Failed to initialize project');
       }
     } catch (error) {
       console.error('Error initializing project:', error);
-      message.error(getMessage('failedToInitialize') || 'Failed to initialize project');
+      message.error(getMessage('failedToInitialize', {}, currentLanguage) || 'Failed to initialize project');
     } finally {
       setIsInitializing(false);
     }
@@ -62,14 +90,14 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
       });
       
       if (response.ok) {
-        message.success(getMessage('projectConfigurationComplete') || 'Project configuration complete');
+        message.success(getMessage('projectConfigurationComplete', {}, currentLanguage) || 'Project configuration complete');
         onInitializationComplete();
       } else {
-        message.error(getMessage('failedToConfigureProjectType') || 'Failed to configure project type');
+        message.error(getMessage('failedToConfigureProjectType', {}, currentLanguage) || 'Failed to configure project type');
       }
     } catch (error) {
       console.error('Error configuring project type:', error);
-      message.error(getMessage('failedToConfigureProjectType') || 'Failed to configure project type');
+      message.error(getMessage('failedToConfigureProjectType', {}, currentLanguage) || 'Failed to configure project type');
     } finally {
       setIsLoading(false);
     }
@@ -77,11 +105,11 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
 
   const steps = [
     {
-      title: getMessage('initializeProject') || 'Initialize Project',
+      title: getMessage('initializeProject', {}, currentLanguage) || 'Initialize Project',
       content: (
         <div className="text-center p-6">
-          <h2 className="initialization-title">{getMessage('projectNeedsInitialization') || 'This project needs to be initialized'}</h2>
-          <p className="initialization-description">{getMessage('initializationExplanation') || 'Initialize the project to set up necessary files and configurations'}</p>
+          <h2 className="initialization-title">{getMessage('projectNeedsInitialization', {}, currentLanguage) || 'This project needs to be initialized'}</h2>
+          <p className="initialization-description">{getMessage('initializationExplanation', {}, currentLanguage) || 'Initialize the project to set up necessary files and configurations'}</p>
           <Button 
             type="primary" 
             size="large" 
@@ -89,18 +117,18 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
             loading={isInitializing}
             className="dark-button"
           >
-            {getMessage('initializeNow') || 'Initialize Now'}
+            {getMessage('initializeNow', {}, currentLanguage) || 'Initialize Now'}
           </Button>
         </div>
       ),
     },
     {
-      title: getMessage('configureProjectType') || 'Configure Project Type',
+      title: getMessage('configureProjectType', {}, currentLanguage) || 'Configure Project Type',
       content: (
         <div className="text-center p-6">
-          <h2 className="initialization-title">{getMessage('configureProjectTypeTitle') || 'Configure Project Type'}</h2>
+          <h2 className="initialization-title">{getMessage('configureProjectTypeTitle', {}, currentLanguage) || 'Configure Project Type'}</h2>
           <p className="initialization-description">
-            {getMessage('projectTypeExplanation') || 'Project type defines file extensions AI should focus on'}
+            {getMessage('projectTypeExplanation', {}, currentLanguage) || 'Project type defines file extensions AI should focus on'}
           </p>
           
           {isLoading ? (
@@ -111,7 +139,7 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
                 className="dark-input mb-4 max-w-md mx-auto"
                 value={projectType}
                 onChange={(e) => setProjectType(e.target.value)}
-                placeholder={getMessage('projectTypePlaceholder') || 'e.g. js,ts,jsx,tsx'}
+                placeholder={getMessage('projectTypePlaceholder', {}, currentLanguage) || 'e.g. js,ts,jsx,tsx'}
               />
               <Button 
                 type="primary" 
@@ -120,7 +148,7 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
                 loading={isLoading}
                 className="dark-button"
               >
-                {getMessage('saveConfiguration') || 'Save Configuration'}
+                {getMessage('saveConfiguration', {}, currentLanguage) || 'Save Configuration'}
               </Button>
             </>
           )}
@@ -132,6 +160,16 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
   return (
     <div className="initialization-page flex items-center justify-center p-4">
       <Card className="initialization-card" bordered={false}>
+        {/* Language Switcher */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <Select
+            value={currentLanguage}
+            style={{ width: 120 }}
+            onChange={handleLanguageChange}
+            options={languageOptions}
+            size="small"
+          />
+        </div>
         <Steps
           current={currentStep}
           items={steps.map(item => ({ title: item.title }))}
