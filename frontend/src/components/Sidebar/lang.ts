@@ -1796,9 +1796,19 @@ export const getCurrentLanguage = () => {
   return currentLanguage;
 };
 
-// 获取消息文本
-export const getMessage = (key: keyof typeof messages, params: { [key: string]: any } = {}): string => {
-  const message = messages[key]?.[currentLanguage] || messages[key]?.en || String(key);
+/**
+ * 获取消息文本
+ * @param key 消息key
+ * @param params 参数替换
+ * @param lang 可选，指定语言（'en' 或 'zh'），不指定时使用当前语言
+ */
+export const getMessage = (
+  key: keyof typeof messages,
+  params: { [key: string]: any } = {},
+  lang?: 'en' | 'zh'
+): string => {
+  const useLang = lang || currentLanguage;
+  const message = messages[key]?.[useLang] || messages[key]?.en || String(key);
   return Object.entries(params).reduce(
     (text, [key, value]) => String(text).replace(`{{${key}}}`, value),
     String(message)
