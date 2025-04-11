@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Steps, Input, message, Spin } from 'antd';
-import { getMessage } from './Sidebar/lang';
+import { Button, Card, Steps, Input, message, Spin, Select } from 'antd';
+import { getMessage, getCurrentLanguage, setLanguage } from './Sidebar/lang';
 import '../styles/custom_antd.css';
 import '../styles/initialization.css';
 
@@ -13,6 +13,15 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
   const [isInitializing, setIsInitializing] = useState(false);
   const [projectType, setProjectType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [language, setLang] = useState<'en' | 'zh'>(getCurrentLanguage());
+
+  // 语言切换处理函数
+  const handleLanguageChange = async (lang: 'en' | 'zh') => {
+    await setLanguage(lang);
+    setLang(lang);
+    // 刷新页面以应用语言更改
+    window.location.reload();
+  };
 
   // Fetch project type on step 2
   useEffect(() => {
@@ -132,6 +141,19 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
   return (
     <div className="initialization-page flex items-center justify-center p-4">
       <Card className="initialization-card" bordered={false}>
+        {/* 语言切换下拉框 */}
+        <div className="flex justify-end mb-4">
+          <Select
+            value={language}
+            onChange={handleLanguageChange}
+            style={{ width: 120 }}
+            size="small"
+            options={[
+              { value: 'zh', label: '中文' },
+              { value: 'en', label: 'English' }
+            ]}
+          />
+        </div>
         <Steps
           current={currentStep}
           items={steps.map(item => ({ title: item.title }))}
