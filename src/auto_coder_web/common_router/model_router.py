@@ -68,7 +68,7 @@ async def add_model(model: Model):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/api/models/{model_name}", response_model=Model)
+@router.put("/api/models", response_model=Model)
 async def update_model(model_name: str, model: Model):
     """
     Update an existing model
@@ -91,7 +91,7 @@ async def update_model(model_name: str, model: Model):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.delete("/api/models/{model_name}")
+@router.delete("/api/models")
 async def delete_model(model_name: str):
     """
     Delete a model by name

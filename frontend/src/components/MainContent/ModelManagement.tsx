@@ -112,11 +112,13 @@ const ModelManagement: React.FC = () => {
         // model_type is now part of the form values, populated automatically
       };
 
-      const url = editingModel 
-        ? `/api/models/${encodeURIComponent(editingModel.name)}`
-        : '/api/models';
-      
+      let url = '/api/models';
       const method = editingModel ? 'PUT' : 'POST';
+      
+      // If editing, add model_name as a query parameter
+      if (editingModel) {
+        url = `/api/models?model_name=${encodeURIComponent(editingModel.name)}`;
+      }
       
       const response = await fetch(url, {
         method,
@@ -147,7 +149,7 @@ const ModelManagement: React.FC = () => {
   // 处理删除模型
   const handleDelete = async (modelName: string) => {
     try {
-      const response = await fetch(`/api/models/${modelName}`, {
+      const response = await fetch(`/api/models?model_name=${encodeURIComponent(modelName)}`, {
         method: 'DELETE',
       });
 
