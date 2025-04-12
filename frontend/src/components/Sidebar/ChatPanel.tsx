@@ -412,10 +412,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
       if (response.ok) {
         setShowChatListInput(false);
-        setChatListName('');
+        // setChatListName('');
         fetchChatLists();
 
-        // 同步更新当前会话名称
+        // // 同步更新当前会话名称
         await setCurrentSessionName(name);
       } else {
         console.error('Failed to save chat list', response.json());
@@ -854,6 +854,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     if (!trimmedText) {
       AntdMessage.warning('Please enter a message');
       return;
+    }
+
+    // 如果有当前对话名称且有消息，先保存当前对话
+    if (chatListName && messages.length > 0) {
+      await saveChatList(chatListName, messages);
+      console.log('Chat list saved before sending new message:', chatListName);
     }
 
     const messageId = addUserMessage(trimmedText);

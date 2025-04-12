@@ -58,7 +58,7 @@ def ensure_task_dir(project_path: str) -> str:
 @byzerllm.prompt()
 def coding_prompt(messages: List[Dict[str, Any]], request: CodingCommandRequest):
     '''
-    下面是我们已经产生的一个消息列表,其中 USER_RESPONSE 表示用户的输入，RESULT 你的输出：
+    下面是我们已经产生的一个消息列表,其中 USER_RESPONSE 表示用户的输入，其他都是你的输出：
     <messages>
     {% for message in messages %}
     <message>
@@ -123,20 +123,12 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
                         logger.error(f"Error reading chat history: {str(e)}")
             
             # 构建提示信息
-            prompt_text = ""
+            prompt_text = request.command
             if messages:
                 # 调用coding_prompt生成包含历史消息的提示
-                prompt_text = prompt_text + coding_prompt.prompt(messages, request)
-                logger.info(prompt_text)
+                prompt_text = coding_prompt.prompt(messages, request.command)                                    
             
-            # 调用coding方法，如果有历史消息，传递包含历史的提示
-            if prompt_text:
-                logger.info(f"Using conversation history with {len(messages)} messages for coding command")
-                result = wrapper.coding_wapper(prompt_text)
-            else:
-                # 如果没有历史消息或获取失败，直接传递原始命令
-                logger.info("Using original command without conversation history")
-                result = wrapper.coding_wapper(prompt_text + request.command)            
+            result = wrapper.coding_wapper(prompt_text)            
             
             get_event_manager(event_file).write_completion(
                 EventContentCreator.create_completion(

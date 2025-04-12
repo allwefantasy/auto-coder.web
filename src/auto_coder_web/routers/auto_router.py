@@ -23,7 +23,7 @@ cancel_thread_pool = ThreadPoolExecutor(max_workers=5)
 
 class AutoCommandRequest(BaseModel):
     command: str
-    include_conversation_history: bool = False
+    include_conversation_history: bool = True
     buildin_conversation_history: bool = False
 
 class EventPollRequest(BaseModel):
@@ -64,7 +64,7 @@ def ensure_task_dir(project_path: str) -> str:
 @byzerllm.prompt()
 def coding_prompt(messages: List[Dict[str, Any]], query: str):
     '''
-    下面是我们已经产生的一个消息列表,其中 USER_RESPONSE 表示用户的输入，RESULT 你的输出：
+    下面是我们已经产生的一个消息列表,其中 USER_RESPONSE 表示用户的输入，其他都是你的输出：
     <messages>
     {% for message in messages %}
     <message>
@@ -110,33 +110,38 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
                             current_session_name = session_data.get("session_name", "")
                     except Exception as e:                        
                         logger.error(f"Error reading current session: {str(e)}")
+                        logger.exception(e)
                 
                 # 获取历史消息
                 messages = []
                 if current_session_name:
                     chat_list_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "chat-lists", f"{current_session_name}.json")
+                    logger.info(f"loading chat history from {chat_list_file}")
                     if os.path.exists(chat_list_file):
                         try:
-                            with open(chat_list_file, 'r', encoding="utf-8") as f:
+                            with open(chat_list_file, 'r', encoding="utf-8") as f:                                
                                 chat_data = json.load(f)
                                 # 从聊天历史中提取消息
-                                for msg in chat_data.get("messages", []):
-                                    # 只保留用户和中间结果信息
-                                    if msg.get("type","") not in ["USER_RESPONSE","RESULT"]:
-                                        continue     
-
-                                    if msg.get("contentType","") in ["token_stat"]:
-                                        continue                            
+                                for msg in chat_data.get("messages", []):                                    
+                                    # if msg.get("metadata",{}).get("stream_out_type","") == "/agent/edit":
+                                    #     messages.append(msg)
+                                    #     continue
                                     
+                                    # if msg.get("type","") not in ["USER_RESPONSE","RESULT","COMPLETION"]:
+                                    #     continue     
+                                    if msg.get("contentType","") in ["token_stat"]:
+                                        continue                                                                
                                     messages.append(msg)
-                        except Exception as e:                            
+                        except Exception as e:                                                       
                             logger.error(f"Error reading chat history: {str(e)}")
+                            logger.exception(e) 
                                                 
                 if messages:
                     # 调用coding_prompt生成包含历史消息的提示
                     prompt_text = coding_prompt.prompt(messages, request.command)                                    
 
-            # 调用auto_command_wrapper方法            
+            # 调用auto_command_wrapper方法  
+            logger.info(f"Executing auto command {file_id} with prompt: {prompt_text}")          
             result = wrapper.auto_command_wrapper(prompt_text, {
                 "event_file_id": file_id
             })            
