@@ -175,7 +175,7 @@ class ModelInfo(BaseModel):
     input_price: float
     output_price: float
     is_reasoning: bool
-
+    max_output_tokens: int = 8096
 class ProviderConfig(BaseModel):
     name: str
     base_url: str
@@ -238,28 +238,32 @@ def load_providers() -> List[Dict]:
                     "name": "gpt-4.1",
                     "input_price": 14,
                     "output_price": 42,
-                    "is_reasoning": False
+                    "is_reasoning": False,
+                    "max_output_tokens": 8096*3
                 },
                 {
                     "id": "openai/gpt-4.1-mini",
                     "name": "gpt-4.1-mini",
                     "input_price": 2.8,
                     "output_price": 11.2,
-                    "is_reasoning": False
+                    "is_reasoning": False,
+                    "max_output_tokens": 8096*3
                 },
                 {
                     "id": "openai/gpt-4.1-nano",
                     "name": "gpt-4.1-nano",
                     "input_price": 0.7,
                     "output_price": 2.8,
-                    "is_reasoning": False
+                    "is_reasoning": False,
+                    "max_output_tokens": 8096*3
                 },
                 {
                     "id": "google/gemini-2.5-pro-preview-03-25",
                     "name": "gemini-2.5-pro-preview-03-25",
                     "input_price": 0.0,
                     "output_price": 0.0,
-                    "is_reasoning": False
+                    "is_reasoning": False,
+                    "max_output_tokens": 8096*2
                 }
             ]
         },        

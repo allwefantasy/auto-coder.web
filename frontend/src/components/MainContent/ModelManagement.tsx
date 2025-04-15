@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Select, Switch, Modal, Table, message, Popconfirm, Spin, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, QuestionCircleOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
 import eventBus, { EVENTS } from '../../services/eventBus'; // Import eventBus
 import '../../styles/custom_antd.css';
@@ -14,6 +14,7 @@ interface Model {
   model_type: string;
   base_url: string;
   api_key_path?: string;
+  api_key?: string;
   is_reasoning: boolean;
   input_price: number;
   output_price: number;
@@ -32,6 +33,7 @@ interface ProviderConfig {
     input_price: number;
     output_price: number;
     is_reasoning: boolean;
+    max_output_tokens: number;
   }[];
 }
 
@@ -232,6 +234,8 @@ const ModelManagement: React.FC = () => {
           input_price: modelConfig.input_price,
           output_price: modelConfig.output_price,
           is_reasoning: modelConfig.is_reasoning,
+          name: value, // 自动填充name字段与所选model_name一致
+          max_output_tokens: modelConfig.max_output_tokens || 8096, // 自动填充最大输出长度
         });
       }
     }
@@ -284,6 +288,12 @@ const ModelManagement: React.FC = () => {
       dataIndex: 'is_reasoning',
       key: 'is_reasoning',
       render: (isReasoning: boolean) => (isReasoning ? '✓' : '✗'),
+    },
+    {
+      title: getMessage('modelApiKeyConfigured') || 'API Key已配置',
+      dataIndex: 'api_key',
+      key: 'api_key_configured',
+      render: (apiKey: string | undefined) => (apiKey && apiKey.trim() !== '' ? '✓' : <span style={{ color: 'red' }}>✗</span>),
     },
     {
       title: getMessage('more'),
@@ -353,7 +363,7 @@ const ModelManagement: React.FC = () => {
         className="model-table dark-table"
         locale={{
           emptyText: <div className="text-gray-400 py-8">No data</div>
-        }}
+        }}        
       />
 
       <Modal
@@ -475,7 +485,11 @@ const ModelManagement: React.FC = () => {
             label={<span className="text-white">{getMessage('modelApiKey')}</span>}
             rules={[{ required: true, message: 'Please input API key' }]}
           >
-            <Input placeholder="Path to API key file (optional)" className="dark-input" />
+            <Input.Password 
+              placeholder="Path to API key file (optional)" 
+              className="dark-input"
+              iconRender={visible => visible ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+            />
           </Form.Item>
 
           <div className="grid grid-cols-2 gap-4">

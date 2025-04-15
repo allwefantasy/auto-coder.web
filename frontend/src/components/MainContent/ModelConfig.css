@@ -80,4 +80,13 @@
   .model-table .ant-table {
     font-size: 13px;
   }
+}
+
+/* 未配置API密钥的行样式 */
+.api-key-missing {
+  background-color: rgba(255, 0, 0, 0.2) !important; /* 半透明红色背景 */
+}
+
+.api-key-missing:hover {
+  background-color: rgba(255, 0, 0, 0.3) !important; /* 鼠标悬停时稍微加深颜色 */
 } 

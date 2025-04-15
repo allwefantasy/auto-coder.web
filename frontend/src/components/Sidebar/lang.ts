@@ -24,6 +24,10 @@ export const messages: { [key: string]: Message } = {
     en: "Settings",
     zh: "设置"
   },
+  modelApiKeyConfigured: {
+    en: "API Key Configured",
+    zh: "API Key已配置"
+  },
   ragToggle: {
     en: "RAG",
     zh: "RAG检索增强"
