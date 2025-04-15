@@ -28,7 +28,8 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     chat_model: '',
     generate_rerank_model: '',
     index_model: '',
-    index_filter_model: ''
+    index_filter_model: '',
+    commit_model: ''
   });
 
   // Fetch available models
@@ -122,6 +123,10 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
           updatedModels.index_filter_model = currentConfig.index_filter_model;
         }
         
+        if (currentConfig.commit_model) {
+          updatedModels.commit_model = currentConfig.commit_model;
+        }
+        
         setSelectedModels(updatedModels);
       } catch (error) {
         console.error('Error fetching current configuration:', error);
@@ -140,7 +145,8 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     availableKeys.forEach(key => {
       if ((key.key === 'model' || key.key === 'code_model' || 
           key.key === 'chat_model' || key.key === 'generate_rerank_model' ||
-          key.key === 'index_model' || key.key === 'index_filter_model') && 
+          key.key === 'index_model' || key.key === 'index_filter_model' ||
+          key.key === 'commit_model') && 
           !initialModels[key.key]) {
         initialModels[key.key] = (key as any).value || '';
       }
@@ -345,6 +351,21 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             }))}
           />
           <p className="model-config-description">{getMessage('indexFilterModelDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('commitModel')}</label>
+          <Select
+            {...selectProps}
+            allowClear
+            value={selectedModels.commit_model || undefined}
+            onChange={(value) => handleModelChange('commit_model', value || '')}
+            options={models.map(model => ({
+              value: model.name,              
+              label: model.name
+            }))}
+          />
+          <p className="model-config-description">{getMessage('commitModelDescription')}</p>
         </div>
       </div>
     </div>

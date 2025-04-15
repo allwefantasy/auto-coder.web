@@ -1761,7 +1761,14 @@ export const messages: { [key: string]: Message } = {
     en: "Send",
     zh: "发送"
   },
-  
+  commitModel: {
+    en: "Commit Model",
+    zh: "提交模型"
+  },
+  commitModelDescription: {
+    en: "Used for code commit message generation",
+    zh: "用于代码提交信息生成"
+  },
 };
 
 // 当前语言设置
