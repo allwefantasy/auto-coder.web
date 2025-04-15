@@ -234,17 +234,24 @@ def load_providers() -> List[Dict]:
                     "is_reasoning": False
                 },
                 {
-                    "id": "openrouter/quasar-alpha",
-                    "name": "quasar-alpha",
-                    "input_price": 0.0,
-                    "output_price": 0.0,
+                    "id": "openai/gpt-4.1",
+                    "name": "gpt-4.1",
+                    "input_price": 14,
+                    "output_price": 42,
                     "is_reasoning": False
                 },
                 {
-                    "id": "openrouter/optimus-alpha",
-                    "name": "optimus-alpha",
-                    "input_price": 0.0,
-                    "output_price": 0.0,
+                    "id": "openai/gpt-4.1-mini",
+                    "name": "gpt-4.1-mini",
+                    "input_price": 2.8,
+                    "output_price": 11.2,
+                    "is_reasoning": False
+                },
+                {
+                    "id": "openai/gpt-4.1-nano",
+                    "name": "gpt-4.1-nano",
+                    "input_price": 0.7,
+                    "output_price": 2.8,
                     "is_reasoning": False
                 },
                 {
