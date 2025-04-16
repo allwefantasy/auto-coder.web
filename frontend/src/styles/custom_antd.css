@@ -57,6 +57,20 @@
 }
 
 /* ============ Input 组件 ============ */
+
+.model-chat-input-dark::placeholder {
+  color: #e5e7eb !important;
+  opacity: 1;
+}
+
+.model-chat-input-dark:-ms-input-placeholder {
+  color: #e5e7eb !important;
+}
+
+.model-chat-input-dark::-ms-input-placeholder {
+  color: #e5e7eb !important;
+}
+
 .dark-input.ant-input,
 .dark-input.ant-input-affix-wrapper {
   background-color: var(--dark-bg-primary) !important;

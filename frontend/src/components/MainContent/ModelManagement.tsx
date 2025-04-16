@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Select, Switch, Modal, Table, message, Popconfirm, Spin, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, QuestionCircleOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, QuestionCircleOutlined, EyeOutlined, EyeInvisibleOutlined, MessageOutlined } from '@ant-design/icons';
+import ModelChatDialog from './ModelChatDialog';
 import { getMessage } from '../Sidebar/lang';
 import eventBus, { EVENTS } from '../../services/eventBus'; // Import eventBus
 import '../../styles/custom_antd.css';
@@ -38,6 +39,9 @@ interface ProviderConfig {
 }
 
 const ModelManagement: React.FC = () => {
+  // 对话测试弹窗相关状态
+  const [chatDialogVisible, setChatDialogVisible] = useState(false);
+  const [chatModel, setChatModel] = useState<Model | null>(null);
   const [form] = Form.useForm();
   const [models, setModels] = useState<Model[]>([]);
   const [providers, setProviders] = useState<ProviderConfig[]>([]);
@@ -307,6 +311,16 @@ const ModelManagement: React.FC = () => {
             title={getMessage('editModel')}
             className="dark-button"
           />
+          <Button
+            type="text"
+            icon={<MessageOutlined />}
+            onClick={() => {
+              setChatModel(record);
+              setChatDialogVisible(true);
+            }}
+            title={getMessage('dialogTest')}
+            className="dark-button"
+          />
           <Popconfirm
             title={getMessage('confirmDeleteModel')}
             onConfirm={() => handleDelete(record.name)}
@@ -542,7 +556,13 @@ const ModelManagement: React.FC = () => {
           </div>
         </Form>
       </Modal>
-    </div>
+    {/* 对话测试弹窗 */}
+    <ModelChatDialog
+      visible={chatDialogVisible}
+      onClose={() => setChatDialogVisible(false)}
+      model={chatModel}
+    />
+  </div>
   );
 };
 
