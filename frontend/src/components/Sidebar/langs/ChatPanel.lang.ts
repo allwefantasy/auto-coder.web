@@ -11,5 +11,13 @@ export const chatPanelMessages = {
   messageInputPlaceholder: {
     en: "Type your message...",
     zh: "输入您的消息..."
+  },
+  showMore: {
+    en: "Show More",
+    zh: "显示更多"
+  },
+  newConversation: {
+    en: "New Conversation", 
+    zh: "新建对话"
   }
 };
