@@ -1010,7 +1010,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       label: (
         <div className="flex items-center w-full group text-white font-medium">
           <PlusOutlined className="mr-1" style={{ fontSize: '12px' }} />
-          <span>新建对话</span>
+          <span>{getMessage('newChat')}</span>
         </div>
       ),
     },

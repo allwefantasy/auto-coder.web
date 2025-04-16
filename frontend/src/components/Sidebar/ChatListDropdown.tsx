@@ -35,14 +35,14 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
   const MAX_TOTAL_CHATS = 100;
   const handleDeleteChat = async (name: string) => {
     Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除对话 "${name}" 吗？此操作不可撤销。`,
-      okText: '删除',
+      title: getMessage('confirmDeleteTitle'),
+      content: getMessage('confirmDeleteContent', { name }),
+      okText: getMessage('deleteButton'),
       okType: 'danger',
-      cancelText: '取消',
+      cancelText: getMessage('cancelButton'),
       onOk: async () => {
         await deleteChatList(name);
-        AntdMessage.success('对话已删除');
+        AntdMessage.success(getMessage('chatDeleted'));
       },
     });
   };
@@ -66,7 +66,7 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
     if (e) e.stopPropagation();
     
     if (!newChatName.trim()) {
-      AntdMessage.error('对话名称不能为空');
+      AntdMessage.error(getMessage('chatNameEmpty'));
       return;
     }
 
@@ -76,20 +76,20 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
     }
 
     if (chatLists.includes(newChatName)) {
-      AntdMessage.error('已存在同名对话');
+      AntdMessage.error(getMessage('chatNameExists'));
       return;
     }
 
     const success = await renameChatList(oldName, newChatName);
     if (success) {
-      AntdMessage.success('对话已重命名');
+      AntdMessage.success(getMessage('chatRenamed'));
       // 如果当前选中的是被重命名的对话，更新当前选中的对话名称
       if (chatListName === oldName) {
         setChatListName(newChatName);
         await setCurrentSessionName(newChatName);
       }
     } else {
-      AntdMessage.error('重命名失败');
+      AntdMessage.error(getMessage('renameFailed'));
     }
     setEditingChat(null);
   };
@@ -108,7 +108,7 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
       label: (
         <div className="flex items-center w-full group text-white font-medium">
           <PlusOutlined className="mr-1" style={{ fontSize: '12px' }} />
-          <span>新建对话</span>
+          <span>{getMessage('newChat')}</span>
         </div>
       ),
     },
@@ -184,7 +184,7 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
         label: (
           <div className="flex items-center justify-center w-full text-gray-300 hover:text-white py-1 border-t border-gray-700 mt-1">
             <DownOutlined className="mr-1" style={{ fontSize: '10px' }} />
-            <span>显示更多 ({Math.min(chatLists.length - MAX_DEFAULT_CHATS, MAX_TOTAL_CHATS - MAX_DEFAULT_CHATS)})</span>
+            <span>{getMessage('showMore')} ({Math.min(chatLists.length - MAX_DEFAULT_CHATS, MAX_TOTAL_CHATS - MAX_DEFAULT_CHATS)})</span>
           </div>
         ),
       }
@@ -195,7 +195,7 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
         key: 'show-less',
         label: (
           <div className="flex items-center justify-center w-full text-gray-300 hover:text-white py-1 border-t border-gray-700 mt-1">
-            <span>收起</span>
+            <span>{getMessage('showLess')}</span>
           </div>
         ),
       }

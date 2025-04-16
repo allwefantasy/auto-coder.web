@@ -1,7 +1,7 @@
 import { providerManagementMessages } from './langs/ProviderManagement.lang';
 import { modelManagementMessages } from './langs/ModelManagement.lang';
 import { settingsPanelMessages } from './langs/SettingsPanel.lang';
-import { chatPanelMessages } from './langs/ChatPanel.lang';
+import { chatPanelMessages } from './ChatPanel.lang'; // Corrected path
 
 interface Message {
   en: string;
