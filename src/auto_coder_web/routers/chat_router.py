@@ -68,7 +68,7 @@ async def chat_command(request: ChatCommandRequest, project_path: str = Depends(
         try:
             # 创建AutoCoderRunnerWrapper实例，使用从应用上下文获取的项目路径
             wrapper = AutoCoderRunnerWrapper(project_path)
-            wrapper.configure_wrapper(f"event_file:{event_file}")
+            wrapper.configure_wrapper(f"event_file:{event_file}")            
 
             # 调用chat方法
             result = wrapper.chat_wrapper(request.command)            
@@ -306,7 +306,8 @@ async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(ge
         def cancel_in_thread():
             try:
                 # 设置全局取消标志
-                global_cancel.set_cancel(request.event_file_id)
+                global_cancel.set()
+                global_cancel.set(token=event_file)
                 
                 # 获取事件管理器
                 event_manager = get_event_manager(event_file)

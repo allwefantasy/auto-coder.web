@@ -20,6 +20,15 @@ def init_project(project_path: str):
         f.write("\n/actions/")
         f.write("\n/output.txt")
 
+
+    # 生成 .autocoderignore 文件，采用 .gitignore 格式
+    autocoderignore_path = os.path.join(source_dir, ".autocoderignore")
+    autocoderignore_content = (
+        "target\n"        
+    )
+    with open(autocoderignore_path, "w", encoding="utf-8") as f:
+        f.write(autocoderignore_content)    
+
     print(
         f"""Successfully initialized auto-coder project in {os.path.abspath(project_path)}."""
     )

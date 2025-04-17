@@ -365,6 +365,7 @@ async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(ge
             try:
                 # 设置全局取消标志
                 global_cancel.set()
+                global_cancel.set(token=event_file)
                 
                 # 获取事件管理器
                 event_manager = get_event_manager(event_file)
