@@ -96,7 +96,8 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
         try:
             # 创建AutoCoderRunnerWrapper实例，使用从应用上下文获取的项目路径
             wrapper = AutoCoderRunnerWrapper(project_path)
-            wrapper.configure_wrapper(f"event_file:{event_file}")            
+            wrapper.configure_wrapper(f"event_file:{event_file}")   
+            global_cancel.register_token(event_file)         
             prompt_text = request.command
 
             if request.include_conversation_history:
@@ -374,10 +375,7 @@ async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(ge
     """
     # 定义在线程中执行的取消任务函数
     def cancel_task_thread(event_file_id: str, project_path: str):
-        try:
-            # 设置全局取消标志
-            global_cancel.set()
-            
+        try:                        
             # 获取事件文件路径和事件管理器
             event_file = get_event_file_path(file_id=event_file_id, project_path=project_path)
             global_cancel.set(token=event_file)

@@ -89,6 +89,7 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
             # 创建AutoCoderRunnerWrapper实例，使用从应用上下文获取的项目路径
             wrapper = AutoCoderRunnerWrapper(project_path)
             wrapper.configure_wrapper(f"event_file:{event_file}")
+            global_cancel.register_token(event_file)
 
             # 获取当前会话名称
             current_session_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "current-session.json")
@@ -362,9 +363,7 @@ async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(ge
         event_file = get_event_file_path(file_id=request.event_file_id, project_path=project_path)
         
         def cancel_in_thread():
-            try:
-                # 设置全局取消标志
-                global_cancel.set()
+            try:                                
                 global_cancel.set(token=event_file)
                 
                 # 获取事件管理器
