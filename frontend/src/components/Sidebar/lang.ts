@@ -2,6 +2,7 @@ import { providerManagementMessages } from './langs/ProviderManagement.lang';
 import { modelManagementMessages } from './langs/ModelManagement.lang';
 import { settingsPanelMessages } from './langs/SettingsPanel.lang';
 import { chatPanelMessages } from './ChatPanel.lang'; // Corrected path
+import { historyPanelMessages } from '../MainContent/HistoryPanel.lang';
 
 interface Message {
   en: string;
@@ -13,6 +14,7 @@ export const messages: { [key: string]: Message } = {
   ...modelManagementMessages,
   ...settingsPanelMessages,
   ...chatPanelMessages,
+  ...historyPanelMessages,
   languageSettings: {
     en: "Language",
     zh: "语言设置"
