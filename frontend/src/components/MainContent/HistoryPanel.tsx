@@ -7,6 +7,7 @@ import axios from 'axios';
 import { Editor, loader } from '@monaco-editor/react';
 import DiffViewer from './DiffViewer';
 import eventBus, { EVENTS } from '../../services/eventBus';
+import { getMessage } from '../Sidebar/lang'; // Import getMessage
 
 // 防止Monaco加载多次
 loader.config({
@@ -65,7 +66,8 @@ const HistoryPanel: React.FC = () => {
     
     const showDiff = (response: string | undefined) => {
         if (!response) {
-            message.info('该消息没有关联的代码变更');
+            // Replace string
+            message.info(getMessage('noAssociatedCodeChanges'));
             return;
         }
         setViewingCommitId(response);
@@ -78,11 +80,13 @@ const HistoryPanel: React.FC = () => {
             if (response.data.success) {
                 setQueries(response.data.queries);
             } else {
-                message.error(response.data.message || '加载历史记录失败');
+                // Replace string
+                message.error(response.data.message || getMessage('loadHistoryFailed'));
             }
         } catch (error) {
             console.error('Error loading queries:', error);
-            message.error('加载失败');
+            // Replace string
+            message.error(getMessage('loadFailed'));
         } finally {
             setLoading(false);
         }
@@ -131,11 +135,13 @@ const HistoryPanel: React.FC = () => {
             
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || '撤销提交失败');
+                // Replace string
+                throw new Error(errorData.detail || getMessage('revertCommitFailed'));
             }
             
             const result = await response.json();
-            setRevertSuccess(`成功撤销提交。新的撤销提交: ${result.new_commit_hash.substring(0, 7)}`);
+            // Replace string
+            setRevertSuccess(`${getMessage('revertCommitSuccessPrefix')}: ${result.new_commit_hash.substring(0, 7)}`);
             
             // 关闭确认对话框，但保留成功消息一段时间
             setRevertConfirmation(prev => ({ ...prev, show: false }));
@@ -181,10 +187,12 @@ const HistoryPanel: React.FC = () => {
                             setQueries([...queries].reverse());
                         }}
                     >
-                        {isAscending ? '升序' : '降序'}
+                        {/* Replace string */}
+                        {isAscending ? getMessage('ascending') : getMessage('descending')}
                     </Button>
+                    {/* Replace string */}
                     <Button type="primary" onClick={loadQueries} loading={loading}>
-                        刷新
+                        {getMessage('refresh')}
                     </Button>
                 </Space>
             </div>
@@ -193,12 +201,15 @@ const HistoryPanel: React.FC = () => {
             {revertConfirmation.show && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 border border-gray-700">
-                        <h3 className="text-xl font-semibold text-white mb-4">确认撤销提交</h3>
+                        {/* Replace string */}
+                        <h3 className="text-xl font-semibold text-white mb-4">{getMessage('confirmRevertTitle')}</h3>
+                        {/* Replace string */}
                         <p className="text-gray-300 mb-6">
-                            您确定要撤销此提交吗？这将创建一个新的提交来撤销更改。
+                            {getMessage('confirmRevertMessage')}
                         </p>
                         <div className="bg-gray-900 p-3 rounded mb-6 border border-gray-700">
-                            <p className="text-sm text-gray-400 mb-1">提交信息:</p>
+                            {/* Replace string */}
+                            <p className="text-sm text-gray-400 mb-1">{getMessage('commitInfoLabel')}:</p>
                             <p className="text-white">{revertConfirmation.commitMessage}</p>
                             <p className="text-xs text-gray-500 mt-2">Commit: {revertConfirmation.commitHash.substring(0, 7)}</p>
                         </div>
@@ -215,7 +226,8 @@ const HistoryPanel: React.FC = () => {
                                 onClick={cancelRevert}
                                 disabled={revertLoading}
                             >
-                                取消
+                                {/* Replace string */}
+                                {getMessage('cancel')}
                             </button>
                             <button
                                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors flex items-center"
@@ -228,10 +240,12 @@ const HistoryPanel: React.FC = () => {
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        处理中...
+                                        {/* Replace string */}
+                                        {getMessage('processing')}...
                                     </>
                                 ) : (
-                                    <>确认撤销</>
+                                    // Replace string
+                                    <>{getMessage('confirmRevertButton')}</>
                                 )}
                             </button>
                         </div>
@@ -283,7 +297,8 @@ const HistoryPanel: React.FC = () => {
                                                         setContextModalVisible(true);
                                                     }}
                                                 >
-                                                    查看上下文
+                                                    {/* Replace string */}
+                                                    {getMessage('viewContext')}
                                                 </Button>
                                             )}
                                             {item.response && !item.is_reverted && (
@@ -293,7 +308,8 @@ const HistoryPanel: React.FC = () => {
                                                     style={{ color: '#F87171' }}
                                                     onClick={(e) => handleRevertClick(e, item.response as string, item.query)}
                                                 >
-                                                    撤销
+                                                    {/* Replace string */}
+                                                    {getMessage('revert')}
                                                 </Button>
                                             )}
                                             <Button
@@ -303,7 +319,8 @@ const HistoryPanel: React.FC = () => {
                                                 onClick={() => showDiff(item.response)}
                                                 disabled={!item.response}
                                             >
-                                                查看变更
+                                                {/* Replace string */}
+                                                {getMessage('viewChanges')}
                                             </Button>
                                         </div>
                                     </div>
@@ -311,8 +328,9 @@ const HistoryPanel: React.FC = () => {
                             >
                                 <div className={`${item.is_reverted ? 'border border-red-500 rounded-lg p-2 relative' : ''}`}>
                                     {item.is_reverted && (
+                                        // Replace string
                                         <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                                            已撤销
+                                            {getMessage('reverted')}
                                         </div>
                                     )}
                                     <div style={{
@@ -337,7 +355,8 @@ const HistoryPanel: React.FC = () => {
 
                 {/* Context Files Modal */}
                 <Modal
-                    title="上下文文件列表"
+                    // Replace string
+                    title={getMessage('contextFileListTitle')}
                     open={contextModalVisible}
                     onCancel={() => setContextModalVisible(false)}
                     width={600}
