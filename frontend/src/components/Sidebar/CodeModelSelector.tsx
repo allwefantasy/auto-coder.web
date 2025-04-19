@@ -159,14 +159,14 @@ const CodeModelSelector: React.FC = () => {
   const isLoading = loadingModels || loadingConfig;
 
   return (
-    <div className="w-full mb-2">
+    <div className="w-full mb-0">
       <Tooltip title={getMessage('codeModelDescription') || "Select models for code generation"}>
-        <div className="flex items-center mb-1 cursor-default">
+        <div className="flex items-center cursor-default h-5">
           <CodeOutlined
-            className="mr-1 text-gray-400" // Adjust styling as needed
-            style={{ fontSize: '12px' }}
+            className="mr-1 text-gray-400 flex-shrink-0"
+            style={{ fontSize: '11px' }}
           />
-          <span className="text-xxs text-gray-400">
+          <span className="text-xxs text-gray-400 truncate max-w-[80%]">
             {getMessage('codeModel') || "Code Models"}
           </span>
         </div>
@@ -174,8 +174,8 @@ const CodeModelSelector: React.FC = () => {
       <Select
         mode="multiple"
         allowClear
-        loading={isLoading || isUpdating} // Show loading during fetch and update
-        className="custom-select w-full" // Use w-full for full width
+        loading={isLoading || isUpdating}
+        className="custom-select w-full"
         popupClassName="custom-select-dropdown"
         value={selectedCodeModels}
         onChange={handleModelChange}
@@ -188,21 +188,31 @@ const CodeModelSelector: React.FC = () => {
           option?.label.toLowerCase().includes(input.toLowerCase()) || false
         }
         tagRender={(props) => {
-          const { label, closable, onClose } = props;
+          const { label, closable, onClose, value } = props;          
+          
+          // Don't truncate the first selected item, but truncate others if needed
+          const displayLabel = (typeof label === 'string' && label.length > 10 ? 
+              `${label.substring(0, 20)}...` : 
+              label);
+          
           return (
             <Tag
-              color="blue" // Or another suitable color
+              color="blue"
               closable={closable}
               onClose={onClose}
-              style={{ marginRight: 3 }}
-              className="text-xs" // Adjust tag text size if needed
+              style={{ marginRight: 2, padding: '0 4px' }}
+              className="text-xs"
+              title={typeof label === 'string' ? label : undefined} // Show full name on hover
             >
-              {label}
+              {displayLabel}
             </Tag>
           );
         }}
         placeholder={getMessage('selectCodeModelsPlaceholder') || "Select code models..."}
-        style={{ width: '100%' }}
+        size="small"
+        dropdownMatchSelectWidth={false}
+        maxTagCount={1}
+        maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} more`}
       />
     </div>
   );
