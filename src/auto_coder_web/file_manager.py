@@ -40,10 +40,11 @@ def get_directory_tree(root_path: str, path: str = None, lazy: bool = False) -> 
 
     def should_ignore(name: str) -> bool:
         """Check if a file or directory should be ignored"""
-        # Ignore hidden files/directories
-        if name.startswith('.'):
+        allowed_hidden_files = {'.autocoderrules', '.gitignore', '.autocoderignore'}
+        # Ignore hidden files/directories, unless they are explicitly allowed
+        if name.startswith('.') and name not in allowed_hidden_files:
             return True
-        # Ignore exact matches and pattern matches
+        # Ignore exact matches and pattern matches from IGNORE_PATTERNS
         return name in IGNORE_PATTERNS
 
     def build_tree(current_path: str) -> List[Dict[str, Any]]:
@@ -146,11 +147,12 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
 
     def should_ignore(name: str) -> bool:
         """Check if a file or directory should be ignored"""
-        # Ignore hidden files/directories (starting with '.')
-        ## and name != ".auto-coder":
-        if name.startswith('.'):
+        allowed_hidden_files = {'.autocoderrules', '.gitignore', '.autocoderignore'}
+        # Ignore hidden files/directories (starting with '.'), unless explicitly allowed
+        ## and name != ".auto-coder": # Original comment kept for context if needed
+        if name.startswith('.') and name not in allowed_hidden_files:
             return True
-        # Ignore exact matches
+        # Ignore exact matches from IGNORE_PATTERNS
         return name in IGNORE_PATTERNS
 
     async def build_tree(current_path: str) -> List[Dict[str, Any]]:
