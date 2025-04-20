@@ -20,7 +20,7 @@ const CodeModelSelector: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false); // State for update operation
 
   // Fetch available models
-  const fetchModels = async () => {
+  const fetchModels = useCallback(async () => {
     setLoadingModels(true);
     try {
       const response = await fetch('/api/models');
@@ -35,7 +35,7 @@ const CodeModelSelector: React.FC = () => {
     } finally {
       setLoadingModels(false);
     }
-  };
+  }, []); // Added useCallback with empty dependency array
 
   // Fetch current configuration for code_model
   const fetchCurrentConfig = async () => {
@@ -146,6 +146,22 @@ const CodeModelSelector: React.FC = () => {
       unsubscribe();
     };
   }, []); // Empty dependency array: subscribe once on mount, unsubscribe on unmount
+
+  // Subscribe to model list updates from event bus
+  useEffect(() => {
+    const handleModelListUpdate = () => {
+      console.log("CodeModelSelector received model list update, fetching models...");
+      fetchModels();
+    };
+
+    const unsubscribe = eventBus.subscribe(EVENTS.CONFIG.MODEL_LIST_UPDATED, handleModelListUpdate);
+
+    // Cleanup subscription on component unmount
+    return () => {
+      unsubscribe();
+    };
+  }, [fetchModels]); // Dependency includes fetchModels to ensure it uses the latest version
+
 
   const handleModelChange = (value: string[]) => {
     const validValues = Array.isArray(value) ? value : []; // Ensure it's always an array

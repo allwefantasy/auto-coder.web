@@ -146,6 +146,7 @@ const ModelManagement: React.FC = () => {
       
       setModalVisible(false);
       fetchModels();
+      eventBus.publish(EVENTS.CONFIG.MODEL_LIST_UPDATED); // Notify model list updated
     } catch (error) {
       console.error('Error saving model:', error);
       message.error(getMessage('modelOperationFailed', { message: String(error) }));
@@ -165,6 +166,7 @@ const ModelManagement: React.FC = () => {
 
       message.success(getMessage('modelDeleteSuccess'));
       fetchModels();
+      eventBus.publish(EVENTS.CONFIG.MODEL_LIST_UPDATED); // Notify model list updated
     } catch (error) {
       console.error('Error deleting model:', error);
       message.error(getMessage('modelOperationFailed', { message: String(error) }));
