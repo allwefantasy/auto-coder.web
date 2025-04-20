@@ -1773,6 +1773,14 @@ export const messages: { [key: string]: Message } = {
     en: "Used for code commit message generation",
     zh: "用于代码提交信息生成"
   },
+  reviewChanges: {
+    en: "Review Changes",
+    zh: "审查更改"
+  },
+  reviewCommandSent: {
+    en: "Review command sent",
+    zh: "已发送审查命令"
+  },
 };
 
 // 当前语言设置

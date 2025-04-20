@@ -798,6 +798,44 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       handleRefreshFromMessage
     );
 
+    // 订阅NEW_MESSAGE事件，处理字符串类型的消息
+    const unsubscribeNewMessage = eventBus.subscribe(
+      EVENTS.CHAT.NEW_MESSAGE,
+      (message: any) => {
+        // 检查message是否为对象且具有action和commit_id属性
+        if (message && typeof message === 'object' && message.action && message.commit_id) {
+          console.log('ChatPanel: Received object message from eventBus:', message);
+          
+          const {action, commit_id, mode} = message;
+          
+          // 如果mode为chat，设置isWriteMode为false
+          if (mode === 'chat') {
+            setIsWriteMode(false);
+          }
+          
+          // 根据action构建不同的命令格式
+          let command = '';
+          if (action === 'review') {
+            command = `/review commit=${commit_id}`;
+          }
+          
+          // 将消息内容填入编辑器
+          if (command && editorRef.current) {
+            editorRef.current.setValue(command);
+            // 自动发送消息
+            setShouldSendMessage(true);
+          }
+        } else if (typeof message === 'string') {
+          // 向后兼容，仍然处理字符串类型的消息
+          console.log('ChatPanel: Received string message from eventBus:', message);
+          if (editorRef.current) {
+            editorRef.current.setValue(message);
+            setShouldSendMessage(true);
+          }
+        }
+      }
+    );
+
     // 订阅RAG启用状态变更事件
     const unsubscribeRagEnabled = eventBus.subscribe(
       EVENTS.RAG.ENABLED_CHANGED,
@@ -837,12 +875,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       codingService.removeAllListeners();
       agenticEditService.removeAllListeners();
       unsubscribeRefresh();
+      unsubscribeNewMessage();
       unsubscribeRagEnabled();
       unsubscribeNewChat();
       unsubscribeMCPsEnabled();
       unsubscribeAgentic();
     };
-  }, [handleRefreshFromMessage]); // 依赖项数组保持不变，因为 handleRefreshFromMessage 是用 useCallback 包裹的
+  }, [handleRefreshFromMessage]);
 
   // 新消息到达时自动滚动到底部
   // useEffect(() => {

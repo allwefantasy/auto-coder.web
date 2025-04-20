@@ -75,5 +75,25 @@ export const historyPanelMessages = {
   contextFileList: {
     en: "Context File List",
     zh: "上下文文件列表"
+  },
+  copyCommit: {
+    en: "Copy Commit",
+    zh: "复制Commit"
+  },
+  commitCopied: {
+    en: "Commit ID copied to clipboard",
+    zh: "Commit ID已复制到剪贴板"
+  },
+  copyFailed: {
+    en: "Failed to copy",
+    zh: "复制失败"
+  },
+  reviewChanges: {
+    en: "Review Changes",
+    zh: "审查更改"
+  },
+  reviewCommandSent: {
+    en: "Review command sent",
+    zh: "已发送审查命令"
   }
 };

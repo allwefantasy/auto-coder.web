@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Input, Button, List, Card, Typography, message, Modal, Space, Radio, Tag, Tabs } from 'antd';
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { MessageOutlined, CodeOutlined, SortAscendingOutlined, SortDescendingOutlined, FileOutlined, UndoOutlined } from '@ant-design/icons';
+import { MessageOutlined, CodeOutlined, SortAscendingOutlined, SortDescendingOutlined, FileOutlined, UndoOutlined, AuditOutlined, CopyOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { Editor, loader } from '@monaco-editor/react';
 import DiffViewer from './DiffViewer';
@@ -166,6 +166,32 @@ const HistoryPanel: React.FC = () => {
         setRevertError(null);
     };
 
+    // 添加处理审查更改的函数
+    const handleReviewChanges = (e: React.MouseEvent, commitId: string) => {
+        e.stopPropagation(); // 阻止事件冒泡
+        // 通过eventBus发送消息到ChatPanel
+        eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, {
+            "action": "review",
+            "commit_id": commitId,
+            "mode": "chat"
+        });
+        // 显示提示信息
+        message.success(getMessage('reviewCommandSent'));
+    };
+
+    // 添加复制commit ID的函数
+    const handleCopyCommit = (e: React.MouseEvent, commitId: string) => {
+        e.stopPropagation(); // 阻止事件冒泡
+        navigator.clipboard.writeText(commitId)
+            .then(() => {
+                message.success(getMessage('commitCopied'));
+            })
+            .catch(err => {
+                console.error('复制失败:', err);
+                message.error(getMessage('copyFailed'));
+            });
+    };
+
     // 如果当前正在查看变更，则显示DiffViewer组件
     if (viewingCommitId) {
         return (
@@ -302,15 +328,34 @@ const HistoryPanel: React.FC = () => {
                                                 </Button>
                                             )}
                                             {item.response && !item.is_reverted && (
-                                                <Button
-                                                    icon={<UndoOutlined />}
-                                                    type="link"
-                                                    style={{ color: '#F87171' }}
-                                                    onClick={(e) => handleRevertClick(e, item.response as string, item.query)}
-                                                >
-                                                    {/* Replace string */}
-                                                    {getMessage('revert')}
-                                                </Button>
+                                                <>
+                                                    <Button
+                                                        icon={<UndoOutlined />}
+                                                        type="link"
+                                                        style={{ color: '#F87171' }}
+                                                        onClick={(e) => handleRevertClick(e, item.response as string, item.query)}
+                                                    >
+                                                        {/* Replace string */}
+                                                        {getMessage('revert')}
+                                                    </Button>
+                                                    <Button
+                                                        icon={<AuditOutlined />}
+                                                        type="link"
+                                                        style={{ color: '#10B981' }}
+                                                        onClick={(e) => handleReviewChanges(e, item.response as string)}
+                                                    >
+                                                        {/* Replace string */}
+                                                        {getMessage('reviewChanges')}
+                                                    </Button>
+                                                    <Button
+                                                        icon={<CopyOutlined />}
+                                                        type="link"
+                                                        style={{ color: '#6366F1' }}
+                                                        onClick={(e) => handleCopyCommit(e, item.response as string)}
+                                                    >
+                                                        {getMessage('copyCommit')}
+                                                    </Button>
+                                                </>
                                             )}
                                             <Button
                                                 icon={<CodeOutlined />}
