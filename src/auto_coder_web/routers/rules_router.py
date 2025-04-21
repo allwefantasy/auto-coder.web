@@ -10,24 +10,17 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
 
-# AutoCoder imports - Adjust paths as necessary if running outside the original project structure
-# Assuming auto-coder library is installed or accessible in the Python path
-try:
-    from autocoder.common.rulefiles.autocoderrules_utils import get_rules, AutocoderRulesManager, RuleFile, parse_rule_file
-    from autocoder.agent.auto_learn import AutoLearn
-    from autocoder.common import SourceCode, SourceCodeList
-    from autocoder.auto_coder_runner import get_final_config, get_single_llm, get_memory
-    from autocoder.chat_auto_coder_lang import get_message, get_message_with_format
-    from autocoder.rag.token_counter import count_tokens
-    from autocoder.events.event_manager_singleton import get_event_manager, gengerate_event_file_path, get_event_file_path
-    from autocoder.events import event_content as EventContentCreator
-    from autocoder.events.event_types import EventType
-    from autocoder.common.global_cancel import global_cancel, CancelRequestedException
-    from autocoder.command_parser import CommandParser
-except ImportError as e:
-    # Handle import errors appropriately, maybe raise an exception or log a critical error
-    raise ImportError(f"Failed to import AutoCoder modules: {e}. Ensure auto-coder is installed and accessible.") from e
-
+from autocoder.common.rulefiles.autocoderrules_utils import get_rules, AutocoderRulesManager, RuleFile, parse_rule_file
+from autocoder.agent.auto_learn import AutoLearn
+from autocoder.common import SourceCode, SourceCodeList
+from autocoder.auto_coder_runner import get_final_config, get_single_llm, get_memory
+from autocoder.chat_auto_coder_lang import get_message, get_message_with_format
+from autocoder.rag.token_counter import count_tokens
+from autocoder.events.event_manager_singleton import get_event_manager, gengerate_event_file_path, get_event_file_path
+from autocoder.events import event_content as EventContentCreator
+from autocoder.events.event_types import EventType
+from autocoder.common.global_cancel import global_cancel, CancelRequestedException
+from autocoder.command_parser import CommandParser
 from loguru import logger
 
 router = APIRouter()
