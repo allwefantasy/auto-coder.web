@@ -341,7 +341,7 @@ async def analyze_rules(
 
         except CancelRequestedException:
             logger.info(f"Rule analysis task {file_id} cancelled.")
-             get_event_manager(event_file).write_error(
+            get_event_manager(event_file).write_error(
                  EventContentCreator.create_error(error_code="499", error_message="Task cancelled by user.").to_dict()
              )
         except Exception as e:
@@ -409,7 +409,7 @@ async def analyze_commit_rules(
 
         except CancelRequestedException:
             logger.info(f"Commit analysis task {file_id} cancelled.")
-             get_event_manager(event_file).write_error(
+            get_event_manager(event_file).write_error(
                  EventContentCreator.create_error(error_code="499", error_message="Task cancelled by user.").to_dict()
              )
         except Exception as e:
