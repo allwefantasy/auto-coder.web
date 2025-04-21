@@ -45,6 +45,7 @@ interface FileDiff {
 interface CurrentChangePanelProps {
   projectName: string;
   commits: Commit[]; // 直接接收完整的提交数组
+  onRefreshCommits: () => void; // 添加刷新回调函数
 }
 
 {/* <revert>@/Users/allwefantasy/projects/tiny_coding/src/tiny_coding/proxy.py 在 ProxyServer 类的 setup_routes 方法中添加 hello 接口。具体要求：
@@ -57,7 +58,7 @@ interface CurrentChangePanelProps {
 auto_coder_000000000108_chat_action.yml
 65391182d90d8e52f804343407223c75b714ea53 */}
 
-const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, commits = [] }) => {
+const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, commits = [], onRefreshCommits }) => {
   // 移除commits状态，直接使用props
   const [loading, setLoading] = useState(false); // 仅用于加载其他数据
   const [error, setError] = useState<string | null>(null);
@@ -591,6 +592,15 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
         <h2 className="text-lg font-medium text-white">
           { getMessage('currentChangeTitle') }
         </h2>
+        <button
+          onClick={onRefreshCommits}
+          className="p-1 text-gray-400 hover:text-white transition-colors"
+          title="刷新提交列表"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m-15.357-2a8.001 8.001 0 0115.357-2m0 0H15"></path>
+          </svg>
+        </button>
       </div>
 
       {commits.length === 0 ? (
