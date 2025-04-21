@@ -199,22 +199,6 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
     }
   };
 
-  // 刷新当前变更的提交列表
-  const handleRefreshCommits = useCallback(() => {
-    if (currentEventFileId) {
-      console.log('Refreshing current changes for event file ID:', currentEventFileId);
-      fetchCurrentChanges(currentEventFileId);
-    } else {
-      console.warn('Cannot refresh commits: No event file ID available');
-      // 可以考虑向用户显示一个提示
-      setMessages(prev => [...prev, {
-        id: 'info-' + Date.now(),
-        type: 'INFO',
-        content: '无法刷新变更列表：当前没有活动的任务。'
-      }]);
-    }
-  }, [currentEventFileId, fetchCurrentChanges]); // 确保 fetchCurrentChanges 在依赖项中
-
   // 单独处理任务完成事件，依赖于查询和事件文件ID
   useEffect(() => {
     // 先移除旧的监听器，避免重复监听
@@ -423,10 +407,9 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                 ) : activeTab === 'current-change' ? (
                   // Wrap CurrentChangePanel with Suspense
                   <Suspense fallback={<div className="p-4 text-gray-400 text-center">Loading Changes...</div>}>
-                    <CurrentChangePanel
-                      projectName={projectName}
-                      commits={currentCommits}
-                      onRefreshCommits={handleRefreshCommits} // 传递刷新回调
+                    <CurrentChangePanel 
+                      projectName={projectName} 
+                      commits={currentCommits} 
                     />
                   </Suspense>
                 ) : (
