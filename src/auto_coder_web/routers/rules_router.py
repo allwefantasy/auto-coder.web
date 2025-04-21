@@ -21,6 +21,8 @@ from autocoder.events import event_content as EventContentCreator
 from autocoder.events.event_types import EventType
 from autocoder.common.global_cancel import global_cancel, CancelRequestedException
 from autocoder.command_parser import CommandParser
+# Add import for AutoCoderRunnerWrapper
+from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
 from loguru import logger
 
 router = APIRouter()
@@ -326,19 +328,19 @@ async def analyze_rules(
 
             event_manager.write_event(EventContentCreator.create_message(f"Analyzing {len(sources.sources)} files with query: '{request_data.query or 'Default analysis'}'").to_dict())
 
-            # Execute the analysis prompt
-            result = auto_learn.analyze_modules.prompt(sources=sources, query=request_data.query)
-            event_manager.write_event(EventContentCreator.create_result(result).to_dict())
+            # Generate the analysis prompt text
+            prompt_text = auto_learn.analyze_modules.prompt(sources=sources, query=request_data.query)
 
-            # --- Completion ---
-            event_manager.write_completion(
-                EventContentCreator.create_completion(
-                    "200", "completed", result).to_dict()
-            )
-            logger.info(f"Rule analysis task {file_id} completed successfully.")
+            # --- Use AutoCoderRunnerWrapper to execute the generated prompt ---
+            wrapper = AutoCoderRunnerWrapper(project_path)
+            wrapper.configure_wrapper(f"event_file:{event_file}")
+            # The coding_wapper will handle writing events, including completion/error
+            result = wrapper.coding_wapper(prompt_text)
+            # The wrapper logs completion internally, no need for manual completion event here.
+            # logger.info(f"Rule analysis task {file_id} completed successfully.") # Logged by wrapper
 
         except CancelRequestedException:
-             logger.info(f"Rule analysis task {file_id} cancelled.")
+            logger.info(f"Rule analysis task {file_id} cancelled.")
              get_event_manager(event_file).write_error(
                  EventContentCreator.create_error(error_code="499", error_message="Task cancelled by user.").to_dict()
              )
@@ -390,21 +392,23 @@ async def analyze_commit_rules(
                  raise ValueError(f"Could not retrieve changes for commit ID: {request_data.commit_id}. Ensure it's a valid commit.")
 
             event_manager.write_event(EventContentCreator.create_message(f"Analyzing commit {request_data.commit_id} with query: '{request_data.query}'").to_dict())
-            result = auto_learn.analyze_commit.prompt(
+
+            # Generate the commit analysis prompt text
+            prompt_text = auto_learn.analyze_commit.prompt(
                 querie_with_urls_and_changes=changes,
                 new_query=request_data.query
             )
-            event_manager.write_event(EventContentCreator.create_result(result).to_dict())
 
-            # --- Completion ---
-            event_manager.write_completion(
-                EventContentCreator.create_completion(
-                    "200", "completed", result).to_dict()
-            )
-            logger.info(f"Commit analysis task {file_id} completed successfully.")
+            # --- Use AutoCoderRunnerWrapper to execute the generated prompt ---
+            wrapper = AutoCoderRunnerWrapper(project_path)
+            wrapper.configure_wrapper(f"event_file:{event_file}")
+            # The coding_wapper will handle writing events, including completion/error
+            result = wrapper.coding_wapper(prompt_text)
+            # The wrapper logs completion internally, no need for manual completion event here.
+            # logger.info(f"Commit analysis task {file_id} completed successfully.") # Logged by wrapper
 
         except CancelRequestedException:
-             logger.info(f"Commit analysis task {file_id} cancelled.")
+            logger.info(f"Commit analysis task {file_id} cancelled.")
              get_event_manager(event_file).write_error(
                  EventContentCreator.create_error(error_code="499", error_message="Task cancelled by user.").to_dict()
              )
