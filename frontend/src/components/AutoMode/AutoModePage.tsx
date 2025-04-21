@@ -410,7 +410,6 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                     <CurrentChangePanel 
                       projectName={projectName} 
                       commits={currentCommits} 
-                      onRefresh={() => currentEventFileId && fetchCurrentChanges(currentEventFileId)} // Pass refresh logic
                     />
                   </Suspense>
                 ) : (

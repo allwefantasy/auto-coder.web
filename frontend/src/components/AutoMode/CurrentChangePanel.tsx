@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Button } from '@nextui-org/react'; // Import Button
 import { getMessage } from '../Sidebar/lang';
 import { Editor, loader } from '@monaco-editor/react';
 
@@ -46,7 +45,6 @@ interface FileDiff {
 interface CurrentChangePanelProps {
   projectName: string;
   commits: Commit[]; // 直接接收完整的提交数组
-  onRefresh: () => void; // Add onRefresh prop
 }
 
 {/* <revert>@/Users/allwefantasy/projects/tiny_coding/src/tiny_coding/proxy.py 在 ProxyServer 类的 setup_routes 方法中添加 hello 接口。具体要求：
@@ -59,7 +57,7 @@ interface CurrentChangePanelProps {
 auto_coder_000000000108_chat_action.yml
 65391182d90d8e52f804343407223c75b714ea53 */}
 
-const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, commits = [], onRefresh }) => {
+const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, commits = [] }) => {
   // 移除commits状态，直接使用props
   const [loading, setLoading] = useState(false); // 仅用于加载其他数据
   const [error, setError] = useState<string | null>(null);
@@ -593,11 +591,6 @@ const CurrentChangePanel: React.FC<CurrentChangePanelProps> = ({ projectName, co
         <h2 className="text-lg font-medium text-white">
           { getMessage('currentChangeTitle') }
         </h2>
-        <Button size="sm" onClick={onRefresh} isIconOnly aria-label={getMessage('refreshCommits')}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-          </svg>
-        </Button>
       </div>
 
       {commits.length === 0 ? (
