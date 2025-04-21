@@ -130,10 +130,6 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
                     return <AgenticEditSearchFilesTool message={message} />;
                 }
 
-                if (content.tool_name === "ReplaceInFileTool") {
-                    return <AgenticEditReplaceInFileTool message={message} />;
-                }
-
                 if (content.tool_name === "UseMcpTool") {
                     return <AgenticEditUseMcpTool message={message} />;
                 }

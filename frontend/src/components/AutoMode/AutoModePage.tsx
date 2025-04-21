@@ -81,14 +81,14 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
       setActiveAskUserMessage(null);
     }
     
-    // 将用户响应添加到消息列表
-    setMessages(prev => [...prev, {
-      id: 'user-response-' + Date.now(),
-      type: 'USER_RESPONSE',
-      content: response,
-      isUser: true,
-      responseTo: eventId
-    }]);
+    // 将用户响应添加到消息列表(事件会自动显示，无需在前端添加)
+    // setMessages(prev => [...prev, {
+    //   id: 'user-response-' + Date.now(),
+    //   type: 'USER_RESPONSE',
+    //   content: response,
+    //   isUser: true,
+    //   responseTo: eventId
+    // }]);
     
     try {
       // 将响应发送回服务器

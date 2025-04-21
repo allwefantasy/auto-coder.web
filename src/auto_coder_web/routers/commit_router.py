@@ -328,7 +328,8 @@ async def get_file_diff(
                 return {
                     "before_content": "",  # 初始提交前没有内容
                     "after_content": file_content,
-                    "diff_content": repo.git.show(f"{commit.hexsha} -- {file_path}")
+                    "diff_content": repo.git.show(f"{commit.hexsha} -- {file_path}"),
+                    "file_status": "added"
                 }
             else:
                 raise HTTPException(status_code=404, detail=f"File {file_path} not found in commit {commit_hash}")
@@ -336,51 +337,61 @@ async def get_file_diff(
         # 获取父提交
         parent = commit.parents[0]
         
-        # 检查文件是否存在于当前提交
-        file_in_commit = False
-        try:
-            after_content = repo.git.show(f"{commit.hexsha}:{file_path}")
-            file_in_commit = True
-        except git.GitCommandError:
-            after_content = ""  # 文件在当前提交中不存在（可能被删除）
+        # 获取提交的差异索引
+        diff_index = parent.diff(commit)
         
-        # 检查文件是否存在于父提交
-        file_in_parent = False
-        try:
-            before_content = repo.git.show(f"{parent.hexsha}:{file_path}")
-            file_in_parent = True
-        except git.GitCommandError:
-            before_content = ""  # 文件在父提交中不存在（新增文件）
+        # 初始化变量
+        before_content = ""
+        after_content = ""
+        diff_content = ""
+        file_status = "unknown"
+        found_file = False
         
-        # 获取文件差异
-        try:
-            diff_content = repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", "--", file_path)
-        except git.GitCommandError:
-            # 如果无法直接获取差异，可能是重命名或其他特殊情况
-            diff_content = ""
-            
-            # 尝试查找可能的重命名
-            diff_index = parent.diff(commit)
-            for diff_item in diff_index:
-                if diff_item.renamed:
-                    if diff_item.b_path == file_path:  # 重命名后的路径匹配
+        # 查找匹配的文件差异
+        for diff_item in diff_index:
+            # 检查文件路径是否匹配当前或重命名后的文件
+            if diff_item.a_path == file_path or diff_item.b_path == file_path:
+                found_file = True
+                # 根据diff_item确定文件状态
+                file_status = get_file_status_from_diff(diff_item)
+                
+                # 根据文件状态获取内容
+                if file_status == "added":
+                    # 新增文件
+                    after_content = repo.git.show(f"{commit.hexsha}:{file_path}")
+                    diff_content = repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", "--", file_path)
+                elif file_status == "deleted":
+                    # 删除文件
+                    before_content = repo.git.show(f"{parent.hexsha}:{file_path}")
+                    diff_content = repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", "--", file_path)
+                elif file_status == "renamed":
+                    # 重命名文件
+                    if diff_item.a_path == file_path:
+                        # 查询的是原文件名
                         before_content = repo.git.show(f"{parent.hexsha}:{diff_item.a_path}")
-                        diff_content = repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", "--", diff_item.a_path, file_path)
-                        break
-                    elif diff_item.a_path == file_path:  # 重命名前的路径匹配
                         after_content = repo.git.show(f"{commit.hexsha}:{diff_item.b_path}")
-                        diff_content = repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", "--", file_path, diff_item.b_path)
-                        break
+                    else:
+                        # 查询的是新文件名
+                        before_content = repo.git.show(f"{parent.hexsha}:{diff_item.a_path}")
+                        after_content = repo.git.show(f"{commit.hexsha}:{diff_item.b_path}")
+                    diff_content = repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", "--", diff_item.a_path, diff_item.b_path)
+                else:
+                    # 修改文件
+                    before_content = repo.git.show(f"{parent.hexsha}:{file_path}")
+                    after_content = repo.git.show(f"{commit.hexsha}:{file_path}")
+                    diff_content = repo.git.diff(f"{parent.hexsha}..{commit.hexsha}", "--", file_path)
+                
+                break
         
-        # 检查我们是否找到了内容
-        if not file_in_commit and not file_in_parent:
+        # 如果没有找到匹配的文件
+        if not found_file:
             raise HTTPException(status_code=404, detail=f"File {file_path} not found in commit {commit_hash} or its parent")
         
         return {
             "before_content": before_content,
             "after_content": after_content,
             "diff_content": diff_content,
-            "file_status": "added" if not file_in_parent else "deleted" if not file_in_commit else "modified"
+            "file_status": file_status
         }
         
     except HTTPException:
@@ -391,6 +402,28 @@ async def get_file_diff(
             status_code=500, 
             detail=f"Failed to get file diff: {str(e)}"
         )
+
+
+def get_file_status_from_diff(diff_item) -> str:
+    """
+    根据Git diff对象确定文件变更类型
+    
+    Args:
+        diff_item: Git diff对象
+        
+    Returns:
+        文件状态: added(新增), deleted(删除), renamed(重命名), copied(复制) 或 modified(修改)
+    """
+    if diff_item.new_file:
+        return "added"
+    elif diff_item.deleted_file:
+        return "deleted"
+    elif diff_item.renamed:
+        return "renamed"
+    elif diff_item.copied:
+        return "copied"
+    else:
+        return "modified"
 
 
 @router.get("/api/current-changes")
