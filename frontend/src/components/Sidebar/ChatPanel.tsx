@@ -969,10 +969,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   // 处理停止生成的函数
   const handleStopGeneration = async () => {
     try {
-      // 根据当前模式使用适当的服务来取消任务
+      // 根据当前模式和子模式使用适当的服务来取消任务
       if (isWriteMode) {
-        await codingService.cancelTask();
+        if (enableAgenticMode) {
+          console.log('ChatPanel: Stopping agentic edit task');
+          await agenticEditService.cancelTask();
+        } else {
+          console.log('ChatPanel: Stopping coding task');
+          await codingService.cancelTask();
+        }
       } else {
+        console.log('ChatPanel: Stopping chat task');
         await chatService.cancelTask();
       }
 

@@ -450,6 +450,39 @@ class AgenticEditService extends EventEmitter {
       throw error;
     }
   }
+
+  async cancelTask(): Promise<void> {
+    if (!this.eventFileId) {
+      console.warn('No event file ID available to cancel task.');
+      return;
+    }
+
+    console.log(`AgenticEditService: Cancelling task with event_file_id: ${this.eventFileId}`);
+
+    try {
+      const response = await fetch('/api/auto-command/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ event_file_id: this.eventFileId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log(`AgenticEditService: Task cancellation request sent for event_file_id: ${this.eventFileId}`);
+      // Close the event stream after sending the cancel request
+      this.closeEventStream();
+
+    } catch (error) {
+      console.error('Error cancelling agentic edit task:', error);
+      // Optionally re-throw or handle the error appropriately
+      // Don't close the stream here if the request failed, maybe retry?
+      // For now, we log the error and proceed.
+    }
+  }
 }
 
 // Export a singleton instance
