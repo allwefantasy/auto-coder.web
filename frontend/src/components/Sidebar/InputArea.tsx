@@ -492,7 +492,9 @@ const InputArea: React.FC<InputAreaProps> = ({
                       { value: 'rule', label: 'Rule' },
                     ]}
                     style={{ width: 80 }}
-                    className="text-xs"
+                    className={`text-xs ${
+                      isWriteMode ? 'text-red-500 font-bold' : isRuleMode ? 'text-yellow-500 font-bold' : ''
+                    }`}
                     popupMatchSelectWidth={false}
                   />
                 </Tooltip>
