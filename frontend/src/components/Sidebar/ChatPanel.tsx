@@ -35,6 +35,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   // Step By Step 模式标记
   const [enableAgenticMode, setEnableAgenticMode] = React.useState<boolean>(false);
+  // Rule 模式标记
+  const [isRuleMode, setIsRuleMode] = useState<boolean>(false);
 
   const showNewChatModal = () => {
     // 清空当前对话内容
@@ -1287,6 +1289,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               setShouldSendMessage={setShouldSendMessage}
               isWriteMode={isWriteMode}
               setIsWriteMode={setIsWriteMode}
+              isRuleMode={isRuleMode}
+              setIsRuleMode={setIsRuleMode}
               handleRevert={handleRevert}
               handleSendMessage={handleSendMessage}
               handleStopGeneration={handleStopGeneration}

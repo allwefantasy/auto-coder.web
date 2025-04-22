@@ -23,6 +23,8 @@ interface InputAreaProps {
   setShouldSendMessage: (value: boolean) => void;
   isWriteMode: boolean;
   setIsWriteMode: (value: boolean) => void;
+  isRuleMode: boolean;
+  setIsRuleMode: (value: boolean) => void;
   handleRevert: () => void;
   handleSendMessage: () => void;
   handleStopGeneration: () => void;
@@ -42,6 +44,8 @@ const InputArea: React.FC<InputAreaProps> = ({
   setShouldSendMessage,
   isWriteMode,
   setIsWriteMode,
+  isRuleMode,
+  setIsRuleMode,
   handleRevert,
   handleSendMessage,
   handleStopGeneration,
@@ -138,8 +142,21 @@ const InputArea: React.FC<InputAreaProps> = ({
   }, [toggleFullscreen]);
 
   const toggleWriteMode = useCallback(() => {
-    setIsWriteMode(!isWriteMode);
-  }, [setIsWriteMode, isWriteMode]);
+    // 按照Chat -> Write -> Rule -> Chat的顺序循环切换
+    if (!isWriteMode && !isRuleMode) {
+      // 当前是Chat模式，切换到Write模式
+      setIsWriteMode(true);
+      setIsRuleMode(false);
+    } else if (isWriteMode && !isRuleMode) {
+      // 当前是Write模式，切换到Rule模式
+      setIsWriteMode(false);
+      setIsRuleMode(true);
+    } else {
+      // 当前是Rule模式，切换到Chat模式
+      setIsWriteMode(false);
+      setIsRuleMode(false);
+    }
+  }, [isWriteMode, isRuleMode, setIsWriteMode, setIsRuleMode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -457,13 +474,26 @@ const InputArea: React.FC<InputAreaProps> = ({
               <div className="flex items-center space-x-0.5">
                 <span className="text-[9px] font-medium text-gray-400">Mode:</span>
                 <Tooltip title={`Switch between Chat and Write mode (${navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)`}>
-                  <Switch
+                  <Select
                     size="small"
-                    checked={isWriteMode}
-                    onChange={setIsWriteMode}
-                    checkedChildren="Write"
-                    unCheckedChildren="Chat"
-                    className="bg-gray-700 hover:bg-gray-600"
+                    value={isRuleMode ? "rule" : (isWriteMode ? "write" : "chat")}
+                    onChange={(value) => {
+                      if (value === "rule") {
+                        setIsRuleMode(true);
+                        setIsWriteMode(false);
+                      } else {
+                        setIsRuleMode(false);
+                        setIsWriteMode(value === "write");
+                      }
+                    }}
+                    options={[
+                      { value: 'chat', label: 'Chat' },
+                      { value: 'write', label: 'Write' },
+                      { value: 'rule', label: 'Rule' },
+                    ]}
+                    style={{ width: 80 }}
+                    className="text-xs"
+                    popupMatchSelectWidth={false}
                   />
                 </Tooltip>
                 <kbd className="px-0.5 py-0 ml-1 text-[8px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">

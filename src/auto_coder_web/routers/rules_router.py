@@ -73,6 +73,10 @@ class UserResponseRequest(BaseModel):
 class CancelTaskRequest(BaseModel):
     event_file_id: str
 
+# 添加新的响应模型用于返回prompt
+class PromptResponse(BaseModel):
+    prompt: str
+
 # --- Dependencies ---
 
 async def get_project_path(request: Request) -> str:
@@ -599,3 +603,86 @@ async def cancel_rule_task(request: CancelTaskRequest, project_path: str = Depen
 # @router.post("/api/rules/save-history")
 # @router.get("/api/rules/history")
 # @router.get("/api/rules/task/{task_id}")
+
+@router.post("/api/rules/context/prompt", response_model=PromptResponse)
+async def get_context_prompt(
+    request_data: RuleAnalyzeRequest,
+    project_path: str = Depends(get_project_path)
+):
+    """
+    生成并返回基于当前文件和规则的分析提示，不执行分析任务
+    """
+    logger.info(f"生成分析提示，项目路径: {project_path}")
+    
+    try:
+        # 获取配置和LLM
+        args = get_final_config()
+        llm = get_single_llm(args.model, product_mode=args.product_mode)
+        auto_learn = AutoLearn(llm=llm, args=args, project_root=project_path)
+        
+        # 获取内存中的文件
+        memory = get_memory(project_path)
+        files = memory.get("current_files", {}).get("files", [])
+        
+        if not files:
+            raise HTTPException(status_code=400, detail="没有找到活跃的文件，请指定文件或使用其他机制")
+            
+        sources = SourceCodeList([])
+        for file in files:
+            file_abs_path = os.path.join(project_path, file) if not os.path.isabs(file) else file
+            if not os.path.exists(file_abs_path):
+                logger.warning(f"文件未找到: {file_abs_path}, 跳过")
+                continue
+            try:
+                with open(file_abs_path, "r", encoding="utf-8") as f:
+                    source_code = f.read()
+                    sources.sources.append(SourceCode(module_name=file, source_code=source_code))
+            except Exception as e:
+                logger.error(f"读取文件 {file_abs_path} 错误: {e}")
+                continue
+                
+        if not sources.sources:
+            raise HTTPException(status_code=400, detail="没有有效的源文件可以分析")
+            
+        # 生成分析提示文本
+        prompt_text = auto_learn.analyze_modules.prompt(sources=sources, query=request_data.query)
+        
+        return PromptResponse(prompt=prompt_text)
+        
+    except Exception as e:
+        logger.exception(f"生成分析提示时出错: {e}")
+        raise HTTPException(status_code=500, detail=f"生成提示失败: {str(e)}")
+
+@router.post("/api/rules/commit/prompt", response_model=PromptResponse)
+async def get_commit_prompt(
+    request_data: RuleCommitRequest,
+    project_path: str = Depends(get_project_path)
+):
+    """
+    生成并返回基于特定git提交的分析提示，不执行分析任务
+    """
+    logger.info(f"生成提交分析提示，提交ID: {request_data.commit_id}，项目路径: {project_path}")
+    
+    try:
+        # 获取配置和LLM
+        args = get_final_config()
+        llm = get_single_llm(args.model, product_mode=args.product_mode)
+        auto_learn = AutoLearn(llm=llm, args=args, project_root=project_path)
+        
+        # 获取提交变更
+        changes, _ = auto_learn.get_commit_changes(request_data.commit_id)
+        
+        if not changes:
+            raise HTTPException(status_code=400, detail=f"无法获取提交ID的变更: {request_data.commit_id}。请确保这是一个有效的提交。")
+            
+        # 生成提交分析提示文本
+        prompt_text = auto_learn.analyze_commit.prompt(
+            querie_with_urls_and_changes=changes,
+            new_query=request_data.query
+        )
+        
+        return PromptResponse(prompt=prompt_text)
+        
+    except Exception as e:
+        logger.exception(f"生成提交分析提示时出错: {e}")
+        raise HTTPException(status_code=500, detail=f"生成提示失败: {str(e)}")
