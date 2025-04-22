@@ -84,15 +84,17 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
                                 const match = /language-(\w+)/.exec(className || '');
                                 const inline = !match;
                                 return !inline ? (
-                                    <SyntaxHighlighter
-                                        language={match ? match[1] : ''}
-                                        style={vscDarkPlus}
-                                        PreTag="div"
-                                        wrapLines={true}
-                                        wrapLongLines={true}
-                                    >
-                                        {String(children).replace(/\n$/, '')}
-                                    </SyntaxHighlighter>
+                                    children && String(children).trim() ? (
+                                        <SyntaxHighlighter
+                                            language={match ? match[1] : ''}
+                                            style={vscDarkPlus}
+                                            PreTag="div"
+                                            wrapLines={true}
+                                            wrapLongLines={true}
+                                        >
+                                            {String(children).replace(/\n$/, '')}
+                                        </SyntaxHighlighter>
+                                    ) : null
                                 ) : (
                                     <code className={className} {...props}>
                                         {children}
@@ -112,7 +114,7 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
                             )
                         }}
                     >
-                        {message.content}
+                        {message.content || ''}
                     </ReactMarkdown>
                 </div>
             )}
