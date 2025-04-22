@@ -203,8 +203,6 @@
   font-size: 85%;
   background-color: rgba(55, 65, 81, 0.4);
   color: #e5e7eb;
-  display: inline; /* 确保行内显示，不换行 */
-  white-space: normal; /* 允许正常换行，不强制保持一行 */
 }
 
 /* GitHub风格的Markdown其他元素样式 */
