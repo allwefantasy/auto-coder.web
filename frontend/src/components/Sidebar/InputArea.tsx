@@ -491,19 +491,8 @@ const InputArea: React.FC<InputAreaProps> = ({
                       { value: 'write', label: 'Write' },
                       { value: 'rule', label: 'Rule' },
                     ]}
-                    style={{
-                      width: 80,
-                      color: isRuleMode
-                        ? '#eab308' // yellow-400
-                        : (isWriteMode ? '#ef4444' : undefined) // red-500
-                    }}
-                    className={`text-xs ${
-                      isWriteMode
-                        ? 'text-red-500'
-                        : isRuleMode
-                          ? 'text-yellow-400'
-                          : ''
-                    }`}
+                    style={{ width: 80 }}
+                    className="text-xs"
                     popupMatchSelectWidth={false}
                   />
                 </Tooltip>
