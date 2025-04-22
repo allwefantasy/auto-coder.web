@@ -903,24 +903,59 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       console.log('Chat list saved before sending new message:', chatListName);
     }
 
+    // 添加用户消息
     const messageId = addUserMessage(trimmedText);
     editorRef.current?.setValue("");
     setSendLoading(true);
     updateMessageStatus(messageId, 'sent');
 
     try {
+      // 处理Rule模式
+      let processedText = trimmedText;
+      if (isRuleMode) {
+        console.log('ChatPanel: Rule mode enabled, accessing context prompt');
+        try {
+          const response = await fetch('/api/rules/context/prompt', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query: trimmedText
+            }),
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to get rule context prompt: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          if (data.prompt) {
+            processedText = data.prompt;
+            console.log('ChatPanel: Received prompt from rules API');
+            
+            // 添加一条系统消息，说明使用了Rule模式
+            addBotMessage("已使用Rule模式分析当前上下文并生成提示。");
+          }
+        } catch (error) {
+          console.error('Error fetching rule context prompt:', error);
+          AntdMessage.error('获取Rule分析提示失败，将使用原始文本');
+          // 继续使用原始文本
+        }
+      }
+
       // 根据当前模式使用适当的服务
-      if (isWriteMode) {
+      if (isWriteMode || isRuleMode) {
         // 编码模式
         if (enableAgenticMode) {
           console.log('ChatPanel: Step By Step enabled, using agenticEditService');
-          const result = await agenticEditService.executeCommand(trimmedText, true);
+          const result = await agenticEditService.executeCommand(processedText, true);
           console.log('ChatPanel: Received result from agenticEditService:', result);
           setRequestId(result.event_file_id);
           setLocalRequestId(result.event_file_id);
         } else {
           console.log('ChatPanel: Sending message to codingService');
-          const result = await codingService.executeCommand(`${trimmedText}`);
+          const result = await codingService.executeCommand(`${processedText}`);
           console.log('ChatPanel: Received result from codingService:', result);
           setRequestId(result.event_file_id);
           setLocalRequestId(result.event_file_id);
@@ -930,7 +965,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         // 聊天模式
         console.log('ChatPanel: Sending message to chatService');
 
-        let commandText = trimmedText;
+        let commandText = processedText;
 
         // 检查是否同时启用了 RAG 和 MCP
         if (enableRag && enableMCPs && !isWriteMode) {
@@ -946,12 +981,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         // 检查是否启用了RAG（且未启用MCP）
         if (enableRag && !enableMCPs && !isWriteMode) {
           console.log('ChatPanel: RAG enabled, prepending /rag to message');
-          commandText = `/rag ${trimmedText}`;
+          commandText = `/rag ${processedText}`;
         }
         // 检查是否启用了MCP（且未启用RAG）
         else if (enableMCPs && !enableRag && !isWriteMode) {
           console.log('ChatPanel: MCPs enabled, prepending /mcp to message');
-          commandText = `/mcp ${trimmedText}`;
+          commandText = `/mcp ${processedText}`;
         }
         const result = await chatService.executeCommand(commandText);
         console.log('ChatPanel: Received result from chatService:', result);

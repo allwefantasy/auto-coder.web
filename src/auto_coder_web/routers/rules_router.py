@@ -292,13 +292,13 @@ async def analyze_rules(
             # --- Analysis Logic ---
             args = get_final_config() # Gets config potentially influenced by project settings
             llm = get_single_llm(args.model, product_mode=args.product_mode)
-            auto_learn = AutoLearn(llm=llm, args=args, project_root=project_path) # Pass project_path
+            auto_learn = AutoLearn(llm=llm, args=args) # Pass project_path
 
             # TODO: Determine how to get 'current_files' in the web context.
             # This might need state management or explicit file list in request.
             # Using a placeholder or assuming indexer provides files for now.
             # Let's try fetching from memory first, might be empty in web context.
-            memory = get_memory(project_path) # Get memory specific to project
+            memory = get_memory() # Get memory specific to project
             files = memory.get("current_files", {}).get("files", [])
 
             if not files:
@@ -387,7 +387,7 @@ async def analyze_commit_rules(
             args = get_final_config()
             llm = get_single_llm(args.model, product_mode=args.product_mode)
             # Ensure AutoLearn uses the correct project path context
-            auto_learn = AutoLearn(llm=llm, args=args, project_root=project_path)
+            auto_learn = AutoLearn(llm=llm, args=args)
 
             event_manager.write_event(EventContentCreator.create_message(f"Fetching changes for commit: {request_data.commit_id}").to_dict())
             changes, _ = auto_learn.get_commit_changes(request_data.commit_id)
@@ -618,10 +618,10 @@ async def get_context_prompt(
         # 获取配置和LLM
         args = get_final_config()
         llm = get_single_llm(args.model, product_mode=args.product_mode)
-        auto_learn = AutoLearn(llm=llm, args=args, project_root=project_path)
+        auto_learn = AutoLearn(llm=llm, args=args)
         
         # 获取内存中的文件
-        memory = get_memory(project_path)
+        memory = get_memory()
         files = memory.get("current_files", {}).get("files", [])
         
         if not files:
@@ -667,7 +667,7 @@ async def get_commit_prompt(
         # 获取配置和LLM
         args = get_final_config()
         llm = get_single_llm(args.model, product_mode=args.product_mode)
-        auto_learn = AutoLearn(llm=llm, args=args, project_root=project_path)
+        auto_learn = AutoLearn(llm=llm, args=args)
         
         # 获取提交变更
         changes, _ = auto_learn.get_commit_changes(request_data.commit_id)
