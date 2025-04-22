@@ -31,6 +31,8 @@ interface InputAreaProps {
   sendLoading: boolean;
   isFullScreen: boolean;
   showFileGroupSelect: boolean;
+  soundEnabled: boolean;
+  setSoundEnabled: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const InputArea: React.FC<InputAreaProps> = ({
@@ -52,7 +54,9 @@ const InputArea: React.FC<InputAreaProps> = ({
   sendLoading,
   setConfig,
   isFullScreen,
-  showFileGroupSelect
+  showFileGroupSelect,
+  soundEnabled,
+  setSoundEnabled
 }) => {  
   const [showConfig, setShowConfig] = useState<boolean>(true);
   const [config, setLocalConfig] = useState<ConfigState>({
@@ -422,12 +426,27 @@ const InputArea: React.FC<InputAreaProps> = ({
                   <span className="mr-1 text-red-500 text-xs">✗</span>
                 </Tooltip>
               )}
-              <Switch
-                size="small"
-                checked={showConfig}
-                onChange={setShowConfig}
-                className="ml-0.5"
-              />
+              <Tooltip title={soundEnabled ? "关闭提示音" : "开启提示音"}>
+                <button
+                  onClick={() => {                    
+                    setSoundEnabled(!soundEnabled)
+                  }}
+                  className="ml-0.5 p-0.5 rounded-md transition-all duration-200 text-gray-400 hover:text-gray-300"
+                >
+                  {soundEnabled ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a9 9 0 010 12M8.464 8.464a5 5 0 010 7.072" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5L6 9H2v6h4l5 4V5z" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5L6 9H2v6h4l5 4V5z" />
+                      <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" strokeWidth="2" />
+                      <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  )}
+                </button>
+              </Tooltip>
             </div>           
           </div>
          

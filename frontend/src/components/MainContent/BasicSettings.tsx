@@ -21,6 +21,7 @@ interface BasicSettingsState {
   enable_agentic_filter: boolean;
   skip_build_index: boolean; // Added skip_build_index
   skip_filter_index: boolean; // Added skip_filter_index
+  enable_agentic_edit: boolean; // Added enable_agentic_edit
 }
 
 const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingChange }) => {

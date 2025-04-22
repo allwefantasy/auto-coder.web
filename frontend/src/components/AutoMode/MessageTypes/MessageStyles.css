@@ -20,6 +20,7 @@
 
 .message-title-text {
   font-weight: 600;
+  font-size: 0.6rem;
 }
 
 .message-toggle-button {
@@ -99,9 +100,9 @@
 
 /* Markdown内容容器 */
 .markdown-content {
-  padding: 16px;
+  padding: 4px;
   color: #e5e7eb;
-  line-height: 1.6;
+  line-height: 1.4;
   font-size: 14px;
 }
 
@@ -111,7 +112,7 @@
 
 /* GitHub风格的Markdown表格样式 */
 .markdown-table-container {
-  margin: 16px 0;
+  margin: 4px 0;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -128,7 +129,7 @@
 }
 
 .markdown-th {
-  padding: 8px 16px;
+  padding: 4px 8px;
   text-align: left;
   font-weight: 600;
   background-color: rgba(45, 55, 72, 0.6);
@@ -137,7 +138,7 @@
 }
 
 .markdown-td {
-  padding: 8px 16px;
+  padding: 4px 8px;
   border: 1px solid rgba(75, 85, 99, 0.3);
   color: #e5e7eb;
   background-color: rgba(31, 41, 55, 0.3);
@@ -154,7 +155,7 @@
 /* GitHub风格的Markdown代码样式 */
 .markdown-code-wrapper {
   position: relative;
-  margin: 16px 0;
+  margin: 4px 0;
   border-radius: 6px;
   overflow: hidden;
   background-color: rgba(30, 41, 59, 0.8);
@@ -196,21 +197,22 @@
 }
 
 .markdown-inline-code {
-  padding: 0.2em 0.4em;
-  margin: 0 0.2em;
+  padding: 0.1em 0.3em;
+  margin: 0 0.1em;
   border-radius: 3px;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 85%;
-  background-color: rgba(55, 65, 81, 0.4);
-  color: #e5e7eb;
-  display: inline; /* 确保行内显示，不换行 */
-  white-space: normal; /* 允许正常换行，不强制保持一行 */
+  font-size: 126%;
+  background-color: rgba(81, 55, 75, 0.4);
+  color: #df520c;
+  display: inline !important;        /* 行内显示，避免单独换行 */
+  white-space: break-spaces !important; /* 保留空格并允许自动换行 */
+  word-break: break-word;            /* 长单词自动换行，防止溢出 */
 }
 
 /* GitHub风格的Markdown其他元素样式 */
 .markdown-paragraph {
-  margin: 16px 0;
-  line-height: 1.6;
+  margin: 4px 0;
+  line-height: 1.4;
 }
 
 .markdown-link {
@@ -225,8 +227,8 @@
 }
 
 .markdown-blockquote {
-  margin: 16px 0;
-  padding: 0 16px;
+  margin: 4px 0;
+  padding: 0 8px;
   color: #9ca3af;
   border-left: 4px solid #3b82f6;
   background-color: rgba(31, 41, 55, 0.3);
@@ -234,16 +236,16 @@
 }
 
 .markdown-blockquote > * {
-  margin: 16px 0;
+  margin: 4px 0;
 }
 
 .markdown-list {
-  margin: 16px 0;
-  padding-left: 24px;
+  margin: 4px 0;
+  padding-left: 16px;
 }
 
 .markdown-list-item {
-  margin: 8px 0;
+  margin: 2px 0;
 }
 
 .markdown-ul {
@@ -255,22 +257,22 @@
 }
 
 .markdown-heading {
-  margin-top: 24px;
-  margin-bottom: 16px;
+  margin-top: 16px;
+  margin-bottom: 8px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.2;
   color: #e5e7eb;
 }
 
 .markdown-h1 {
-  padding-bottom: 8px;
+  padding-bottom: 4px;
   font-size: 2em;
   border-bottom: 1px solid rgba(75, 85, 99, 0.3);
   margin-top: 0;
 }
 
 .markdown-h2 {
-  padding-bottom: 8px;
+  padding-bottom: 4px;
   font-size: 1.5em;
   border-bottom: 1px solid rgba(75, 85, 99, 0.3);
 }
@@ -295,7 +297,7 @@
 .markdown-hr {
   height: 0.25em;
   padding: 0;
-  margin: 24px 0;
+  margin: 12px 0;
   background-color: rgba(75, 85, 99, 0.3);
   border: 0;
   border-radius: 3px;
@@ -304,7 +306,7 @@
 .markdown-img {
   max-width: 100%;
   border-radius: 6px;
-  margin: 16px 0;
+  margin: 8px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -313,7 +315,7 @@ pre[class*="language-"] {
   position: relative;
   overflow: auto;
   margin: 0;
-  padding: 16px !important;
+  padding: 10px !important;
 }
 
 /* 添加语言标签 */
@@ -340,7 +342,7 @@ pre[class*="language-"]::before {
 /* 列表嵌套样式 */
 .markdown-ul .markdown-ul,
 .markdown-ol .markdown-ol {
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 /* 链接内容溢出保护 */
@@ -359,7 +361,7 @@ pre[class*="language-"]::before {
   
   .markdown-th,
   .markdown-td {
-    padding: 6px 12px;
+    padding: 3px 6px;
     font-size: 13px;
   }
 }

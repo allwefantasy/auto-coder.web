@@ -22,7 +22,7 @@ const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message }) => {
     
     return (
         <div className="message-font">
-            <div className="message-title">
+            <div className="message-title">                
                 {/* Collapse/expand button - only show when thinking is complete */}
                 {(!message.isStreaming) && (
                     <button 

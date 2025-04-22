@@ -228,7 +228,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
         }
 
         // For thinking or streaming content
-        if (message.isThinking || message.isStreaming) {
+        if (message.isThinking || message.isStreaming || message.type === "STREAM") {            
             return <ThinkingMessage message={message} />;
         }
 
@@ -237,11 +237,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             return <CommandSuggestionMessage message={message} />;
         }
 
-        if (message.contentType === 'markdown' && !message.metadata?.stream_out_type) {
+        if (message.contentType === 'markdown' && !message.metadata?.stream_out_type) {            
             return <MarkdownMessage message={message} />;
         }
 
-        // Default text content
+        // Default text content        
         return <MarkdownMessage message={message} />;
         // return <></>
     };
@@ -251,7 +251,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             {filterMessages(messages).map((message, index) => (
                 <div
                     key={message.id || index}
-                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4 w-full`}
+                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-2 w-full`}
                 >
                     {!message.isUser && (
                         <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center mr-2 flex-shrink-0">

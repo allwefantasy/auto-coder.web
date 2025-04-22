@@ -22,6 +22,7 @@ import { Message as AutoModeMessage } from '../../components/AutoMode/types';
 import MessageList, { MessageProps } from '../../components/AutoMode/MessageList';
 import eventBus from '../../services/eventBus';
 import { EVENTS } from '../../services/eventBus';
+import { playTaskComplete, playErrorSound } from '../../components/AutoMode/utils/SoundEffects';
 
 const ChatPanel: React.FC<ChatPanelProps> = ({
   setPreviewFiles,
@@ -37,6 +38,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [enableAgenticMode, setEnableAgenticMode] = React.useState<boolean>(false);
   // Rule 模式标记
   const [isRuleMode, setIsRuleMode] = useState<boolean>(false);
+  // 是否启用声音效果
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(false);
+  const soundEnabledRef = useRef<boolean>(false);
+  
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+  
 
   const showNewChatModal = () => {
     // 清空当前对话内容
@@ -165,6 +174,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const editorRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
+
+  const isWriteModeRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    isWriteModeRef.current = isWriteMode;
+  }, [isWriteMode]);
+
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [shouldSendMessage, setShouldSendMessage] = useState(false);
   const [pendingRevert, setPendingRevert] = useState<boolean>(false);
@@ -564,14 +580,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const handleTaskCompletion = useCallback(async (hasError: boolean) => {
     if (hasError) {
       AntdMessage.error('Task completed with errors');
+      if (soundEnabledRef.current) {
+        console.log("play error sound")
+        playErrorSound();
+      }
     } else {
-      AntdMessage.success('Task completed successfully');
+      AntdMessage.success('Task completed successfully');      
 
       // 使用 ref 中的最新值
-      const currentRequestId = localRequestIdRef.current;
-      console.log('ChatPanel: Task completed successfully');
-      console.log('ChatPanel: isWriteMode:', isWriteMode);
-      console.log('ChatPanel: currentRequestId:', currentRequestId);
+      const currentRequestId = localRequestIdRef.current;      
 
       // 在任务完成时设置标记，表示应该保存消息
       // 而不是直接保存，让 useEffect 在消息状态更新后处理保存
@@ -580,7 +597,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       await new Promise(resolve => setTimeout(resolve, 0));
 
       // 如果是编码模式且有eventFileId，获取变更文件并打开
-      if (isWriteMode && currentRequestId) {
+      if (isWriteModeRef.current && currentRequestId) {
         try {
           const response = await fetch(`/api/current-changes?event_file_id=${currentRequestId}`);
           if (!response.ok) {
@@ -614,8 +631,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
     setSendLoading(false);
     setRequestId("");
-    setLocalRequestId("");
-  }, [isWriteMode, setSelectedFiles, setActivePanel, setSendLoading, setRequestId, setLocalRequestId, setShouldSaveMessages]);
+    setLocalRequestId("");    
+    if (soundEnabledRef.current) {
+      console.log("play task completed")
+      playTaskComplete()
+    }
+  }, [isWriteMode, setSelectedFiles, setActivePanel, setSendLoading, setRequestId, setLocalRequestId, setShouldSaveMessages, soundEnabled]);
 
   const fetchFileGroups = useCallback(async () => {
     const now = Date.now();
@@ -1333,6 +1354,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               setConfig={setConfig}
               isFullScreen={isMaximized}
               showFileGroupSelect={true}
+              soundEnabled={soundEnabled}
+              setSoundEnabled={setSoundEnabled}
             />
           </div>
         </Layout.Content>

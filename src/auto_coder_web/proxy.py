@@ -75,6 +75,9 @@ class ProxyServer:
         self.app.mount(
             "/monaco-editor", StaticFiles(directory=os.path.join(self.resource_dir, "monaco-editor")), name="monaco-editor")
 
+        self.app.mount(
+            "/sounds", StaticFiles(directory=os.path.join(self.resource_dir, "sounds")), name="sounds")    
+
     def setup_routes(self):
         
         # Store project_path in app state for dependency injection
