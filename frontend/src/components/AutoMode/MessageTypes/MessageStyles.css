@@ -96,3 +96,32 @@
   word-break: break-word;
   hyphens: auto;
 }
+
+/* Markdown表格样式 */
+.markdown-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+  table-layout: auto;
+  border: 1px solid rgba(75, 85, 99, 0.2);
+}
+
+.markdown-th {
+  padding: 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  border: 1px solid rgba(75, 85, 99, 0.4);
+  background-color: rgba(55, 65, 81, 0.3);
+  color: #e5e7eb;
+}
+
+.markdown-td {
+  padding: 0.5rem;
+  border: 1px solid rgba(75, 85, 99, 0.2);
+  color: #d1d5db;
+}
+
+.overflow-auto {
+  overflow: auto;
+}

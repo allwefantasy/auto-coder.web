@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
 import './MessageStyles.css';
@@ -74,9 +75,10 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
             </div>
             
             {!isCollapsed && (
-                <div className="prose prose-invert prose-xs max-w-full break-words overflow-auto" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                <div className="prose prose-invert prose-xs max-w-full break-words overflow-auto" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>                    
                     <ReactMarkdown
                         className="text-gray-200 break-words"
+                        remarkPlugins={[remarkGfm]}
                         components={{
                             code: ({ className, children, ...props }: any) => {
                                 const match = /language-(\w+)/.exec(className || '');
@@ -96,7 +98,18 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
                                         {children}
                                     </code>
                                 );
-                            }
+                            },
+                            table: ({ node, ...props }) => (
+                                <div className="overflow-auto">
+                                    <table className="markdown-table" {...props} />
+                                </div>
+                            ),
+                            th: ({ node, ...props }) => (
+                                <th className="markdown-th" {...props} />
+                            ),
+                            td: ({ node, ...props }) => (
+                                <td className="markdown-td" {...props} />
+                            )
                         }}
                     >
                         {message.content}
