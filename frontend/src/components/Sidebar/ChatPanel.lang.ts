@@ -47,5 +47,9 @@ export const chatPanelMessages = {
   showLess: {
     en: "Show Less",
     zh: "收起"
+  },
+  ruleModePromptGenerated: {
+    en: "Used Rule mode to analyze the current context and generate a prompt.",
+    zh: "已使用Rule模式分析当前上下文并生成提示。"
   }
 };

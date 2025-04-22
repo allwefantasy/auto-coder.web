@@ -933,9 +933,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           if (data.prompt) {
             processedText = data.prompt;
             console.log('ChatPanel: Received prompt from rules API');
-            
+
             // 添加一条系统消息，说明使用了Rule模式
-            addBotMessage("已使用Rule模式分析当前上下文并生成提示。");
+            addBotMessage(getMessage('ruleModePromptGenerated'));
           }
         } catch (error) {
           console.error('Error fetching rule context prompt:', error);
