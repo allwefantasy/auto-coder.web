@@ -15,7 +15,7 @@ const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message }) => {
     
     // When thinking completes, automatically collapse the message
     useEffect(() => {
-        if (!message.isThinking && !message.isStreaming) {
+        if (!message.isStreaming) {
             setIsCollapsed(true);
         }
     }, [message.isThinking, message.isStreaming]);
@@ -24,7 +24,7 @@ const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message }) => {
         <div className="message-font">
             <div className="message-title">
                 {/* Collapse/expand button - only show when thinking is complete */}
-                {(!message.isThinking && !message.isStreaming) && (
+                {(!message.isStreaming) && (
                     <button 
                         onClick={() => setIsCollapsed(!isCollapsed)} 
                         className="message-toggle-button text-gray-400"

@@ -12,6 +12,14 @@ interface MarkdownMessageProps {
     message: MessageProps;
 }
 
+// 为了类型安全，定义代码块组件的props类型
+interface CodeProps {
+    node?: any;
+    inline?: boolean;
+    className?: string;
+    children?: React.ReactNode;
+}
+
 const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     
@@ -75,34 +83,55 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
             </div>
             
             {!isCollapsed && (
-                <div className="prose prose-invert prose-xs max-w-full break-words overflow-auto" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>                    
+                <div className="markdown-content prose prose-invert prose-xs max-w-full break-words overflow-auto scrollbar-thin scrollbar-thumb-gray-600" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>                    
                     <ReactMarkdown
-                        className="text-gray-200 break-words"
+                        className="markdown-body text-gray-200 break-words"
                         remarkPlugins={[remarkGfm]}
                         components={{
-                            code: ({ className, children, ...props }: any) => {
+                            code: ({ className, children, inline, ...props }: CodeProps) => {
                                 const match = /language-(\w+)/.exec(className || '');
-                                const inline = !match;
+                                const language = match ? match[1] : '';
+                                
                                 return !inline ? (
                                     children && String(children).trim() ? (
-                                        <SyntaxHighlighter
-                                            language={match ? match[1] : ''}
-                                            style={vscDarkPlus}
-                                            PreTag="div"
-                                            wrapLines={true}
-                                            wrapLongLines={true}
-                                        >
-                                            {String(children).replace(/\n$/, '')}
-                                        </SyntaxHighlighter>
+                                        <div className="markdown-code-wrapper">
+                                            <SyntaxHighlighter
+                                                language={language}
+                                                style={vscDarkPlus}
+                                                PreTag="div"
+                                                wrapLines={true}
+                                                wrapLongLines={true}
+                                                className="markdown-code-block"
+                                                customStyle={{
+                                                    margin: '0',
+                                                    borderRadius: '0 0 6px 6px',
+                                                    padding: '16px',
+                                                    backgroundColor: 'rgba(30, 41, 59, 0.8)'
+                                                }}
+                                                // 添加语言标签的数据属性
+                                                codeTagProps={{
+                                                    'data-language': language || 'text'
+                                                }}
+                                            >
+                                                {String(children).replace(/\n$/, '')}
+                                            </SyntaxHighlighter>
+                                            {/* 显示语言标签 */}
+                                            {language && (
+                                                <div className="code-language-tag">
+                                                    {language}
+                                                </div>
+                                            )}
+                                        </div>
                                     ) : null
                                 ) : (
-                                    <code className={className} {...props}>
+                                    <code className={`markdown-inline-code ${className || ''}`} {...props}>
                                         {children}
                                     </code>
                                 );
                             },
+                            // 使用CSS类名而不是内联自定义组件来定义表格样式
                             table: ({ node, ...props }) => (
-                                <div className="overflow-auto">
+                                <div className="markdown-table-container overflow-auto">
                                     <table className="markdown-table" {...props} />
                                 </div>
                             ),
@@ -111,6 +140,49 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
                             ),
                             td: ({ node, ...props }) => (
                                 <td className="markdown-td" {...props} />
+                            ),
+                            // 添加其他元素的样式
+                            p: ({ node, ...props }) => (
+                                <p className="markdown-paragraph" {...props} />
+                            ),
+                            a: ({ node, ...props }) => (
+                                <a className="markdown-link" target="_blank" rel="noopener noreferrer" {...props} />
+                            ),
+                            blockquote: ({ node, ...props }) => (
+                                <blockquote className="markdown-blockquote" {...props} />
+                            ),
+                            ul: ({ node, ...props }) => (
+                                <ul className="markdown-list markdown-ul" {...props} />
+                            ),
+                            ol: ({ node, ...props }) => (
+                                <ol className="markdown-list markdown-ol" {...props} />
+                            ),
+                            li: ({ node, ...props }) => (
+                                <li className="markdown-list-item" {...props} />
+                            ),
+                            h1: ({ node, ...props }) => (
+                                <h1 className="markdown-heading markdown-h1" {...props} />
+                            ),
+                            h2: ({ node, ...props }) => (
+                                <h2 className="markdown-heading markdown-h2" {...props} />
+                            ),
+                            h3: ({ node, ...props }) => (
+                                <h3 className="markdown-heading markdown-h3" {...props} />
+                            ),
+                            h4: ({ node, ...props }) => (
+                                <h4 className="markdown-heading markdown-h4" {...props} />
+                            ),
+                            h5: ({ node, ...props }) => (
+                                <h5 className="markdown-heading markdown-h5" {...props} />
+                            ),
+                            h6: ({ node, ...props }) => (
+                                <h6 className="markdown-heading markdown-h6" {...props} />
+                            ),
+                            hr: ({ node, ...props }) => (
+                                <hr className="markdown-hr" {...props} />
+                            ),
+                            img: ({ node, ...props }) => (
+                                <img className="markdown-img" {...props} />
                             )
                         }}
                     >

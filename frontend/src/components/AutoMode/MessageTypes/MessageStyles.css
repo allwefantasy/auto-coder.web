@@ -1,7 +1,7 @@
 /* 通用消息组件样式 */
 .message-font {
   font-size: 14px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
 .message-title {
@@ -66,13 +66,13 @@
 
 /* Custom scrollbar styles */
 .scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 
 .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
-  background-color: #4b5563;
-  border-radius: 2px;
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
 }
 
 .scrollbar-thumb-gray-600::-webkit-scrollbar-track {
@@ -97,31 +97,290 @@
   hyphens: auto;
 }
 
-/* Markdown表格样式 */
+/* Markdown内容容器 */
+.markdown-content {
+  padding: 16px;
+  color: #e5e7eb;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.markdown-body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* GitHub风格的Markdown表格样式 */
+.markdown-table-container {
+  margin: 16px 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
 .markdown-table {
   width: 100%;
   border-collapse: collapse;
-  margin: 1rem 0;
-  font-size: 0.875rem;
-  table-layout: auto;
-  border: 1px solid rgba(75, 85, 99, 0.2);
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+  border: 1px solid rgba(75, 85, 99, 0.4);
+  border-radius: 6px;
 }
 
 .markdown-th {
-  padding: 0.5rem;
+  padding: 8px 16px;
   text-align: left;
   font-weight: 600;
+  background-color: rgba(45, 55, 72, 0.6);
   border: 1px solid rgba(75, 85, 99, 0.4);
-  background-color: rgba(55, 65, 81, 0.3);
   color: #e5e7eb;
 }
 
 .markdown-td {
-  padding: 0.5rem;
-  border: 1px solid rgba(75, 85, 99, 0.2);
-  color: #d1d5db;
+  padding: 8px 16px;
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  color: #e5e7eb;
+  background-color: rgba(31, 41, 55, 0.3);
+}
+
+.markdown-table tr:nth-child(even) .markdown-td {
+  background-color: rgba(31, 41, 55, 0.5);
 }
 
 .overflow-auto {
   overflow: auto;
+}
+
+/* GitHub风格的Markdown代码样式 */
+.markdown-code-wrapper {
+  position: relative;
+  margin: 16px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: rgba(30, 41, 59, 0.8);
+}
+
+.markdown-code-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0ea5e9, #7c3aed);
+  z-index: 1;
+}
+
+/* 代码语言标签 */
+.code-language-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e5e7eb;
+  background-color: rgba(45, 55, 72, 0.8);
+  padding: 2px 8px;
+  border-radius: 0 0 0 4px;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.markdown-code-block {
+  margin: 0 !important;
+  border-radius: 0 0 6px 6px !important;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  tab-size: 4;
+}
+
+.markdown-inline-code {
+  padding: 0.2em 0.4em;
+  margin: 0 0.2em;
+  border-radius: 3px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 85%;
+  background-color: rgba(55, 65, 81, 0.4);
+  color: #e5e7eb;
+}
+
+/* GitHub风格的Markdown其他元素样式 */
+.markdown-paragraph {
+  margin: 16px 0;
+  line-height: 1.6;
+}
+
+.markdown-link {
+  color: #3b82f6;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.markdown-link:hover {
+  text-decoration: underline;
+  color: #60a5fa;
+}
+
+.markdown-blockquote {
+  margin: 16px 0;
+  padding: 0 16px;
+  color: #9ca3af;
+  border-left: 4px solid #3b82f6;
+  background-color: rgba(31, 41, 55, 0.3);
+  border-radius: 0 3px 3px 0;
+}
+
+.markdown-blockquote > * {
+  margin: 16px 0;
+}
+
+.markdown-list {
+  margin: 16px 0;
+  padding-left: 24px;
+}
+
+.markdown-list-item {
+  margin: 8px 0;
+}
+
+.markdown-ul {
+  list-style-type: disc;
+}
+
+.markdown-ol {
+  list-style-type: decimal;
+}
+
+.markdown-heading {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #e5e7eb;
+}
+
+.markdown-h1 {
+  padding-bottom: 8px;
+  font-size: 2em;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+  margin-top: 0;
+}
+
+.markdown-h2 {
+  padding-bottom: 8px;
+  font-size: 1.5em;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+.markdown-h3 {
+  font-size: 1.25em;
+}
+
+.markdown-h4 {
+  font-size: 1em;
+}
+
+.markdown-h5 {
+  font-size: 0.875em;
+}
+
+.markdown-h6 {
+  font-size: 0.85em;
+  color: #9ca3af;
+}
+
+.markdown-hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: rgba(75, 85, 99, 0.3);
+  border: 0;
+  border-radius: 3px;
+}
+
+.markdown-img {
+  max-width: 100%;
+  border-radius: 6px;
+  margin: 16px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 改进的代码高亮样式 */
+pre[class*="language-"] {
+  position: relative;
+  overflow: auto;
+  margin: 0;
+  padding: 16px !important;
+}
+
+/* 添加语言标签 */
+pre[class*="language-"]::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e5e7eb;
+  background-color: rgba(45, 55, 72, 0.8);
+  border-radius: 0 0 0 4px;
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+/* 暗色主题优化 */
+.dark {
+  color-scheme: dark;
+}
+
+/* 列表嵌套样式 */
+.markdown-ul .markdown-ul,
+.markdown-ol .markdown-ol {
+  margin: 4px 0;
+}
+
+/* 链接内容溢出保护 */
+.markdown-link {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* 表格样式 - 确保响应式 */
+@media (max-width: 640px) {
+  .markdown-table-container {
+    overflow-x: auto;
+  }
+  
+  .markdown-th,
+  .markdown-td {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+/* 高亮文本样式 */
+mark {
+  background-color: rgba(250, 204, 21, 0.2);
+  color: #fbbf24;
+  padding: 0 0.2em;
+  border-radius: 2px;
+}
+
+/* 复制按钮样式 */
+.message-copy-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.message-copy-button:hover {
+  background-color: rgba(59, 130, 246, 0.1);
 }
