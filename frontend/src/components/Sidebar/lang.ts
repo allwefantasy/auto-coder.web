@@ -3,6 +3,7 @@ import { modelManagementMessages } from './langs/ModelManagement.lang';
 import { settingsPanelMessages } from './langs/SettingsPanel.lang';
 import { chatPanelMessages } from './ChatPanel.lang'; // Corrected path
 import { historyPanelMessages } from '../MainContent/HistoryPanel.lang';
+import { codeEditorMessages } from '../Editor/CodeEditor.lang'; // Import code editor messages
 
 interface Message {
   en: string;
@@ -15,6 +16,7 @@ export const messages: { [key: string]: Message } = {
   ...settingsPanelMessages,
   ...chatPanelMessages,
   ...historyPanelMessages,
+  ...codeEditorMessages, // Merge code editor messages
   languageSettings: {
     en: "Language",
     zh: "语言设置"

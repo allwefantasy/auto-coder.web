@@ -7,6 +7,7 @@ import FileTree from './components/FileTree';
 import MonacoEditor from './components/MonacoEditor';
 import { FileMetadata } from '../../types/file_meta';
 import eventBus, { EVENTS } from '../../services/eventBus';
+import { getMessage } from '../Sidebar/lang'; // Import getMessage for i18n
 import './CodeEditor.css';
 
 interface CodeEditorProps {
@@ -174,10 +175,22 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
       });
   };
 
+  const handleCloseOtherTabs = (filePathToKeep: string) => {
+    setFileTabs(prev => prev.filter(tab => tab.key === filePathToKeep));
+    setSelectedFiles(prev => prev.filter(file => file.path === filePathToKeep));
+    // The active file should already be the one clicked, but ensure it stays active
+    if (activeFile !== filePathToKeep) {
+      setActiveFile(filePathToKeep);
+    }
+  };
+
   const renderContextMenu = (filePath: string, label: string) => (
     <Menu>
       <Menu.Item key="copyPath" onClick={() => handleCopyPath(filePath)}>
-        Copy Path
+        {getMessage('codeEditor.copyPath', 'Copy Path')}
+      </Menu.Item>
+      <Menu.Item key="closeOthers" onClick={() => handleCloseOtherTabs(filePath)}>
+        {getMessage('codeEditor.closeOtherTabs', 'Close Other Tabs')}
       </Menu.Item>
     </Menu>
   );
