@@ -14,6 +14,9 @@ import pathspec
 
 router = APIRouter()
 
+class CreateFileRequest(BaseModel):
+    content: str = ""
+
 DEFAULT_IGNORED_DIRS = ['.git', '.auto-coder', 'node_modules', '.mvn', '.idea', '__pycache__', '.venv', 'venv', 'dist', 'build', '.gradle']
 
 def load_ignore_spec(source_dir: str) -> Optional[pathspec.PathSpec]:
@@ -195,6 +198,69 @@ async def list_files_in_directory(
 
     return result
 
+
+@router.post("/api/file/{path:path}")
+async def create_file(
+    path: str,
+    request: Request,
+    project_path: str = Depends(get_project_path)
+):
+    """
+    Create a new file at the specified path with optional initial content.
+    """
+    try:
+        data = await request.json()
+        content = data.get("content", "")
+
+        full_path = os.path.join(project_path, path)
+        dir_path = os.path.dirname(full_path)
+
+        # Check if file already exists
+        if await aiofiles.os.path.exists(full_path):
+            raise HTTPException(status_code=409, detail=f"File already exists at {path}")
+
+        # Ensure the directory exists asynchronously
+        if not await aiofiles.os.path.exists(dir_path):
+            await aiofiles.os.makedirs(dir_path, exist_ok=True)
+        elif not await aiofiles.os.path.isdir(dir_path):
+            raise HTTPException(status_code=400, detail=f"Path conflict: {dir_path} exists but is not a directory.")
+
+        # Write the file content asynchronously
+        async with aiofiles.open(full_path, 'w', encoding='utf-8') as f:
+            await f.write(content)
+
+        return {"message": f"Successfully created {path}"}
+    except HTTPException as http_exc:  # Re-raise HTTP exceptions
+        raise http_exc
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/api/directory/{path:path}")
+async def create_directory(
+    path: str,
+    project_path: str = Depends(get_project_path)
+):
+    """
+    Create a new directory at the specified path.
+    """
+    try:
+        full_path = os.path.join(project_path, path)
+        
+        # Check if directory already exists
+        if await aiofiles.os.path.exists(full_path):
+            if await aiofiles.os.path.isdir(full_path):
+                return {"message": f"Directory already exists at {path}"}
+            else:
+                raise HTTPException(status_code=409, detail=f"A file already exists at {path}")
+        
+        # Create the directory and any necessary parent directories
+        await aiofiles.os.makedirs(full_path, exist_ok=True)
+        
+        return {"message": f"Successfully created directory {path}"}
+    except HTTPException as http_exc:  # Re-raise HTTP exceptions
+        raise http_exc
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/api/search-in-files")
 async def search_in_files(

@@ -175,3 +175,36 @@
   height: 100% !important;
   overflow: hidden !important;
 }
+
+/* VSCode dark theme for context menu (dropdown) */
+.vscode-dark-dropdown .ant-dropdown-menu {
+  background-color: #252526 !important;
+  border: 1px solid #3c3c3c !important;
+  box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32) !important;
+  padding: 4px 0 !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item {
+  color: #cccccc !important;
+  padding: 5px 12px !important;
+  font-size: 12px !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item:hover {
+  background-color: #04395e !important;
+  color: #ffffff !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item .anticon {
+  color: #cccccc !important;
+  margin-right: 8px !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item:hover .anticon {
+  color: #ffffff !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item-divider {
+  background-color: #3c3c3c !important;
+  margin: 4px 0 !important;
+}

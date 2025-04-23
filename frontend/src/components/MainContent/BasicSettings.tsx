@@ -179,13 +179,13 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
 
         {/* Skip Build Index Setting - Added */}
         <div className="model-config-item">
-          <Tooltip title={getMessage('skipBuildIndexTooltip') || 'If enabled, the system will not automatically build or update the code index.'}>
-            <label className="model-config-label">{getMessage('skipBuildIndex') || 'Skip Build Index'}</label>
+          <Tooltip title={getMessage('enableBuildIndexTooltip') || 'If enabled, the system will automatically build or update the code index.'}>
+            <label className="model-config-label">{getMessage('enableBuildIndexToggle') || 'Enable Build Index'}</label>
           </Tooltip>
           <div className="mt-1">
             <Select
-              value={settings.skip_build_index}
-              onChange={(value) => handleSettingChange('skip_build_index', value)}
+              value={!settings.skip_build_index}
+              onChange={(value) => handleSettingChange('skip_build_index', !value)}
               size="small"
               style={{ width: '100%' }}
               options={[
@@ -194,18 +194,18 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
               ]}
             />
           </div>
-          <p className="model-config-description">{getMessage('skipBuildIndexDescription')}</p>
+          <p className="model-config-description">{getMessage('enableBuildIndexDescription')}</p>
         </div>
 
-        {/* Skip Filter Index Setting - Added */}
+        {/* Enable Filter Index Setting */}
         <div className="model-config-item">
-          <Tooltip title={getMessage('skipFilterIndexTooltip') || 'If enabled, the system will skip filtering the index when processing queries.'}>
-            <label className="model-config-label">{getMessage('skipFilterIndexToggle') || 'Skip Filter Index'}</label>
+          <Tooltip title={getMessage('enableFilterIndexTooltip') || 'If enabled, the system will automatically filter the index when processing queries.'}>
+            <label className="model-config-label">{getMessage('enableFilterIndexToggle') || 'Enable Filter Index'}</label>
           </Tooltip>
           <div className="mt-1">
             <Select
-              value={settings.skip_filter_index}
-              onChange={(value) => handleSettingChange('skip_filter_index', value)}
+              value={!settings.skip_filter_index}
+              onChange={(value) => handleSettingChange('skip_filter_index', !value)}
               size="small"
               style={{ width: '100%' }}
               options={[
@@ -214,7 +214,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
               ]}
             />
           </div>
-          <p className="model-config-description">{getMessage('skipFilterIndexDescription')}</p>
+          <p className="model-config-description">{getMessage('enableFilterIndexDescription')}</p>
         </div>
 
         {/* Enable Agentic Filter - Moved here */}
@@ -250,6 +250,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
               ]}
             />
           </div>
+          <p className="model-config-description">{getMessage('enableAgenticEditDescription')}</p>
         </div>
 
         {/* Existing Settings */}

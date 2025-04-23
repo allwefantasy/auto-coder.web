@@ -66,17 +66,21 @@ export const messages: { [key: string]: Message } = {
     en: "Index",
     zh: "索引"
   },
-  skipBuildIndexToggle: {
-    en: "Skip Build Index",
-    zh: "跳过构建索引"
+  enableBuildIndexToggle: {
+    en: "Enable Build Index",
+    zh: "开启构建索引"
   },
-  skipFilterIndexToggle: {
-    en: "Skip Filter Index",
-    zh: "跳过过滤索引"
+  enableFilterIndexToggle: {
+    en: "Enable Filter Index",
+    zh: "开启过滤索引"
   },
-  skipFilterIndexDescription: {
-    en: "When enabled, system won't automatically filter files based on context. You'll need to manually add files using /add_files command.",
-    zh: "启用后，系统不会自动根据上下文过滤文件。你需要使用/add_files指令手动添加文件。"
+  enableFilterIndexTooltip: {
+    en: "Enable filtering index for better context-aware file selection",
+    zh: "开启过滤索引以获得更好的上下文感知文件选择"
+  },
+  enableFilterIndexDescription: {
+    en: "When enabled, system will automatically filter files based on context. You can still manually add files using /add_files command.",
+    zh: "启用后，系统会自动根据上下文过滤文件。你仍然可以使用/add_files指令手动添加文件。"
   },
   indexFilterLevelInput: {
     en: "Index Filter Level",
@@ -342,13 +346,13 @@ export const messages: { [key: string]: Message } = {
     en: "Skip Build Index",
     zh: "跳过构建索引"
   },
-  skipBuildIndexTooltip: {
-    en: "Skip building index for better performance",
-    zh: "跳过构建索引以提高性能"
+  enableBuildIndexTooltip: {
+    en: "Enable building index for better code understanding",
+    zh: "开启构建索引以便更好地理解代码"
   },
-  skipBuildIndexDescription: {
-    en: "Skip indexing means the system won't automatically build indexes, saving time",
-    zh: "跳过索引表示不会自动构建索引，从而节约时间"
+  enableBuildIndexDescription: {
+    en: "Enable indexing allows the system to automatically build and update indexes for better code understanding",
+    zh: "开启索引允许系统自动构建和更新索引，以便更好地理解代码"
   },
   projectTypeDescription: {
     en: "The file extensions list that auto-coder.web will focus on. Files with extensions not in the list will be ignored",
@@ -1699,6 +1703,10 @@ export const messages: { [key: string]: Message } = {
   enableAgenticEdit: {
     en: "Enable Agentic Edit",
     zh: "开启Agentic编辑"
+  },
+  enableAgenticEditDescription: {
+    en: "Agent will combine multiple non-intelligent tools to complete programming. If disabled, when you enable Agent, you will use /coding, /chat, etc. intelligent tools to complete programming.",
+    zh: "Agent将组合多个非智能工具来完成编程,如果关闭，当你开启Agent时，将采用 /coding, /chat 等智能工具来完成编程"
   },
   agenticEditToolResultReplaceInFileTool: {
     en: "auto-coder.web updated the file",

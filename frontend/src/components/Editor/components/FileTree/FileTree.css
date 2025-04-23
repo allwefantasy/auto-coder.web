@@ -239,3 +239,118 @@
   min-width: 100%;
   padding: 2px 0 !important;
 }
+
+/* VSCode dark theme for modals */
+.vscode-dark-modal .ant-modal-content {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333 !important;
+  box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32), 0 9px 28px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.vscode-dark-modal .ant-modal-header {
+  background-color: #252525 !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+.vscode-dark-modal .ant-modal-title {
+  color: #e0e0e0 !important;
+}
+
+.vscode-dark-modal .ant-modal-close {
+  color: #aaa !important;
+}
+
+.vscode-dark-modal .ant-modal-close:hover {
+  color: #fff !important;
+}
+
+.vscode-dark-modal .ant-modal-body {
+  color: #e0e0e0 !important;
+}
+
+.vscode-dark-modal .ant-form-item-label > label {
+  color: #e0e0e0 !important;
+}
+
+.vscode-dark-modal .ant-form-item-required::before {
+  color: #ff4d4f !important;
+}
+
+.vscode-dark-modal .ant-form-item-explain, .vscode-dark-modal .ant-form-item-extra {
+  color: #aaa !important;
+}
+
+.vscode-dark-modal .ant-input {
+  background-color: #2c2c2c !important;
+  border-color: #444 !important;
+  color: #e0e0e0 !important;
+}
+
+.vscode-dark-modal .ant-input:hover, .vscode-dark-modal .ant-input:focus {
+  border-color: #1890ff !important;
+}
+
+.vscode-dark-modal .ant-modal-footer {
+  border-top: 1px solid #333 !important;
+}
+
+.vscode-dark-modal .ant-btn {
+  background-color: #2c2c2c !important;
+  border-color: #444 !important;
+  color: #e0e0e0 !important;
+}
+
+.vscode-dark-modal .ant-btn:hover {
+  background-color: #3c3c3c !important;
+  border-color: #555 !important;
+}
+
+.vscode-dark-modal .ant-btn-primary {
+  background-color: #0e639c !important;
+  border-color: #0e639c !important;
+  color: #fff !important;
+}
+
+.vscode-dark-modal .ant-btn-primary:hover {
+  background-color: #1177bb !important;
+  border-color: #1177bb !important;
+}
+
+.vscode-dark-modal .ant-btn-primary[disabled], .vscode-dark-modal .ant-btn-primary[disabled]:hover {
+  background-color: #164b6e !important;
+  border-color: #164b6e !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* VSCode dark theme for context menu (dropdown) */
+.vscode-dark-dropdown .ant-dropdown-menu {
+  background-color: #252526 !important;
+  border: 1px solid #3c3c3c !important;
+  box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32) !important;
+  padding: 4px 0 !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item {
+  color: #cccccc !important;
+  padding: 5px 12px !important;
+  font-size: 12px !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item:hover {
+  background-color: #04395e !important;
+  color: #ffffff !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item .anticon {
+  color: #cccccc !important;
+  margin-right: 8px !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item:hover .anticon {
+  color: #ffffff !important;
+}
+
+.vscode-dark-dropdown .ant-dropdown-menu-item-divider {
+  background-color: #3c3c3c !important;
+  margin: 4px 0 !important;
+}

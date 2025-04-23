@@ -187,10 +187,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
   const renderContextMenu = (filePath: string, label: string) => (
     <Menu>
       <Menu.Item key="copyPath" onClick={() => handleCopyPath(filePath)}>
-        {getMessage('codeEditor.copyPath', 'Copy Path')}
+        {getMessage('codeEditor.copyPath')}
       </Menu.Item>
       <Menu.Item key="closeOthers" onClick={() => handleCloseOtherTabs(filePath)}>
-        {getMessage('codeEditor.closeOtherTabs', 'Close Other Tabs')}
+        {getMessage('codeEditor.closeOtherTabs')}
       </Menu.Item>
     </Menu>
   );
@@ -251,7 +251,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
                 <Tabs.TabPane
                   key={tab.key}
                   tab={
-                    <Dropdown overlay={renderContextMenu(tab.key, tab.label)} trigger={['contextMenu']}>
+                    <Dropdown overlay={renderContextMenu(tab.key, tab.label)} trigger={['contextMenu']} overlayClassName="vscode-dark-dropdown">
                       <span style={{ 
                         color: fileMeta?.modifiedBy === 'expert_chat_box' ? '#ff4d4f' : 'inherit',
                         display: 'inline-block' // Necessary for Dropdown trigger

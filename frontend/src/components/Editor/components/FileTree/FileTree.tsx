@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tree, Dropdown, Modal, message, Input, Tooltip, Empty } from 'antd';
+import { Tree, Dropdown, Modal, message, Input, Tooltip, Empty, Form } from 'antd';
 import { 
   SearchOutlined, 
   FolderOutlined, 
@@ -30,6 +30,12 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>('');
   const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
+  const [isNewFileModalVisible, setIsNewFileModalVisible] = useState<boolean>(false);
+  const [newFileName, setNewFileName] = useState<string>('');
+  const [newFileParentPath, setNewFileParentPath] = useState<string>('');
+  const [isNewDirModalVisible, setIsNewDirModalVisible] = useState<boolean>(false);
+  const [newDirName, setNewDirName] = useState<string>('');
+  const [newDirParentPath, setNewDirParentPath] = useState<string>('');
 
   useEffect(() => {
     setFilteredTreeData(treeData);
@@ -59,6 +65,66 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
   const handleRightClick = ({ event, node }: { event: React.MouseEvent; node: DataNode }) => {
     event.preventDefault();
     setContextMenuNode(node);
+  };
+  
+  const handleCreateNewFile = async () => {
+    if (!newFileName.trim()) return;
+    
+    // Determine the path for the new file
+    const fullPath = newFileParentPath 
+      ? `${newFileParentPath}/${newFileName}`.replace(/\/\//g, '/') 
+      : newFileName;
+    
+    try {
+      const response = await fetch(`/api/file/${fullPath}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: '' }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to create file');
+      }
+      
+      message.success(`Successfully created ${newFileName}`);
+      setIsNewFileModalVisible(false);
+      setNewFileName('');
+      onRefresh();
+    } catch (error) {
+      console.error('Error creating file:', error);
+      message.error(error instanceof Error ? error.message : 'Failed to create file');
+    }
+  };
+  
+  const handleCreateNewDirectory = async () => {
+    if (!newDirName.trim()) return;
+    
+    // Determine the path for the new directory
+    const fullPath = newDirParentPath 
+      ? `${newDirParentPath}/${newDirName}`.replace(/\/\//g, '/') 
+      : newDirName;
+    
+    try {
+      const response = await fetch(`/api/directory/${fullPath}`, {
+        method: 'POST',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to create directory');
+      }
+      
+      message.success(`Successfully created directory ${newDirName}`);
+      setIsNewDirModalVisible(false);
+      setNewDirName('');
+      onRefresh();
+    } catch (error) {
+      console.error('Error creating directory:', error);
+      message.error(error instanceof Error ? error.message : 'Failed to create directory');
+    }
   };
   
   // Helper function to get file extension
@@ -120,7 +186,33 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
     setFilteredTreeData(flattenedTree as DataNode[]);
   };
 
-  const menuItems: MenuProps['items'] = [
+  const getMenuItems = (): MenuProps['items'] => {
+    const items: MenuProps['items'] = [];
+    
+    // Only show "New File" and "New Directory" options for directories
+    if (contextMenuNode && isDirectory(contextMenuNode)) {
+      items.push({
+        key: 'new-file',
+        icon: <FileAddOutlined />,
+        label: 'New File',
+        onClick: () => {
+          setNewFileParentPath(contextMenuNode.key.toString());
+          setIsNewFileModalVisible(true);
+        },
+      });
+      
+      items.push({
+        key: 'new-directory',
+        icon: <FolderAddOutlined />,
+        label: 'New Directory',
+        onClick: () => {
+          setNewDirParentPath(contextMenuNode.key.toString());
+          setIsNewDirModalVisible(true);
+        },
+      });
+    }
+    
+    items.push(
     {
       key: 'info',
       icon: <InfoCircleOutlined />,
@@ -164,8 +256,10 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
           });
         }
       },
-    },
-  ];
+    });
+    
+    return items;
+  };
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
@@ -220,11 +314,91 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
 
   return (
     <div className="file-tree-container">
+      <Modal
+        title={newFileParentPath ? `Create New File in ${newFileParentPath}` : "Create New File in Root Directory"}
+        open={isNewFileModalVisible}
+        onOk={handleCreateNewFile}
+        onCancel={() => {
+          setIsNewFileModalVisible(false);
+          setNewFileName('');
+          setNewFileParentPath('');
+        }}
+        okButtonProps={{ disabled: !newFileName.trim() }}
+        className="vscode-dark-modal"
+      >
+        <Form layout="vertical">
+          <Form.Item
+            label="File Name"
+            required
+            help="Enter the file name with extension (e.g., example.js)"
+          >
+            <Input
+              value={newFileName}
+              onChange={(e) => setNewFileName(e.target.value)}
+              placeholder="Enter file name"
+              autoFocus
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+      
+      <Modal
+        title={newDirParentPath ? `Create New Directory in ${newDirParentPath}` : "Create New Directory in Root"}
+        open={isNewDirModalVisible}
+        onOk={handleCreateNewDirectory}
+        onCancel={() => {
+          setIsNewDirModalVisible(false);
+          setNewDirName('');
+          setNewDirParentPath('');
+        }}
+        okButtonProps={{ disabled: !newDirName.trim() }}
+        className="vscode-dark-modal"
+      >
+        <Form layout="vertical">
+          <Form.Item
+            label="Directory Name"
+            required
+            help="Enter the directory name"
+          >
+            <Input
+              value={newDirName}
+              onChange={(e) => setNewDirName(e.target.value)}
+              placeholder="Enter directory name"
+              autoFocus
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+      
       <div className="file-tree-header">
         <div className="file-tree-header-title">
           {projectName || 'Project Files'}
         </div>
         <div className="file-tree-actions">
+          <Tooltip title="New File">
+            <button
+              onClick={() => {
+                setNewFileParentPath('');
+                setIsNewFileModalVisible(true);
+              }}
+              className="action-button"
+              aria-label="Create new file"
+            >
+              <FileAddOutlined />
+            </button>
+          </Tooltip>
+          <Tooltip title="New Directory">
+            <button
+              onClick={() => {
+                setNewDirParentPath('');
+                setIsNewDirModalVisible(true);
+              }}
+              className="action-button"
+              aria-label="Create new directory"
+            >
+              <FolderAddOutlined />
+            </button>
+          </Tooltip>
           <Tooltip title="Refresh">
             <button
               onClick={handleRefresh}
@@ -275,7 +449,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
             </div>
           </div>
         ) : (
-          <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
+          <Dropdown menu={{ items: getMenuItems() }} trigger={['contextMenu']} overlayClassName="vscode-dark-dropdown">
             <div className="file-tree">
               <Tree
                 showIcon={false}

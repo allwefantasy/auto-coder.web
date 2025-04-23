@@ -1,6 +1,7 @@
 import os
 import glob
 import json
+import fnmatch
 from typing import List
 from pydantic import BaseModel
 from fastapi import APIRouter, Query, Request, Depends
@@ -14,12 +15,14 @@ from autocoder.index.symbols_utils import (
 
 from autocoder.auto_coder_runner import get_memory
 from autocoder.common.ignorefiles.ignore_file_utils import should_ignore
+from autocoder.common.directory_cache.cache import DirectoryCache, initialize_cache
 import json
 import asyncio
 import aiofiles
 import aiofiles.os
+import logging
 
-
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 class SymbolItem(BaseModel):
@@ -36,47 +39,56 @@ async def get_project_path(request: Request):
     """获取项目路径作为依赖"""
     return request.app.state.project_path    
 
-def find_files_in_project(patterns: List[str], project_path: str) -> List[str]:
+async def find_files_in_project(patterns: List[str], project_path: str) -> List[str]:
     memory = get_memory()
     active_file_list = memory["current_files"]["files"]
     project_root = project_path
-        
-
+    
+    # 确保目录缓存已初始化
+    try:
+        cache = DirectoryCache.get_instance(project_root)
+    except ValueError:
+        # 如果缓存未初始化，则初始化它
+        initialize_cache(project_root)
+        cache = DirectoryCache.get_instance()
+    
     # 如果没有提供有效模式，返回过滤后的活动文件列表
     if not patterns or (len(patterns) == 1 and patterns[0] == ""):
-        return [f for f in active_file_list if not should_ignore(f)]
+        # 使用缓存中的所有文件
+        all_files = await cache.query([])
+        # 合并活动文件列表和缓存文件
+        combined_files = set(all_files)
+        combined_files.update([f for f in active_file_list if not should_ignore(f)])
+        return list(combined_files)
 
     matched_files = set()  # 使用集合避免重复
-
+    
+    # 1. 首先从活动文件列表中匹配，这通常是最近编辑的文件
     for pattern in patterns:
-        # 1. 从活动文件列表中匹配
         for file_path in active_file_list:
-            if not should_ignore(file_path) and pattern in os.path.basename(file_path):
+            if not should_ignore(file_path) and pattern.lower() in os.path.basename(file_path).lower():
                 matched_files.add(file_path)
-        
-        # 2. 如果是通配符模式，使用glob
+    
+    # 2. 使用DirectoryCache进行高效查询
+    cache_patterns = []
+    for pattern in patterns:
+        # 处理通配符模式
         if "*" in pattern or "?" in pattern:
-            for file_path in glob.glob(pattern, recursive=True):
-                if os.path.isfile(file_path) and not should_ignore(file_path):
-                    matched_files.add(os.path.abspath(file_path))
-            continue
-        
-        # 3. 使用os.walk在文件系统中查找
-        for root, dirs, files in os.walk(project_root, followlinks=True):
-            # 过滤掉应该被忽略的目录，修改dirs列表（这会影响os.walk的遍历）
-            dirs[:] = [d for d in dirs if not should_ignore(os.path.join(root, d))]
-            
-            # 查找匹配文件
-            for file in files:
-                file_path = os.path.join(root, file)
-                
-                # 如果是通配符模式或文件名匹配模式
-                if pattern == '*' or pattern in file:
-                    # 检查文件是否应该被忽略
-                    if not should_ignore(file_path):
-                        matched_files.add(file_path)
-        
-        # 4. 如果pattern本身是文件路径
+            cache_patterns.append(pattern)
+        else:
+            # 对于非通配符模式，我们添加一个通配符以进行部分匹配
+            cache_patterns.append(f"*{pattern}*")
+    
+    # 执行缓存查询
+    if cache_patterns:
+        try:
+            cache_results = await cache.query(cache_patterns)
+            matched_files.update(cache_results)
+        except Exception as e:
+            logger.error(f"Error querying directory cache: {e}", exc_info=True)
+    
+    # 3. 如果pattern本身是文件路径，直接添加
+    for pattern in patterns:
         if os.path.exists(pattern) and os.path.isfile(pattern) and not should_ignore(pattern):
             matched_files.add(os.path.abspath(pattern))
 
@@ -135,11 +147,11 @@ async def get_file_completions(
 ):
     """获取文件名补全"""
     patterns = [name]
-    matches = await asyncio.to_thread(find_files_in_project, patterns,project_path)
+    # 直接调用异步函数，不需要使用asyncio.to_thread
+    matches = await find_files_in_project(patterns, project_path)
     completions = []
     project_root = project_path
     for file_name in matches:
-        # path_parts = file_name.split(os.sep)
         # 只显示最后三层路径，让显示更简洁
         display_name = os.path.basename(file_name)
         relative_path = os.path.relpath(file_name, project_root)
