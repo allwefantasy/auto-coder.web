@@ -134,11 +134,13 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
     {
       key: 'copy',
       icon: <CopyOutlined />,
-      label: 'Copy Path',
+      label: 'Copy Full Path', // Changed label
       onClick: () => {
         if (contextMenuNode) {
-          navigator.clipboard.writeText(contextMenuNode.key.toString());
-          message.success('Path copied to clipboard');
+          const relativePath = contextMenuNode.key.toString();
+          const fullPath = projectName ? `${projectName}/${relativePath}` : relativePath;
+          navigator.clipboard.writeText(fullPath);
+          message.success('Full path copied to clipboard'); // Changed message
         }
       },
     },
