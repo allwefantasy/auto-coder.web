@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { message, Tabs } from 'antd';
+import { message, Tabs, Dropdown, Menu } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import Split from 'react-split';
 import { getLanguageByFileName } from '../../utils/fileUtils';
@@ -163,6 +163,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
     }
   };
 
+  const handleCopyPath = (filePath: string) => {
+    navigator.clipboard.writeText(filePath)
+      .then(() => {
+        message.success('File path copied to clipboard');
+      })
+      .catch(err => {
+        console.error('Failed to copy file path: ', err);
+        message.error('Failed to copy file path');
+      });
+  };
+
+  const renderContextMenu = (filePath: string, label: string) => (
+    <Menu>
+      <Menu.Item key="copyPath" onClick={() => handleCopyPath(filePath)}>
+        Copy Path
+      </Menu.Item>
+    </Menu>
+  );
+
   return (
     <div className="code-editor-container">
       <div className="code-editor-header">
@@ -219,11 +238,14 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
                 <Tabs.TabPane
                   key={tab.key}
                   tab={
-                    <span style={{ 
-                      color: fileMeta?.modifiedBy === 'expert_chat_box' ? '#ff4d4f' : 'inherit'
-                    }}>
-                      {tab.label}
-                    </span>
+                    <Dropdown overlay={renderContextMenu(tab.key, tab.label)} trigger={['contextMenu']}>
+                      <span style={{ 
+                        color: fileMeta?.modifiedBy === 'expert_chat_box' ? '#ff4d4f' : 'inherit',
+                        display: 'inline-block' // Necessary for Dropdown trigger
+                      }}>
+                        {tab.label}
+                      </span>
+                    </Dropdown>
                   }
                   closable={true}
                 >
