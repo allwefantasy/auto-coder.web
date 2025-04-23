@@ -13,6 +13,7 @@ from autocoder.index.symbols_utils import (
 )
 
 from autocoder.auto_coder_runner import get_memory
+from autocoder.common.ignorefiles.ignore_file_utils import should_ignore
 import json
 import asyncio
 import aiofiles
@@ -37,65 +38,46 @@ async def get_project_path(request: Request):
 
 def find_files_in_project(patterns: List[str], project_path: str) -> List[str]:
     memory = get_memory()
-    default_exclude_dirs = [".git", "node_modules", "dist", "build", "__pycache__", ".venv", ".auto-coder"]
     active_file_list = memory["current_files"]["files"]
-    final_exclude_dirs = default_exclude_dirs + memory.get("exclude_dirs", [])
     project_root = project_path
-    
-    def should_exclude_path(path: str) -> bool:
-        """检查路径是否应该被排除（路径中包含排除目录或以.开头的目录/文件）"""
-        # 处理相对/绝对路径
-        rel_path = path
-        if os.path.isabs(path):
-            try:
-                rel_path = os.path.relpath(path, project_root)
-            except ValueError:
-                rel_path = path
-                
-        # 检查文件或目录本身是否以.开头
-        if os.path.basename(rel_path).startswith('.'):
-            return True
-            
-        # 检查路径中是否包含排除目录
-        path_parts = rel_path.split(os.sep)
-        return any(part in final_exclude_dirs or part.startswith('.') for part in path_parts)
+        
 
     # 如果没有提供有效模式，返回过滤后的活动文件列表
     if not patterns or (len(patterns) == 1 and patterns[0] == ""):
-        return [f for f in active_file_list if not should_exclude_path(f)]
+        return [f for f in active_file_list if not should_ignore(f)]
 
     matched_files = set()  # 使用集合避免重复
 
     for pattern in patterns:
         # 1. 从活动文件列表中匹配
         for file_path in active_file_list:
-            if not should_exclude_path(file_path) and pattern in os.path.basename(file_path):
+            if not should_ignore(file_path) and pattern in os.path.basename(file_path):
                 matched_files.add(file_path)
         
         # 2. 如果是通配符模式，使用glob
         if "*" in pattern or "?" in pattern:
             for file_path in glob.glob(pattern, recursive=True):
-                if os.path.isfile(file_path) and not should_exclude_path(file_path):
+                if os.path.isfile(file_path) and not should_ignore(file_path):
                     matched_files.add(os.path.abspath(file_path))
             continue
         
         # 3. 使用os.walk在文件系统中查找
         for root, dirs, files in os.walk(project_root, followlinks=True):
-            # 过滤不需要遍历的目录
-            dirs[:] = [d for d in dirs if d not in final_exclude_dirs and not d.startswith('.')]
-            
-            if should_exclude_path(root):
-                continue
+            # 过滤掉应该被忽略的目录，修改dirs列表（这会影响os.walk的遍历）
+            dirs[:] = [d for d in dirs if not should_ignore(os.path.join(root, d))]
             
             # 查找匹配文件
             for file in files:
-                if pattern in file:
-                    file_path = os.path.join(root, file)
-                    if not should_exclude_path(file_path):
+                file_path = os.path.join(root, file)
+                
+                # 如果是通配符模式或文件名匹配模式
+                if pattern == '*' or pattern in file:
+                    # 检查文件是否应该被忽略
+                    if not should_ignore(file_path):
                         matched_files.add(file_path)
         
         # 4. 如果pattern本身是文件路径
-        if os.path.exists(pattern) and os.path.isfile(pattern) and not should_exclude_path(pattern):
+        if os.path.exists(pattern) and os.path.isfile(pattern) and not should_ignore(pattern):
             matched_files.add(os.path.abspath(pattern))
 
     return list(matched_files)
