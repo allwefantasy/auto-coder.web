@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, KeyboardEvent, useCallback } from 'react';
-import { Select, message } from 'antd';
+import { Select, message, Tooltip } from 'antd';
 import type { CustomTagProps } from 'rc-select/lib/BaseSelect';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import { FileGroup, EnhancedCompletionItem } from './types';
@@ -34,6 +34,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   const [searchText, setSearchText] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);  
   const [mentionFiles, setMentionFiles] = useState<{ path: string, display: string }[]>([]);
+  const [totalTokens, setTotalTokens] = useState<number>(0);
   const selectRef = useRef<any>(null);
   const processedMentionPaths = useRef<Set<string>>(new Set());
 
@@ -159,7 +160,15 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         group_names: uniqueGroupValues,
         file_paths: uniqueFileValues
       })
-    }).catch(error => {
+    })
+    .then(response => response.json())
+    .then(data => {
+      // 获取并设置 token 计数
+      if (data && data.total_tokens !== undefined) {
+        setTotalTokens(data.total_tokens);
+      }
+    })
+    .catch(error => {
       console.error(getMessage('errorUpdatingSelection'), error);
     });
   };
@@ -679,22 +688,30 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             </Select.OptGroup>
           )}
         </Select>
-        <CloseCircleOutlined
-          className="text-gray-400 hover:text-gray-200 cursor-pointer text-sm"
-          onClick={async () => {
-            try {
-              await fetch('/api/file-groups/clear', {
-                method: 'POST'
-              });
-              setSelectedGroups([]);
-              setSelectedFiles([]);
-              fetchFileGroups();
-            } catch (error) {
-              console.error(getMessage('clearFailed'), error);
-            }
-          }}
-          title={getMessage('clearContext')}
-        />
+        <div className="flex items-center">
+          {totalTokens > 0 && (
+            <Tooltip title={getMessage('totalTokens')}>
+              <span className="text-xs text-gray-400 mr-2">{totalTokens.toLocaleString()} tokens</span>
+            </Tooltip>
+          )}
+          <CloseCircleOutlined
+            className="text-gray-400 hover:text-gray-200 cursor-pointer text-sm"
+            onClick={async () => {
+              try {
+                await fetch('/api/file-groups/clear', {
+                  method: 'POST'
+                });
+                setSelectedGroups([]);
+                setSelectedFiles([]);
+                setTotalTokens(0); // 清空 token 计数
+                fetchFileGroups();
+              } catch (error) {
+                console.error(getMessage('clearFailed'), error);
+              }
+            }}
+            title={getMessage('clearContext')}
+          />
+        </div>
       </div>
     </div>
   );

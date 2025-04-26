@@ -13,7 +13,7 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
   let toolName = '';
   let success = false;
   let msg = '';
-  let content = '';
+  let content: any = '';
 
   try {
     const parsed = JSON.parse(message.content || '{}');
@@ -35,7 +35,23 @@ const AgenticEditToolResult: React.FC<AgenticEditToolResultProps> = ({ message }
       toolName = getMessage('agenticEditToolResultListFilesTool');
     }
     if (toolName === 'SearchFilesTool') {
-      toolName = getMessage('agenticEditToolResultSearchFilesTool');
+      toolName = getMessage('agenticEditToolResultSearchFilesTool');     
+    }
+
+    // Handle Lists and Maps with JSON serialization, other types with general string conversion
+    if(typeof content !== 'string'){
+      // Check if content is an array (List)
+      if(Array.isArray(content)) {
+        content = JSON.stringify(content, null, 2);
+      }
+      // Check if content is an object (Map/dictionary) but not null
+      else if(content !== null && typeof content === 'object' && Object.keys(content).length > 0) {
+        content = JSON.stringify(content, null, 2);
+      }
+      // For other non-string types, use general string conversion
+      else {
+        content = String(content);
+      }
     }
 
   } catch (e) {

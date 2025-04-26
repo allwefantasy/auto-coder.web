@@ -4,8 +4,10 @@ from fastapi import APIRouter, Request, HTTPException, Depends
 from autocoder.agent.auto_filegroup import AutoFileGroup
 from autocoder.utils import operate_config_api
 from autocoder.auto_coder_runner import get_memory,save_memory, load_memory
-import json
 import os
+from autocoder.rag.token_counter import count_tokens
+import aiofiles
+from loguru import logger
 
 router = APIRouter()
 
@@ -145,6 +147,31 @@ async def auto_create_groups(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+async def count_tokens_from_file(file_path: str) -> int:
+    """异步计算文件的token数
+    
+    Args:
+        file_path: 文件的绝对路径
+        
+    Returns:
+        int: token数量，出错时返回0
+    """
+    try:
+        if not os.path.exists(file_path):
+            logger.warning(f"文件不存在: {file_path}")
+            return 0
+            
+        logger.info(f"计算文件token: {file_path}")
+        async with aiofiles.open(file_path, 'r', encoding='utf-8') as f:
+            content = await f.read()
+        
+        file_tokens = count_tokens(content)
+        return file_tokens if file_tokens > 0 else 0
+    except Exception as e:
+        logger.error(f"读取或计算文件token出错: {file_path}, 错误: {str(e)}")
+        return 0
+
+
 @router.post("/api/file-groups/switch")
 async def switch_file_groups(
     request: Request,
@@ -156,12 +183,38 @@ async def switch_file_groups(
     
     # Convert relative file paths to absolute paths
     absolute_file_paths = []
+    total_tokens = 0
+    
     for file_path in file_paths:
         absolute_path = os.path.join(project_path, file_path)
         absolute_file_paths.append(absolute_path)
     
+    # 计算所有文件的tokens
+    token_tasks = []
+    
+    # 收集组里的文件
+    for group_name in group_names:
+        memory = get_memory()
+        files = memory["current_files"]["groups"].get(group_name, [])
+        for file_path in files:
+            token_tasks.append(count_tokens_from_file(file_path))
+    
+    # 收集额外的文件
+    for file_path in absolute_file_paths:
+        token_tasks.append(count_tokens_from_file(file_path))
+    
+    # 异步等待所有token计算任务完成
+    if token_tasks:
+        token_results = await asyncio.gather(*token_tasks)
+        total_tokens = sum(token_results)
+    
     await asyncio.to_thread(_switch_groups, group_names, absolute_file_paths)
-    return {"status": "success", "message": f"Switched to groups: {group_names} and additional files"}
+    return {
+        "status": "success", 
+        "message": f"Switched to groups: {group_names} and additional files",
+        "total_tokens": total_tokens,
+        "absolute_file_paths": absolute_file_paths
+    }
 
 
 @router.delete("/api/file-groups/{name}")

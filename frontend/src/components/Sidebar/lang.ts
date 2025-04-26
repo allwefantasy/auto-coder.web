@@ -1120,6 +1120,10 @@ export const messages: { [key: string]: Message } = {
     en: "Focused on file selection input",
     zh: "已聚焦到文件选择输入框"
   },
+  totalTokens: {
+    en: "Total tokens in selected files",
+    zh: "已选择文件的总token数"
+  },
   analyzingCode: {
     en: "Analyzing Code",
     zh: "正在分析代码"

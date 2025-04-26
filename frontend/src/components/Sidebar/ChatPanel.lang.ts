@@ -51,5 +51,9 @@ export const chatPanelMessages = {
   ruleModePromptGenerated: {
     en: "Used Rule mode to analyze the current context and generate a prompt.",
     zh: "已使用Rule模式分析当前上下文并生成提示。"
+  },
+  ruleModePromptError: {
+    en: "Failed to get Rule analysis prompt, will use the original text. Error details: {error}",
+    zh: "获取Rule分析提示失败，将使用原始文本。错误详情：{error}"
   }
 };

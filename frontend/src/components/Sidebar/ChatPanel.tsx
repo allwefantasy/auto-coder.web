@@ -958,10 +958,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             // 添加一条系统消息，说明使用了Rule模式
             addBotMessage(getMessage('ruleModePromptGenerated'));
           }
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Error fetching rule context prompt:', error);
-          AntdMessage.error('获取Rule分析提示失败，将使用原始文本');
-          // 继续使用原始文本
+          // 添加一条bot消息，显示错误信息
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          addBotMessage(getMessage('ruleModePromptError', { error: errorMessage }));
+          return;
         }
       }
 
@@ -1028,7 +1030,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const handleStopGeneration = async () => {
     try {
       // 根据当前模式和子模式使用适当的服务来取消任务
-      if (isWriteMode) {
+      if (isWriteMode || isRuleMode) {
         if (enableAgenticMode) {
           console.log('ChatPanel: Stopping agentic edit task');
           await agenticEditService.cancelTask();
