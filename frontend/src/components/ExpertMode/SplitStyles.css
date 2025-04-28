@@ -60,4 +60,14 @@
 .split-horizontal > .gutter:hover,
 .split-horizontal > .gutter.dragging {
   background-color: #3B82F6;
+}
+
+/* 添加滚动条隐藏的样式 */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
 } 

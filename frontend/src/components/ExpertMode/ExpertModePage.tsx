@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, Suspense, lazy } from 'react'; // Import Suspense and lazy
 import { Editor } from '@monaco-editor/react';
 import Split from 'react-split';
-import ChatPanel from '../Sidebar/ChatPanel';
+import ChatPanels from '../Sidebar/ChatPanels';
 import CodeEditorPanel from '../MainContent/CodeEditorPanel';
 import FileGroupPanel from '../MainContent/FileGroupPanel';
 import SettingsPanel from '../MainContent/SettingsPanel';
@@ -233,7 +233,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       >
         {/* Left Sidebar - Chat */}
         <div className="border-r border-gray-700 flex flex-col">
-          <ChatPanel
+          <ChatPanels
             setPreviewFiles={setPreviewFiles}
             setActivePanel={setActivePanel as any}
             setClipboardContent={setClipboardContent}

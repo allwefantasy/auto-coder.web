@@ -1,4 +1,3 @@
-
 export const chatPanelMessages = {
   showMore: {
     en: "Show More",
@@ -55,5 +54,21 @@ export const chatPanelMessages = {
   ruleModePromptError: {
     en: "Failed to get Rule analysis prompt, will use the original text. Error details: {error}",
     zh: "获取Rule分析提示失败，将使用原始文本。错误详情：{error}"
+  },
+  mainChat: {
+    en: "Main Chat",
+    zh: "主聊天"
+  },
+  secondaryChat: {
+    en: "Secondary Chat",
+    zh: "辅助聊天"
+  },
+  newChatName: {
+    en: "New Chat Name",
+    zh: "新聊天名称"
+  },
+  addNewChat: {
+    en: "Add New Chat",
+    zh: "添加新聊天"
   }
 };
