@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatPanel from './ChatPanel';
 import { FileMetadata } from '../../types/file_meta';
 import { getMessage } from './lang';
+import axios from 'axios';
 
 // 定义单个聊天面板的配置接口
 interface ChatTabConfig {
   id: string;
   name: string;
+}
+
+interface ChatPanelsConfig {
+  tabs: ChatTabConfig[];
+  activeTabId: string;
 }
 
 interface ChatPanelsProps {
@@ -38,31 +44,100 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
   const [activeTabId, setActiveTabId] = useState<string>(defaultTabs[0].id);
   const [isAddingTab, setIsAddingTab] = useState<boolean>(false);
   const [newTabName, setNewTabName] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // 从后端加载标签页配置
+  useEffect(() => {
+    const loadChatPanelsConfig = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get<ChatPanelsConfig>('/api/chat/panels');
+        setTabs(response.data.tabs);
+        setActiveTabId(response.data.activeTabId);
+      } catch (error) {
+        console.error('加载聊天面板配置失败:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadChatPanelsConfig();
+  }, []);
+
+  // 保存标签页配置到后端
+  const saveChatPanelsConfig = async (newTabs: ChatTabConfig[], newActiveTabId: string) => {
+    try {
+      // 保存标签页列表
+      await axios.put('/api/chat/panels/tabs', newTabs);
+      
+      // 保存当前活跃标签页
+      await axios.put('/api/chat/panels/active-tab', { id: newActiveTabId });
+    } catch (error) {
+      console.error('保存聊天面板配置失败:', error);
+    }
+  };
 
   // 添加新标签页
-  const handleAddTab = () => {
+  const handleAddTab = async () => {
     if (newTabName.trim()) {
       const newTabId = `chat-${Date.now()}`;
-      setTabs([...tabs, { id: newTabId, name: newTabName.trim() }]);
+      const newTab = { id: newTabId, name: newTabName.trim() };
+      const newTabs = [...tabs, newTab];
+      
+      setTabs(newTabs);
       setActiveTabId(newTabId);
       setNewTabName('');
       setIsAddingTab(false);
+      
+      // 保存到后端
+      try {
+        await axios.post('/api/chat/panels/tabs', newTab);
+        await axios.put('/api/chat/panels/active-tab', { id: newTabId });
+      } catch (error) {
+        console.error('添加新标签页失败:', error);
+      }
     }
   };
 
   // 删除标签页
-  const handleRemoveTab = (tabId: string, e: React.MouseEvent) => {
+  const handleRemoveTab = async (tabId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (tabs.length <= 1) return; // 至少保留一个标签页
 
-    const newTabs = tabs.filter(tab => tab.id !== tabId);
-    setTabs(newTabs);
-    
-    // 如果关闭的是当前活动标签页，则切换到第一个标签页
-    if (activeTabId === tabId) {
-      setActiveTabId(newTabs[0].id);
+    try {
+      // 先从后端删除
+      await axios.delete(`/api/chat/panels/tabs/${tabId}`);
+      
+      // 然后更新本地状态
+      const newTabs = tabs.filter(tab => tab.id !== tabId);
+      setTabs(newTabs);
+      
+      // 如果关闭的是当前活动标签页，则切换到第一个标签页
+      if (activeTabId === tabId) {
+        setActiveTabId(newTabs[0].id);
+      }
+    } catch (error) {
+      console.error('删除标签页失败:', error);
     }
   };
+
+  // 切换当前活跃标签页
+  const handleTabChange = async (tabId: string) => {
+    setActiveTabId(tabId);
+    
+    // 保存到后端
+    try {
+      await axios.put('/api/chat/panels/active-tab', { id: tabId });
+    } catch (error) {
+      console.error('切换标签页失败:', error);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="flex h-full items-center justify-center">
+      <span className="text-gray-400">加载中...</span>
+    </div>;
+  }
 
   return (
     <div className="flex h-full">
@@ -78,7 +153,7 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
                   ? 'bg-gray-800 text-blue-400 border-l-2 border-blue-500'
                   : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
               }`}
-              onClick={() => setActiveTabId(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               title={tab.name}
             >
               {/* 显示标签名的第一个字符作为图标 */}

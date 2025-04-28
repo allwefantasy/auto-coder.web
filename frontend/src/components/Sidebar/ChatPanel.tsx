@@ -18,6 +18,7 @@ import { chatService } from '../../services/chatService';
 import { codingService } from '../../services/codingService';
 import { agenticEditService } from '../../services/agenticEditService';
 import { autoCoderConfService } from '../../services/AutoCoderConfService';
+import { chatListService } from '../../services/chatListService';
 import { Message as AutoModeMessage } from '../../components/AutoMode/types';
 import MessageList, { MessageProps } from '../../components/AutoMode/MessageList';
 import eventBus from '../../services/eventBus';
@@ -66,7 +67,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   const handleNewChatCreate = async () => {
     if (!newChatName.trim()) {
-      AntdMessage.error('Chat name cannot be empty');
+      AntdMessage.error('聊天名称不能为空');
       return;
     }
 
@@ -75,84 +76,32 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       setMessages([]);
       setChatLists(prev => [newChatName, ...prev]);
 
-      // Save the new empty chat list
-      await saveChatList(newChatName, []);
+      // 保存新的空聊天列表
+      await chatListService.saveChatList(newChatName, []);
 
-      // 设置当前会话名称
-      await setCurrentSessionName(newChatName);
-
-      // Send a /new command to the chat router
-      try {
-        const response = await fetch('/api/chat-command', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            command: '/new',
-          }),
-        });
-
-        if (!response.ok) {
-          console.warn('Failed to send /new command to chat router');
-        }
-      } catch (cmdError) {
-        console.error('Error sending /new command:', cmdError);
-        // Don't show error to user as this is a background operation
-      }
-
-      AntdMessage.success('New chat created successfully');
+      AntdMessage.success('新聊天创建成功');
       setIsNewChatModalVisible(false);
     } catch (error) {
       console.error('Error creating new chat:', error);
-      AntdMessage.error('Failed to create new chat');
+      AntdMessage.error('创建新聊天失败');
     }
   };
 
   // 创建新对话，无需用户确认
   const handleNewChatDirectly = async () => {
-    // 设置默认的新对话名称
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const defaultNewChatName = `chat_${timestamp}`;
-
     try {
       // 清空当前对话内容
       setMessages([]);
 
-      // 设置新的对话名称
-      setChatListName(defaultNewChatName);
-      setChatLists(prev => [defaultNewChatName, ...prev.filter(name => name !== defaultNewChatName)]); // Add new name, prevent duplicates
-
-      // 保存新的空对话列表
-      await saveChatList(defaultNewChatName, []);
-
-      // 设置当前会话名称
-      await setCurrentSessionName(defaultNewChatName);
-
-      // 向聊天路由器发送 /new 命令
-      try {
-        const response = await fetch('/api/chat-command', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            command: '/new',
-          }),
-        });
-
-        if (!response.ok) {
-          console.warn('Failed to send /new command to chat router');
-        }
-      } catch (cmdError) {
-        console.error('Error sending /new command:', cmdError);
-        // 不向用户显示错误，因为这是后台操作
+      const newChatName = await chatListService.createNewChat();
+      if (newChatName) {
+        // 设置新的对话名称
+        setChatListName(newChatName);
+        setChatLists(prev => [newChatName, ...prev.filter(name => name !== newChatName)]);        
       }
-
-      AntdMessage.success('New chat created successfully');
     } catch (error) {
       console.error('Error creating new chat directly:', error);
-      AntdMessage.error('Failed to create new chat');
+      AntdMessage.error('创建新聊天失败');
     }
   };
 
@@ -182,7 +131,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   }, [isWriteMode]);
 
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
-  const [shouldSendMessage, setShouldSendMessage] = useState(false);
   const [pendingRevert, setPendingRevert] = useState<boolean>(false);
   const [isNewChatModalVisible, setIsNewChatModalVisible] = useState<boolean>(false);
   const [newChatName, setNewChatName] = useState<string>('');
@@ -298,13 +246,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   }, [handleScroll]);
 
   useEffect(() => {
-    if (shouldSendMessage) {
-      handleSendMessage();
-      setShouldSendMessage(false);
-    }
-  }, [shouldSendMessage]);
-
-  useEffect(() => {
     // 监听配置更新事件
     const handleConfigUpdated = (updatedConfig: ConfigState) => {
       setConfig(updatedConfig);
@@ -337,15 +278,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   const fetchChatLists = async () => {
     try {
-      const response = await fetch('/api/chat-lists');
-      const data = await response.json();
+      const lists = await chatListService.fetchChatLists();
 
       // 如果有任何聊天记录，自动加载最新的聊天
-      if (data.chat_lists && data.chat_lists.length > 0) {
+      if (lists && lists.length > 0) {
         // 列表中的第一个聊天是最新的，因为它们按修改时间排序
-        setChatListName(data.chat_lists[0]);
-        setChatLists(data.chat_lists);
-        await loadChatList(data.chat_lists[0]);
+        setChatListName(lists[0]);
+        setChatLists(lists);
+        await loadChatList(lists[0]);
       } else {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const newChatName = `chat_${timestamp}`;
@@ -354,25 +294,21 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       }
     } catch (error) {
       console.error('Error fetching chat lists:', error);
-      AntdMessage.error('Failed to fetch chat lists');
+      AntdMessage.error('获取聊天列表失败');
     }
   };
 
   // 获取当前会话名称
   const getCurrentSessionName = async () => {
     try {
-      const response = await fetch('/api/chat-session/name');
-      if (!response.ok) {
-        throw new Error('Failed to fetch current session name');
-      }
-      const data = await response.json();
-      if (data.session_name) {
-        setChatListName(data.session_name);
+      const sessionName = await chatListService.getCurrentSessionName();
+      if (sessionName) {
+        setChatListName(sessionName);
         // 如果会话名称有效，加载该会话的消息
-        if (!chatLists.includes(data.session_name)) {
-          setChatLists(prev => [data.session_name, ...prev]);
+        if (!chatLists.includes(sessionName)) {
+          setChatLists(prev => [sessionName, ...prev]);
         }
-        await loadChatList(data.session_name);
+        await loadChatList(sessionName);
       }
     } catch (error) {
       console.error('Error getting current session name:', error);
@@ -382,182 +318,76 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   // 设置当前会话名称
   const setCurrentSessionName = async (name: string) => {
-    if (!name.trim()) {
-      return false;
-    }
-
-    try {
-      const response = await fetch('/api/chat-session/name', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          session_name: name,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to set current session name');
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error setting current session name:', error);
-      return false;
-    }
+    return await chatListService.setCurrentSessionName(name);
   };
 
   const saveChatList = async (name: string, newMessages: AutoModeMessage[] = []) => {
     console.log('save chat list:', name);
     console.log('messages:', newMessages);
-    if (!name.trim()) {
-      AntdMessage.error('Please enter a name for the chat list');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/chat-lists/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: name,
-          messages: newMessages,
-        }),
-      });
-
-      if (response.ok) {
-        setShowChatListInput(false);
-        // setChatListName('');
-        fetchChatLists();
-
-        // // 同步更新当前会话名称
-        await setCurrentSessionName(name);
-      } else {
-        console.error('Failed to save chat list', response.json());
-      }
-    } catch (error) {
-      console.error('Error saving chat list:', error);
+    
+    const success = await chatListService.saveChatList(name, newMessages);
+    if (success) {
+      setShowChatListInput(false);
+      fetchChatLists();
     }
   };
 
   const loadChatList = async (name: string) => {
     try {
-      const response = await fetch(`/api/chat-lists/${name}`);
-      const data = await response.json();
-      // Convert legacy Message format to AutoModeMessage if needed
-      const convertedMessages = data.messages.map((message: any) => {
-        if ('role' in message) {
-          // 旧格式，转换为 AutoModeMessage
-          return {
-            id: message.id || Date.now().toString(),
-            type: message.role === 'user' ? 'USER_RESPONSE' : 'RESULT',
-            content: message.content,
-            contentType: message.contentType || 'markdown',
-            language: message.language,
-            metadata: message.metadata,
-            isUser: message.role === 'user',
-            isStreaming: false,
-            isThinking: false
-          } as AutoModeMessage;
-        }
-        // 已经是 AutoModeMessage 格式或接近该格式
-        return {
-          ...message,
-          isStreaming: false,
-          isThinking: false,
-          type: message.type || (message.isUser ? 'USER_RESPONSE' : 'RESULT'),
-          contentType: message.contentType || 'markdown'
-        } as AutoModeMessage;
-      });
+      const convertedMessages = await chatListService.loadChatList(name);
       setMessages(convertedMessages);
     } catch (error) {
       console.error('Error loading chat list:', error);
-      AntdMessage.error('Failed to load chat list');
+      AntdMessage.error('加载聊天列表失败');
     }
   };
 
   // 获取对话标题
   const getChatTitle = () => {
-    if (messages.length > 0) {
-      // 找到第一条用户消息
-      const userMessage = messages.find(msg =>
-        msg.isUser || (msg.type === 'USER_RESPONSE'));
-      if (userMessage && userMessage.content) {
-        // 取前四个字符，如果不足四个字符则取全部
-        return userMessage.content.substring(0, 4);
-      }
-    }
-    // 如果没有消息或没有用户消息，返回 New Chat
-    return 'New Chat';
+    return chatListService.getChatTitle(messages);
   };
 
   const deleteChatList = async (name: string) => {
     try {
-      const response = await fetch(`/api/chat-lists/${name}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        AntdMessage.success('Chat list deleted successfully');
+      const success = await chatListService.deleteChatList(name);
+      if (success) {
+        AntdMessage.success('聊天列表已成功删除');
         fetchChatLists();
       } else {
-        AntdMessage.error('Failed to delete chat list');
+        AntdMessage.error('删除聊天列表失败');
       }
     } catch (error) {
       console.error('Error deleting chat list:', error);
-      AntdMessage.error('Failed to delete chat list');
+      AntdMessage.error('删除聊天列表失败');
     }
   };
 
   // 添加重命名聊天列表的函数
   const renameChatList = async (oldName: string, newName: string) => {
     try {
-      // 验证新名称不为空
-      if (!newName.trim()) {
-        AntdMessage.error('Chat name cannot be empty');
-        return false;
-      }
+      const success = await chatListService.renameChatList(oldName, newName);
+      if (success) {
+        // 更新本地聊天列表
+        setChatLists(prev => {
+          const newList = [...prev];
+          const index = newList.indexOf(oldName);
+          if (index !== -1) {
+            newList[index] = newName;
+          }
+          return newList;
+        });
 
-      // 调用重命名API
-      const response = await fetch('/api/chat-lists/rename', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          old_name: oldName,
-          new_name: newName,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to rename chat list');
-      }
-
-      // 更新本地聊天列表
-      setChatLists(prev => {
-        const newList = [...prev];
-        const index = newList.indexOf(oldName);
-        if (index !== -1) {
-          newList[index] = newName;
+        // 如果当前正在使用的聊天列表被重命名，更新当前名称
+        if (chatListName === oldName) {
+          setChatListName(newName);
         }
-        return newList;
-      });
 
-      // 如果当前正在使用的聊天列表被重命名，更新当前名称
-      if (chatListName === oldName) {
-        setChatListName(newName);
+        AntdMessage.success(`聊天已重命名为 ${newName}`);
+        return true;
       }
-
-      AntdMessage.success(`Chat renamed to ${newName}`);
-      return true;
-    } catch (error: any) {
+      return false;
+    } catch (error) {
       console.error('Error renaming chat list:', error);
-      AntdMessage.error(`Failed to rename chat: ${error.message || 'Unknown error'}`);
       return false;
     }
   };
@@ -740,10 +570,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   useEffect(() => {
     // 仅当需要保存且有消息且有聊天名称时保存
     if (shouldSaveMessages && chatListName && messages.length > 0) {
-      saveChatList(chatListName, messages);
-      console.log('Chat list saved with latest messages:', chatListName);
-      // 重置保存标记
-      setShouldSaveMessages(false);
+      chatListService.saveChatList(chatListName, messages)
+        .then(success => {
+          if (success) {
+            console.log('Chat list saved with latest messages:', chatListName);
+          }
+          // 重置保存标记
+          setShouldSaveMessages(false);
+        })
+        .catch(error => {
+          console.error('Error saving chat list:', error);
+          // 重置保存标记
+          setShouldSaveMessages(false);
+        });
     }
   }, [messages, shouldSaveMessages, chatListName]);
 
@@ -846,14 +685,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           if (command && editorRef.current) {
             editorRef.current.setValue(command);
             // 自动发送消息
-            setShouldSendMessage(true);
+            handleSendMessage();
           }
         } else if (typeof message === 'string') {
           // 向后兼容，仍然处理字符串类型的消息
           console.log('ChatPanel: Received string message from eventBus:', message);
           if (editorRef.current) {
             editorRef.current.setValue(message);
-            setShouldSendMessage(true);
+            handleSendMessage();
           }
         }
       }
@@ -911,8 +750,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   //   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   // }, [messages]);
 
-  const handleSendMessage = async () => {
-    const trimmedText = editorRef.current?.getValue()?.trim();
+  const handleSendMessage = async (text?: string) => {
+    const trimmedText = text?.trim() || editorRef.current?.getValue()?.trim();
     if (!trimmedText) {
       AntdMessage.warning('Please enter a message');
       return;
@@ -1108,40 +947,64 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       },
     });
   };
+ 
+  // 设置chatListService事件监听
+  useEffect(() => {
+    // 监听错误事件
+    const handleError = (errorMessage: string) => {
+      AntdMessage.error(errorMessage);
+    };
 
-  // 生成聊天列表下拉菜单项，添加新建对话选项作为第一项
-  const chatListMenuItems = [
-    {
-      key: 'new-chat',
-      label: (
-        <div className="flex items-center w-full group text-white font-medium">
-          <PlusOutlined className="mr-1" style={{ fontSize: '12px' }} />
-          <span>{getMessage('newChat')}</span>
-        </div>
-      ),
-    },
-    // 如果有聊天列表，添加分隔线
-    ...(chatLists.length > 0 ? [{ type: 'divider' as const }] : []),
-    // 添加现有聊天列表
-    ...chatLists.map(name => ({
-      key: name,
-      label: (
-        <div className={`flex justify-between items-center w-full group ${chatListName === name ? 'bg-indigo-700/40 rounded-sm' : ''}`}>
-          <span className={`truncate max-w-[180px] ${chatListName === name ? 'text-white font-medium' : 'text-gray-200'}`}>{name}</span>
-          <Button
-            type="text"
-            size="small"
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-white"
-            icon={<DeleteOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteChat(name);
-            }}
-          />
-        </div>
-      ),
-    })),
-  ];
+    // 监听聊天列表重命名事件
+    const handleChatListRenamed = ({ oldName, newName }: { oldName: string, newName: string }) => {
+      // 更新本地聊天列表
+      setChatLists(prev => {
+        const newList = [...prev];
+        const index = newList.indexOf(oldName);
+        if (index !== -1) {
+          newList[index] = newName;
+        }
+        return newList;
+      });
+
+      // 如果当前正在使用的聊天列表被重命名，更新当前名称
+      if (chatListName === oldName) {
+        setChatListName(newName);
+      }
+    };
+
+    // 监听聊天列表删除事件
+    const handleChatListDeleted = (name: string) => {
+      // 从列表中移除已删除的聊天
+      setChatLists(prev => prev.filter(item => item !== name));
+      
+      // 如果当前正在使用的聊天被删除，创建一个新的
+      if (chatListName === name) {
+        handleNewChatDirectly();
+      }
+    };
+
+    // 监听新聊天创建事件
+    const handleNewChatCreated = (name: string) => {
+      setChatListName(name);
+      setChatLists(prev => [name, ...prev.filter(item => item !== name)]);
+      setMessages([]);
+    };
+
+    // 添加事件监听器
+    chatListService.on('error', handleError);
+    chatListService.on('chatListRenamed', handleChatListRenamed);
+    chatListService.on('chatListDeleted', handleChatListDeleted);
+    chatListService.on('newChatCreated', handleNewChatCreated);
+
+    // 清理函数
+    return () => {
+      chatListService.off('error', handleError);
+      chatListService.off('chatListRenamed', handleChatListRenamed);
+      chatListService.off('chatListDeleted', handleChatListDeleted);
+      chatListService.off('newChatCreated', handleNewChatCreated);
+    };
+  }, [chatListName]);
 
   return (
     <>
@@ -1344,7 +1207,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               isMaximized={isMaximized}
               setIsMaximized={setIsMaximized}
               handleEditorDidMount={handleEditorDidMount}
-              setShouldSendMessage={setShouldSendMessage}
               isWriteMode={isWriteMode}
               setIsWriteMode={setIsWriteMode}
               isRuleMode={isRuleMode}

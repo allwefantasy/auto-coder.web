@@ -19,7 +19,7 @@ import sys
 from auto_coder_web.terminal import terminal_manager
 from autocoder.common import AutoCoderArgs
 from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
-from auto_coder_web.routers import todo_router, settings_router, auto_router, commit_router, chat_router, coding_router, index_router, config_router, upload_router, rag_router, editable_preview_router, mcp_router, direct_chat_router, rules_router
+from auto_coder_web.routers import todo_router, settings_router, auto_router, commit_router, chat_router, coding_router, index_router, config_router, upload_router, rag_router, editable_preview_router, mcp_router, direct_chat_router, rules_router, chat_panels_router
 from auto_coder_web.expert_routers import history_router
 from auto_coder_web.common_router import completions_router, file_router, auto_coder_conf_router, chat_list_router, file_group_router, model_router, compiler_router
 from auto_coder_web.common_router import active_context_router
@@ -110,6 +110,7 @@ class ProxyServer:
         self.app.include_router(active_context_router.router)
         self.app.include_router(direct_chat_router.router)
         self.app.include_router(rules_router.router)
+        self.app.include_router(chat_panels_router.router)
 
         @self.app.on_event("shutdown")
         async def shutdown_event():

@@ -57,7 +57,6 @@ const mentionStyles = `
 interface EditorComponentProps {
   isMaximized: boolean;
   onEditorDidMount: (editor: any, monaco: any) => void;
-  onShouldSendMessage: () => void;
   /** 编辑器的初始值 */
   defaultValue?: string;
   /** 编辑器值改变时的回调 */
@@ -66,6 +65,8 @@ interface EditorComponentProps {
   onToggleMaximize: () => void;
   /** 当点击 mention 项时的回调 */
   onMentionClick?: (type: 'file' | 'symbol', text: string, item?: EnhancedCompletionItem) => void;
+  /** 直接发送消息的函数 */
+  handleSendMessage: (text?: string) => void;
 }
 
 // Mention 数据接口
@@ -85,12 +86,12 @@ interface MentionData {
  */
 const EditorComponent: React.FC<EditorComponentProps> = ({
   isMaximized,
-  onEditorDidMount,
-  onShouldSendMessage,
+  onEditorDidMount,  
   defaultValue = '',
   onChange,
   onToggleMaximize,
   onMentionClick,
+  handleSendMessage,
 }) => {
   // 添加一个ref来跟踪提供者是否已经注册
   const providerRegistered = React.useRef(false);
@@ -400,7 +401,9 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
 
     // 添加提交快捷键
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      onShouldSendMessage();
+      const text = editor.getModel().getValue();
+      console.log('EditorComponent: 提交快捷键触发，发送消息:', text);
+      handleSendMessage(text);
     });
 
     // 添加聚焦文件组选择快捷键

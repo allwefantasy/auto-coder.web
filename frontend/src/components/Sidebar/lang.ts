@@ -2,6 +2,7 @@ import { providerManagementMessages } from './langs/ProviderManagement.lang';
 import { modelManagementMessages } from './langs/ModelManagement.lang';
 import { settingsPanelMessages } from './langs/SettingsPanel.lang';
 import { chatPanelMessages } from './ChatPanel.lang'; // Corrected path
+import { chatPanelsMessages } from './ChatPanels.lang'; // 添加ChatPanels.lang导入
 import { historyPanelMessages } from '../MainContent/HistoryPanel.lang';
 import { codeEditorMessages } from '../Editor/CodeEditor.lang'; // Import code editor messages
 
@@ -15,6 +16,7 @@ export const messages: { [key: string]: Message } = {
   ...modelManagementMessages,
   ...settingsPanelMessages,
   ...chatPanelMessages,
+  ...chatPanelsMessages, // 合并chatPanelsMessages
   ...historyPanelMessages,
   ...codeEditorMessages, // Merge code editor messages
   languageSettings: {

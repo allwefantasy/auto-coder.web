@@ -19,14 +19,13 @@ interface InputAreaProps {
   fetchFileGroups: () => void;
   isMaximized: boolean;
   setIsMaximized: React.Dispatch<React.SetStateAction<boolean>>;
-  handleEditorDidMount: (editor: any, monaco: any) => void;
-  setShouldSendMessage: (value: boolean) => void;
+  handleEditorDidMount: (editor: any, monaco: any) => void;  
   isWriteMode: boolean;
   setIsWriteMode: (value: boolean) => void;
   isRuleMode: boolean;
   setIsRuleMode: (value: boolean) => void;
   handleRevert: () => void;
-  handleSendMessage: () => void;
+  handleSendMessage: (text?: string) => void;
   handleStopGeneration: () => void;
   sendLoading: boolean;
   isFullScreen: boolean;
@@ -42,8 +41,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   fetchFileGroups,
   isMaximized,
   setIsMaximized,
-  handleEditorDidMount,
-  setShouldSendMessage,
+  handleEditorDidMount,  
   isWriteMode,
   setIsWriteMode,
   isRuleMode,
@@ -477,14 +475,14 @@ const InputArea: React.FC<InputAreaProps> = ({
         >
           <EditorComponent
             isMaximized={isMaximized || isInputAreaMaximized}
-            onEditorDidMount={handleEditorDidMount}
-            onShouldSendMessage={() => setShouldSendMessage(true)}
+            onEditorDidMount={handleEditorDidMount}            
             onToggleMaximize={() => {
               if (isInputAreaMaximized) {
                 return;
               }
               setIsMaximized((prev: boolean): boolean => !prev);
             }}            
+            handleSendMessage={handleSendMessage}
           />
         </div>
         <div className="flex flex-col mt-0 gap-0 flex-shrink-0">
@@ -551,7 +549,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                     ? 'text-gray-400 hover:text-gray-300' 
                     : 'text-blue-500 hover:text-blue-600'
                   }`}
-                onClick={sendLoading ? handleCancelGeneration : handleSendMessage}
+                onClick={sendLoading ? handleCancelGeneration : () => handleSendMessage()}
                 disabled={isCancelling}
                 title={sendLoading ? (isCancelling ? getMessage('cancelling') : getMessage('stop')) : getMessage('send')}
               >
