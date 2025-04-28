@@ -21,7 +21,7 @@ import {
   IndexBuildEndContent 
 } from '../components/AutoMode/types';
 
-class CodingService extends EventEmitter {
+export class CodingService extends EventEmitter {
   private eventSource: EventSource | null = null;
   private streamEvents: Map<string, AutoModeMessage> = new Map();
   private lastEventType: string | null = null;

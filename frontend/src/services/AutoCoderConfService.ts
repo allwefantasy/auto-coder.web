@@ -3,7 +3,7 @@ import { message as AntdMessage } from 'antd';
 import { ConfigState, ConfigKey } from '../components/Sidebar/types';
 
 // 定义配置服务类
-class AutoCoderConfService extends EventEmitter {
+export class AutoCoderConfService extends EventEmitter {
   private config: ConfigState = {
     human_as_model: false,
     skip_build_index: true,

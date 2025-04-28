@@ -20,7 +20,7 @@ import {
   IndexBuildEndContent 
 } from '../components/AutoMode/types';
 
-class ChatService extends EventEmitter {
+export class ChatService extends EventEmitter {
   private eventSource: EventSource | null = null;
   private streamEvents: Map<string, AutoModeMessage> = new Map();
   private lastEventType: string | null = null;

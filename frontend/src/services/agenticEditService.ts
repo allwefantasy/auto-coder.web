@@ -3,7 +3,7 @@ import { Message, AutoCommandEvent, StreamContent, ResultContent, AskUserContent
 import eventBus, { EVENTS } from './eventBus';
 
 
-class AgenticEditService extends EventEmitter {
+export class AgenticEditService extends EventEmitter {
   private eventSource: EventSource | null = null;
   private streamEvents: Map<string, Message> = new Map();
   private lastEventType: string | null = null;
