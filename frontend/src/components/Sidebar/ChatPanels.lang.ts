@@ -1,11 +1,11 @@
 export const chatPanelsMessages = {
   mainChat: {
     en: "Main Chat Panel",
-    zh: "主面板"
+    zh: "主线面板"
   },
   secondaryChat: {
     en: "Secondary Chat Panel",
-    zh: "辅助面板"
+    zh: "支线面板"
   },
   newChatName: {
     en: "New Chat Panel Name",

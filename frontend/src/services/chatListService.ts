@@ -26,15 +26,30 @@ class ChatListService extends EventEmitter {
 
   /**
    * 获取当前会话名称
-   * @returns 当前会话名称
+   * @param panelId 面板ID，可选
+   * @returns 当前会话名称或会话信息对象
    */
-  async getCurrentSessionName(): Promise<string | null> {
-    try {
-      const response = await fetch('/api/chat-session/name');
+  async getCurrentSessionName(panelId?: string): Promise<string | { sessionName: string, panelId: string } | null> {
+    try {      
+      const url = panelId 
+        ? `/api/chat-session/name?panel_id=${encodeURIComponent(panelId)}` 
+        : '/api/chat-session/name';
+            
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch current session name');
       }
       const data = await response.json();
+      
+      // 如果有panelId，返回一个包含sessionName和panelId的对象
+      // 否则只返回sessionName字符串
+      if (panelId) {
+        return data.session_name ? {
+          sessionName: data.session_name,
+          panelId: panelId
+        } : null;
+      }
+      
       return data.session_name || null;
     } catch (error) {
       console.error('Error getting current session name:', error);
@@ -45,9 +60,10 @@ class ChatListService extends EventEmitter {
   /**
    * 设置当前会话名称
    * @param name 会话名称
+   * @param panelId 面板ID，可选
    * @returns 是否设置成功
    */
-  async setCurrentSessionName(name: string): Promise<boolean> {
+  async setCurrentSessionName(name: string, panelId?: string): Promise<boolean> {
     if (!name.trim()) {
       return false;
     }
@@ -60,6 +76,7 @@ class ChatListService extends EventEmitter {
         },
         body: JSON.stringify({
           session_name: name,
+          panel_id: panelId || ''
         }),
       });
 
@@ -79,9 +96,10 @@ class ChatListService extends EventEmitter {
    * 保存聊天列表
    * @param name 聊天名称
    * @param messages 消息列表
+   * @param panelId 面板ID，可选
    * @returns 是否保存成功
    */
-  async saveChatList(name: string, messages: AutoModeMessage[] = []): Promise<boolean> {
+  async saveChatList(name: string, messages: AutoModeMessage[] = [], panelId?: string): Promise<boolean> {
     if (!name.trim()) {
       this.emit('error', '请输入聊天列表名称');
       return false;
@@ -103,9 +121,10 @@ class ChatListService extends EventEmitter {
         throw new Error('Failed to save chat list');
       }
 
-      // 同步更新当前会话名称
-      await this.setCurrentSessionName(name);
-      this.emit('chatListSaved', name);
+      // 同步更新当前会话名称，传递panelId参数
+      await this.setCurrentSessionName(name, panelId);
+      // 发布事件时包含panelId信息
+      this.emit('chatListSaved', { name, panelId });
       return true;
     } catch (error) {
       console.error('Error saving chat list:', error);
@@ -119,7 +138,7 @@ class ChatListService extends EventEmitter {
    * @param name 聊天名称
    * @returns 消息列表
    */
-  async loadChatList(name: string): Promise<AutoModeMessage[]> {
+  async loadChatList(name: string, panelId?: string): Promise<AutoModeMessage[]> {
     try {
       const response = await fetch(`/api/chat-lists/${name}`);
       const data = await response.json();
@@ -150,7 +169,8 @@ class ChatListService extends EventEmitter {
         } as AutoModeMessage;
       });
       
-      this.emit('chatListLoaded', { name, messages: convertedMessages });
+      // 发布事件时包含panelId信息
+      this.emit('chatListLoaded', { name, messages: convertedMessages, panelId });
       return convertedMessages;
     } catch (error) {
       console.error('Error loading chat list:', error);
@@ -193,7 +213,7 @@ class ChatListService extends EventEmitter {
         throw new Error('Failed to delete chat list');
       }
 
-      this.emit('chatListDeleted', name);
+      this.emit('chatListDeleted', { name });
       return true;
     } catch (error) {
       console.error('Error deleting chat list:', error);
@@ -208,7 +228,7 @@ class ChatListService extends EventEmitter {
    * @param newName 新名称
    * @returns 是否重命名成功
    */
-  async renameChatList(oldName: string, newName: string): Promise<boolean> {
+  async renameChatList(oldName: string, newName: string, panelId?: string): Promise<boolean> {
     try {
       // 验证新名称不为空
       if (!newName.trim()) {
@@ -233,7 +253,8 @@ class ChatListService extends EventEmitter {
         throw new Error(errorData.detail || 'Failed to rename chat list');
       }
 
-      this.emit('chatListRenamed', { oldName, newName });
+      // 发布事件时包含panelId信息
+      this.emit('chatListRenamed', { oldName, newName, panelId });
       return true;
     } catch (error: any) {
       console.error('Error renaming chat list:', error);
@@ -244,22 +265,23 @@ class ChatListService extends EventEmitter {
 
   /**
    * 创建新的空聊天
+   * @param panelId 面板ID，可选
    * @returns 新聊天的名称
    */
-  async createNewChat(): Promise<string | null> {
+  async createNewChat(panelId?: string): Promise<string | null> {
     // 设置默认的新对话名称
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const newChatName = `chat_${timestamp}`;
 
     try {
       // 保存新的空对话列表
-      const saveSuccess = await this.saveChatList(newChatName, []);
+      const saveSuccess = await this.saveChatList(newChatName, [], panelId);
       if (!saveSuccess) {
         throw new Error('Failed to save new chat');
       }
 
       // 设置当前会话名称
-      await this.setCurrentSessionName(newChatName);
+      await this.setCurrentSessionName(newChatName, panelId);
 
       // 向聊天路由器发送 /new 命令
       try {
@@ -281,7 +303,8 @@ class ChatListService extends EventEmitter {
         // 不向用户显示错误，因为这是后台操作
       }
 
-      this.emit('newChatCreated', newChatName);
+      // 发布事件时包含panelId信息
+      this.emit('newChatCreated', { name: newChatName, panelId });
       return newChatName;
     } catch (error) {
       console.error('Error creating new chat directly:', error);

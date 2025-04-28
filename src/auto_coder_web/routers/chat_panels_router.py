@@ -15,8 +15,8 @@ class ChatTab(BaseModel):
 
 class ChatPanelsConfig(BaseModel):
     tabs: List[ChatTab] = [
-        ChatTab(id="main", name="主聊天"),
-        ChatTab(id="secondary", name="辅助聊天")
+        ChatTab(id="main", name="主线面板"),
+        ChatTab(id="secondary", name="支线面板")
     ]
     activeTabId: str = "main"
 
@@ -49,7 +49,7 @@ async def load_config(config_path: Path) -> ChatPanelsConfig:
 async def save_config(config: ChatPanelsConfig, config_path: Path):
     """保存聊天面板配置"""
     async with aiofiles.open(config_path, mode='w', encoding='utf-8') as f:
-        await f.write(json.dumps(config.dict()))
+        await f.write(json.dumps(config.dict(), indent=2, ensure_ascii=False))
 
 # 获取所有聊天标签页
 @router.get("/api/chat/panels")

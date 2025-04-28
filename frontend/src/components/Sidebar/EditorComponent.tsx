@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Editor, loader } from '@monaco-editor/react';
 import { uploadImage } from '../../services/api';
 import { CompletionItem, EnhancedCompletionItem } from './types';
@@ -58,9 +58,7 @@ interface EditorComponentProps {
   isMaximized: boolean;
   onEditorDidMount: (editor: any, monaco: any) => void;
   /** 编辑器的初始值 */
-  defaultValue?: string;
-  /** 编辑器值改变时的回调 */
-  onChange?: (value: string | undefined) => void;
+  defaultValue?: string;  
   /** 切换编辑器最大化/最小化状态 */
   onToggleMaximize: () => void;
   /** 当点击 mention 项时的回调 */
@@ -87,8 +85,7 @@ interface MentionData {
 const EditorComponent: React.FC<EditorComponentProps> = ({
   isMaximized,
   onEditorDidMount,  
-  defaultValue = '',
-  onChange,
+  defaultValue = '',  
   onToggleMaximize,
   onMentionClick,
   handleSendMessage,
@@ -103,6 +100,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   const mentionsRef = React.useRef<MentionData[]>([]);
   // 存储当前装饰IDs的引用
   const decorationsRef = React.useRef<string[]>([]);
+
+  const [value, setValue] = useState('');
 
   // 更新mention装饰
   const updateMentionDecorations = React.useCallback(() => {
@@ -400,10 +399,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     });
 
     // 添加提交快捷键
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      const text = editor.getModel().getValue();
-      console.log('EditorComponent: 提交快捷键触发，发送消息:', text);
-      handleSendMessage(text);
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {        
+      handleSendMessage()
     });
 
     // 添加聚焦文件组选择快捷键
@@ -621,11 +618,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           }`}
         style={{ width: '100%' }}
       >
-        <Editor
+        <Editor          
           height="100%"
           defaultLanguage="markdown"
-          defaultValue={defaultValue}
-          onChange={onChange}
+          defaultValue={defaultValue}          
           theme="vs-dark"
           onMount={handleEditorDidMount}
           // 禁用自动检测和加载远程资源

@@ -36,8 +36,8 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
 }) => {
   // 默认聊天标签页配置
   const defaultTabs: ChatTabConfig[] = [
-    { id: 'main', name: getMessage('mainChat') || '主聊天' },
-    { id: 'secondary', name: getMessage('secondaryChat') || '辅助聊天' }
+    { id: 'main', name: getMessage('mainChat') || '主线面板' },
+    { id: 'secondary', name: getMessage('secondaryChat') || '支线面板' }
   ];
   
   const [tabs, setTabs] = useState<ChatTabConfig[]>(defaultTabs);
@@ -63,19 +63,6 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
 
     loadChatPanelsConfig();
   }, []);
-
-  // 保存标签页配置到后端
-  const saveChatPanelsConfig = async (newTabs: ChatTabConfig[], newActiveTabId: string) => {
-    try {
-      // 保存标签页列表
-      await axios.put('/api/chat/panels/tabs', newTabs);
-      
-      // 保存当前活跃标签页
-      await axios.put('/api/chat/panels/active-tab', { id: newActiveTabId });
-    } catch (error) {
-      console.error('保存聊天面板配置失败:', error);
-    }
-  };
 
   // 添加新标签页
   const handleAddTab = async () => {
@@ -228,6 +215,7 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
             className={`h-full ${activeTabId === tab.id ? 'block' : 'hidden'}`}
           >
             <ChatPanel
+              key={tab.id}
               setPreviewFiles={setPreviewFiles}
               setActivePanel={setActivePanel}
               setClipboardContent={setClipboardContent}
@@ -235,6 +223,7 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
               setRequestId={setRequestId}
               projectName={`${projectName}${tabs.length > 1 ? ` (${tab.name})` : ''}`}
               setSelectedFiles={setSelectedFiles}
+              panelId={tab.id}
             />
           </div>
         ))}

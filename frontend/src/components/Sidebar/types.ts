@@ -76,12 +76,13 @@ export interface Message {
 
 export interface ChatPanelProps {
   setPreviewFiles: (files: { path: string, content: string }[]) => void;
-  setActivePanel: (panel: 'todo' | 'code' | 'filegroup' | 'preview' | 'clipboard' | 'history' | 'settings') => void;
+  setActivePanel: (panel: string) => void;
   setClipboardContent: (content: string) => void;
   clipboardContent: string;
   setRequestId: (id: string) => void;
   projectName?: string;
   setSelectedFiles: (files: FileMetadata[]) => void;
+  panelId?: string;
 }
 
 export interface CompletionItem {

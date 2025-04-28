@@ -5,9 +5,11 @@ import aiofiles
 from auto_coder_web.types import ChatList
 from pydantic import BaseModel
 import asyncio
+from loguru import logger
 
 class SessionNameRequest(BaseModel):
     session_name: str
+    panel_id: str = ""  # 添加panel_id字段，默认为空字符串
 
 
 class RenameChatListRequest(BaseModel):
@@ -97,17 +99,22 @@ async def delete_chat_list(name: str, project_path: str = Depends(get_project_pa
 
 
 @router.get("/api/chat-session/name")
-async def get_current_session_name(project_path: str = Depends(get_project_path)):
+async def get_current_session_name(panel_id: str = "", project_path: str = Depends(get_project_path)):
     """
     获取当前会话名称
+    
+    Args:
+        panel_id: 可选的面板ID，用于区分不同的聊天面板
+        project_path: 项目路径
     """
     try:
-        # 创建存储会话信息的目录
+        # 创建存储会话信息的目录        
         session_dir = os.path.join(project_path, ".auto-coder", "auto-coder.web")
         os.makedirs(session_dir, exist_ok=True)
         
-        # 会话信息文件路径
-        session_file = os.path.join(session_dir, "current-session.json")
+        # 会话信息文件路径 - 基于panel_id构建不同的文件名
+        file_name = "current-session.json" if not panel_id else f"current-session-{panel_id}.json"
+        session_file = os.path.join(session_dir, file_name)
         
         # 如果文件不存在，返回空会话名称
         if not os.path.exists(session_file):
@@ -129,17 +136,25 @@ async def get_current_session_name(project_path: str = Depends(get_project_path)
 async def set_current_session_name(request: SessionNameRequest, project_path: str = Depends(get_project_path)):
     """
     设置当前会话名称
+    
+    Args:
+        request: 包含会话名称和可选面板ID的请求
+        project_path: 项目路径
     """
     try:
         # 创建存储会话信息的目录
         session_dir = os.path.join(project_path, ".auto-coder", "auto-coder.web")
         os.makedirs(session_dir, exist_ok=True)
         
-        # 会话信息文件路径
-        session_file = os.path.join(session_dir, "current-session.json")
+        # 会话信息文件路径 - 基于panel_id构建不同的文件名
+        file_name = "current-session.json" if not request.panel_id else f"current-session-{request.panel_id}.json"
+        session_file = os.path.join(session_dir, file_name)
         
         # 保存当前会话信息
-        session_data = {"session_name": request.session_name}
+        session_data = {
+            "session_name": request.session_name,
+            "panel_id": request.panel_id
+        }
         async with aiofiles.open(session_file, 'w') as f:
             await f.write(json.dumps(session_data, indent=2, ensure_ascii=False))
             
