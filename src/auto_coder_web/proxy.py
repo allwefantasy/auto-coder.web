@@ -26,7 +26,6 @@ from auto_coder_web.common_router import active_context_router
 from rich.console import Console
 from loguru import logger
 from auto_coder_web.lang import get_message
-from auto_coder_web.file_cacher.filecacher import FileCacher
 
 class ProxyServer:
     def __init__(self, project_path: str, quick: bool = False, product_mode: str = "pro"):    
