@@ -244,9 +244,11 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
       danger: true,
       onClick: () => {
         if (contextMenuNode) {
+          const nodeKey = contextMenuNode.key.toString();
+          const nodeName = nodeKey.split('/').pop() || nodeKey; // Extract name from path
           Modal.confirm({
             title: 'Delete Confirmation',
-            content: `Are you sure you want to delete ${contextMenuNode.title}?`,
+            content: `Are you sure you want to delete ${nodeName}?`,
             okText: 'Yes',
             okType: 'danger',
             cancelText: 'No',
