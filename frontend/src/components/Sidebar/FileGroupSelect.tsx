@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, KeyboardEvent, useCallback } from 'react';
-import { Select, message, Tooltip } from 'antd';
+import { Select, message } from 'antd';
 import type { CustomTagProps } from 'rc-select/lib/BaseSelect';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import { FileGroup, EnhancedCompletionItem } from './types';
@@ -7,7 +7,6 @@ import eventBus, { EVENTS } from '../../services/eventBus';
 import { FileMetadata } from '../../types/file_meta';
 import './FileGroupSelect.css';
 import { getMessage } from './lang';
-import { FileGroupSelectFocusEventData, EditorMentionsEventData } from '../../services/event_bus_data';
 
 interface FileGroupSelectProps {
   fileGroups: FileGroup[];
@@ -15,7 +14,6 @@ interface FileGroupSelectProps {
   setSelectedGroups: (values: string[]) => void;
   fetchFileGroups: () => void;
   mentionItems?: EnhancedCompletionItem[];
-  panelId?: string;
 }
 
 interface FileCompletion {
@@ -29,26 +27,19 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   fileGroups,
   selectedGroups,
   setSelectedGroups,
-  fetchFileGroups,
-  panelId = '',
+  fetchFileGroups,  
 }) => {
   const [fileCompletions, setFileCompletions] = useState<FileCompletion[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);  
   const [mentionFiles, setMentionFiles] = useState<{ path: string, display: string }[]>([]);
-  const [totalTokens, setTotalTokens] = useState<number>(0);
   const selectRef = useRef<any>(null);
   const processedMentionPaths = useRef<Set<string>>(new Set());
 
   // 监听编辑器发来的聚焦事件
   useEffect(() => {
-    const handleFocusEvent = (data: FileGroupSelectFocusEventData) => {
-      // 检查事件是否与当前面板相关
-      if (data.panelId && data.panelId !== panelId) {
-        return; // 如果事件不属于当前面板，直接返回
-      }
-      
+    const handleFocusEvent = () => {
       if (selectRef.current) {
         selectRef.current.focus();
         message.info(getMessage('focusInput'), 1);
@@ -62,19 +53,14 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     return () => {
       unsubscribe();
     };
-  }, [panelId]);
+  }, []);
 
   // 监听编辑器发来的mentions变化事件
   useEffect(() => {
-    const handleMentionsChanged = (data: EditorMentionsEventData) => {
-      // 检查事件是否与当前面板相关
-      if (data.panelId && data.panelId !== panelId) {
-        return; // 如果事件不属于当前面板，直接返回
-      }
-      
-      console.log(data.mentions)
+    const handleMentionsChanged = (mentions: Array<{type: string; text: string; path: string}>) => {
+      console.log(mentions)
       // 仅处理文件类型的mentions
-      const fileOnlyMentions = data.mentions;
+      const fileOnlyMentions = mentions;
       
       if (fileOnlyMentions.length > 0) {
         // 转换为组件需要的格式
@@ -116,7 +102,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     return () => {
       unsubscribe();
     };
-  }, [selectedGroups, selectedFiles, panelId]);
+  }, [selectedGroups, selectedFiles]);
 
   const formatPathDisplay = useCallback((path: string, maxLength: number = 40) => {
     // Remove the filename part (everything after last slash)
@@ -132,21 +118,14 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
 
   // 订阅编辑器选项卡变更事件，而不是 files.opened 事件
   useEffect(() => {
-    const handleTabsChanged = (tabs: FileMetadata[], eventPanelId?: string) => {
-      // 检查事件是否与当前面板相关
-      if (eventPanelId && eventPanelId !== panelId) {
-        return; // 如果事件不属于当前面板，直接返回
-      }
-      
+    const unsubscribe = eventBus.subscribe(EVENTS.EDITOR.TABS_CHANGED, (tabs: FileMetadata[]) => {
       console.log(getMessage('editorTabsChanged'), tabs);
       setOpenedFiles(tabs);
-    };
-
-    const unsubscribe = eventBus.subscribe(EVENTS.EDITOR.TABS_CHANGED, handleTabsChanged);
+    });
 
     // 组件卸载时取消订阅
     return () => unsubscribe();
-  }, [panelId]);
+  }, []);
   
   const fetchFileCompletions = async (searchValue: string) => {
     if (searchValue.length < 2) {
@@ -180,15 +159,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         group_names: uniqueGroupValues,
         file_paths: uniqueFileValues
       })
-    })
-    .then(response => response.json())
-    .then(data => {
-      // 获取并设置 token 计数
-      if (data && data.total_tokens !== undefined) {
-        setTotalTokens(data.total_tokens);
-      }
-    })
-    .catch(error => {
+    }).catch(error => {
       console.error(getMessage('errorUpdatingSelection'), error);
     });
   };
@@ -708,30 +679,22 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             </Select.OptGroup>
           )}
         </Select>
-        <div className="flex items-center">
-          {totalTokens > 0 && (
-            <Tooltip title={getMessage('totalTokens')}>
-              <span className="text-xs text-gray-400 mr-2">{totalTokens.toLocaleString()} tokens</span>
-            </Tooltip>
-          )}
-          <CloseCircleOutlined
-            className="text-gray-400 hover:text-gray-200 cursor-pointer text-sm"
-            onClick={async () => {
-              try {
-                await fetch('/api/file-groups/clear', {
-                  method: 'POST'
-                });
-                setSelectedGroups([]);
-                setSelectedFiles([]);
-                setTotalTokens(0); // 清空 token 计数
-                fetchFileGroups();
-              } catch (error) {
-                console.error(getMessage('clearFailed'), error);
-              }
-            }}
-            title={getMessage('clearContext')}
-          />
-        </div>
+        <CloseCircleOutlined
+          className="text-gray-400 hover:text-gray-200 cursor-pointer text-sm"
+          onClick={async () => {
+            try {
+              await fetch('/api/file-groups/clear', {
+                method: 'POST'
+              });
+              setSelectedGroups([]);
+              setSelectedFiles([]);
+              fetchFileGroups();
+            } catch (error) {
+              console.error(getMessage('clearFailed'), error);
+            }
+          }}
+          title={getMessage('clearContext')}
+        />
       </div>
     </div>
   );

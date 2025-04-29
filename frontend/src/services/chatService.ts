@@ -551,3 +551,4 @@ export class ChatService extends EventEmitter {
 
 // Export a singleton instance
 export const chatService = new ChatService();
+

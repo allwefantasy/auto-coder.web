@@ -4,6 +4,7 @@ export interface FileGroup {
   id: string;
   name: string;
   files: string[];
+  file_count?: number;
 }
 
 export interface CodeBlock {
@@ -83,6 +84,7 @@ export interface ChatPanelProps {
   projectName?: string;
   setSelectedFiles: (files: FileMetadata[]) => void;
   panelId?: string;
+  isActive?: boolean;
 }
 
 export interface CompletionItem {

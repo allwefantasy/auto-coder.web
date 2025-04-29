@@ -20,7 +20,7 @@ import MessageList, { MessageProps } from '../../components/AutoMode/MessageList
 import eventBus from '../../services/eventBus';
 import { EVENTS } from '../../services/eventBus';
 import { playTaskComplete, playErrorSound } from '../../components/AutoMode/utils/SoundEffects';
-import { NewChatEventData, AgenticModeChangedEventData } from '../../services/event_bus_data';
+import { NewChatEventData, AgenticModeChangedEventData, HotkeyEventData } from '../../services/event_bus_data';
 
 const ChatPanel: React.FC<ChatPanelProps> = ({
   setPreviewFiles,
@@ -30,7 +30,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   clipboardContent,
   projectName = '',
   setSelectedFiles,
-  panelId = ''
+  panelId = '',
+  isActive = true
 }) => {
   // 使用ServiceFactory获取对应服务
   const chatService = ServiceFactory.getChatService(panelId);
@@ -1057,6 +1058,145 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     };
   }, [chatListName, panelId, handleNewChatDirectly]);
 
+  // 跟踪是否正在生成回复
+  useEffect(() => {
+    // 新对话事件处理函数 - 处理UI中的"New Chat"按钮点击
+    const handleNewChat = (data: NewChatEventData) => {
+      // 只处理面板ID匹配的事件
+      if (data.panelId && data.panelId !== panelId) {
+        return;
+      }
+      
+      handleReset();
+    };
+
+    // 处理热键触发的新建对话事件
+    const handleNewChatHotkey = (data: HotkeyEventData) => {
+      if (data.panelId !== panelId) {
+        return;
+      }
+      
+      handleReset();
+    };
+    
+    // 添加事件监听
+    const unsubscribe1 = eventBus.subscribe(EVENTS.CHAT.NEW_CHAT, handleNewChat);
+    const unsubscribe2 = eventBus.subscribe(EVENTS.HOTKEY.NEW_CHAT, handleNewChatHotkey);
+    
+    return () => {
+      unsubscribe1();
+      unsubscribe2();
+    };
+  }, [panelId]);
+
+  // 监听RAG启用状态变更事件
+  useEffect(() => {
+    const handleRagEnabledChanged = (enabled: boolean) => {
+      setEnableRag(enabled);
+    };
+
+    // 订阅事件
+    const unsubscribe = eventBus.subscribe(EVENTS.RAG.ENABLED_CHANGED, handleRagEnabledChanged);
+    
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // 监听MCPs启用状态变更事件
+  useEffect(() => {
+    const handleMcpsEnabledChanged = (enabled: boolean) => {
+      setEnableMCPs(enabled);
+    };
+
+    // 订阅事件
+    const unsubscribe = eventBus.subscribe(EVENTS.MCPS.ENABLED_CHANGED, handleMcpsEnabledChanged);
+    
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // 当消息更新或面板ID变化时滚动到底部
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, panelId]);
+
+  // 在组件挂载时加载文件组列表
+  useEffect(() => {
+    fetchFileGroups();
+
+    // 监听Chat面板刷新消息事件
+    const handleRefreshFromMessage = (messageId: string) => {
+      // 查找消息索引
+      const msgIndex = messages.findIndex(m => m.id === messageId);
+      if (msgIndex >= 0) {
+        // 保留点击的消息及之前的所有消息
+        const updatedMessages = messages.slice(0, msgIndex + 1);
+        setMessages(updatedMessages);
+        
+        // 将最后一条用户消息的内容设置为编辑器内容
+        const lastUserMsg = [...updatedMessages].reverse().find(m => m.role === 'user');
+        if (lastUserMsg) {
+          setEditorContent(lastUserMsg.content);
+        }
+      }
+    };
+
+    // 订阅刷新事件
+    const unsubscribe = eventBus.subscribe(EVENTS.CHAT.REFRESH_FROM_MESSAGE, handleRefreshFromMessage);
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [messages]);
+
+  // 滚动到对话区域底部
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // 重置对话
+  const handleReset = async () => {
+    if (pendingRevert) return;
+    
+    try {
+      setPendingRevert(true);
+      
+      // 重置消息列表
+      setMessages([]);
+      
+      // 重置编辑器内容
+      setEditorContent('');
+      
+      // 重置其他状态
+      setSendLoading(false);
+      
+      // 生成新会话ID
+      const newSessionId = uuidv4();
+      
+      // 发送重置请求到服务器
+      await fetch('/api/chat/reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          session_id: newSessionId,
+          panel_id: panelId || "main"
+        })
+      });
+      
+      console.log('Chat reset successfully');
+    } catch (error) {
+      console.error('Failed to reset chat:', error);
+    } finally {
+      setPendingRevert(false);
+    }
+  };
+
   return (
     <>
       <Layout className="h-screen flex flex-col overflow-hidden">
@@ -1263,7 +1403,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               setIsWriteMode={setIsWriteMode}
               isRuleMode={isRuleMode}
               setIsRuleMode={setIsRuleMode}
-              handleRevert={handleRevert}
+              handleRevert={handleReset}
               handleSendMessage={handleSendMessage}
               handleStopGeneration={handleStopGeneration}
               sendLoading={sendLoading}
@@ -1273,6 +1413,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               soundEnabled={soundEnabled}
               setSoundEnabled={setSoundEnabled}
               panelId={panelId}
+              isActive={isActive}
             />
           </div>
         </Layout.Content>

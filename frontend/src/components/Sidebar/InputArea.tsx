@@ -10,7 +10,7 @@ import ProviderSelectors from './ProviderSelectors'; // Import the new parent co
 import { codingService } from '../../services/codingService';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import axios from 'axios';
-import { ToggleInputFullscreenEventData, AgenticModeChangedEventData } from '../../services/event_bus_data';
+import { ToggleInputFullscreenEventData, AgenticModeChangedEventData, ToggleWriteModeEventData, HotkeyEventData } from '../../services/event_bus_data';
 
 interface InputAreaProps {
   fileGroups: FileGroup[];
@@ -34,6 +34,7 @@ interface InputAreaProps {
   soundEnabled: boolean;
   setSoundEnabled: React.Dispatch<React.SetStateAction<boolean>>;
   panelId?: string;
+  isActive?: boolean;
 }
 
 const InputArea: React.FC<InputAreaProps> = ({
@@ -57,7 +58,8 @@ const InputArea: React.FC<InputAreaProps> = ({
   showFileGroupSelect,
   soundEnabled,
   setSoundEnabled,
-  panelId
+  panelId,
+  isActive = true
 }) => {    
   const [showConfig, setShowConfig] = useState<boolean>(true);
   const [config, setLocalConfig] = useState<ConfigState>({
@@ -97,6 +99,24 @@ const InputArea: React.FC<InputAreaProps> = ({
     }
   }, [isInputAreaMaximized]);
 
+  // 定义toggleWriteMode函数 - 放在使用之前
+  const toggleWriteMode = useCallback(() => {
+    // 按照Chat -> Write -> Rule -> Chat的顺序循环切换
+    if (!isWriteMode && !isRuleMode) {
+      // 当前是Chat模式，切换到Write模式
+      setIsWriteMode(true);
+      setIsRuleMode(false);
+    } else if (isWriteMode && !isRuleMode) {
+      // 当前是Write模式，切换到Rule模式
+      setIsWriteMode(false);
+      setIsRuleMode(true);
+    } else {
+      // 当前是Rule模式，切换到Chat模式
+      setIsWriteMode(false);
+      setIsRuleMode(false);
+    }
+  }, [isWriteMode, isRuleMode, setIsWriteMode, setIsRuleMode]);
+
   // 监听editor发布的全屏切换事件
   useEffect(() => {
     const handleToggleFullscreenEvent = (data: ToggleInputFullscreenEventData) => {
@@ -115,35 +135,57 @@ const InputArea: React.FC<InputAreaProps> = ({
     };
   }, [panelId]);
 
-  const toggleWriteMode = useCallback(() => {
-    // 按照Chat -> Write -> Rule -> Chat的顺序循环切换
-    if (!isWriteMode && !isRuleMode) {
-      // 当前是Chat模式，切换到Write模式
-      setIsWriteMode(true);
-      setIsRuleMode(false);
-    } else if (isWriteMode && !isRuleMode) {
-      // 当前是Write模式，切换到Rule模式
-      setIsWriteMode(false);
-      setIsRuleMode(true);
-    } else {
-      // 当前是Rule模式，切换到Chat模式
-      setIsWriteMode(false);
-      setIsRuleMode(false);
-    }
-  }, [isWriteMode, isRuleMode, setIsWriteMode, setIsRuleMode]);
-
+  // 监听热键事件
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === '.') {
-        toggleWriteMode();
-      }
+    // 只有当面板处于活跃状态时才订阅热键事件
+    if (!isActive) return;
+
+    // 处理全屏切换热键
+    const handleToggleFullscreenHotkey = (data: HotkeyEventData) => {
+      if (data.panelId !== panelId) return;
+      setIsInputAreaMaximized(prev => !prev);
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+    // 处理发送消息热键
+    const handleSendHotkey = (data: HotkeyEventData) => {
+      if (data.panelId !== panelId) return;
+      handleSendMessage();
     };
-  }, [toggleWriteMode]);
+
+    // 处理模式切换热键
+    const handleToggleModeHotkey = (data: HotkeyEventData) => {
+      if (data.panelId !== panelId) return;
+      toggleWriteMode();
+    };
+
+    // 订阅热键事件
+    const unsubscribeFullscreen = eventBus.subscribe(EVENTS.HOTKEY.TOGGLE_FULLSCREEN, handleToggleFullscreenHotkey);
+    const unsubscribeSend = eventBus.subscribe(EVENTS.HOTKEY.SEND, handleSendHotkey);
+    const unsubscribeMode = eventBus.subscribe(EVENTS.HOTKEY.TOGGLE_MODE, handleToggleModeHotkey);
+
+    return () => {
+      unsubscribeFullscreen();
+      unsubscribeSend();
+      unsubscribeMode();
+    };
+  }, [isActive, panelId, handleSendMessage, toggleWriteMode]);
+
+  // 添加新的eventBus事件监听
+  useEffect(() => {
+    const handleToggleWriteMode = (data: ToggleWriteModeEventData) => {
+      // 检查事件是否与当前面板相关      
+      if (data.panelId && data.panelId !== panelId) {
+        return; // 如果事件不属于当前面板，直接返回
+      }      
+      toggleWriteMode();
+    };
+
+    const unsubscribe = eventBus.subscribe(EVENTS.UI.TOGGLE_WRITE_MODE, handleToggleWriteMode);
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [toggleWriteMode, panelId]);
 
   // 获取配置信息
   const fetchConfig = useCallback(async () => {
@@ -457,6 +499,7 @@ const InputArea: React.FC<InputAreaProps> = ({
             }}            
             handleSendMessage={handleSendMessage}
             panelId={panelId}
+            isActive={isActive}
           />
         </div>
         <div className="flex flex-col mt-0 gap-0 flex-shrink-0">

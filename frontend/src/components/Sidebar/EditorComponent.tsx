@@ -3,7 +3,7 @@ import { Editor, loader } from '@monaco-editor/react';
 import { uploadImage } from '../../services/api';
 import { CompletionItem, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
-import { NewChatEventData, EditorMentionsEventData, ToggleInputFullscreenEventData, FileGroupSelectFocusEventData } from '../../services/event_bus_data';
+import { NewChatEventData, EditorMentionsEventData, ToggleInputFullscreenEventData, FileGroupSelectFocusEventData, ToggleWriteModeEventData, HotkeyEventData } from '../../services/event_bus_data';
 // 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
 
@@ -59,7 +59,7 @@ interface EditorComponentProps {
   isMaximized: boolean;
   onEditorDidMount: (editor: any, monaco: any) => void;
   /** 编辑器的初始值 */
-  defaultValue?: string;  
+  defaultValue?: string;
   /** 切换编辑器最大化/最小化状态 */
   onToggleMaximize: () => void;
   /** 当点击 mention 项时的回调 */
@@ -68,6 +68,8 @@ interface EditorComponentProps {
   handleSendMessage: (text?: string) => void;
   /** 面板ID */
   panelId?: string;
+  /** 是否为激活面板 */
+  isActive?: boolean;
 }
 
 // Mention 数据接口
@@ -87,25 +89,25 @@ interface MentionData {
  */
 const EditorComponent: React.FC<EditorComponentProps> = ({
   isMaximized,
-  onEditorDidMount,  
-  defaultValue = '',  
+  onEditorDidMount,
+  defaultValue = '',
   onToggleMaximize,
   onMentionClick,
   handleSendMessage,
   panelId,
+  isActive = true, // 默认为激活状态
 }) => {
   // 添加一个ref来跟踪提供者是否已经注册
   const providerRegistered = React.useRef(false);
   // 添加一个ref来存储editor的引用
   const editorRef = React.useRef<any>(null);
+
   // 添加一个ref来存储编辑器容器的引用
   const editorContainer = React.useRef<HTMLDivElement>(null);
   // 存储所有mention项的引用
   const mentionsRef = React.useRef<MentionData[]>([]);
   // 存储当前装饰IDs的引用
   const decorationsRef = React.useRef<string[]>([]);
-
-  const [value, setValue] = useState('');
 
   // 更新mention装饰
   const updateMentionDecorations = React.useCallback(() => {
@@ -178,6 +180,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     return mentionData;
   }, [updateMentionDecorations]);
 
+ 
   React.useEffect(() => {
     // 在组件挂载时注入样式
     const styleElement = document.createElement('style');
@@ -211,11 +214,11 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     const handleDrop = async (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       if (editorContainer.current) {
         editorContainer.current.classList.remove('drag-over');
       }
-      
+
       if (e.dataTransfer && e.dataTransfer.files.length > 0) {
         const file = e.dataTransfer.files[0];
         if (file.type.startsWith('image/')) {
@@ -223,23 +226,23 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         }
       }
     };
-    
+
     // 添加粘贴图片支持
     const handlePaste = async (e: ClipboardEvent) => {
       // 只处理当编辑器获得焦点时的粘贴事件
-      if (document.activeElement !== editorContainer.current && 
-          !editorContainer.current?.contains(document.activeElement)) {
+      if (document.activeElement !== editorContainer.current &&
+        !editorContainer.current?.contains(document.activeElement)) {
         return;
       }
-      
+
       if (e.clipboardData && e.clipboardData.items) {
         const items = e.clipboardData.items;
-        
+
         for (let i = 0; i < items.length; i++) {
           if (items[i].type.indexOf('image') !== -1) {
             // 阻止默认粘贴行为
             e.preventDefault();
-            
+
             // 获取图片文件
             const file = items[i].getAsFile();
             if (file) {
@@ -277,6 +280,39 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     };
   }, []);
 
+  // 添加文件组选择事件监听
+  React.useEffect(() => {
+    // 监听文件组选择事件 - 这些只有在isActive时才响应
+    const handleFileGroupSelectFocus = (data: FileGroupSelectFocusEventData) => {
+      if (!isActive || (data.panelId && data.panelId !== panelId)) {
+        return;
+      }
+      eventBus.publish(EVENTS.FILE_GROUP_SELECT.FOCUS, new FileGroupSelectFocusEventData(panelId));
+    };
+
+    const unsubscribe = eventBus.subscribe(EVENTS.HOTKEY.FOCUS_FILE_GROUP, handleFileGroupSelectFocus);
+
+    return () => {
+      unsubscribe();
+    };
+  }, [isActive, panelId]);
+
+  // 添加新建对话事件监听
+  React.useEffect(() => {
+    const handleNewChat = (data: any) => {
+      if (!isActive || (data.panelId && data.panelId !== panelId)) {
+        return;
+      }
+      eventBus.publish(EVENTS.CHAT.NEW_CHAT, new NewChatEventData(panelId));
+    };
+
+    const unsubscribe = eventBus.subscribe(EVENTS.HOTKEY.NEW_CHAT, handleNewChat);
+
+    return () => {
+      unsubscribe();
+    };
+  }, [isActive, panelId]);
+
   const handleImageUpload = async (file: File) => {
     try {
       // 添加上传中状态反馈
@@ -293,19 +329,19 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           text: '![上传中...]()  ',
           forceMoveMarkers: true
         }]);
-        
+
         // 上传图片
         const response = await uploadImage(file);
-        
+
         if (response.success) {
           // 获取当前光标位置
           const currentPosition = editor.getPosition();
-          
+
           // 查找上传中文本的位置
           const model = editor.getModel();
           const content = model.getValue();
           const loadingTextPos = content.indexOf('![上传中...]()');
-          
+
           if (loadingTextPos !== -1) {
             // 计算行和列
             let line = 1;
@@ -318,7 +354,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                 col++;
               }
             }
-            
+
             // 替换上传中文本
             editor.executeEdits('', [{
               range: new monaco.Range(
@@ -349,7 +385,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       }
     } catch (error) {
       console.error('Image upload failed:', error);
-      
+
       // 显示错误信息
       const editor = editorRef.current;
       if (editor) {
@@ -371,6 +407,49 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   const handleEditorDidMount = (editor: any, monaco: any) => {
     // 存储editor引用
     editorRef.current = editor;
+
+    // 添加键盘事件拦截器，处理全局热键
+    const handleKeyDown = (e: any) => {
+      const isMac = navigator.platform.indexOf('Mac') === 0;
+      const metaOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+      
+      // 拦截并处理全局热键
+      // ============= 优先拦截全局热键 =============
+      if (metaOrCtrl) {
+        switch (e.code) {
+          case 'Enter': // Cmd/Ctrl + Enter: 发送消息
+            e.preventDefault();
+            e.stopPropagation();
+            if (handleSendMessage) {
+              handleSendMessage();
+            }
+            return false;
+          case 'Period': // Cmd/Ctrl + . : 切换模式
+            e.preventDefault();
+            e.stopPropagation();
+            eventBus.publish(EVENTS.UI.TOGGLE_WRITE_MODE, new ToggleWriteModeEventData(panelId || 'main'));
+            return false;
+          case 'KeyI': // Cmd/Ctrl + I: 焦点到文件组选择器
+            e.preventDefault();
+            e.stopPropagation();
+            eventBus.publish(EVENTS.HOTKEY.FOCUS_FILE_GROUP, new HotkeyEventData(panelId || 'main'));
+            return false;
+          case 'KeyL': // Cmd/Ctrl + L: 最大化/最小化
+            e.preventDefault();
+            e.stopPropagation();
+            eventBus.publish(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN, new ToggleInputFullscreenEventData(panelId || 'main'));
+            return false;
+            
+          // 可以添加更多全局热键处理...
+        }
+      }
+      
+      // 对于不需要拦截的按键，允许编辑器默认处理
+      return true;
+    };
+    
+    // 添加编辑器的键盘事件拦截
+    editor.onKeyDown(handleKeyDown);
 
     // 添加上传图片按钮
     editor.addAction({
@@ -395,39 +474,16 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     // 首先通知父组件编辑器已经挂载
     onEditorDidMount(editor, monaco);
 
-    // 添加键盘快捷键 - 修改为触发InputArea全屏
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, () => {
-      // 触发InputArea全屏事件
-      eventBus.publish(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN, new ToggleInputFullscreenEventData(panelId));
-      return null;
-    });
+    // 注意：不再直接注册快捷键，而是使用全局热键管理器
 
-    // 添加提交快捷键
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {        
-      handleSendMessage()
-    });
-
-    // 添加聚焦文件组选择快捷键
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
-      // 触发自定义事件
-      eventBus.publish(EVENTS.FILE_GROUP_SELECT.FOCUS, new FileGroupSelectFocusEventData(panelId));
-      return null;
-    });
-
-    // 添加新建对话快捷键
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {      
-      eventBus.publish(EVENTS.CHAT.NEW_CHAT, new NewChatEventData(panelId));
-      return null;
-    });
-    
     // 添加粘贴事件监听器到编辑器实例
     editor.onDidPaste(() => {
       // 编辑器已经处理了粘贴，我们只需要检查是否有图片
       setTimeout(() => {
         // 延迟检查，确保系统粘贴事件已处理
-        const clipboardItems = navigator.clipboard && navigator.clipboard.read ? 
+        const clipboardItems = navigator.clipboard && navigator.clipboard.read ?
           navigator.clipboard.read().catch(() => null) : null;
-          
+
         if (clipboardItems) {
           clipboardItems.then(items => {
             if (items) {  // 添加null检查
@@ -525,19 +581,19 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     if (!providerRegistered.current) {
       monaco.languages.registerCompletionItemProvider('markdown', {
         triggerCharacters: ['@'],
-        provideCompletionItems: async (model: any, position: any) => {                    
+        provideCompletionItems: async (model: any, position: any) => {
           // const wordText = model.getWordUntilPosition(position);
           // 获取查询文本
           // const query = wordText.word;
-          
+
           // 获取当前行的内容
           const lineContent = model.getLineContent(position.lineNumber);
           // 获取光标前的文本
           const textBeforeCursor = lineContent.substring(0, position.column - 1);
-          
+
           // 检查是否有@字符，并从@字符后开始提取查询文本
           const atSignIndex = textBeforeCursor.lastIndexOf('@');
-          
+
           // 如果找到@字符，则从@后面开始提取；否则返回空字符串
           let query = '';
           if (atSignIndex !== -1) {
@@ -621,10 +677,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           }`}
         style={{ width: '100%' }}
       >
-        <Editor          
+        <Editor
           height="100%"
           defaultLanguage="markdown"
-          defaultValue={defaultValue}          
+          defaultValue={defaultValue}
           theme="vs-dark"
           onMount={handleEditorDidMount}
           // 禁用自动检测和加载远程资源
@@ -655,6 +711,18 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             overviewRulerLanes: 0,
             overviewRulerBorder: false,
             fixedOverflowWidgets: true,
+            // 禁用内置快捷键，将由全局热键管理器处理
+            // 禁用所有命令绑定，改为由全局热键管理器处理
+            quickSuggestionsDelay: 100,
+            tabCompletion: 'off',
+            // 重要：禁用部分快捷键，避免与全局热键冲突
+            find: {
+              addExtraSpaceOnTop: false,
+            },
+            links: false,
+            // 使用Monaco默认支持的配置禁用键绑定
+            readOnly: false, // 不是只读模式
+            // 自定义操作处理在handleEditorDidMount中配置
             suggest: {
               insertMode: 'replace',
               snippetsPreventQuickSuggestions: true,

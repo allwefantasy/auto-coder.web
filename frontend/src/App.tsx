@@ -9,6 +9,7 @@ import InitializationPage from './components/InitializationPage';
 import './App.css';
 import { TaskSplittingProvider } from './contexts/TaskSplittingContext';
 import { FileMetadata } from './types/file_meta';
+import HotkeyManager from './utils/HotkeyManager';
 
 
 const App: React.FC = () => {
@@ -67,6 +68,11 @@ const App: React.FC = () => {
         })
         .catch(error => console.error('Error loading mode preference:', error));
     });
+
+    // 确保热键管理器在组件卸载时清理
+    return () => {
+      HotkeyManager.destroy();
+    };
   }, []);
 
   // Check if project is initialized

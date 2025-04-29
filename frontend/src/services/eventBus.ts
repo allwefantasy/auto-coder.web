@@ -18,7 +18,9 @@ export const EVENTS = {
     // InputArea全屏切换事件 EditorComponent.tsx 发布, InputArea.tsx 订阅
     TOGGLE_INPUT_FULLSCREEN: 'input.area.toggle.fullscreen',
     // 显示弹出框事件
-    SHOW_MODAL: 'ui.modal.show'
+    SHOW_MODAL: 'ui.modal.show',
+    // 模式切换事件 EditorComponent.tsx 发布, InputArea.tsx 订阅
+    TOGGLE_WRITE_MODE: 'ui.toggle.write.mode'
   },
   FILE_GROUP_SELECT: {
     // 聚焦文件组选择事件 EditorComponent.tsx 发布, FileGroupSelect.tsx 订阅
@@ -55,6 +57,18 @@ export const EVENTS = {
   PROVIDER: { // 供应商相关事件
     // 供应商列表更新事件 ProviderManagement.tsx 发布, ModelManagement.tsx 订阅
     UPDATED: 'provider.updated'
+  },
+  HOTKEY: { // 全局热键事件
+    // 发送消息热键
+    SEND: 'hotkey.send',
+    // 切换全屏热键
+    TOGGLE_FULLSCREEN: 'hotkey.toggle.fullscreen',
+    // 聚焦文件组选择热键
+    FOCUS_FILE_GROUP: 'hotkey.focus.file.group',
+    // 新建对话热键
+    NEW_CHAT: 'hotkey.new.chat',
+    // 切换模式热键
+    TOGGLE_MODE: 'hotkey.toggle.mode'
   }
 };
 

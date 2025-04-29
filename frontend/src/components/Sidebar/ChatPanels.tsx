@@ -3,6 +3,7 @@ import ChatPanel from './ChatPanel';
 import { FileMetadata } from '../../types/file_meta';
 import { getMessage } from './lang';
 import axios from 'axios';
+import HotkeyManager from '../../utils/HotkeyManager';
 
 // 定义单个聊天面板的配置接口
 interface ChatTabConfig {
@@ -64,6 +65,12 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
     loadChatPanelsConfig();
   }, []);
 
+  // 当活动标签变化时设置热键管理器的作用域
+  useEffect(() => {
+    // 设置热键管理器的作用域为当前活动标签ID
+    HotkeyManager.setScope(activeTabId);
+  }, [activeTabId]);
+
   // 添加新标签页
   const handleAddTab = async () => {
     if (newTabName.trim()) {
@@ -89,7 +96,7 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
   // 删除标签页
   const handleRemoveTab = async (tabId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (tabs.length <= 1 || tabId === 'main') return; // 至少保留一个标签页，且不能删除主面板
+    if (tabs.length <= 1) return; // 至少保留一个标签页
 
     try {
       // 先从后端删除
@@ -146,8 +153,8 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
               {/* 显示标签名的第一个字符作为图标 */}
               <span className="text-xs font-medium">{tab.name.charAt(0).toUpperCase()}</span>
               
-              {/* 悬浮显示删除按钮 - 主面板不显示删除按钮 */}
-              {tabs.length > 1 && tab.id !== 'main' && (
+              {/* 悬浮显示删除按钮 */}
+              {tabs.length > 1 && (
                 <button
                   className="absolute -top-1 -right-1 w-4 h-4 bg-gray-800 rounded-full text-gray-500 hover:text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={(e) => handleRemoveTab(tab.id, e)}
@@ -224,6 +231,7 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
               projectName={`${projectName}${tabs.length > 1 ? ` (${tab.name})` : ''}`}
               setSelectedFiles={setSelectedFiles}
               panelId={tab.id}
+              isActive={activeTabId === tab.id}
             />
           </div>
         ))}

@@ -94,4 +94,38 @@ export class AgenticModeChangedEventData {
     this.enabled = enabled;
     this.panelId = panelId;
   }
+}
+
+/**
+ * 模式切换事件数据类
+ * EditorComponent.tsx 中发布 EVENTS.UI.TOGGLE_WRITE_MODE 事件时使用
+ */
+export class ToggleWriteModeEventData {
+  /** 面板ID */
+  panelId?: string;
+  
+  /**
+   * 构造函数
+   * @param panelId 面板ID
+   */
+  constructor(panelId?: string) {
+    this.panelId = panelId;
+  }
+} 
+
+/**
+ * 热键事件数据类
+ * HotkeyManager.ts 中发布热键事件时使用
+ */
+export class HotkeyEventData {
+  /** 面板ID */
+  panelId: string;
+  
+  /**
+   * 构造函数
+   * @param panelId 面板ID
+   */
+  constructor(panelId: string) {
+    this.panelId = panelId;
+  }
 } 
