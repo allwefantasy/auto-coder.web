@@ -8,6 +8,7 @@ import MonacoEditor from './components/MonacoEditor';
 import { FileMetadata } from '../../types/file_meta';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import { getMessage } from '../Sidebar/lang'; // Import getMessage for i18n
+import axios from 'axios';
 import './CodeEditor.css';
 
 interface CodeEditorProps {
@@ -18,6 +19,17 @@ interface FileTab {
   key: string;
   label: string;
   content: string;
+}
+
+interface EditorTab {
+  path: string;
+  label: string;
+  isActive: boolean;
+}
+
+interface EditorTabsConfig {
+  tabs: EditorTab[];
+  activeTabPath: string | null;
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) => {
@@ -35,24 +47,67 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         label: tab.label
       }));
       eventBus.publish(EVENTS.EDITOR.TABS_CHANGED, openedFiles);
+      
+      // 保存标签页状态到后端
+      saveTabsToBackend();
     }
   }, [fileTabs, activeFile]);
 
   useEffect(() => {
-    if (initialFiles) {
-      setSelectedFiles(initialFiles);
-      initialFiles.forEach(file => {
-        loadFileContent(file.path);
-      });
-      if (initialFiles.length > 0) {
-        setActiveFile(initialFiles[0].path);
+    // 加载保存的标签页状态
+    loadTabsFromBackend().then(savedTabs => {
+      if (initialFiles && initialFiles.length > 0) {
+        // 如果有初始文件，优先处理它们
+        setSelectedFiles(initialFiles);
+        initialFiles.forEach(file => {
+          loadFileContent(file.path);
+        });
+        if (initialFiles.length > 0) {
+          setActiveFile(initialFiles[0].path);
+        }
+      } else if (savedTabs && savedTabs.tabs.length > 0) {
+        // 否则，加载保存的标签页
+        savedTabs.tabs.forEach(tab => {
+          loadFileContent(tab.path);
+        });
+        if (savedTabs.activeTabPath) {
+          setActiveFile(savedTabs.activeTabPath);
+        } else if (savedTabs.tabs.length > 0) {
+          setActiveFile(savedTabs.tabs[0].path);
+        }
       }
-    }
+    });
   }, [initialFiles]);
 
   useEffect(() => {
     fetchFileTree();
   }, []);
+  
+  // 加载保存的标签页状态
+  const loadTabsFromBackend = async (): Promise<EditorTabsConfig | null> => {
+    try {
+      const response = await axios.get<EditorTabsConfig>('/api/editor/tabs');
+      return response.data;
+    } catch (error) {
+      console.error('加载编辑器标签页配置失败:', error);
+      return null;
+    }
+  };
+  
+  // 保存标签页状态到后端
+  const saveTabsToBackend = async () => {
+    try {
+      const tabs: EditorTab[] = fileTabs.map(tab => ({
+        path: tab.key,
+        label: tab.label,
+        isActive: tab.key === activeFile
+      }));
+      
+      await axios.put('/api/editor/tabs', tabs);
+    } catch (error) {
+      console.error('保存编辑器标签页失败:', error);
+    }
+  };
 
   const loadFileContent = async (filePath: string) => {
     try {
@@ -69,11 +124,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
             tab.key === filePath ? { ...tab, content: data.content } : tab
           );
         }
-        return [...prev, {
+        
+        const newTab = {
           key: filePath,
           label: filePath.split('/').pop() || filePath,
           content: data.content
-        }];
+        };
+        
+        // 添加新标签到后端
+        try {
+          axios.post('/api/editor/tabs', {
+            path: filePath,
+            label: newTab.label,
+            isActive: activeFile === null // 如果没有活跃标签，则将新标签设为活跃
+          });
+        } catch (error) {
+          console.error('添加标签页失败:', error);
+        }
+        
+        return [...prev, newTab];
       });
     } catch (error) {
       console.error('Error fetching file content:', error);
@@ -148,18 +217,37 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
     }
   };
 
-  const handleTabChange = (key: string) => {
+  const handleTabChange = async (key: string) => {
     setActiveFile(key);
+    
+    // 更新后端活跃标签
+    try {
+      await axios.put('/api/editor/active-tab', { path: key });
+    } catch (error) {
+      console.error('更新活跃标签失败:', error);
+    }
   };
 
-  const handleTabEdit = (targetKey: any, action: 'add' | 'remove') => {
-    if (typeof targetKey !== 'string') return;
-    
+  const handleTabEdit = async (targetKey: any, action: 'add' | 'remove') => {
     if (action === 'remove') {
       setFileTabs(prev => prev.filter(tab => tab.key !== targetKey));
       setSelectedFiles(prev => prev.filter(file => file.path !== targetKey));
-      if (activeFile === targetKey && fileTabs.length > 0) {
-        setActiveFile(fileTabs[0].key);
+      
+      if (activeFile === targetKey) {
+        // 如果关闭的是当前活跃标签，切换到第一个标签
+        const remainingTabs = fileTabs.filter(tab => tab.key !== targetKey);
+        if (remainingTabs.length > 0) {
+          setActiveFile(remainingTabs[0].key);
+        } else {
+          setActiveFile(null);
+        }
+      }
+      
+      // 从后端删除标签
+      try {
+        await axios.delete(`/api/editor/tabs/${targetKey}`);
+      } catch (error) {
+        console.error('删除标签页失败:', error);
       }
     }
   };
@@ -175,12 +263,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
       });
   };
 
-  const handleCloseOtherTabs = (filePathToKeep: string) => {
+  const handleCloseOtherTabs = async (filePathToKeep: string) => {
     setFileTabs(prev => prev.filter(tab => tab.key === filePathToKeep));
     setSelectedFiles(prev => prev.filter(file => file.path === filePathToKeep));
     // The active file should already be the one clicked, but ensure it stays active
     if (activeFile !== filePathToKeep) {
       setActiveFile(filePathToKeep);
+    }
+    
+    // 更新后端标签状态
+    try {
+      const tabs: EditorTab[] = [{
+        path: filePathToKeep,
+        label: filePathToKeep.split('/').pop() || filePathToKeep,
+        isActive: true
+      }];
+      
+      await axios.put('/api/editor/tabs', tabs);
+    } catch (error) {
+      console.error('更新标签页失败:', error);
     }
   };
 
