@@ -43,6 +43,19 @@ const App: React.FC = () => {
     }
   );
 
+  // Add global hotkey for mode toggle
+  useHotkeys(
+    ['meta+m', 'ctrl+m'],
+    (event) => {
+      event.preventDefault();
+      toggleMode();
+    },
+    { 
+      enableOnFormTags: false, // Allow toggle even when in input fields if desired, adjust as needed
+      preventDefault: true
+    }
+  );
+
   useEffect(() => {
     // 初始化语言设置
     initLanguage().then(() => {
