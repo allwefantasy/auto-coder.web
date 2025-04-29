@@ -10,7 +10,7 @@ import ProviderSelectors from './ProviderSelectors'; // Import the new parent co
 import { codingService } from '../../services/codingService';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import axios from 'axios';
-import { ToggleInputFullscreenEventData, AgenticModeChangedEventData, ToggleWriteModeEventData, HotkeyEventData } from '../../services/event_bus_data';
+import { ToggleInputFullscreenEventData, AgenticModeChangedEventData, ToggleWriteModeEventData, HotkeyEventData, SendMessageEventData, StopGenerationEventData } from '../../services/event_bus_data';
 
 interface InputAreaProps {
   fileGroups: FileGroup[];
@@ -26,8 +26,6 @@ interface InputAreaProps {
   isRuleMode: boolean;
   setIsRuleMode: (value: boolean) => void;
   handleRevert: () => void;
-  handleSendMessage: (text?: string) => void;
-  handleStopGeneration: () => void;
   sendLoading: boolean;
   isFullScreen: boolean;
   showFileGroupSelect: boolean;
@@ -50,8 +48,6 @@ const InputArea: React.FC<InputAreaProps> = ({
   isRuleMode,
   setIsRuleMode,
   handleRevert,
-  handleSendMessage,
-  handleStopGeneration,
   sendLoading,
   setConfig,
   isFullScreen,
@@ -70,7 +66,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [indexBuilding, setIndexBuilding] = useState<boolean>(false);
   const [indexStatus, setIndexStatus] = useState<string>('');
-  const [agenticActive, setAgenticActive] = useState(false);
+  const [agenticActive, setAgenticActive] = useState(true);
   const [isInputAreaMaximized, setIsInputAreaMaximized] = useState<boolean>(false);
   const originalLayoutRef = useRef<{
     position: string,
@@ -116,6 +112,18 @@ const InputArea: React.FC<InputAreaProps> = ({
       setIsRuleMode(false);
     }
   }, [isWriteMode, isRuleMode, setIsWriteMode, setIsRuleMode]);
+
+  // 自定义发送消息函数
+  const handleSendMessage = useCallback((text?: string) => {
+    // 使用eventBus发送消息
+    eventBus.publish(EVENTS.CHAT.SEND_MESSAGE, new SendMessageEventData(text, panelId));
+  }, [panelId]);
+
+  // 自定义停止生成函数
+  const handleStopGeneration = useCallback(() => {
+    // 使用eventBus发送消息
+    eventBus.publish(EVENTS.CHAT.STOP_GENERATION, new StopGenerationEventData(panelId));
+  }, [panelId]);
 
   // 监听editor发布的全屏切换事件
   useEffect(() => {
@@ -497,7 +505,6 @@ const InputArea: React.FC<InputAreaProps> = ({
               }
               setIsMaximized((prev: boolean): boolean => !prev);
             }}            
-            handleSendMessage={handleSendMessage}
             panelId={panelId}
             isActive={isActive}
           />

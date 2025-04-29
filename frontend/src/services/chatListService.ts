@@ -282,27 +282,7 @@ export class ChatListService extends EventEmitter {
 
       // 设置当前会话名称
       await this.setCurrentSessionName(newChatName, panelId);
-
-      // 向聊天路由器发送 /new 命令
-      try {
-        const response = await fetch('/api/chat-command', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            command: '/new',
-          }),
-        });
-
-        if (!response.ok) {
-          console.warn('Failed to send /new command to chat router');
-        }
-      } catch (cmdError) {
-        console.error('Error sending /new command:', cmdError);
-        // 不向用户显示错误，因为这是后台操作
-      }
-
+      
       // 发布事件时包含panelId信息
       this.emit('newChatCreated', { name: newChatName, panelId });
       return newChatName;

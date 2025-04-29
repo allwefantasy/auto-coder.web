@@ -15,6 +15,10 @@ from autocoder.events.event_types import EventType
 from byzerllm.utils.langutil import asyncfy_with_semaphore
 from autocoder.common.global_cancel import global_cancel, CancelRequestedException 
 from loguru import logger
+import byzerllm
+# 导入聊天会话和聊天列表管理器
+from auto_coder_web.common_router.chat_session_manager import read_session_name_sync
+from auto_coder_web.common_router.chat_list_manager import get_chat_list_sync
 
 router = APIRouter()
 
@@ -23,6 +27,7 @@ cancel_thread_pool = ThreadPoolExecutor(max_workers=5)
 
 class ChatCommandRequest(BaseModel):
     command: str
+    panel_id: Optional[str] = None
 
 class EventPollRequest(BaseModel):
     event_file_id: str    
@@ -42,6 +47,10 @@ class TaskHistoryRequest(BaseModel):
 class CancelTaskRequest(BaseModel):
     event_file_id: str
 
+class ChatResetRequest(BaseModel):
+    session_id: str
+    panel_id: Optional[str] = "main"
+
 async def get_project_path(request: Request) -> str:
     """
     从FastAPI请求上下文中获取项目路径
@@ -53,6 +62,25 @@ def ensure_task_dir(project_path: str) -> str:
     task_dir = os.path.join(project_path, ".auto-coder", "auto-coder.web", "tasks")
     os.makedirs(task_dir, exist_ok=True)
     return task_dir
+
+@byzerllm.prompt()
+def chat_prompt(messages: List[Dict[str, Any]], request: ChatCommandRequest):
+    '''
+    下面是我们已经产生的一个消息列表,其中 USER_RESPONSE 表示用户的输入，其他都是你的输出：
+    <messages>
+    {% for message in messages %}
+    <message>
+    <type>{{ message.type }}</type>
+    <content>{{ message.content }}</content>
+    </message>
+    {% endfor %}
+    </messages>
+    
+    下面是用户的最新需求：
+    <request>
+    {{ request.command }}    
+    </request>
+    '''
 
 @router.post("/api/chat-command")
 async def chat_command(request: ChatCommandRequest, project_path: str = Depends(get_project_path)):
@@ -71,8 +99,45 @@ async def chat_command(request: ChatCommandRequest, project_path: str = Depends(
             wrapper.configure_wrapper(f"event_file:{event_file}")    
             global_cancel.register_token(event_file)
 
+            # 获取当前会话名称
+            panel_id = request.panel_id or ""
+            try:
+                # 使用同步版本的会话管理函数，传递panel_id参数
+                current_session_name = read_session_name_sync(project_path, panel_id)
+            except Exception as e:
+                logger.error(f"Error reading current session: {str(e)}")
+                current_session_name = ""
+            
+            # 获取历史消息
+            messages = []
+            if current_session_name:
+                try:
+                    # 使用同步版本的聊天列表管理函数
+                    logger.info(f"Loading chat history for session: {current_session_name}")
+                    chat_data = get_chat_list_sync(project_path, current_session_name)
+                    
+                    # 从聊天历史中提取消息
+                    for msg in chat_data.get("messages", []):
+                        # 只保留用户和中间结果信息
+                        if msg.get("type","") not in ["USER_RESPONSE","RESULT"]:
+                            continue     
+
+                        if msg.get("contentType","") in ["token_stat"]:
+                            continue                            
+                        
+                        messages.append(msg)
+                except Exception as e:
+                    logger.error(f"Error reading chat history: {str(e)}")
+            
+            # 构建提示信息
+            prompt_text = request.command
+            if messages:
+                # 调用chat_prompt生成包含历史消息的提示
+                prompt_text = chat_prompt.prompt(messages, request)
+
             # 调用chat方法
-            result = wrapper.chat_wrapper(request.command)            
+            logger.info(f"Prompt text: {prompt_text}")
+            result = wrapper.chat_wrapper(prompt_text)            
             get_event_manager(event_file).write_completion(
                 EventContentCreator.create_completion(
                     "200", "completed", result).to_dict()
@@ -288,6 +353,60 @@ async def get_task_detail(task_id: str, project_path: str = Depends(get_project_
         logger.error(f"Error getting task detail: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"Failed to get task detail: {str(e)}")
+
+@router.post("/api/chat/reset")
+async def reset_chat(request: ChatResetRequest, project_path: str = Depends(get_project_path)):
+    """
+    重置聊天会话
+    
+    通过AutoCoderRunnerWrapper调用chat方法，执行/new命令重置会话
+    在单独的线程中运行，并返回一个唯一的UUID
+    
+    Args:
+        request: 包含session_id和panel_id的请求对象
+        project_path: 项目路径
+        
+    Returns:
+        重置操作的结果
+    """
+    # 生成事件文件路径
+    event_file, file_id = gengerate_event_file_path()
+    
+    # 定义在线程中运行的函数
+    def run_reset_in_thread():
+        try:
+            # 加载tokenizer
+            from autocoder.auto_coder_runner import load_tokenizer
+            load_tokenizer()
+            
+            # 创建AutoCoderRunnerWrapper实例
+            wrapper = AutoCoderRunnerWrapper(project_path)
+            wrapper.configure_wrapper(f"event_file:{event_file}")
+            global_cancel.register_token(event_file)
+            
+            # 调用chat方法，执行/new命令
+            result = wrapper.chat_wrapper("/new")
+            
+            # 写入完成事件
+            get_event_manager(event_file).write_completion(
+                EventContentCreator.create_completion(
+                    "200", "reset_completed", result).to_dict()
+            )
+            logger.info(f"Chat reset (event file id: {file_id}) completed successfully")
+        except Exception as e:
+            logger.error(f"Error resetting chat {file_id}: {str(e)}")
+            logger.exception(e)
+            get_event_manager(event_file).write_error(
+                EventContentCreator.create_error(error_code="500", error_message=str(e), details={}).to_dict()
+            )
+    
+    # 创建并启动线程
+    thread = Thread(target=run_reset_in_thread)
+    thread.daemon = True  # 设置为守护线程
+    thread.start()
+    
+    logger.info(f"Started chat reset {file_id} in background thread")
+    return {"event_file_id": file_id, "session_id": request.session_id}
 
 @router.post("/api/chat-command/cancel")
 async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(get_project_path)):

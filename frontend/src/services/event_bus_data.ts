@@ -21,6 +21,44 @@ export class NewChatEventData {
 } 
 
 /**
+ * 发送消息事件数据类
+ * InputArea.tsx/EditorComponent.tsx 中发布 EVENTS.CHAT.SEND_MESSAGE 事件时使用
+ */
+export class SendMessageEventData {
+  /** 消息内容 */
+  text?: string;
+  /** 面板ID */
+  panelId?: string;
+  
+  /**
+   * 构造函数
+   * @param text 消息内容
+   * @param panelId 面板ID
+   */
+  constructor(text?: string, panelId?: string) {
+    this.text = text;
+    this.panelId = panelId;
+  }
+}
+
+/**
+ * 停止生成事件数据类
+ * InputArea.tsx/EditorComponent.tsx 中发布 EVENTS.CHAT.STOP_GENERATION 事件时使用
+ */
+export class StopGenerationEventData {
+  /** 面板ID */
+  panelId?: string;
+  
+  /**
+   * 构造函数
+   * @param panelId 面板ID
+   */
+  constructor(panelId?: string) {
+    this.panelId = panelId;
+  }
+}
+
+/**
  * 编辑器mentions变更事件数据类
  * EditorComponent.tsx 中发布 EVENTS.EDITOR.MENTIONS_CHANGED 事件时使用
  */

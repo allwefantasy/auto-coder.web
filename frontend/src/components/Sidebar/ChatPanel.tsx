@@ -20,7 +20,7 @@ import MessageList, { MessageProps } from '../../components/AutoMode/MessageList
 import eventBus from '../../services/eventBus';
 import { EVENTS } from '../../services/eventBus';
 import { playTaskComplete, playErrorSound } from '../../components/AutoMode/utils/SoundEffects';
-import { NewChatEventData, AgenticModeChangedEventData, HotkeyEventData, FileGroupSelectionUpdatedEventData } from '../../services/event_bus_data';
+import { NewChatEventData, AgenticModeChangedEventData, HotkeyEventData, FileGroupSelectionUpdatedEventData, SendMessageEventData, StopGenerationEventData } from '../../services/event_bus_data';
 
 const ChatPanel: React.FC<ChatPanelProps> = ({
   setPreviewFiles,
@@ -42,11 +42,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const fileGroupService = ServiceFactory.getFileGroupService(panelId);
 
   // Step By Step 模式标记
-  const [enableAgenticMode, setEnableAgenticMode] = React.useState<boolean>(false);
+  const [enableAgenticMode, setEnableAgenticMode] = React.useState<boolean>(true);
   // Rule 模式标记
   const [isRuleMode, setIsRuleMode] = useState<boolean>(false);
   // 是否启用声音效果
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(false);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const soundEnabledRef = useRef<boolean>(false);
   
   useEffect(() => {
@@ -135,7 +135,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
 
-  const isWriteModeRef = useRef<boolean>(false);
+  const isWriteModeRef = useRef<boolean>(true);
 
   useEffect(() => {
     isWriteModeRef.current = isWriteMode;
@@ -771,7 +771,41 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       }
     );
 
-    // 在组件卸载时清理事件监听器
+    // 监听发送消息事件
+    const handleSendMessageEvent = (data: SendMessageEventData) => {
+      // 如果传入了panelId且与当前面板的panelId不匹配，则不处理此事件
+      if (data.panelId && data.panelId !== panelId) {
+        return;
+      }
+      
+      // 调用发送消息函数
+      handleSendMessage(data.text);
+    };
+
+    // 订阅发送消息事件
+    const unsubscribeSendMessage = eventBus.subscribe(
+      EVENTS.CHAT.SEND_MESSAGE,
+      handleSendMessageEvent
+    );
+
+    // 监听停止生成事件
+    const handleStopGenerationEvent = (data: StopGenerationEventData) => {
+      // 如果传入了panelId且与当前面板的panelId不匹配，则不处理此事件
+      if (data.panelId && data.panelId !== panelId) {
+        return;
+      }
+      
+      // 调用停止生成函数
+      handleStopGeneration();
+    };
+    
+    // 订阅停止生成事件
+    const unsubscribeStopGeneration = eventBus.subscribe(
+      EVENTS.CHAT.STOP_GENERATION,
+      handleStopGenerationEvent
+    );
+
+    // 清理函数
     return () => {
       chatService.removeAllListeners();
       codingService.removeAllListeners();
@@ -782,6 +816,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       unsubscribeNewChat();
       unsubscribeMCPsEnabled();
       unsubscribeAgentic();
+      unsubscribeSendMessage();
+      unsubscribeStopGeneration()
+
     };
   }, [handleRefreshFromMessage]);
 
@@ -790,7 +827,23 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   //   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   // }, [messages]);
 
-  const handleSendMessage = async (text?: string) => {    
+  const handleSendMessage = async (text?: string) => {        
+    console.log('==== 发送消息时的状态 ====');
+    console.log('chatListName:', chatListNameRef.current);
+    console.log('messages 长度:', messagesRef.current.length);
+    console.log('isWriteMode:', isWriteModeRef.current);
+    console.log('isRuleMode:', isRuleModeRef.current);
+    console.log('enableAgenticMode:', enableAgenticModeRef.current);
+    console.log('enableRag:', enableRagRef.current);
+    console.log('enableMCPs:', enableMCPsRef.current);
+    console.log('lastSelectedGroups:', lastSelectedGroupsRef.current);
+    console.log('lastSelectedFiles:', lastSelectedFilesRef.current);
+    console.log('messageIdCounter:', messageIdCounterRef.current);
+    console.log('panelId:', panelIdRef.current);
+    console.log('sendLoading:', sendLoadingRef.current);
+    console.log('localRequestId:', localRequestIdRef.current);
+    console.log('=======================');
+
     const trimmedText = text?.trim() || editorRef.current?.getValue()?.trim();
     if (!trimmedText) {
       AntdMessage.warning('Please enter a message');
@@ -798,16 +851,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
 
     // 如果有当前对话名称且有消息，先保存当前对话
-    if (chatListName && messages.length > 0) {
-      await saveChatList(chatListName, messages, panelId);
-      console.log('Chat list saved before sending new message:', chatListName);
+    if (chatListNameRef.current && messagesRef.current.length > 0) {
+      await saveChatList(chatListNameRef.current, messagesRef.current, panelIdRef.current);
+      console.log('Chat list saved before sending new message:', chatListNameRef.current);
     }
   
     // 在发送消息前，再次调用文件组服务确保上下文是最新的
-    if (lastSelectedGroups.length > 0 || lastSelectedFiles.length > 0) {
+    if (lastSelectedGroupsRef.current.length > 0 || lastSelectedFilesRef.current.length > 0) {
       try {
-        console.log('ChatPanel: Re-syncing file groups before sending message', lastSelectedGroups, lastSelectedFiles);
-        const result = await fileGroupService.switchFileGroups(lastSelectedGroups, lastSelectedFiles);
+        console.log('ChatPanel: Re-syncing file groups before sending message', lastSelectedGroupsRef.current, lastSelectedFilesRef.current);
+        const result = await fileGroupService.switchFileGroups(lastSelectedGroupsRef.current, lastSelectedFilesRef.current);
         console.log('ChatPanel: File groups re-synced successfully', result);
       } catch (error) {
         console.error('ChatPanel: Error re-syncing file groups', error);
@@ -824,7 +877,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     try {
       // 处理Rule模式
       let processedText = trimmedText;
-      if (isRuleMode) {
+      if (isRuleModeRef.current) {
         console.log('ChatPanel: Rule mode enabled, accessing context prompt');
         try {
           const response = await fetch('/api/rules/context/prompt', {
@@ -859,9 +912,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       }
 
       // 根据当前模式使用适当的服务
-      if (isWriteMode || isRuleMode) {
+      if (isWriteModeRef.current || isRuleModeRef.current) {
         // 编码模式
-        if (enableAgenticMode) {
+        if (enableAgenticModeRef.current) {
           console.log('ChatPanel: Step By Step enabled, using agenticEditService');
           const result = await agenticEditService.executeCommand(processedText, true);
           console.log('ChatPanel: Received result from agenticEditService:', result);
@@ -882,7 +935,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         let commandText = processedText;
 
         // 检查是否同时启用了 RAG 和 MCP
-        if (enableRag && enableMCPs && !isWriteMode) {
+        if (enableRagRef.current && enableMCPsRef.current && !isWriteModeRef.current) {
           Modal.warning({
             title: getMessage('ragMcpConflictTitle'),
             content: getMessage('ragMcpConflictContent'),
@@ -893,12 +946,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         }
 
         // 检查是否启用了RAG（且未启用MCP）
-        if (enableRag && !enableMCPs && !isWriteMode) {
+        if (enableRagRef.current && !enableMCPsRef.current && !isWriteModeRef.current) {
           console.log('ChatPanel: RAG enabled, prepending /rag to message');
           commandText = `/rag ${processedText}`;
         }
         // 检查是否启用了MCP（且未启用RAG）
-        else if (enableMCPs && !enableRag && !isWriteMode) {
+        else if (enableMCPsRef.current && !enableRagRef.current && !isWriteModeRef.current) {
           console.log('ChatPanel: MCPs enabled, prepending /mcp to message');
           commandText = `/mcp ${processedText}`;
         }
@@ -906,7 +959,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         console.log('ChatPanel: Received result from chatService:', result);
         setRequestId(result.event_file_id);
         setLocalRequestId(result.event_file_id);
-
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -921,8 +973,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const handleStopGeneration = async () => {
     try {
       // 根据当前模式和子模式使用适当的服务来取消任务
-      if (isWriteMode || isRuleMode) {
-        if (enableAgenticMode) {
+      if (isWriteModeRef.current || isRuleModeRef.current) {
+        if (enableAgenticModeRef.current) {
           console.log('ChatPanel: Stopping agentic edit task');
           await agenticEditService.cancelTask();
         } else {
@@ -1062,48 +1114,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     chatListService.on('error', handleError);
     chatListService.on('chatListRenamed', handleChatListRenamed);
     chatListService.on('chatListDeleted', handleChatListDeleted);
-    chatListService.on('newChatCreated', handleNewChatCreated);
+    chatListService.on('newChatCreated', handleNewChatCreated);    
 
     // 清理函数
     return () => {
       chatListService.off('error', handleError);
       chatListService.off('chatListRenamed', handleChatListRenamed);
       chatListService.off('chatListDeleted', handleChatListDeleted);
-      chatListService.off('newChatCreated', handleNewChatCreated);
+      chatListService.off('newChatCreated', handleNewChatCreated);      
     };
-  }, [chatListName, panelId, handleNewChatDirectly]);
+  }, [chatListName, panelId]);
 
-  // 跟踪是否正在生成回复
-  useEffect(() => {
-    // 新对话事件处理函数 - 处理UI中的"New Chat"按钮点击
-    const handleNewChat = (data: NewChatEventData) => {
-      // 只处理面板ID匹配的事件
-      if (data.panelId && data.panelId !== panelId) {
-        return;
-      }
-      
-      handleReset();
-    };
-
-    // 处理热键触发的新建对话事件
-    const handleNewChatHotkey = (data: HotkeyEventData) => {
-      if (data.panelId !== panelId) {
-        return;
-      }
-      
-      handleReset();
-    };
-    
-    // 添加事件监听
-    const unsubscribe1 = eventBus.subscribe(EVENTS.CHAT.NEW_CHAT, handleNewChat);
-    const unsubscribe2 = eventBus.subscribe(EVENTS.HOTKEY.NEW_CHAT, handleNewChatHotkey);
-    
-    return () => {
-      unsubscribe1();
-      unsubscribe2();
-    };
-  }, [panelId]);
-
+  
   // 监听RAG启用状态变更事件
   useEffect(() => {
     const handleRagEnabledChanged = (enabled: boolean) => {
@@ -1177,7 +1199,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         setMessages(updatedMessages);
         
         // 将最后一条用户消息的内容设置为编辑器内容
-        const lastUserMsg = [...updatedMessages].reverse().find(m => m.role === 'user');
+        const lastUserMsg = [...updatedMessages].reverse().find(m => m.isUser);
         if (lastUserMsg) {
           setEditorContent(lastUserMsg.content);
         }
@@ -1237,6 +1259,67 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       setPendingRevert(false);
     }
   };
+
+  // 添加编辑器内容状态
+  const [editorContent, setEditorContent] = useState<string>('');
+
+  // 添加其他状态的 ref 引用
+  const chatListNameRef = useRef<string>('');
+  const messagesRef = useRef<AutoModeMessage[]>([]);
+  const isRuleModeRef = useRef<boolean>(false);
+  const enableAgenticModeRef = useRef<boolean>(true);
+  const enableRagRef = useRef<boolean>(false);
+  const enableMCPsRef = useRef<boolean>(false);
+  const lastSelectedGroupsRef = useRef<string[]>([]);
+  const lastSelectedFilesRef = useRef<string[]>([]);
+  const messageIdCounterRef = useRef<number>(0);
+  const panelIdRef = useRef<string>('');
+  const sendLoadingRef = useRef<boolean>(false);
+
+  // 更新 ref 引用的值
+  useEffect(() => {
+    chatListNameRef.current = chatListName;
+  }, [chatListName]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    isRuleModeRef.current = isRuleMode;
+  }, [isRuleMode]);
+
+  useEffect(() => {
+    enableAgenticModeRef.current = enableAgenticMode;
+  }, [enableAgenticMode]);
+
+  useEffect(() => {
+    enableRagRef.current = enableRag;
+  }, [enableRag]);
+
+  useEffect(() => {
+    enableMCPsRef.current = enableMCPs;
+  }, [enableMCPs]);
+
+  useEffect(() => {
+    lastSelectedGroupsRef.current = lastSelectedGroups;
+  }, [lastSelectedGroups]);
+
+  useEffect(() => {
+    lastSelectedFilesRef.current = lastSelectedFiles;
+  }, [lastSelectedFiles]);
+
+  useEffect(() => {
+    messageIdCounterRef.current = messageIdCounter;
+  }, [messageIdCounter]);
+
+  useEffect(() => {
+    panelIdRef.current = panelId;
+  }, [panelId]);
+
+  useEffect(() => {
+    sendLoadingRef.current = sendLoading;
+  }, [sendLoading]);
 
   return (
     <>
@@ -1445,8 +1528,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               isRuleMode={isRuleMode}
               setIsRuleMode={setIsRuleMode}
               handleRevert={handleReset}
-              handleSendMessage={handleSendMessage}
-              handleStopGeneration={handleStopGeneration}
               sendLoading={sendLoading}
               setConfig={setConfig}
               isFullScreen={isMaximized}

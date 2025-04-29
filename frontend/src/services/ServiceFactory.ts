@@ -17,7 +17,7 @@ export class ServiceFactory {
 
   static getChatService(panelId: string): any {
     if (!this.chatServices.has(panelId)) {
-      this.chatServices.set(panelId, new ChatService());
+      this.chatServices.set(panelId, new ChatService(panelId));
     }
     return this.chatServices.get(panelId)!;
   }

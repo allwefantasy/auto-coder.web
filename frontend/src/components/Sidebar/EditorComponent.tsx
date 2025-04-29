@@ -3,7 +3,7 @@ import { Editor, loader } from '@monaco-editor/react';
 import { uploadImage } from '../../services/api';
 import { CompletionItem, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
-import { NewChatEventData, EditorMentionsEventData, ToggleInputFullscreenEventData, FileGroupSelectFocusEventData, ToggleWriteModeEventData, HotkeyEventData } from '../../services/event_bus_data';
+import { NewChatEventData, EditorMentionsEventData, ToggleInputFullscreenEventData, FileGroupSelectFocusEventData, ToggleWriteModeEventData, HotkeyEventData, SendMessageEventData } from '../../services/event_bus_data';
 // 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
 
@@ -67,8 +67,6 @@ interface EditorComponentProps {
   onToggleMaximize: () => void;
   /** 当点击 mention 项时的回调 */
   onMentionClick?: (type: 'file' | 'symbol', text: string, item?: EnhancedCompletionItem) => void;
-  /** 直接发送消息的函数 */
-  handleSendMessage: (text?: string) => void;
   /** 面板ID */
   panelId?: string;
   /** 是否为激活面板 */
@@ -96,7 +94,6 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   defaultValue = '',
   onToggleMaximize,
   onMentionClick,
-  handleSendMessage,
   panelId,
   isActive = true, // 默认为激活状态
 }) => {
@@ -109,6 +106,12 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   const mentionsRef = React.useRef<MentionData[]>([]);
   // 存储当前装饰IDs的引用
   const decorationsRef = React.useRef<string[]>([]);
+
+  // 自定义发送消息函数
+  const handleSendMessage = React.useCallback((text?: string) => {
+    // 使用eventBus发送消息
+    eventBus.publish(EVENTS.CHAT.SEND_MESSAGE, new SendMessageEventData(text, panelId));
+  }, [panelId]);
 
   // 更新mention装饰
   const updateMentionDecorations = React.useCallback(() => {
@@ -181,7 +184,6 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     return mentionData;
   }, [updateMentionDecorations]);
 
- 
   React.useEffect(() => {
     // 在组件挂载时注入样式
     const styleElement = document.createElement('style');
@@ -421,9 +423,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           case 'Enter': // Cmd/Ctrl + Enter: 发送消息
             e.preventDefault();
             e.stopPropagation();
-            if (handleSendMessage) {
-              handleSendMessage();
-            }
+            eventBus.publish(EVENTS.CHAT.SEND_MESSAGE, new SendMessageEventData("", panelId));
             return false;
           case 'Period': // Cmd/Ctrl + . : 切换模式
             e.preventDefault();
@@ -440,11 +440,16 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             e.stopPropagation();
             eventBus.publish(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN, new ToggleInputFullscreenEventData(panelId || 'main'));
             return false;
+          
+          case 'Slash':
+            e.preventDefault();
+            e.stopPropagation();
+            eventBus.publish(EVENTS.CHAT.NEW_CHAT, new NewChatEventData(panelId || 'main'));
+            return false;
             
           // 可以添加更多全局热键处理...
         }
-      }
-      
+      }                  
       // 对于不需要拦截的按键，允许编辑器默认处理
       return true;
     };
