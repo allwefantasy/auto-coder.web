@@ -686,7 +686,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     <div className="w-full relative h-full flex flex-col">
       <div
         ref={editorContainer}
-        className={`editor-container w-full border border-gray-700 rounded-md overflow-hidden ${isMaximized ? 'h-full flex-grow' : 'h-[200px]'
+        className={`editor-container w-full border border-gray-700 rounded-md overflow-hidden ${isMaximized ? 'h-full flex-grow' : 'h-[80px]'
           }`}
         style={{ width: '100%' }}
       >
