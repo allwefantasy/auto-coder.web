@@ -859,12 +859,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     // 在发送消息前，再次调用文件组服务确保上下文是最新的
     if (lastSelectedGroupsRef.current.length > 0 || lastSelectedFilesRef.current.length > 0) {
       try {
-        console.log('ChatPanel: Re-syncing file groups before sending message', lastSelectedGroupsRef.current, lastSelectedFilesRef.current);
+        console.log('ChatPanel: Re-syncing file groups before sending message', lastSelectedGroupsRef.current, lastSelectedFilesRef.current);        
+        // 再切换文件组
         const result = await fileGroupService.switchFileGroups(lastSelectedGroupsRef.current, lastSelectedFilesRef.current);
         console.log('ChatPanel: File groups re-synced successfully', result);
       } catch (error) {
         console.error('ChatPanel: Error re-syncing file groups', error);
         // 继续发送消息，不阻止用户操作
+      }
+    }else {
+      // 清空当前文件组
+      try {
+        await fileGroupService.clearCurrentFiles();
+      } catch (error) {
+        console.error('ChatPanel: Error clearing current files', error);
       }
     }  
 
