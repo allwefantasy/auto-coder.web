@@ -20,6 +20,7 @@ import MessageList, { MessageProps } from '../../components/AutoMode/MessageList
 import eventBus from '../../services/eventBus';
 import { EVENTS } from '../../services/eventBus';
 import { playTaskComplete, playErrorSound } from '../../components/AutoMode/utils/SoundEffects';
+import { NewChatEventData, AgenticModeChangedEventData } from '../../services/event_bus_data';
 
 const ChatPanel: React.FC<ChatPanelProps> = ({
   setPreviewFiles,
@@ -91,12 +92,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   // 创建新对话，无需用户确认
-  const handleNewChatDirectly = async (eventPanelId: string) => {
+  const handleNewChatDirectly = async (message: NewChatEventData) => {    
     // 如果传入了panelId且与当前面板的panelId不匹配，则不处理此事件
-    if (eventPanelId && eventPanelId !== panelId) {
+    if (message.panelId && message.panelId !== panelId) {
       return;
     }
-
+    
     try {
       // 清空当前对话内容
       setMessages([]);
@@ -626,7 +627,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   // 处理从特定消息重新开始对话
-  const handleRefreshFromMessage = useCallback((data: { messageId: string, messageContent: string }) => {
+  const handleRefreshFromMessage = useCallback((data: { messageId: string, messageContent: string, panelId?: string }) => {
+    // 检查事件是否与当前面板相关
+    if (data.panelId && data.panelId !== panelId) {
+      return; // 如果事件不属于当前面板，直接返回
+    }
+    
     // 清理该消息后面的所有消息
     setMessages(prevMessages => {
       // 找到消息在数组中的实际位置
@@ -656,7 +662,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 200);
 
-  }, []);
+  }, [panelId]);
 
   // 在组件挂载时设置事件监听器
   useEffect(() => {
@@ -674,6 +680,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     const unsubscribeNewMessage = eventBus.subscribe(
       EVENTS.CHAT.NEW_MESSAGE,
       (message: any) => {
+        // 如果消息包含 panelId 且与当前面板不匹配，直接返回
+        if (message && typeof message === 'object' && message.panelId && message.panelId !== panelId) {
+          return;
+        }
+        
         // 检查message是否为对象且具有action和commit_id属性
         if (message && typeof message === 'object' && message.action && message.commit_id) {
           console.log('ChatPanel: Received object message from eventBus:', message);
@@ -711,7 +722,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     // 订阅RAG启用状态变更事件
     const unsubscribeRagEnabled = eventBus.subscribe(
       EVENTS.RAG.ENABLED_CHANGED,
-      (enabled: boolean) => {
+      (enabled: boolean, eventPanelId?: string) => {
+        // 如果事件指定了panelId且与当前面板不匹配，直接返回
+        if (eventPanelId && eventPanelId !== panelId) {
+          return;
+        }
+        
         console.log('ChatPanel: RAG enabled changed to', enabled);
         setEnableRag(enabled);
       }
@@ -720,7 +736,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     // 订阅MCP启用状态变更事件
     const unsubscribeMCPsEnabled = eventBus.subscribe(
       EVENTS.MCPS.ENABLED_CHANGED,
-      (enabled: boolean) => {
+      (enabled: boolean, eventPanelId?: string) => {
+        // 如果事件指定了panelId且与当前面板不匹配，直接返回
+        if (eventPanelId && eventPanelId !== panelId) {
+          return;
+        }
+        
         console.log('ChatPanel: MCPs enabled changed to', enabled);
         setEnableMCPs(enabled);
       }
@@ -734,10 +755,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 订阅 Step By Step 状态变更事件
     const unsubscribeAgentic = eventBus.subscribe(
-      'agentic.mode.changed',
-      (enabled: boolean) => {
-        console.log('ChatPanel: Step By Step mode changed to', enabled);
-        setEnableAgenticMode(enabled);
+      EVENTS.AGENTIC.MODE_CHANGED,
+      (data: AgenticModeChangedEventData) => {
+        // 如果事件指定了panelId且与当前面板不匹配，直接返回
+        if (data.panelId && data.panelId !== panelId) {
+          return;
+        }
+        
+        console.log('ChatPanel: Step By Step mode changed to', data.enabled);
+        setEnableAgenticMode(data.enabled);
       }
     );
 
@@ -1000,7 +1026,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       
       // 如果当前正在使用的聊天被删除，创建一个新的
       if (chatListName === name) {
-        handleNewChatDirectly();
+        handleNewChatDirectly({ panelId });
       }
     };
 
@@ -1064,6 +1090,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               deleteChatList={deleteChatList}
               getChatTitle={getChatTitle}
               renameChatList={renameChatList}
+              panelId={panelId}
             />
 
             <Tooltip title="清空当前对话">

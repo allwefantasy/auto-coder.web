@@ -10,6 +10,7 @@ import ProviderSelectors from './ProviderSelectors'; // Import the new parent co
 import { codingService } from '../../services/codingService';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import axios from 'axios';
+import { ToggleInputFullscreenEventData, AgenticModeChangedEventData } from '../../services/event_bus_data';
 
 interface InputAreaProps {
   fileGroups: FileGroup[];
@@ -57,7 +58,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   soundEnabled,
   setSoundEnabled,
   panelId
-}) => {  
+}) => {    
   const [showConfig, setShowConfig] = useState<boolean>(true);
   const [config, setLocalConfig] = useState<ConfigState>({
     human_as_model: false,
@@ -83,67 +84,36 @@ const InputArea: React.FC<InputAreaProps> = ({
   
   const inputAreaRef = useRef<HTMLDivElement>(null);
 
+  // 处理编辑器全屏切换
   const toggleFullscreen = useCallback(() => {
     if (inputAreaRef.current) {
       const element = inputAreaRef.current;
       
       if (!isInputAreaMaximized) {
-        const computedStyle = window.getComputedStyle(element);
-        originalLayoutRef.current = {
-          position: computedStyle.position,
-          top: computedStyle.top,
-          right: computedStyle.right,
-          bottom: computedStyle.bottom,
-          left: computedStyle.left,
-          zIndex: computedStyle.zIndex,
-          width: computedStyle.width,
-          height: computedStyle.height,
-          background: computedStyle.background
-        };
-        
-        element.style.position = 'fixed';
-        element.style.top = '0';
-        element.style.right = '0';
-        element.style.bottom = '0';
-        element.style.left = '0';
-        element.style.zIndex = '9999';
-        element.style.width = '100vw';
-        element.style.height = '100vh';
-        element.style.background = '#1f2937';
-        element.style.overflow = 'hidden';
-        element.style.display = 'flex';
-        element.style.flexDirection = 'column';
-        
         setIsInputAreaMaximized(true);
       } else {
-        if (originalLayoutRef.current) {
-          const originalStyle = originalLayoutRef.current;
-          element.style.position = originalStyle.position;
-          element.style.top = originalStyle.top;
-          element.style.right = originalStyle.right;
-          element.style.bottom = originalStyle.bottom;
-          element.style.left = originalStyle.left;
-          element.style.zIndex = originalStyle.zIndex;
-          element.style.width = '100%';
-          element.style.height = originalStyle.height;
-          element.style.background = originalStyle.background;
-          element.style.overflow = '';
-          element.style.display = '';
-          element.style.flexDirection = '';
-        }
-        
         setIsInputAreaMaximized(false);
       }
     }
   }, [isInputAreaMaximized]);
 
+  // 监听editor发布的全屏切换事件
   useEffect(() => {
-    const unsubscribe = eventBus.subscribe(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN, toggleFullscreen);
+    const handleToggleFullscreenEvent = (data: ToggleInputFullscreenEventData) => {
+      // 检查事件是否与当前面板相关
+      if (data.panelId && data.panelId !== panelId) {
+        return; // 如果事件不属于当前面板，直接返回
+      }
+      
+      setIsInputAreaMaximized(prev => !prev);
+    };
+
+    const unsubscribe = eventBus.subscribe(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN, handleToggleFullscreenEvent);
     
     return () => {
       unsubscribe();
     };
-  }, [toggleFullscreen]);
+  }, [panelId]);
 
   const toggleWriteMode = useCallback(() => {
     // 按照Chat -> Write -> Rule -> Chat的顺序循环切换
@@ -463,6 +433,7 @@ const InputArea: React.FC<InputAreaProps> = ({
             selectedGroups={selectedGroups}
             setSelectedGroups={setSelectedGroups}
             fetchFileGroups={fetchFileGroups}            
+            panelId={panelId}
           />
         </div>
       </div>
@@ -533,7 +504,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                     const newActive = !agenticActive;
                     setAgenticActive(newActive);
                     import('../../services/eventBus').then(({ default: eventBus }) => {
-                      eventBus.publish('agentic.mode.changed', newActive);
+                      eventBus.publish(EVENTS.AGENTIC.MODE_CHANGED, new AgenticModeChangedEventData(newActive, panelId));
                     });
                   }}
                   title="Step By Step"

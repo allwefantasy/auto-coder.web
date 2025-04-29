@@ -89,7 +89,7 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
   // 删除标签页
   const handleRemoveTab = async (tabId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (tabs.length <= 1) return; // 至少保留一个标签页
+    if (tabs.length <= 1 || tabId === 'main') return; // 至少保留一个标签页，且不能删除主面板
 
     try {
       // 先从后端删除
@@ -146,8 +146,8 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
               {/* 显示标签名的第一个字符作为图标 */}
               <span className="text-xs font-medium">{tab.name.charAt(0).toUpperCase()}</span>
               
-              {/* 悬浮显示删除按钮 */}
-              {tabs.length > 1 && (
+              {/* 悬浮显示删除按钮 - 主面板不显示删除按钮 */}
+              {tabs.length > 1 && tab.id !== 'main' && (
                 <button
                   className="absolute -top-1 -right-1 w-4 h-4 bg-gray-800 rounded-full text-gray-500 hover:text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={(e) => handleRemoveTab(tab.id, e)}

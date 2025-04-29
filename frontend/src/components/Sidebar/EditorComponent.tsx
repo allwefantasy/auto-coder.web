@@ -3,6 +3,7 @@ import { Editor, loader } from '@monaco-editor/react';
 import { uploadImage } from '../../services/api';
 import { CompletionItem, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
+import { NewChatEventData, EditorMentionsEventData, ToggleInputFullscreenEventData, FileGroupSelectFocusEventData } from '../../services/event_bus_data';
 // 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
 
@@ -127,13 +128,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     });
 
     // 通过 eventBus 发布 mentions 变化事件
-    eventBus.publish(EVENTS.EDITOR.MENTIONS_CHANGED, mentionsRef.current.map(m => ({
+    eventBus.publish(EVENTS.EDITOR.MENTIONS_CHANGED, new EditorMentionsEventData(mentionsRef.current.map(m => ({
       type: m.type,
       text: m.text,
       path: m.path,
       item: m.item
-    })));
-  }, []);
+    })), panelId));
+  }, [panelId]);
 
   // 处理内容变化，更新mention位置
   const handleContentChange = React.useCallback(() => {
@@ -397,7 +398,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     // 添加键盘快捷键 - 修改为触发InputArea全屏
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, () => {
       // 触发InputArea全屏事件
-      eventBus.publish(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN);
+      eventBus.publish(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN, new ToggleInputFullscreenEventData(panelId));
       return null;
     });
 
@@ -409,14 +410,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     // 添加聚焦文件组选择快捷键
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
       // 触发自定义事件
-      eventBus.publish(EVENTS.FILE_GROUP_SELECT.FOCUS);
+      eventBus.publish(EVENTS.FILE_GROUP_SELECT.FOCUS, new FileGroupSelectFocusEventData(panelId));
       return null;
     });
 
     // 添加新建对话快捷键
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
-      // 触发新建对话事件，并传递panelId
-      eventBus.publish(EVENTS.CHAT.NEW_CHAT, panelId);
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {      
+      eventBus.publish(EVENTS.CHAT.NEW_CHAT, new NewChatEventData(panelId));
       return null;
     });
     

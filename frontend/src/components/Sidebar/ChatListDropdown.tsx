@@ -14,6 +14,7 @@ interface ChatListDropdownProps {
   deleteChatList: (name: string) => Promise<void>;
   getChatTitle: () => string;
   renameChatList?: (oldName: string, newName: string) => Promise<boolean>;
+  panelId?: string;
 }
 
 const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
@@ -25,7 +26,8 @@ const ChatListDropdown: React.FC<ChatListDropdownProps> = ({
   showNewChatModal,
   deleteChatList,
   getChatTitle,
-  renameChatList = async () => false
+  renameChatList = async () => false,
+  panelId = ''
 }) => {
   const [showAllChats, setShowAllChats] = useState(false);
   const [editingChat, setEditingChat] = useState<string | null>(null);

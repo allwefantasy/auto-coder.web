@@ -7,6 +7,7 @@ import eventBus, { EVENTS } from '../../services/eventBus';
 import { FileMetadata } from '../../types/file_meta';
 import './FileGroupSelect.css';
 import { getMessage } from './lang';
+import { FileGroupSelectFocusEventData, EditorMentionsEventData } from '../../services/event_bus_data';
 
 interface FileGroupSelectProps {
   fileGroups: FileGroup[];
@@ -14,6 +15,7 @@ interface FileGroupSelectProps {
   setSelectedGroups: (values: string[]) => void;
   fetchFileGroups: () => void;
   mentionItems?: EnhancedCompletionItem[];
+  panelId?: string;
 }
 
 interface FileCompletion {
@@ -27,7 +29,8 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   fileGroups,
   selectedGroups,
   setSelectedGroups,
-  fetchFileGroups,  
+  fetchFileGroups,
+  panelId = '',
 }) => {
   const [fileCompletions, setFileCompletions] = useState<FileCompletion[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -40,7 +43,12 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
 
   // 监听编辑器发来的聚焦事件
   useEffect(() => {
-    const handleFocusEvent = () => {
+    const handleFocusEvent = (data: FileGroupSelectFocusEventData) => {
+      // 检查事件是否与当前面板相关
+      if (data.panelId && data.panelId !== panelId) {
+        return; // 如果事件不属于当前面板，直接返回
+      }
+      
       if (selectRef.current) {
         selectRef.current.focus();
         message.info(getMessage('focusInput'), 1);
@@ -54,14 +62,19 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [panelId]);
 
   // 监听编辑器发来的mentions变化事件
   useEffect(() => {
-    const handleMentionsChanged = (mentions: Array<{type: string; text: string; path: string}>) => {
-      console.log(mentions)
+    const handleMentionsChanged = (data: EditorMentionsEventData) => {
+      // 检查事件是否与当前面板相关
+      if (data.panelId && data.panelId !== panelId) {
+        return; // 如果事件不属于当前面板，直接返回
+      }
+      
+      console.log(data.mentions)
       // 仅处理文件类型的mentions
-      const fileOnlyMentions = mentions;
+      const fileOnlyMentions = data.mentions;
       
       if (fileOnlyMentions.length > 0) {
         // 转换为组件需要的格式
@@ -103,7 +116,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     return () => {
       unsubscribe();
     };
-  }, [selectedGroups, selectedFiles]);
+  }, [selectedGroups, selectedFiles, panelId]);
 
   const formatPathDisplay = useCallback((path: string, maxLength: number = 40) => {
     // Remove the filename part (everything after last slash)
@@ -119,14 +132,21 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
 
   // 订阅编辑器选项卡变更事件，而不是 files.opened 事件
   useEffect(() => {
-    const unsubscribe = eventBus.subscribe(EVENTS.EDITOR.TABS_CHANGED, (tabs: FileMetadata[]) => {
+    const handleTabsChanged = (tabs: FileMetadata[], eventPanelId?: string) => {
+      // 检查事件是否与当前面板相关
+      if (eventPanelId && eventPanelId !== panelId) {
+        return; // 如果事件不属于当前面板，直接返回
+      }
+      
       console.log(getMessage('editorTabsChanged'), tabs);
       setOpenedFiles(tabs);
-    });
+    };
+
+    const unsubscribe = eventBus.subscribe(EVENTS.EDITOR.TABS_CHANGED, handleTabsChanged);
 
     // 组件卸载时取消订阅
     return () => unsubscribe();
-  }, []);
+  }, [panelId]);
   
   const fetchFileCompletions = async (searchValue: string) => {
     if (searchValue.length < 2) {
