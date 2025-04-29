@@ -20,7 +20,7 @@ import MessageList, { MessageProps } from '../../components/AutoMode/MessageList
 import eventBus from '../../services/eventBus';
 import { EVENTS } from '../../services/eventBus';
 import { playTaskComplete, playErrorSound } from '../../components/AutoMode/utils/SoundEffects';
-import { NewChatEventData, AgenticModeChangedEventData, HotkeyEventData } from '../../services/event_bus_data';
+import { NewChatEventData, AgenticModeChangedEventData, HotkeyEventData, FileGroupSelectionUpdatedEventData } from '../../services/event_bus_data';
 
 const ChatPanel: React.FC<ChatPanelProps> = ({
   setPreviewFiles,
@@ -39,6 +39,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const agenticEditService = ServiceFactory.getAgenticEditService(panelId);
   const autoCoderConfService = ServiceFactory.getAutoCoderConfService(panelId);
   const chatListService = ServiceFactory.getChatListService(panelId);
+  const fileGroupService = ServiceFactory.getFileGroupService(panelId);
 
   // Step By Step 模式标记
   const [enableAgenticMode, setEnableAgenticMode] = React.useState<boolean>(false);
@@ -143,7 +144,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [pendingRevert, setPendingRevert] = useState<boolean>(false);
   const [isNewChatModalVisible, setIsNewChatModalVisible] = useState<boolean>(false);
-  const [newChatName, setNewChatName] = useState<string>('');
+  const [newChatName, setNewChatName] = useState<string>('');  
+  const [lastSelectedGroups, setLastSelectedGroups] = useState<string[]>([]);
+  const [lastSelectedFiles, setLastSelectedFiles] = useState<string[]>([]);
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
   // 添加RAG启用状态
   const [enableRag, setEnableRag] = useState<boolean>(false);
@@ -799,6 +802,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       await saveChatList(chatListName, messages, panelId);
       console.log('Chat list saved before sending new message:', chatListName);
     }
+  
+    // 在发送消息前，再次调用文件组服务确保上下文是最新的
+    if (lastSelectedGroups.length > 0 || lastSelectedFiles.length > 0) {
+      try {
+        console.log('ChatPanel: Re-syncing file groups before sending message', lastSelectedGroups, lastSelectedFiles);
+        const result = await fileGroupService.switchFileGroups(lastSelectedGroups, lastSelectedFiles);
+        console.log('ChatPanel: File groups re-synced successfully', result);
+      } catch (error) {
+        console.error('ChatPanel: Error re-syncing file groups', error);
+        // 继续发送消息，不阻止用户操作
+      }
+    }  
 
     // 添加用户消息
     const messageId = addUserMessage(trimmedText);
@@ -1102,6 +1117,32 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       unsubscribe();
     };
   }, []);
+
+  // 监听文件组选择更新事件
+  useEffect(() => {
+    const handleFileGroupSelectionUpdated = (data: FileGroupSelectionUpdatedEventData) => {
+      // 如果传入了panelId且与当前面板的panelId不匹配，则不处理此事件
+      if (data.panelId && data.panelId !== panelId) {
+        return;
+      }
+      
+      console.log('ChatPanel: Received file group selection update event', data.groupNames, data.filePaths);
+      // 保存最近选择的文件组和文件
+      setLastSelectedGroups(data.groupNames);
+      setLastSelectedFiles(data.filePaths);
+    };
+
+    // 订阅文件组选择更新事件
+    const unsubscribe = eventBus.subscribe(
+      EVENTS.FILE_GROUP_SELECT.SELECTION_UPDATED, 
+      handleFileGroupSelectionUpdated
+    );
+
+    // 清理函数
+    return () => {
+      unsubscribe();
+    };
+  }, [panelId]);
 
   // 监听MCPs启用状态变更事件
   useEffect(() => {

@@ -7,6 +7,8 @@ import eventBus, { EVENTS } from '../../services/eventBus';
 import { FileMetadata } from '../../types/file_meta';
 import './FileGroupSelect.css';
 import { getMessage } from './lang';
+import { FileGroupSelectionUpdatedEventData } from '../../services/event_bus_data';
+import { ServiceFactory } from '../../services/ServiceFactory';
 
 interface FileGroupSelectProps {
   fileGroups: FileGroup[];
@@ -14,6 +16,7 @@ interface FileGroupSelectProps {
   setSelectedGroups: (values: string[]) => void;
   fetchFileGroups: () => void;
   mentionItems?: EnhancedCompletionItem[];
+  panelId?: string; // 添加可选的面板ID参数
 }
 
 interface FileCompletion {
@@ -27,13 +30,17 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   fileGroups,
   selectedGroups,
   setSelectedGroups,
-  fetchFileGroups,  
+  fetchFileGroups,
+  panelId = '',  
 }) => {
+  // 获取文件组服务
+  const fileGroupService = ServiceFactory.getFileGroupService(panelId);
   const [fileCompletions, setFileCompletions] = useState<FileCompletion[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);  
   const [mentionFiles, setMentionFiles] = useState<{ path: string, display: string }[]>([]);
+  const [tokenCount, setTokenCount] = useState<number>(0);
   const selectRef = useRef<any>(null);
   const processedMentionPaths = useRef<Set<string>>(new Set());
 
@@ -150,18 +157,24 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     setSelectedGroups(uniqueGroupValues);
     setSelectedFiles(uniqueFileValues);
 
-    fetch('/api/file-groups/switch', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        group_names: uniqueGroupValues,
-        file_paths: uniqueFileValues
+    // 使用文件组服务切换文件组
+    fileGroupService.switchFileGroups(uniqueGroupValues, uniqueFileValues)
+      .then((result: { success: boolean; totalTokens: number; message: string }) => {
+        // 更新token计数
+        if (result.totalTokens !== undefined) {
+          setTokenCount(result.totalTokens);
+        }
+        
+        // 发布文件组选择更新事件，通知ChatPanel组件
+        eventBus.publish(
+          EVENTS.FILE_GROUP_SELECT.SELECTION_UPDATED,
+          new FileGroupSelectionUpdatedEventData(uniqueGroupValues, uniqueFileValues, panelId)
+        );
+        console.log('Published file group selection updated event', uniqueGroupValues, uniqueFileValues);
       })
-    }).catch(error => {
-      console.error(getMessage('errorUpdatingSelection'), error);
-    });
+      .catch((error: Error) => {
+        console.error(getMessage('errorUpdatingSelection'), error);
+      });
   };
 
   // 处理键盘导航事件
@@ -328,9 +341,20 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     }
   };
 
+  // 格式化token数量显示，添加千位分隔符
+  const formatTokenCount = (count: number): string => {
+    return count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   return (
     <div className="px-1 w-full" onKeyDown={handleKeyDown}>
       <div className="h-[1px] bg-gray-700/50 my-0.5 w-full"></div>
+      <div className="flex items-center justify-between w-full mb-1">
+        <span className="text-xs text-gray-400 flex items-center">
+          <span className="mr-1">Tokens:</span>
+          <span className="font-medium text-green-400">{formatTokenCount(tokenCount)}</span>
+        </span>
+      </div>
       <div className="flex items-center gap-1 w-full">
         <Select
           ref={selectRef}
@@ -683,13 +707,14 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           className="text-gray-400 hover:text-gray-200 cursor-pointer text-sm"
           onClick={async () => {
             try {
-              await fetch('/api/file-groups/clear', {
-                method: 'POST'
-              });
-              setSelectedGroups([]);
-              setSelectedFiles([]);
-              fetchFileGroups();
-            } catch (error) {
+              // 使用文件组服务清空当前文件
+              const result: { success: boolean; message: string } = await fileGroupService.clearCurrentFiles();
+              if (result.success) {
+                setSelectedGroups([]);
+                setSelectedFiles([]);
+                fetchFileGroups();
+              }
+            } catch (error: unknown) {
               console.error(getMessage('clearFailed'), error);
             }
           }}

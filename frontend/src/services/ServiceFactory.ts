@@ -3,7 +3,7 @@ import { CodingService } from './codingService';
 import { AgenticEditService } from './agenticEditService';
 import { AutoCoderConfService } from './AutoCoderConfService';
 import { ChatListService } from './chatListService';
-
+import { FileGroupService } from './fileGroupService';
 
 
 // 服务工厂
@@ -13,6 +13,7 @@ export class ServiceFactory {
   private static agenticEditServices: Map<string, AgenticEditService> = new Map();
   private static autoCoderConfServices: Map<string, AutoCoderConfService> = new Map();
   private static chatListServices: Map<string, ChatListService> = new Map();
+  private static fileGroupServices: Map<string, FileGroupService> = new Map();
 
   static getChatService(panelId: string): any {
     if (!this.chatServices.has(panelId)) {
@@ -47,5 +48,12 @@ export class ServiceFactory {
       this.chatListServices.set(panelId, new ChatListService());
     }
     return this.chatListServices.get(panelId)!;
+  }
+
+  static getFileGroupService(panelId: string): any {
+    if (!this.fileGroupServices.has(panelId)) {
+      this.fileGroupServices.set(panelId, new FileGroupService());
+    }
+    return this.fileGroupServices.get(panelId)!;
   }
 }

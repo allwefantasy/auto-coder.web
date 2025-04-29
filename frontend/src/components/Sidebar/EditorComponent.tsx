@@ -7,6 +7,9 @@ import { NewChatEventData, EditorMentionsEventData, ToggleInputFullscreenEventDa
 // 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
 
+// 模块级变量，用于跟踪CompletionItemProvider是否已注册
+let isProviderRegistered = false;
+
 // 移除冲突的类型声明，使用 monaco-editor 包提供的类型
 // declare global {
 //   interface Window {
@@ -97,8 +100,6 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   panelId,
   isActive = true, // 默认为激活状态
 }) => {
-  // 添加一个ref来跟踪提供者是否已经注册
-  const providerRegistered = React.useRef(false);
   // 添加一个ref来存储editor的引用
   const editorRef = React.useRef<any>(null);
 
@@ -577,15 +578,11 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       handleContentChange();
     });
 
-    // 注册自动完成提供者
-    if (!providerRegistered.current) {
+    // 修改为使用模块级变量检查是否已注册
+    if (!isProviderRegistered) {
       monaco.languages.registerCompletionItemProvider('markdown', {
         triggerCharacters: ['@'],
         provideCompletionItems: async (model: any, position: any) => {
-          // const wordText = model.getWordUntilPosition(position);
-          // 获取查询文本
-          // const query = wordText.word;
-
           // 获取当前行的内容
           const lineContent = model.getLineContent(position.lineNumber);
           // 获取光标前的文本
@@ -657,15 +654,26 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             };
           });
 
-          // 合并建议
+          // 实现去重逻辑，避免重复项
+          const uniqueSuggestions = new Map();
+          [...fileSuggestions, ...symbolSuggestions].forEach(item => {
+            const key = `${item.label}-${item.detail}`;
+            if (!uniqueSuggestions.has(key)) {
+              uniqueSuggestions.set(key, item);
+            }
+          });
+
+          // 合并建议，使用去重后的结果
           return {
-            suggestions: [...fileSuggestions, ...symbolSuggestions],
+            suggestions: Array.from(uniqueSuggestions.values()),
             incomplete: true
           };
         }
       });
 
-      providerRegistered.current = true;
+      // 设置为已注册
+      isProviderRegistered = true;
+      console.log('Completion provider registered successfully');
     }
   };
 

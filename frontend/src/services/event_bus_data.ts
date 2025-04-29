@@ -129,3 +129,28 @@ export class HotkeyEventData {
     this.panelId = panelId;
   }
 } 
+
+/**
+ * 文件组选择更新事件数据类
+ * FileGroupSelect.tsx 中发布 EVENTS.FILE_GROUP_SELECT.SELECTION_UPDATED 事件时使用
+ */
+export class FileGroupSelectionUpdatedEventData {
+  /** 组名列表 */
+  groupNames: string[];
+  /** 文件路径列表 */
+  filePaths: string[];
+  /** 面板ID */
+  panelId?: string;
+  
+  /**
+   * 构造函数
+   * @param groupNames 组名列表
+   * @param filePaths 文件路径列表
+   * @param panelId 面板ID
+   */
+  constructor(groupNames: string[], filePaths: string[], panelId?: string) {
+    this.groupNames = groupNames;
+    this.filePaths = filePaths;
+    this.panelId = panelId;
+  }
+}

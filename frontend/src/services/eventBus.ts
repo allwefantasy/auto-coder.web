@@ -24,7 +24,9 @@ export const EVENTS = {
   },
   FILE_GROUP_SELECT: {
     // 聚焦文件组选择事件 EditorComponent.tsx 发布, FileGroupSelect.tsx 订阅
-    FOCUS: 'file.group.select.focus'
+    FOCUS: 'file.group.select.focus',
+    // 文件组选择更新事件 FileGroupSelect.tsx 发布, ChatPanel.tsx 订阅
+    SELECTION_UPDATED: 'file.group.select.selection.updated'
   },
   CHAT: {
     // 从特定消息重新开始对话事件 UserMessage.tsx 发布, ChatPanel.tsx 订阅
