@@ -65,6 +65,8 @@ interface EditorComponentProps {
   onMentionClick?: (type: 'file' | 'symbol', text: string, item?: EnhancedCompletionItem) => void;
   /** 直接发送消息的函数 */
   handleSendMessage: (text?: string) => void;
+  /** 面板ID */
+  panelId?: string;
 }
 
 // Mention 数据接口
@@ -89,6 +91,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   onToggleMaximize,
   onMentionClick,
   handleSendMessage,
+  panelId,
 }) => {
   // 添加一个ref来跟踪提供者是否已经注册
   const providerRegistered = React.useRef(false);
@@ -412,8 +415,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
 
     // 添加新建对话快捷键
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
-      // 触发新建对话事件
-      eventBus.publish(EVENTS.CHAT.NEW_CHAT);
+      // 触发新建对话事件，并传递panelId
+      eventBus.publish(EVENTS.CHAT.NEW_CHAT, panelId);
       return null;
     });
     

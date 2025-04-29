@@ -23,14 +23,14 @@ export class ServiceFactory {
 
   static getCodingService(panelId: string): any {
     if (!this.codingServices.has(panelId)) {
-      this.codingServices.set(panelId, new CodingService());
+      this.codingServices.set(panelId, new CodingService(panelId));
     }
     return this.codingServices.get(panelId)!;
   }
 
   static getAgenticEditService(panelId: string): any {
     if (!this.agenticEditServices.has(panelId)) {
-      this.agenticEditServices.set(panelId, new AgenticEditService());
+      this.agenticEditServices.set(panelId, new AgenticEditService(panelId));
     }
     return this.agenticEditServices.get(panelId)!;
   }

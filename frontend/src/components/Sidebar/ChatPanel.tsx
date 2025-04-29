@@ -91,7 +91,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   // 创建新对话，无需用户确认
-  const handleNewChatDirectly = async () => {
+  const handleNewChatDirectly = async (eventPanelId: string) => {
+    // 如果传入了panelId且与当前面板的panelId不匹配，则不处理此事件
+    if (eventPanelId && eventPanelId !== panelId) {
+      return;
+    }
+
     try {
       // 清空当前对话内容
       setMessages([]);
@@ -1240,6 +1245,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               showFileGroupSelect={true}
               soundEnabled={soundEnabled}
               setSoundEnabled={setSoundEnabled}
+              panelId={panelId}
             />
           </div>
         </Layout.Content>

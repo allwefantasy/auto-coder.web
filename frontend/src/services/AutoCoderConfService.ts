@@ -5,9 +5,7 @@ import { ConfigState, ConfigKey } from '../components/Sidebar/types';
 // 定义配置服务类
 export class AutoCoderConfService extends EventEmitter {
   private config: ConfigState = {
-    human_as_model: false,
-    skip_build_index: true,
-    project_type: "py",
+    human_as_model: false,    
     extra_conf: {},
     available_keys: []
   };

@@ -16,6 +16,10 @@ from byzerllm.utils.langutil import asyncfy_with_semaphore
 from autocoder.common.global_cancel import global_cancel, CancelRequestedException 
 from loguru import logger
 import byzerllm
+# 导入聊天会话和聊天列表管理器
+from auto_coder_web.common_router.chat_session_manager import read_session_name_sync
+from auto_coder_web.common_router.chat_list_manager import get_chat_list_sync
+
 router = APIRouter()
 
 # 创建线程池
@@ -25,6 +29,7 @@ class AutoCommandRequest(BaseModel):
     command: str
     include_conversation_history: bool = True
     buildin_conversation_history: bool = False
+    panel_id: Optional[str] = None
 
 class EventPollRequest(BaseModel):
     event_file_id:str    
@@ -102,40 +107,39 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
 
             if request.include_conversation_history:
                 # 获取当前会话名称
-                current_session_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "current-session.json")
+                panel_id = request.panel_id or ""
                 current_session_name = ""
-                if os.path.exists(current_session_file):
-                    try:
-                        with open(current_session_file, 'r',encoding="utf-8") as f:
-                            session_data = json.load(f)
-                            current_session_name = session_data.get("session_name", "")
-                    except Exception as e:                        
-                        logger.error(f"Error reading current session: {str(e)}")
-                        logger.exception(e)
+                try:
+                    # 使用chat_session_manager模块获取当前会话名称
+                    # 使用同步版本的函数，避免在线程中使用asyncio.run
+                    current_session_name = read_session_name_sync(project_path, panel_id)
+                except Exception as e:                        
+                    logger.error(f"Error reading current session: {str(e)}")
+                    logger.exception(e)
                 
                 # 获取历史消息
                 messages = []
                 if current_session_name:
-                    chat_list_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "chat-lists", f"{current_session_name}.json")
-                    logger.info(f"loading chat history from {chat_list_file}")
-                    if os.path.exists(chat_list_file):
-                        try:
-                            with open(chat_list_file, 'r', encoding="utf-8") as f:                                
-                                chat_data = json.load(f)
-                                # 从聊天历史中提取消息
-                                for msg in chat_data.get("messages", []):                                    
-                                    # if msg.get("metadata",{}).get("stream_out_type","") == "/agent/edit":
-                                    #     messages.append(msg)
-                                    #     continue
-                                    
-                                    # if msg.get("type","") not in ["USER_RESPONSE","RESULT","COMPLETION"]:
-                                    #     continue     
-                                    if msg.get("contentType","") in ["token_stat"]:
-                                        continue                                                                
-                                    messages.append(msg)
-                        except Exception as e:                                                       
-                            logger.error(f"Error reading chat history: {str(e)}")
-                            logger.exception(e) 
+                    try:
+                        # 使用chat_list_manager模块获取聊天列表内容
+                        logger.info(f"Loading chat history for session: {current_session_name}")
+                        # 使用同步版本的函数，避免在线程中使用asyncio.run
+                        chat_data = get_chat_list_sync(project_path, current_session_name)
+                        
+                        # 从聊天历史中提取消息
+                        for msg in chat_data.get("messages", []):                                    
+                            # if msg.get("metadata",{}).get("stream_out_type","") == "/agent/edit":
+                            #     messages.append(msg)
+                            #     continue
+                            
+                            # if msg.get("type","") not in ["USER_RESPONSE","RESULT","COMPLETION"]:
+                            #     continue     
+                            if msg.get("contentType","") in ["token_stat"]:
+                                continue                                                                
+                            messages.append(msg)
+                    except Exception as e:                                                       
+                        logger.error(f"Error reading chat history: {str(e)}")
+                        logger.exception(e) 
                                                 
                 if messages:
                     # 调用coding_prompt生成包含历史消息的提示

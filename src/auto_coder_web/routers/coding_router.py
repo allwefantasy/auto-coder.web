@@ -16,6 +16,9 @@ from byzerllm.utils.langutil import asyncfy_with_semaphore
 from autocoder.common.global_cancel import global_cancel, CancelRequestedException 
 from loguru import logger
 import byzerllm
+# 导入聊天会话和聊天列表管理器
+from auto_coder_web.common_router.chat_session_manager import read_session_name_sync
+from auto_coder_web.common_router.chat_list_manager import get_chat_list_sync
 
 router = APIRouter()
 
@@ -24,6 +27,7 @@ cancel_thread_pool = ThreadPoolExecutor(max_workers=5)
 
 class CodingCommandRequest(BaseModel):
     command: str
+    panel_id: Optional[str] = None
 
 class EventPollRequest(BaseModel):
     event_file_id: str    
@@ -92,36 +96,34 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
             global_cancel.register_token(event_file)
 
             # 获取当前会话名称
-            current_session_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "current-session.json")
-            current_session_name = ""
-            if os.path.exists(current_session_file):
-                try:
-                    with open(current_session_file, 'r',encoding="utf-8") as f:
-                        session_data = json.load(f)
-                        current_session_name = session_data.get("session_name", "")
-                except Exception as e:
-                    logger.error(f"Error reading current session: {str(e)}")
+            panel_id = request.panel_id or ""
+            try:
+                # 使用同步版本的会话管理函数，传递panel_id参数
+                current_session_name = read_session_name_sync(project_path, panel_id)
+            except Exception as e:
+                logger.error(f"Error reading current session: {str(e)}")
+                current_session_name = ""
             
             # 获取历史消息
             messages = []
             if current_session_name:
-                chat_list_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "chat-lists", f"{current_session_name}.json")
-                if os.path.exists(chat_list_file):
-                    try:
-                        with open(chat_list_file, 'r', encoding="utf-8") as f:
-                            chat_data = json.load(f)
-                            # 从聊天历史中提取消息
-                            for msg in chat_data.get("messages", []):
-                                # 只保留用户和中间结果信息
-                                if msg.get("type","") not in ["USER_RESPONSE","RESULT"]:
-                                    continue     
+                try:
+                    # 使用同步版本的聊天列表管理函数
+                    logger.info(f"Loading chat history for session: {current_session_name}")
+                    chat_data = get_chat_list_sync(project_path, current_session_name)
+                    
+                    # 从聊天历史中提取消息
+                    for msg in chat_data.get("messages", []):
+                        # 只保留用户和中间结果信息
+                        if msg.get("type","") not in ["USER_RESPONSE","RESULT"]:
+                            continue     
 
-                                if msg.get("contentType","") in ["token_stat"]:
-                                    continue                            
-                                
-                                messages.append(msg)
-                    except Exception as e:
-                        logger.error(f"Error reading chat history: {str(e)}")
+                        if msg.get("contentType","") in ["token_stat"]:
+                            continue                            
+                        
+                        messages.append(msg)
+                except Exception as e:
+                    logger.error(f"Error reading chat history: {str(e)}")
             
             # 构建提示信息
             prompt_text = request.command

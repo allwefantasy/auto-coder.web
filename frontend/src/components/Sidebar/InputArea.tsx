@@ -32,6 +32,7 @@ interface InputAreaProps {
   showFileGroupSelect: boolean;
   soundEnabled: boolean;
   setSoundEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  panelId?: string;
 }
 
 const InputArea: React.FC<InputAreaProps> = ({
@@ -54,7 +55,8 @@ const InputArea: React.FC<InputAreaProps> = ({
   isFullScreen,
   showFileGroupSelect,
   soundEnabled,
-  setSoundEnabled
+  setSoundEnabled,
+  panelId
 }) => {  
   const [showConfig, setShowConfig] = useState<boolean>(true);
   const [config, setLocalConfig] = useState<ConfigState>({
@@ -483,6 +485,7 @@ const InputArea: React.FC<InputAreaProps> = ({
               setIsMaximized((prev: boolean): boolean => !prev);
             }}            
             handleSendMessage={handleSendMessage}
+            panelId={panelId}
           />
         </div>
         <div className="flex flex-col mt-0 gap-0 flex-shrink-0">

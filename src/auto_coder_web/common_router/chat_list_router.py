@@ -6,6 +6,10 @@ from auto_coder_web.types import ChatList
 from pydantic import BaseModel
 import asyncio
 from loguru import logger
+# 导入会话管理函数
+from .chat_session_manager import read_session_name, write_session_name
+# 导入聊天列表管理函数
+from .chat_list_manager import save_chat_list, get_chat_lists, get_chat_list, delete_chat_list, rename_chat_list
 
 class SessionNameRequest(BaseModel):
     session_name: str
@@ -27,73 +31,44 @@ router = APIRouter()
 
 
 @router.post("/api/chat-lists/save")
-async def save_chat_list(chat_list: ChatList, project_path: str = Depends(get_project_path)):
+async def save_chat_list_endpoint(chat_list: ChatList, project_path: str = Depends(get_project_path)):
     try:
-        chat_lists_dir = os.path.join(project_path,
-                                      ".auto-coder", "auto-coder.web", "chat-lists")
-        os.makedirs(chat_lists_dir, exist_ok=True)
-
-        file_path = os.path.join(chat_lists_dir, f"{chat_list.name}.json")
-        async with aiofiles.open(file_path, 'w') as f:
-            await f.write(json.dumps({"messages": chat_list.messages}, indent=2, ensure_ascii=False))
+        # 调用管理模块保存聊天列表
+        await save_chat_list(project_path, chat_list.name, chat_list.messages)
         return {"status": "success", "message": f"Chat list {chat_list.name} saved successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/api/chat-lists")
-async def get_chat_lists(project_path: str = Depends(get_project_path)):
+async def get_chat_lists_endpoint(project_path: str = Depends(get_project_path)):
     try:
-        chat_lists_dir = os.path.join(
-            project_path, ".auto-coder", "auto-coder.web", "chat-lists")
-        os.makedirs(chat_lists_dir, exist_ok=True)
-
-        # Get files with their modification times
-        chat_lists = []
-        files = await asyncio.to_thread(os.listdir, chat_lists_dir)
-        for file in files:
-            if file.endswith('.json'):
-                file_path = os.path.join(chat_lists_dir, file)
-                mod_time = os.path.getmtime(file_path)
-                # Store tuple of (name, mod_time)
-                chat_lists.append((file[:-5], mod_time))
-
-        # Sort by modification time (newest first)
-        chat_lists.sort(key=lambda x: x[1], reverse=True)
-
-        # Return only the chat list names
-        return {"chat_lists": [name for name, _ in chat_lists]}
+        # 调用管理模块获取聊天列表
+        chat_lists = await get_chat_lists(project_path)
+        return {"chat_lists": chat_lists}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/api/chat-lists/{name}")
-async def get_chat_list(name: str, project_path: str = Depends(get_project_path)):
+async def get_chat_list_endpoint(name: str, project_path: str = Depends(get_project_path)):
     try:
-        file_path = os.path.join(
-            project_path, ".auto-coder", "auto-coder.web", "chat-lists", f"{name}.json")
-        if not os.path.exists(file_path):
-            raise HTTPException(
-                status_code=404, detail=f"Chat list {name} not found")
-
-        async with aiofiles.open(file_path, 'r') as f:
-            content = await f.read()
-            return json.loads(content)
+        # 调用管理模块获取特定聊天列表
+        return await get_chat_list(project_path, name)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Chat list {name} not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/api/chat-lists/{name}")
-async def delete_chat_list(name: str, project_path: str = Depends(get_project_path)):
+async def delete_chat_list_endpoint(name: str, project_path: str = Depends(get_project_path)):
     try:
-        file_path = os.path.join(
-            project_path, ".auto-coder", "auto-coder.web", "chat-lists", f"{name}.json")
-        if not os.path.exists(file_path):
-            raise HTTPException(
-                status_code=404, detail=f"Chat list {name} not found")
-
-        os.remove(file_path)
+        # 调用管理模块删除聊天列表
+        await delete_chat_list(project_path, name)
         return {"status": "success", "message": f"Chat list {name} deleted successfully"}
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Chat list {name} not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -108,27 +83,13 @@ async def get_current_session_name(panel_id: str = "", project_path: str = Depen
         project_path: 项目路径
     """
     try:
-        # 创建存储会话信息的目录        
-        session_dir = os.path.join(project_path, ".auto-coder", "auto-coder.web")
-        os.makedirs(session_dir, exist_ok=True)
-        
-        # 会话信息文件路径 - 基于panel_id构建不同的文件名
-        file_name = "current-session.json" if not panel_id else f"current-session-{panel_id}.json"
-        session_file = os.path.join(session_dir, file_name)
-        
-        # 如果文件不存在，返回空会话名称
-        if not os.path.exists(session_file):
-            return {"session_name": ""}
-        
-        # 读取当前会话信息
-        async with aiofiles.open(session_file, 'r') as f:
-            content = await f.read()
-            session_data = json.loads(content)
-            return {"session_name": session_data.get("session_name", "")}
+        # 调用新的函数读取会话名称
+        session_name = await read_session_name(project_path, panel_id)
+        return {"session_name": session_name}
             
     except Exception as e:
-        # 如果发生错误，记录错误但返回空会话名
-        print(f"Error getting current session name: {str(e)}")
+        # 如果发生错误，记录错误但返回空会话名 (read_session_name内部已处理部分错误)
+        logger.error(f"Error in get_current_session_name endpoint: {str(e)}")
         return {"session_name": ""}
 
 
@@ -142,22 +103,8 @@ async def set_current_session_name(request: SessionNameRequest, project_path: st
         project_path: 项目路径
     """
     try:
-        # 创建存储会话信息的目录
-        session_dir = os.path.join(project_path, ".auto-coder", "auto-coder.web")
-        os.makedirs(session_dir, exist_ok=True)
-        
-        # 会话信息文件路径 - 基于panel_id构建不同的文件名
-        file_name = "current-session.json" if not request.panel_id else f"current-session-{request.panel_id}.json"
-        session_file = os.path.join(session_dir, file_name)
-        
-        # 保存当前会话信息
-        session_data = {
-            "session_name": request.session_name,
-            "panel_id": request.panel_id
-        }
-        async with aiofiles.open(session_file, 'w') as f:
-            await f.write(json.dumps(session_data, indent=2, ensure_ascii=False))
-            
+        # 调用新的函数写入会话名称
+        await write_session_name(project_path, request.session_name, request.panel_id)
         return {"status": "success", "message": "Current session name updated"}
             
     except Exception as e:
@@ -165,53 +112,31 @@ async def set_current_session_name(request: SessionNameRequest, project_path: st
 
 
 @router.post("/api/chat-lists/rename")
-async def rename_chat_list(request: RenameChatListRequest, project_path: str = Depends(get_project_path)):
+async def rename_chat_list_endpoint(request: RenameChatListRequest, project_path: str = Depends(get_project_path)):
     """
     重命名聊天列表
     
     将现有聊天列表从旧名称重命名为新名称
     """
     try:
-        chat_lists_dir = os.path.join(project_path, ".auto-coder", "auto-coder.web", "chat-lists")
-        old_file_path = os.path.join(chat_lists_dir, f"{request.old_name}.json")
-        new_file_path = os.path.join(chat_lists_dir, f"{request.new_name}.json")
-        
-        # 检查旧文件是否存在
-        if not os.path.exists(old_file_path):
-            raise HTTPException(status_code=404, detail=f"Chat list {request.old_name} not found")
-        
-        # 检查新文件名是否已存在
-        if os.path.exists(new_file_path):
-            raise HTTPException(status_code=409, detail=f"Chat list with name {request.new_name} already exists")
-        
-        # 读取旧文件内容
-        async with aiofiles.open(old_file_path, 'r') as f:
-            content = await f.read()
-        
-        # 写入新文件
-        async with aiofiles.open(new_file_path, 'w') as f:
-            await f.write(content)
-        
-        # 删除旧文件
-        os.remove(old_file_path)
+        # 调用管理模块重命名聊天列表
+        await rename_chat_list(project_path, request.old_name, request.new_name)
         
         # 如果当前会话名称是旧名称，则更新为新名称
-        session_file = os.path.join(project_path, ".auto-coder", "auto-coder.web", "current-session.json")
-        if os.path.exists(session_file):
-            try:
-                async with aiofiles.open(session_file, 'r') as f:
-                    session_content = await f.read()
-                    session_data = json.loads(session_content)
-                    
-                if session_data.get("session_name") == request.old_name:
-                    session_data["session_name"] = request.new_name
-                    async with aiofiles.open(session_file, 'w') as f:
-                        await f.write(json.dumps(session_data, indent=2, ensure_ascii=False))
-            except Exception as e:
-                print(f"Error updating current session name: {str(e)}")
+        # 注意：这里只更新默认的会话文件（panel_id=""）
+        # 如果需要根据panel_id更新所有相关会话文件，逻辑会更复杂
+        try:
+            current_session_name = await read_session_name(project_path, panel_id="") # P读取默认会话
+            if current_session_name == request.old_name:
+                await write_session_name(project_path, request.new_name, panel_id="") # 更新默认会话
+        except Exception as e:
+            # 记录错误，但不影响重命名操作的主要流程
+            logger.error(f"Error updating default current session name during rename: {str(e)}")
         
         return {"status": "success", "message": f"Chat list renamed from {request.old_name} to {request.new_name}"}
-    except HTTPException:
-        raise
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Chat list {request.old_name} not found")
+    except FileExistsError:
+        raise HTTPException(status_code=409, detail=f"Chat list with name {request.new_name} already exists")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to rename chat list: {str(e)}")

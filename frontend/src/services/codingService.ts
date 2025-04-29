@@ -28,9 +28,11 @@ export class CodingService extends EventEmitter {
   private messageId = 0;
   private currentStreamMessageId: string | null = null;
   private isStreamingActive: boolean = false;
+  private panelId?: string;
 
-  constructor() {
+  constructor(panelId?: string) {
     super();
+    this.panelId = panelId;
   }
 
   private eventFileId: string | null = null;
@@ -42,7 +44,10 @@ export class CodingService extends EventEmitter {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ command }),
+        body: JSON.stringify({ 
+          command,
+          panel_id: this.panelId
+        }),
       });
 
       if (!response.ok) {
@@ -554,5 +559,7 @@ export class CodingService extends EventEmitter {
   }
 }
 
-// Export a singleton instance
+// Export a singleton instance with no panel ID
 export const codingService = new CodingService();
+
+// Do not export the class again as it's already exported above

@@ -10,9 +10,11 @@ export class AgenticEditService extends EventEmitter {
   private messageId = 0;
   private currentStreamMessageId: string | null = null;
   private isStreamingActive: boolean = false;
+  private panelId?: string;
 
-  constructor() {
+  constructor(panelId?: string) {
     super();
+    this.panelId = panelId;
   }
 
   private eventFileId: string | null = null;
@@ -24,7 +26,11 @@ export class AgenticEditService extends EventEmitter {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ command, include_conversation_history: includeConversationHistory }),
+        body: JSON.stringify({ 
+          command, 
+          include_conversation_history: includeConversationHistory,
+          panel_id: this.panelId
+        }),
       });
 
       if (!response.ok) {
