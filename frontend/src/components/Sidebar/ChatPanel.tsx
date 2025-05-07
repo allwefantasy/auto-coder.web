@@ -133,6 +133,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [sendLoading, setSendLoading] = useState<boolean>(false);
   const editorRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null); // 添加消息容器的引用，用于导出图片
   const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
 
   const isWriteModeRef = useRef<boolean>(true);
@@ -232,7 +233,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   // 添加监听滚动事件的函数，检测用户是否在底部
   const handleScroll = useCallback(() => {
-    const container = document.getElementById('chat-messages-container');
+    const container = messagesContainerRef.current;
     if (container) {
       // 检查是否滚动到底部（考虑一个小的阈值，如100像素）
       const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
@@ -242,7 +243,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   // 添加滚动事件监听器
   useEffect(() => {
-    const container = document.getElementById('chat-messages-container');
+    const container = messagesContainerRef.current;
     if (container) {
       container.addEventListener('scroll', handleScroll);
       // 初始化时设置isAtBottom
@@ -251,7 +252,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 清理函数
     return () => {
-      const container = document.getElementById('chat-messages-container');
+      const container = messagesContainerRef.current;
       if (container) {
         container.removeEventListener('scroll', handleScroll);
       }
@@ -1004,7 +1005,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   // 导出消息列表为完整图片（自动展开滚动区域）
   const handleExportMessagesAsImage = async () => {
-    const container = document.getElementById('chat-messages-container');
+    const container = messagesContainerRef.current;
     if (!container) {
       AntdMessage.error('未找到消息列表区域');
       return;
@@ -1438,7 +1439,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         <Layout.Content className="flex-1 overflow-hidden flex flex-col">
           <div
             className="flex-1 overflow-y-auto bg-gray-900 p-2 transition-all duration-300"
-            id="chat-messages-container"
+            ref={messagesContainerRef}
             style={{
               backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0)',
               backgroundSize: '20px 20px'
