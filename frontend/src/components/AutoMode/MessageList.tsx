@@ -65,12 +65,17 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
     // Function to filter and organize messages before rendering
     const filterMessages = (messages: MessageProps[]): MessageProps[] => {
         if (messages.length === 0) return [];
-        
+
+        // Get all messages except the last one
+        const messagesWithoutLast = messages.slice(0, -1);
+
+        // Get the last message
+        const lastMessage = messages[messages.length - 1];
 
         // Filter out command_prepare_stat messages and STREAM messages with specific stream_out_types
         // We usually don't want to filter out the final result of a stream like compile or lint
         const streamOutTypesToFilterDuringStream = ["code_generate", "agentic_filter"];
-        const filteredMessages = messages.filter(message => {
+        const filteredMessages = messagesWithoutLast.filter(message => {
             // Always hide command_prepare_stat
             if (message.contentType === 'command_prepare_stat') {
                 return false;
@@ -81,7 +86,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             }
             
             const path = message.metadata?.path;
-            
+
+            if (message.metadata?.path === "/agent/edit/completion") {
+                return false;
+            }
+
             // Filter out messages with path /agent/edit/apply_changes or /agent/edit/apply_pre_changes
             // and have_commit or has_commit is false
             
@@ -100,11 +109,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
 
 
             return true;
-        });
-        console.log('filteredMessages', filteredMessages);
-
+        });        
         // Add the last message back to the filtered results
-        return filteredMessages;
+        return [...filteredMessages, lastMessage];
     };
     // Function to render message content based on content type
     const renderMessageContent = (message: MessageProps) => {
