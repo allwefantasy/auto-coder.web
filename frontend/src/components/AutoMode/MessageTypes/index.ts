@@ -29,3 +29,5 @@ export { default as AgenticEditSearchFilesTool } from './AgenticEditSearchFilesT
 export { default as AgenticEditUseMcpTool } from './AgenticEditUseMcpTool';
 export { default as AgenticEditAttemptCompletionTool } from './AgenticEditAttemptCompletionTool';
 export { default as AgenticEditPlanModeRespondTool } from './AgenticEditPlanModeRespondTool';
+export { default as AgenticEditApplyChanges } from './AgenticEditApplyChanges';
+export { default as AgenticEditApplyPreChanges } from './AgenticEditApplyPreChanges';

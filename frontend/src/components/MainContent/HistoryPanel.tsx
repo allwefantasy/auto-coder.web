@@ -8,6 +8,7 @@ import { Editor, loader } from '@monaco-editor/react';
 import DiffViewer from './DiffViewer';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import { getMessage } from '../Sidebar/lang'; // Import getMessage
+import { FilterByCommitEventData } from '../../services/event_bus_data';
 
 // 防止Monaco加载多次
 loader.config({
@@ -50,6 +51,9 @@ const HistoryPanel: React.FC = () => {
     const [contextModalVisible, setContextModalVisible] = useState<boolean>(false);
     const [currentUrls, setCurrentUrls] = useState<string[]>([]);
     const [viewingCommitId, setViewingCommitId] = useState<string | null>(null);
+    // 添加过滤状态
+    const [filterCommitHash, setFilterCommitHash] = useState<string | null>(null);
+    const [originalQueries, setOriginalQueries] = useState<Query[]>([]);
 
     // 添加滚动状态
     const [scrolled, setScrolled] = useState(false);
@@ -73,12 +77,30 @@ const HistoryPanel: React.FC = () => {
         setViewingCommitId(response);
     };
 
+    // 清除过滤条件方法
+    const clearFilter = () => {
+        if (filterCommitHash) {
+            setFilterCommitHash(null);
+            setQueries(originalQueries);
+        }
+    };
+
     const loadQueries = async () => {
         setLoading(true);
         try {
             const response = await axios.get('/api/history/validate-and-load');
             if (response.data.success) {
-                setQueries(response.data.queries);
+                const loadedQueries = response.data.queries;
+                // 保存原始查询结果
+                setOriginalQueries(loadedQueries);
+                
+                // 如果有过滤条件，应用过滤
+                if (filterCommitHash) {
+                    const filtered = loadedQueries.filter((q: Query) => q.response === filterCommitHash);
+                    setQueries(filtered);
+                } else {
+                    setQueries(loadedQueries);
+                }
             } else {
                 // Replace string
                 message.error(response.data.message || getMessage('loadHistoryFailed'));
@@ -97,17 +119,30 @@ const HistoryPanel: React.FC = () => {
         loadQueries();
 
         // 订阅编程任务完成事件
-        const unsubscribe = eventBus.subscribe(EVENTS.CODING.TASK_COMPLETE, (data) => {
+        const unsubscribeCodingTask = eventBus.subscribe(EVENTS.CODING.TASK_COMPLETE, (data) => {
             console.log('Coding task completed, reloading queries', data);
             // 任务完成后自动加载最新的历史记录
             loadQueries();
         });
+        
+        // 订阅按提交哈希过滤事件
+        const unsubscribeFilterByCommit = eventBus.subscribe(
+            EVENTS.HISTORY.FILTER_BY_COMMIT,
+            (data: FilterByCommitEventData) => {
+                console.log('Filtering history by commit hash:', data.commitHash);
+                setFilterCommitHash(data.commitHash);
+                
+                // 重新加载数据并应用过滤
+                loadQueries();
+            }
+        );
 
-        // 组件卸载时取消订阅
+        // 组件卸载时取消所有订阅
         return () => {
-            unsubscribe();
+            unsubscribeCodingTask();
+            unsubscribeFilterByCommit();
         };
-    }, []);
+    }, [filterCommitHash]); // 添加filterCommitHash为依赖
     
     // 处理撤销按钮点击
     const handleRevertClick = (e: React.MouseEvent, commitHash: string, commitMessage: string) => {
@@ -220,7 +255,26 @@ const HistoryPanel: React.FC = () => {
                     <Button type="primary" onClick={loadQueries} loading={loading}>
                         {getMessage('refresh')}
                     </Button>
+                    
+                    {/* 如果有过滤，显示清除过滤按钮 */}
+                    {filterCommitHash && (
+                        <Button 
+                            type="default" 
+                            onClick={clearFilter}
+                            danger
+                        >
+                            {getMessage('clearFilter') || '清除过滤'}
+                        </Button>
+                    )}
                 </Space>
+                
+                {/* 显示过滤状态 */}
+                {filterCommitHash && (
+                    <div className="px-2 py-1 bg-blue-900/30 text-blue-300 rounded-md text-xs flex items-center">
+                        <span>{getMessage('filteringByCommit') || '按提交过滤'}:</span>
+                        <code className="ml-1 font-mono">{filterCommitHash.substring(0, 8)}</code>
+                    </div>
+                )}
             </div>
 
             {/* 撤销确认对话框 */}
@@ -292,12 +346,20 @@ const HistoryPanel: React.FC = () => {
             )}
 
             <div className="flex-1 overflow-y-auto p-4">
+                {/* 显示过滤结果为空的提示 */}
+                {filterCommitHash && queries.length === 0 && (
+                    <div className="text-center p-8 text-gray-400">
+                        <p>{getMessage('noFilteredResults') || '没有匹配的历史记录'}</p>
+                    </div>
+                )}
+                
                 <List
                     dataSource={queries}
                     renderItem={(item) => (
                         <List.Item className="border-b border-[#374151] last:border-b-0">
                             <Card
-                                className="w-full bg-[#1F2937] border-[#374151] hover:bg-[#2D3748] transition-colors duration-200"
+                                className={`w-full bg-[#1F2937] border-[#374151] hover:bg-[#2D3748] transition-colors duration-200 
+                                    ${filterCommitHash && item.response === filterCommitHash ? 'border-blue-500 border-2' : ''}`}
                                 title={
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>

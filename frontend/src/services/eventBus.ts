@@ -22,6 +22,10 @@ export const EVENTS = {
     // 模式切换事件 EditorComponent.tsx 发布, InputArea.tsx 订阅
     TOGGLE_WRITE_MODE: 'ui.toggle.write.mode'
   },
+  HISTORY: {
+    // 按提交哈希过滤历史记录
+    FILTER_BY_COMMIT: 'history.filter.by.commit'
+  },
   FILE_GROUP_SELECT: {
     // 聚焦文件组选择事件 EditorComponent.tsx 发布, FileGroupSelect.tsx 订阅
     FOCUS: 'file.group.select.focus',

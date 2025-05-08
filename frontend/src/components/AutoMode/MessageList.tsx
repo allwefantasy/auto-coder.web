@@ -20,23 +20,25 @@ import {
     UserMessage,
     CodeMergeMessage,
     CodeCompileMessage,
-    AgenticEditReplaceInFileTool,
-    AgenticEditToolResult,
-    AgenticEditWriteToFileTool,
     AgenticEditAskFollowupQuestionTool,
     AgenticEditExecuteCommandTool,
-    AgenticEditListCodeDefinitionNamesTool,
-    AgenticEditListFilesTool,
-    AgenticEditReadFileTool,
-    AgenticEditSearchFilesTool,
-    AgenticEditUseMcpTool,
-    AgenticEditAttemptCompletionTool,
-    AgenticEditPlanModeRespondTool
+    AgenticEditListCodeDefinitionNamesTool
 } from './MessageTypes';
+
+// Direct imports for message type components
 import AgenticFilterExecuteMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterExecuteMessage';
 import AgenticFilterPrepareMessage from './MessageTypes/AgenticFilterMessageTypes/AgenticFilterPrepareMessage';
 import AgenticFilterSuggestionMessage from './MessageTypes/AgenticFilterMessageTypes/AgentiFilterSuggestionMessage';
-
+import AgenticEditReplaceInFileTool from './MessageTypes/AgenticEditReplaceInFileTool';
+import AgenticEditWriteToFileTool from './MessageTypes/AgenticEditWriteToFileTool';
+import AgenticEditListFilesTool from './MessageTypes/AgenticEditListFilesTool';
+import AgenticEditReadFileTool from './MessageTypes/AgenticEditReadFileTool';
+import AgenticEditSearchFilesTool from './MessageTypes/AgenticEditSearchFilesTool';
+import AgenticEditUseMcpTool from './MessageTypes/AgenticEditUseMcpTool';
+import AgenticEditAttemptCompletionTool from './MessageTypes/AgenticEditAttemptCompletionTool';
+import AgenticEditToolResult from './MessageTypes/AgenticEditToolResult';
+import AgenticEditApplyChanges from './MessageTypes/AgenticEditApplyChanges';
+import AgenticEditApplyPreChanges from './MessageTypes/AgenticEditApplyPreChanges';
 
 export interface MessageProps {
     id: string;
@@ -86,6 +88,30 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             if (message.content === "Agent attempted task completion."){
                 return false;
             }
+
+            const path = message.metadata?.path;
+
+            if (message.metadata?.path === "/agent/edit/completion") {
+                return false;
+            }
+
+            // Filter out messages with path /agent/edit/apply_changes or /agent/edit/apply_pre_changes
+            // and have_commit or has_commit is false
+            
+            if (path === '/agent/edit/apply_changes' || path === '/agent/edit/apply_pre_changes') {
+                try {
+                    const content = JSON.parse(message.content || '{}');
+                    // Check for both have_commit and has_commit being false
+                    if (content.have_commit === false) {
+                        return false;
+                    }
+                } catch (e) {
+                    // If parsing fails, keep the message
+                    console.debug('Failed to parse message content for filtering:', e);
+                }
+            }
+
+
             return true;
         });
 
@@ -141,6 +167,14 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             }
             if (message.metadata?.path === "/agent/edit/tool/result") {
                 return <AgenticEditToolResult message={message} />;
+            }
+
+            if (message.metadata?.path === "/agent/edit/apply_changes") {
+                return <AgenticEditApplyChanges message={message} />;
+            }
+
+            if (message.metadata?.path === "/agent/edit/apply_pre_changes") {
+                return <AgenticEditApplyPreChanges message={message} />;
             }
 
             if (message.metadata?.path === "/agent/edit/plan/mode/respond" || message.metadata?.path === "/agent/edit/completion") {

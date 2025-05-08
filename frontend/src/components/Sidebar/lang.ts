@@ -19,6 +19,22 @@ export const messages: { [key: string]: Message } = {
   ...chatPanelsMessages, // 合并chatPanelsMessages
   ...historyPanelMessages,
   ...codeEditorMessages, // Merge code editor messages
+  clickToFilterHistory: {
+    en: "Click to filter history by this commit",
+    zh: "点击按此提交过滤历史记录"
+  },
+  clearFilter: {
+    en: "Clear Filter",
+    zh: "清除过滤"
+  },
+  filteringByCommit: {
+    en: "Filtering by commit",
+    zh: "按提交过滤"
+  },
+  noFilteredResults: {
+    en: "No matching history records found",
+    zh: "没有匹配的历史记录"
+  },
   languageSettings: {
     en: "Language",
     zh: "语言设置"
@@ -599,6 +615,30 @@ export const messages: { [key: string]: Message } = {
   diffView: {
     en: "Diff View",
     zh: "差异视图"
+  },
+  noChangesDetected: {
+    en: "No changes detected",
+    zh: "没有检测到修改"
+  },
+  codeChangesCommitted: {
+    en: "Code Changes Committed",
+    zh: "代码变更已提交"
+  },
+  commitId: {
+    en: "Commit ID",
+    zh: "提交ID"
+  },
+  modifiedFiles: {
+    en: "Modified Files",
+    zh: "修改的文件数"
+  },
+  manualChangesCommited: {
+    en: "Commit User Manual Changes",
+    zh: "提交用户手动修改的变更"
+  },
+  cleanDirectoryMessage: {
+    en: "Your directory is clean. No additional actions required.",
+    zh: "您的目录已经是干净的，无需额外操作。"
   },
   splitView: {
     en: "Split View",

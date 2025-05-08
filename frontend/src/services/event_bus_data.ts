@@ -192,3 +192,19 @@ export class FileGroupSelectionUpdatedEventData {
     this.panelId = panelId;
   }
 }
+
+/**
+ * 按提交哈希过滤历史记录事件数据
+ */
+export class FilterByCommitEventData {
+  /** 提交哈希 */
+  commitHash: string;
+  
+  /**
+   * 构造函数
+   * @param commitHash 提交哈希值
+   */
+  constructor(commitHash: string) {
+    this.commitHash = commitHash;
+  }
+}
