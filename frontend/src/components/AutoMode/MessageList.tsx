@@ -111,6 +111,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             return true;
         });        
         // Add the last message back to the filtered results
+        // console.log('filteredMessages', [...filteredMessages, lastMessage]);
         return [...filteredMessages, lastMessage];
     };
     // Function to render message content based on content type
