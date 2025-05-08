@@ -14,6 +14,7 @@ from autocoder.events import event_content as EventContentCreator
 from autocoder.events.event_types import EventType
 from byzerllm.utils.langutil import asyncfy_with_semaphore
 from autocoder.common.global_cancel import global_cancel, CancelRequestedException 
+from autocoder.common.file_checkpoint.manager import FileChangeManager
 from loguru import logger
 import byzerllm
 # 导入聊天会话和聊天列表管理器
@@ -384,6 +385,16 @@ async def cancel_task(request: CancelTaskRequest, project_path: str = Depends(ge
             event_file = get_event_file_path(file_id=event_file_id, project_path=project_path)
             global_cancel.set(token=event_file)
             event_manager = get_event_manager(event_file)
+            file_change_manager = FileChangeManager(project_dir=project_path,
+            backup_dir=os.path.join(project_path,".auto-coder","checkpoint"),
+            store_dir=os.path.join(project_path,".auto-coder","checkpoint_store"),
+            max_history=50)
+            undo_result = file_change_manager.undo_change_group(group_id=event_file)
+            if not undo_result.success:
+                logger.error(f"Error in undo change group: {undo_result.errors}")
+                raise Exception(f"Error in undo change group: {undo_result.errors}")
+            else:
+                logger.info(f"Undo change group {event_file} successfully {undo_result.restored_files}")
             
             # 向事件流写入取消事件
             event_manager.write_error(
