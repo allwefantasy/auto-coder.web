@@ -285,8 +285,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
     }
   };
 
+  const handleRefreshTab = async (filePath: string) => {
+    // 重新加载文件内容
+    await loadFileContent(filePath);
+    message.success(`Refreshed ${filePath.split('/').pop() || filePath}`);
+  };
+
   const renderContextMenu = (filePath: string, label: string) => (
     <Menu>
+      <Menu.Item key="refresh" onClick={() => handleRefreshTab(filePath)}>
+        刷新
+      </Menu.Item>
       <Menu.Item key="copyPath" onClick={() => handleCopyPath(filePath)}>
         {getMessage('codeEditor.copyPath')}
       </Menu.Item>
