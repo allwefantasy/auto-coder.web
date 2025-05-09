@@ -1,5 +1,16 @@
 ---
+title: FastAPI 路由组织规范
 description: FastAPI 应用路由组织规范
+keywords:
+  - FastAPI
+  - APIRouter
+  - 路由组织
+  - 依赖注入
+  - 模块化
+tags:
+  - FastAPI
+  - Routing
+  - Best Practices
 globs: ["src/auto_coder_web/proxy.py", "src/auto_coder_web/common_router/*.py", "src/auto_coder_web/routers/*.py"]
 alwaysApply: false
 ---
