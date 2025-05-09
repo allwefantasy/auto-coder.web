@@ -72,9 +72,8 @@ def coding_prompt(messages: List[Dict[str, Any]], query: str):
     '''        
     【历史对话】按时间顺序排列，从旧到新：
     {% for message in messages %}
-    <message role="{{ message.type }}">
-    {% if message.type == "USER" or message.type == "USER_RESPONSE" or message.metadata.path == "/agent/edit/tool/result" %}【用户】{% else %}【助手】{% endif %}
-    <timestamp>{{ message.timestamp if message.timestamp else "" }}</timestamp>
+    <message>
+    {% if message.type == "USER" or message.type == "USER_RESPONSE" or message.metadata.path == "/agent/edit/tool/result" %}【用户】{% else %}【助手】{% endif %}    
     <content>
     {{ message.content }}
     </content>
@@ -153,13 +152,13 @@ async def auto_command(request: AutoCommandRequest, project_path: str = Depends(
 
             # 调用auto_command_wrapper方法  
             logger.info(f"Executing auto command {file_id} with prompt: {prompt_text}")          
-            result = wrapper.auto_command_wrapper(prompt_text, {
+            wrapper.auto_command_wrapper(prompt_text, {
                 "event_file_id": file_id
             })            
-            get_event_manager(event_file).write_completion(
-                EventContentCreator.create_completion(
-                    "200", "completed", result).to_dict()
-            )
+            # get_event_manager(event_file).write_completion(
+            #     EventContentCreator.create_completion(
+            #         "200", "completed", result).to_dict()
+            # )
             logger.info(f"Event file id: {file_id} completed successfully")
         except Exception as e:
             logger.error(f"Error executing auto command {file_id}: {str(e)}")
