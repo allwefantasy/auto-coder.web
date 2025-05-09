@@ -85,8 +85,12 @@ def coding_prompt(messages: List[Dict[str, Any]], query: str):
     {{ query }}
     </current_query>            
     '''
+    # 使用消息解析器处理消息
+    from auto_coder_web.agentic_message_parser import parse_messages
+    processed_messages = parse_messages(messages)
+    
     return {
-        "messages": messages,
+        "messages": processed_messages,
         "query": query
     }
 
