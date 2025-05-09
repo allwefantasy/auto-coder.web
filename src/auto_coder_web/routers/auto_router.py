@@ -69,22 +69,27 @@ def ensure_task_dir(project_path: str) -> str:
 
 @byzerllm.prompt()
 def coding_prompt(messages: List[Dict[str, Any]], query: str):
-    '''
-    下面是我们已经产生的一个消息列表,其中 USER_RESPONSE 表示用户的输入，其他都是你的输出：
-    <messages>
+    '''        
+    【历史对话】按时间顺序排列，从旧到新：
     {% for message in messages %}
-    <message>
-    <type>{{ message.type }}</type>
-    <content>{{ message.content }}</content>
+    <message role="{{ message.type }}">
+    {% if message.type == "USER" or message.type == "USER_RESPONSE" or message.metadata.path == "/agent/edit/tool/result" %}【用户】{% else %}【助手】{% endif %}
+    <timestamp>{{ message.timestamp if message.timestamp else "" }}</timestamp>
+    <content>
+    {{ message.content }}
+    </content>
     </message>
     {% endfor %}
-    </messages>
     
-    下面是用户的最新需求：
-    <request>
-    {{ query }}    
-    </request>
+    【当前问题】用户的最新需求如下:
+    <current_query>
+    {{ query }}
+    </current_query>            
     '''
+    return {
+        "messages": messages,
+        "query": query
+    }
 
 
 
