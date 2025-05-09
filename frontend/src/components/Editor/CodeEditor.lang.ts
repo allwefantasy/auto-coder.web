@@ -13,8 +13,8 @@ export const codeEditorMessages = {
     zh: '刷新',
   },
   'codeEditor.refreshSuccess': {
-    en: 'Refreshed {fileName}',
-    zh: '已刷新 {fileName}',
+    en: 'Refreshed {{fileName}}',
+    zh: '已刷新 {{fileName}}',
   },
   'codeEditor.save': {
     en: 'Save',
