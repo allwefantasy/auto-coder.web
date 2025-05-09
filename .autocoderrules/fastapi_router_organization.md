@@ -1,5 +1,3 @@
-
-##File: /Users/allwefantasy/projects/auto-coder.web/.autocoderrules/fastapi_router_organization.md
 ---
 title: FastAPI 路由组织规范
 description: FastAPI 应用路由组织规范

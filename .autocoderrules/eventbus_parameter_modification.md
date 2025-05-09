@@ -1,5 +1,4 @@
 
-##File: /Users/allwefantasy/projects/auto-coder.web/.autocoderrules/eventbus_parameter_modification.md
 # EventBus 事件参数修改规范
 
 ## 简要说明
