@@ -146,7 +146,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
       });
     } catch (error) {
       console.error('Error fetching file content:', error);
-      message.error(`Failed to load ${filePath}`);
+      message.error(getMessage('codeEditor.loadFailed', { filePath }));
     }
   };
 
@@ -196,10 +196,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         throw new Error('Failed to save file');
       }
 
-      message.success('File saved successfully');
+      message.success(getMessage('codeEditor.saveSuccess'));
     } catch (error) {
       console.error('Error saving file:', error);
-      message.error('Failed to save file');
+      message.error(getMessage('codeEditor.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -255,11 +255,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
   const handleCopyPath = (filePath: string) => {
     navigator.clipboard.writeText(filePath)
       .then(() => {
-        message.success('File path copied to clipboard');
+        message.success(getMessage('codeEditor.copyPathSuccess'));
       })
       .catch(err => {
         console.error('Failed to copy file path: ', err);
-        message.error('Failed to copy file path');
+        message.error(getMessage('codeEditor.copyPathFailed'));
       });
   };
 
@@ -288,13 +288,14 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
   const handleRefreshTab = async (filePath: string) => {
     // 重新加载文件内容
     await loadFileContent(filePath);
-    message.success(`Refreshed ${filePath.split('/').pop() || filePath}`);
+    const fileName = filePath.split('/').pop() || filePath;
+    message.success(getMessage('codeEditor.refreshSuccess', { fileName }));
   };
 
   const renderContextMenu = (filePath: string, label: string) => (
     <Menu>
       <Menu.Item key="refresh" onClick={() => handleRefreshTab(filePath)}>
-        刷新
+        {getMessage('codeEditor.refresh')}
       </Menu.Item>
       <Menu.Item key="copyPath" onClick={() => handleCopyPath(filePath)}>
         {getMessage('codeEditor.copyPath')}
@@ -311,7 +312,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         <div className="code-editor-header-content">
           <div className="file-info">
             <span className="file-path">
-              {activeFile || 'No file selected'}
+              {activeFile || getMessage('codeEditor.noFileSelected')}
             </span>
           </div>
           {activeFile && (
@@ -324,7 +325,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                       d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
               </svg>
-              Save
+              {getMessage('codeEditor.save')}
             </button>
           )}
         </div>
