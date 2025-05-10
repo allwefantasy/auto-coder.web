@@ -16,7 +16,7 @@ def _get_chat_list_file_path(project_path: str, name: str) -> str:
     chat_lists_dir = _get_chat_lists_dir(project_path)
     return os.path.join(chat_lists_dir, f"{name}.json")
 
-async def save_chat_list(project_path: str, name: str, messages: List[Dict[str, Any]]) -> None:
+async def save_chat_list(project_path: str, name: str, messages: List[Dict[str, Any]], metadata: dict = None) -> None:
     """
     保存聊天列表到文件
     
@@ -24,14 +24,21 @@ async def save_chat_list(project_path: str, name: str, messages: List[Dict[str, 
         project_path: 项目路径
         name: 聊天列表名称
         messages: 聊天消息列表
+        metadata: 聊天元数据
         
     Raises:
         Exception: 如果保存失败
     """
     file_path = _get_chat_list_file_path(project_path, name)
     try:
+        data = {
+            "name": name,
+            "messages": messages
+        }
+        if metadata is not None:
+            data["metadata"] = metadata
         async with aiofiles.open(file_path, 'w') as f:
-            await f.write(json.dumps({"messages": messages}, indent=2, ensure_ascii=False))
+            await f.write(json.dumps(data, indent=2, ensure_ascii=False))
     except Exception as e:
         logger.error(f"Error saving chat list {name}: {str(e)}")
         raise e
@@ -73,18 +80,7 @@ async def get_chat_lists(project_path: str) -> List[str]:
 
 async def get_chat_list(project_path: str, name: str) -> Dict[str, Any]:
     """
-    获取特定聊天列表的内容
-    
-    Args:
-        project_path: 项目路径
-        name: 聊天列表名称
-        
-    Returns:
-        聊天列表内容
-        
-    Raises:
-        FileNotFoundError: 如果聊天列表不存在
-        Exception: 如果读取失败
+    获取特定聊天列表的内容（兼容旧结构）
     """
     file_path = _get_chat_list_file_path(project_path, name)
     if not os.path.exists(file_path):
@@ -93,7 +89,13 @@ async def get_chat_list(project_path: str, name: str) -> Dict[str, Any]:
     try:
         async with aiofiles.open(file_path, 'r') as f:
             content = await f.read()
-            return json.loads(content)
+            data = json.loads(content)
+            # 兼容旧数据结构（只有messages）
+            if "name" not in data:
+                data["name"] = name
+            if "metadata" not in data:
+                data["metadata"] = None
+            return data
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON in chat list {name}: {str(e)}")
         raise Exception(f"Invalid JSON in chat list file: {str(e)}")

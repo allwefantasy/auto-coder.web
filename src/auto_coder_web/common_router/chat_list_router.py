@@ -33,8 +33,8 @@ router = APIRouter()
 @router.post("/api/chat-lists/save")
 async def save_chat_list_endpoint(chat_list: ChatList, project_path: str = Depends(get_project_path)):
     try:
-        # 调用管理模块保存聊天列表
-        await save_chat_list(project_path, chat_list.name, chat_list.messages)
+        # 调用管理模块保存聊天列表，支持 metadata
+        await save_chat_list(project_path, chat_list.name, chat_list.messages, metadata=chat_list.metadata.dict() if chat_list.metadata else None)
         return {"status": "success", "message": f"Chat list {chat_list.name} saved successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

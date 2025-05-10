@@ -97,24 +97,34 @@ export class ChatListService extends EventEmitter {
    * @param name 聊天名称
    * @param messages 消息列表
    * @param panelId 面板ID，可选
+   * @param metadata 聊天元数据
    * @returns 是否保存成功
    */
-  async saveChatList(name: string, messages: AutoModeMessage[] = [], panelId?: string): Promise<boolean> {
+  async saveChatList(
+    name: string,
+    messages: AutoModeMessage[] = [],
+    panelId?: string,
+    metadata?: any
+  ): Promise<boolean> {
     if (!name.trim()) {
       this.emit('error', '请输入聊天列表名称');
       return false;
     }
 
     try {
+      const bodyData: any = {
+        name: name,
+        messages: messages,
+      };
+      if (metadata !== undefined) {
+        bodyData.metadata = metadata;
+      }
       const response = await fetch('/api/chat-lists/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: name,
-          messages: messages,
-        }),
+        body: JSON.stringify(bodyData),
       });
 
       if (!response.ok) {
@@ -136,13 +146,16 @@ export class ChatListService extends EventEmitter {
   /**
    * 加载聊天列表
    * @param name 聊天名称
-   * @returns 消息列表
+   * @returns { messages: 消息列表, metadata: 聊天元数据 }
    */
-  async loadChatList(name: string, panelId?: string): Promise<AutoModeMessage[]> {
+  async loadChatList(
+    name: string,
+    panelId?: string
+  ): Promise<{ messages: AutoModeMessage[]; metadata?: any }> {
     try {
       const response = await fetch(`/api/chat-lists/${name}`);
       const data = await response.json();
-      
+
       // 转换消息格式
       const convertedMessages = data.messages.map((message: any) => {
         if ('role' in message) {
@@ -156,7 +169,7 @@ export class ChatListService extends EventEmitter {
             metadata: message.metadata,
             isUser: message.role === 'user',
             isStreaming: false,
-            isThinking: false
+            isThinking: false,
           } as AutoModeMessage;
         }
         // 已经是 AutoModeMessage 格式或接近该格式
@@ -165,17 +178,17 @@ export class ChatListService extends EventEmitter {
           isStreaming: false,
           isThinking: false,
           type: message.type || (message.isUser ? 'USER_RESPONSE' : 'RESULT'),
-          contentType: message.contentType || 'markdown'
+          contentType: message.contentType || 'markdown',
         } as AutoModeMessage;
       });
-      
+
       // 发布事件时包含panelId信息
-      this.emit('chatListLoaded', { name, messages: convertedMessages, panelId });
-      return convertedMessages;
+      this.emit('chatListLoaded', { name, messages: convertedMessages, metadata: data.metadata, panelId });
+      return { messages: convertedMessages, metadata: data.metadata };
     } catch (error) {
       console.error('Error loading chat list:', error);
       this.emit('error', '加载聊天列表失败');
-      return [];
+      return { messages: [], metadata: undefined };
     }
   }
 

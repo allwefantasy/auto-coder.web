@@ -24,9 +24,15 @@ class CompletionResponse(BaseModel):
     completions: List[CompletionItem]
 
 
+class ChatMetadata(BaseModel):
+    token_usage: Optional[int] = None  # token 消耗
+    cost: Optional[float] = None       # 费用
+    window_size: Optional[int] = None  # 窗口大小
+
 class ChatList(BaseModel):
     name: str
     messages: List[Dict[str, Any]]
+    metadata: Optional[ChatMetadata] = None  # 新增 metadata 字段
 
 
 class HistoryQuery(BaseModel):

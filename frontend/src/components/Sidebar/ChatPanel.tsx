@@ -343,21 +343,49 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     return await chatListService.setCurrentSessionName(name, panelId);
   };
 
+  // 保存聊天时将累计统计信息存入 metadata
   const saveChatList = async (name: string, newMessages: AutoModeMessage[] = [], mPanelId: string = panelId) => {
     console.log('save chat list:', name);
     console.log('messages:', newMessages);
-    
-    const success: boolean = await chatListService.saveChatList(name, newMessages, mPanelId);
+
+    // 组装 metadata
+    const metadata = {
+      token_usage: (accumulatedStats.inputTokens ?? 0) + (accumulatedStats.outputTokens ?? 0),
+      cost: accumulatedStats.totalCost ?? 0,
+      window_size: accumulatedStats.contextWindowUsage ?? 0,
+      inputTokens: accumulatedStats.inputTokens,
+      outputTokens: accumulatedStats.outputTokens,
+      totalCost: accumulatedStats.totalCost,
+      contextWindowUsage: accumulatedStats.contextWindowUsage,
+      maxContextWindow: accumulatedStats.maxContextWindow,
+      cacheHits: accumulatedStats.cacheHits,
+      cacheMisses: accumulatedStats.cacheMisses,
+    };
+
+    const success: boolean = await chatListService.saveChatList(name, newMessages, mPanelId, metadata);
     if (success) {
       setShowChatListInput(false);
       fetchChatLists();
     }
   };
 
+  // 加载聊天时自动还原统计信息
   const loadChatList = async (name: string) => {
     try {
-      const convertedMessages = await chatListService.loadChatList(name, panelId);
-      setMessages(convertedMessages);
+      const result = await chatListService.loadChatList(name, panelId);
+      setMessages(result.messages);
+      // 自动还原统计信息（如存在）
+      if (result.metadata) {
+        setAccumulatedStats((prev) => ({
+          inputTokens: result.metadata.inputTokens ?? prev.inputTokens ?? 0,
+          outputTokens: result.metadata.outputTokens ?? prev.outputTokens ?? 0,
+          totalCost: result.metadata.totalCost ?? prev.totalCost ?? 0,
+          contextWindowUsage: result.metadata.contextWindowUsage ?? prev.contextWindowUsage ?? 0,
+          maxContextWindow: result.metadata.maxContextWindow ?? prev.maxContextWindow ?? 100,
+          cacheHits: result.metadata.cacheHits ?? prev.cacheHits ?? 0,
+          cacheMisses: result.metadata.cacheMisses ?? prev.cacheMisses ?? 0,
+        }));
+      }
     } catch (error: any) {
       console.error('Error loading chat list:', error);
       AntdMessage.error('加载聊天列表失败');
