@@ -22,6 +22,8 @@ interface BasicSettingsState {
   skip_build_index: boolean; // Added skip_build_index
   skip_filter_index: boolean; // Added skip_filter_index
   enable_agentic_edit: boolean; // Added enable_agentic_edit
+  context_prune?: boolean;
+  context_prune_safe_zone_tokens?: number;
 }
 
 const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingChange }) => {
@@ -37,6 +39,8 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
     enable_agentic_edit: false, // Initialize to false
     skip_build_index: false, // Initialize skip_build_index
     skip_filter_index: false, // Initialize skip_filter_index
+    context_prune: true, // Initialize context_prune
+    context_prune_safe_zone_tokens: 8000, // Initialize context_prune_safe_zone_tokens
   });
 
   // Fetch current configuration
@@ -83,6 +87,12 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         }
         if (currentConfig.skip_filter_index !== undefined) { // Fetch skip_filter_index
           updatedSettings.skip_filter_index = String(currentConfig.skip_filter_index).toLowerCase() === 'true';
+        }
+        if (currentConfig.context_prune !== undefined) {
+          updatedSettings.context_prune = String(currentConfig.context_prune).toLowerCase() === 'true';
+        }
+        if (currentConfig.context_prune_safe_zone_tokens !== undefined) {
+          updatedSettings.context_prune_safe_zone_tokens = Number(currentConfig.context_prune_safe_zone_tokens);
         }
 
         setSettings(updatedSettings);
@@ -131,6 +141,12 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
       }
       if (key.key === 'skip_filter_index' && initialSettings.skip_filter_index === undefined) { // Fallback for skip_filter_index
         initialSettings.skip_filter_index = String(key.default).toLowerCase() === 'true' || false;
+      }
+      if (key.key === 'context_prune' && initialSettings.context_prune === undefined) {
+        initialSettings.context_prune = String(key.default).toLowerCase() === 'true' || true;
+      }
+      if (key.key === 'context_prune_safe_zone_tokens' && initialSettings.context_prune_safe_zone_tokens === undefined) {
+        initialSettings.context_prune_safe_zone_tokens = Number(key.default) || 8000;
       }
     });
 
@@ -251,6 +267,42 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
             />
           </div>
           <p className="model-config-description">{getMessage('enableAgenticEditDescription')}</p>
+        </div>
+
+        {/* Context Prune Setting */}
+        <div className="model-config-item">
+          <Tooltip title={getMessage('contextPruneTooltip')}>
+            <label className="model-config-label">{getMessage('contextPrune')}</label>
+          </Tooltip>
+          <div className="mt-1">
+            <Select
+              value={settings.context_prune}
+              onChange={(value) => handleSettingChange('context_prune', value)}
+              size="small"
+              style={{ width: '100%' }}
+              options={[
+                { value: true, label: getMessage('enable') },
+                { value: false, label: getMessage('disable') },
+              ]}
+            />
+          </div>
+          <p className="model-config-description">{getMessage('contextPruneTooltip')}</p>
+        </div>
+
+        {/* Context Prune Safe Zone Tokens Setting */}
+        <div className="model-config-item">
+          <Tooltip title={getMessage('contextPruneSafeZoneTokensTooltip')}>
+            <label className="model-config-label">{getMessage('contextPruneSafeZoneTokens')}</label>
+          </Tooltip>
+          <div className="mt-1">
+            <InputNumber
+              value={settings.context_prune_safe_zone_tokens}
+              onChange={(value) => handleSettingChange('context_prune_safe_zone_tokens', value ?? 8000)}
+              min={0}
+              size="small"
+            />
+          </div>
+          <p className="model-config-description">{getMessage('contextPruneSafeZoneTokensTooltip')}</p>
         </div>
 
         {/* Existing Settings */}

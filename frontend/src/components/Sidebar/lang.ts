@@ -42,7 +42,23 @@ export const messages: { [key: string]: Message } = {
   modelConfiguration: {
     en: "Model Configuration",
     zh: "模型配置"
-  },  
+  },
+  contextPrune: {
+    en: "Enable Large File Pruning",
+    zh: "开启超大文件剪枝"
+  },
+  contextPruneTooltip: {
+    en: "When enabled, for oversized files exceeding the threshold, only the beginning and end portions of the content will be retained in the context.",
+    zh: "开启后，对于超过阈值的超大文件，在上下文中仅保留首尾部分内容。"
+  },
+  contextPruneSafeZoneTokens: {
+    en: "Large File Pruning Threshold",
+    zh: "超大文件剪枝阈值"
+  },
+  contextPruneSafeZoneTokensTooltip: {
+    en: "Unit: tokens. When the file size exceeds this threshold, the pruning strategy will be triggered.",
+    zh: "单位：tokens。当文件大小超过此阈值时，会触发剪枝策略。"
+  },
   // Settings Panel
   settingsTitle: {
     en: "Settings",
