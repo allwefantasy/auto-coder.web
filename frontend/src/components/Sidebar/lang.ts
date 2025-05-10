@@ -21,19 +21,19 @@ export const messages: { [key: string]: Message } = {
   ...codeEditorMessages, // Merge code editor messages
   contextPruneModel: {
     en: "Context Prune Model",
-    zh: "上下文压缩模型"
+    zh: "上下文剪枝模型"
   },
   contextPruneModelDescription: {
     en: "The model used for pruning code context",
-    zh: "用于压缩代码上下文的模型"
+    zh: "用于剪枝代码上下文的模型"
   },
   conversationPruneModel: {
     en: "Conversation Prune Model",
-    zh: "对话压缩模型"
+    zh: "对话剪枝模型"
   },
   conversationPruneModelDescription: {
     en: "The model used for pruning conversation history",
-    zh: "用于压缩对话历史的模型"
+    zh: "用于剪枝对话历史的模型"
   },
   clickToFilterHistory: {
     en: "Click to filter history by this commit",
