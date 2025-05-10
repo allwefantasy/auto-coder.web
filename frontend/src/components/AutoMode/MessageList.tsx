@@ -87,7 +87,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             
             const path = message.metadata?.path;
 
-            if (path === "/agent/edit/completion" || path === "/agent/edit/window_length_change") {
+            if (path === "/agent/edit/completion" || path === "/agent/edit/window_length_change" || path === "/agent/edit/token_usage" || path === "/agent/edit/apply_pre_changes") {
                 return false;
             }
 
