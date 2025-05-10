@@ -29,7 +29,9 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     generate_rerank_model: '',
     index_model: '',
     index_filter_model: '',
-    commit_model: ''
+    commit_model: '',
+    context_prune_model: '',
+    conversation_prune_model: ''
   });
 
   // Fetch available models
@@ -126,6 +128,14 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
         if (currentConfig.commit_model) {
           updatedModels.commit_model = currentConfig.commit_model;
         }
+
+        if (currentConfig.context_prune_model) {
+          updatedModels.context_prune_model = currentConfig.context_prune_model;
+        }
+
+        if (currentConfig.conversation_prune_model) {
+          updatedModels.conversation_prune_model = currentConfig.conversation_prune_model;
+        }
         
         setSelectedModels(updatedModels);
       } catch (error) {
@@ -143,10 +153,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     // Only initialize from availableKeys if we don't have a value from config
     const initialModels: Record<string, string | string[]> = { ...selectedModels };
     availableKeys.forEach(key => {
-      if ((key.key === 'model' || key.key === 'code_model' || 
+      if ((key.key === 'model' || key.key === 'code_model' ||
           key.key === 'chat_model' || key.key === 'generate_rerank_model' ||
           key.key === 'index_model' || key.key === 'index_filter_model' ||
-          key.key === 'commit_model') && 
+          key.key === 'commit_model' || key.key === 'context_prune_model' || 
+          key.key === 'conversation_prune_model') &&
           !initialModels[key.key]) {
         initialModels[key.key] = (key as any).value || '';
       }
@@ -366,6 +377,36 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             }))}
           />
           <p className="model-config-description">{getMessage('commitModelDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('contextPruneModel')}</label>
+          <Select
+            {...selectProps}
+            allowClear
+            value={selectedModels.context_prune_model || undefined}
+            onChange={(value) => handleModelChange('context_prune_model', value || '')}
+            options={models.map(model => ({
+              value: model.name,              
+              label: model.name
+            }))}
+          />
+          <p className="model-config-description">{getMessage('contextPruneModelDescription')}</p>
+        </div>
+
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('conversationPruneModel')}</label>
+          <Select
+            {...selectProps}
+            allowClear
+            value={selectedModels.conversation_prune_model || undefined}
+            onChange={(value) => handleModelChange('conversation_prune_model', value || '')}
+            options={models.map(model => ({
+              value: model.name,              
+              label: model.name
+            }))}
+          />
+          <p className="model-config-description">{getMessage('conversationPruneModelDescription')}</p>
         </div>
       </div>
     </div>
