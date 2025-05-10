@@ -8,20 +8,6 @@ import os
 from autocoder.rag.token_counter import count_tokens
 import aiofiles
 from loguru import logger
-import io
-try:
-    from pypdf import PdfReader
-except ImportError:
-    PdfReader = None
-try:
-    from docx import Document as DocxDocument
-except ImportError:
-    DocxDocument = None
-try:
-    from pptx import Presentation
-except ImportError:
-    Presentation = None
-
 
 router = APIRouter()
 
@@ -174,66 +160,12 @@ async def _read_file(file_path: str) -> str | None:
         if not os.path.exists(file_path):
             logger.warning(f"文件不存在: {file_path}")
             return None
-
-        _, extension = os.path.splitext(file_path)
-        extension = extension.lower()
-
-        if extension == ".pdf":
-            if PdfReader is None:
-                logger.error("pypdf 未安装，无法读取 PDF 文件。请运行: pip install pypdf")
-                return f"错误: pypdf 未安装，无法读取 PDF 文件 {os.path.basename(file_path)}"
-            try:
-                async with aiofiles.open(file_path, 'rb') as f:
-                    pdf_data = await f.read()
-                reader = PdfReader(io.BytesIO(pdf_data))
-                content = ""
-                for page_num in range(len(reader.pages)):
-                    page = reader.pages[page_num]
-                    content += page.extract_text() or ""
-                return content
-            except Exception as e:
-                logger.error(f"读取 PDF 文件出错: {file_path}, 错误: {str(e)}")
-                return f"错误: 读取 PDF 文件 {os.path.basename(file_path)} 失败: {str(e)}"
-
-        elif extension == ".docx":
-            if DocxDocument is None:
-                logger.error("python-docx 未安装，无法读取 DOCX 文件。请运行: pip install python-docx")
-                return f"错误: python-docx 未安装，无法读取 DOCX 文件 {os.path.basename(file_path)}"
-            try:
-                async with aiofiles.open(file_path, 'rb') as f:
-                    docx_data = await f.read()
-                doc = DocxDocument(io.BytesIO(docx_data))
-                content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
-                return content
-            except Exception as e:
-                logger.error(f"读取 DOCX 文件出错: {file_path}, 错误: {str(e)}")
-                return f"错误: 读取 DOCX 文件 {os.path.basename(file_path)} 失败: {str(e)}"
-
-        elif extension in [".ppt", ".pptx"]:
-            if Presentation is None:
-                logger.error("python-pptx 未安装，无法读取 PPT/PPTX 文件。请运行: pip install python-pptx")
-                return f"错误: python-pptx 未安装，无法读取 PPT/PPTX 文件 {os.path.basename(file_path)}"
-            try:
-                async with aiofiles.open(file_path, 'rb') as f:
-                    pptx_data = await f.read()
-                prs = Presentation(io.BytesIO(pptx_data))
-                content = ""
-                for slide in prs.slides:
-                    for shape in slide.shapes:
-                        if hasattr(shape, "text"):
-                            content += shape.text + "\n"
-                return content
-            except Exception as e:
-                logger.error(f"读取 PPT/PPTX 文件出错: {file_path}, 错误: {str(e)}")
-                return f"错误: 读取 PPT/PPTX 文件 {os.path.basename(file_path)} 失败: {str(e)}"
-        else:
-            # 默认处理文本文件
-            async with aiofiles.open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = await f.read()
-            return content
+        async with aiofiles.open(file_path, 'r', encoding='utf-8') as f:
+            content = await f.read()
+        return content
     except Exception as e:
         logger.error(f"读取文件出错: {file_path}, 错误: {str(e)}")
-        return f"错误: 读取文件 {os.path.basename(file_path)} 失败: {str(e)}"
+        return None
 
 
 async def count_tokens_from_file(file_path: str) -> int:
