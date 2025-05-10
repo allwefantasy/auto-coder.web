@@ -40,7 +40,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
     skip_build_index: false, // Initialize skip_build_index
     skip_filter_index: false, // Initialize skip_filter_index
     context_prune: true, // Initialize context_prune
-    context_prune_safe_zone_tokens: 8000, // Initialize context_prune_safe_zone_tokens
+    context_prune_safe_zone_tokens: 32*1024, // Initialize context_prune_safe_zone_tokens
   });
 
   // Fetch current configuration
@@ -146,7 +146,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         initialSettings.context_prune = String(key.default).toLowerCase() === 'true' || true;
       }
       if (key.key === 'context_prune_safe_zone_tokens' && initialSettings.context_prune_safe_zone_tokens === undefined) {
-        initialSettings.context_prune_safe_zone_tokens = Number(key.default) || 8000;
+        initialSettings.context_prune_safe_zone_tokens = Number(key.default) || 32*1024;
       }
     });
 
