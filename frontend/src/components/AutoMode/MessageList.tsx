@@ -74,7 +74,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
 
         // Filter out command_prepare_stat messages and STREAM messages with specific stream_out_types
         // We usually don't want to filter out the final result of a stream like compile or lint
-        const streamOutTypesToFilterDuringStream = ["code_generate", "agentic_filter"];
+        const streamOutTypesToFilterDuringStream = ["code_generate", "agentic_filter","token_stat"];
         const filteredMessages = messagesWithoutLast.filter(message => {
             // Always hide command_prepare_stat
             if (message.contentType === 'command_prepare_stat') {
@@ -87,7 +87,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onUserResponse }) =
             
             const path = message.metadata?.path;
 
-            if (message.metadata?.path === "/agent/edit/completion") {
+            if (path === "/agent/edit/completion" || path === "/agent/edit/window_length_change") {
                 return false;
             }
 

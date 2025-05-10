@@ -186,7 +186,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     let outputTokens = 0;
     let totalCost = 0;
     let contextWindowUsage = 0;
-    let maxContextWindow = 100;
+    let maxContextWindow = 0;
     let cacheHits = 0;
     let cacheMisses = 0;
 
@@ -201,6 +201,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         cacheHits += message.metadata.cache_hit || 0;
         cacheMisses += message.metadata.cache_miss || 0;
       }
+      
       if (message.metadata?.stream_out_type === "index_build" && message.metadata?.input_tokens) {
         inputTokens += message.metadata.input_tokens || 0;
         outputTokens += message.metadata.output_tokens || 0;
@@ -209,6 +210,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         maxContextWindow = message.metadata.max_context_window || maxContextWindow;
         cacheHits += message.metadata.cache_hit || 0;
         cacheMisses += message.metadata.cache_miss || 0;
+      }
+
+      if (message.metadata?.path === "/agent/edit/window_length_change"){
+        const content = JSON.parse(message.content)
+        contextWindowUsage = content.tokens_used
       }
     });
 
@@ -1447,23 +1453,27 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           >
             {/* Token统计组件 */}
             {messages.length > 0 && (
-              <div className="sticky top-0 right-0 float-right bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-md p-2 m-1 shadow-md z-10">
-                <div className="font-mono text-xs text-gray-400 flex flex-col items-end gap-1 text-[11px]">
+              <div className="sticky top-0 right-0 float-right bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-sm p-0.5 m-0.5 shadow-md z-10">
+                <div className="font-mono text-gray-400 flex flex-col items-end gap-0 text-[9px] leading-tight">
                   <div className="flex items-center">
                     <span>{getMessage('tokens')}: </span>
-                    <span className="text-green-500 ml-1">↑ {accumulatedStats.inputTokens}</span>
-                    <span className="text-red-500 ml-1">↓ {accumulatedStats.outputTokens}</span>
+                    <span className="text-green-500 ml-0.5">↑ {accumulatedStats.inputTokens}</span>
+                    <span className="text-red-500 ml-0.5">↓ {accumulatedStats.outputTokens}</span>
                   </div>
                   {(accumulatedStats.cacheHits > 0 || accumulatedStats.cacheMisses > 0) && (
                     <div className="flex items-center">
                       <span>{getMessage('cache')}: </span>
-                      <span className="text-white ml-1">⊕ {accumulatedStats.cacheHits}</span>
-                      <span className="text-white ml-1">→ {accumulatedStats.cacheMisses}</span>
+                      <span className="text-white ml-0.5">⊕ {accumulatedStats.cacheHits}</span>
+                      <span className="text-white ml-0.5">→ {accumulatedStats.cacheMisses}</span>
                     </div>
                   )}
                   <div className="flex items-center">
                     <span>{getMessage('apiCost')}: </span>
-                    <span className="text-white ml-1">${accumulatedStats.totalCost.toFixed(5)}</span>
+                    <span className="text-white ml-0.5">${accumulatedStats.totalCost.toFixed(5)}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span>{getMessage('contextWindow')}: </span>
+                    <span className="text-white ml-0.5">{Math.round(accumulatedStats.contextWindowUsage / 1024)}K</span>
                   </div>
                 </div>
               </div>

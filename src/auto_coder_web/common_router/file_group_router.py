@@ -8,6 +8,11 @@ import os
 from autocoder.rag.token_counter import count_tokens
 import aiofiles
 from loguru import logger
+from autocoder.rag.loaders import (
+    extract_text_from_pdf,
+    extract_text_from_docx,
+    extract_text_from_ppt
+)
 
 router = APIRouter()
 
@@ -147,25 +152,51 @@ async def auto_create_groups(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-async def _read_file(file_path: str) -> str | None:
-    """异步读取文件内容
-
+async def _read_file(file_path_to_read: str) -> str:
+    """使用线程模拟异步读取文件内容
+    
     Args:
-        file_path: 文件的绝对路径
-
+        file_path_to_read: 要读取的文件路径
+        
     Returns:
-        str | None: 文件内容，如果文件不存在或读取出错则返回None
+        str: 文件内容
     """
-    try:
-        if not os.path.exists(file_path):
-            logger.warning(f"文件不存在: {file_path}")
-            return None
-        async with aiofiles.open(file_path, 'r', encoding='utf-8') as f:
-            content = await f.read()
-        return content
-    except Exception as e:
-        logger.error(f"读取文件出错: {file_path}, 错误: {str(e)}")
-        return None
+    ext = os.path.splitext(file_path_to_read)[1].lower()
+    
+    # 定义各种文件类型的读取函数
+    def read_pdf():
+        logger.info(f"Extracting text from PDF: {file_path_to_read}")
+        return extract_text_from_pdf(file_path_to_read)
+        
+    def read_docx():
+        logger.info(f"Extracting text from DOCX: {file_path_to_read}")
+        return extract_text_from_docx(file_path_to_read)
+        
+    def read_ppt():
+        logger.info(f"Extracting text from PPT/PPTX: {file_path_to_read}")
+        slide_texts = []
+        for slide_identifier, slide_text_content in extract_text_from_ppt(file_path_to_read):
+            slide_texts.append(f"--- Slide {slide_identifier} ---\n{slide_text_content}")
+        return "\n\n".join(slide_texts) if slide_texts else ""
+        
+    def read_text():
+        logger.info(f"Reading plain text file: {file_path_to_read}")
+        with open(file_path_to_read, 'r', encoding='utf-8', errors='replace') as f:
+            return f.read()
+    
+    # 根据文件类型选择相应的读取函数
+    if ext == '.pdf':
+        read_func = read_pdf
+    elif ext == '.docx':
+        read_func = read_docx
+    elif ext in ('.pptx', '.ppt'):
+        read_func = read_ppt
+    else:
+        read_func = read_text
+    
+    # 使用线程执行耗时的文件读取操作
+    content = await asyncio.to_thread(read_func)
+    return content
 
 
 async def count_tokens_from_file(file_path: str) -> int:
