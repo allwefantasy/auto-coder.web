@@ -147,6 +147,27 @@ async def auto_create_groups(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+async def _read_file(file_path: str) -> str | None:
+    """异步读取文件内容
+
+    Args:
+        file_path: 文件的绝对路径
+
+    Returns:
+        str | None: 文件内容，如果文件不存在或读取出错则返回None
+    """
+    try:
+        if not os.path.exists(file_path):
+            logger.warning(f"文件不存在: {file_path}")
+            return None
+        async with aiofiles.open(file_path, 'r', encoding='utf-8') as f:
+            content = await f.read()
+        return content
+    except Exception as e:
+        logger.error(f"读取文件出错: {file_path}, 错误: {str(e)}")
+        return None
+
+
 async def count_tokens_from_file(file_path: str) -> int:
     """异步计算文件的token数
     
@@ -156,19 +177,17 @@ async def count_tokens_from_file(file_path: str) -> int:
     Returns:
         int: token数量，出错时返回0
     """
-    try:
-        if not os.path.exists(file_path):
-            logger.warning(f"文件不存在: {file_path}")
-            return 0
-            
+    try:            
         logger.info(f"计算文件token: {file_path}")
-        async with aiofiles.open(file_path, 'r', encoding='utf-8') as f:
-            content = await f.read()
+        content = await _read_file(file_path)
+        
+        if content is None:
+            return 0
         
         file_tokens = count_tokens(content)
         return file_tokens if file_tokens > 0 else 0
     except Exception as e:
-        logger.error(f"读取或计算文件token出错: {file_path}, 错误: {str(e)}")
+        logger.error(f"计算文件token出错: {file_path}, 错误: {str(e)}")
         return 0
 
 
