@@ -18,7 +18,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
   const searchInputRef = useRef<any>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const handleFileSearch = useCallback(async (term: string) => {
+  const handleFileSearch = useCallback(async (term: string, isContentSearch: boolean) => {
     if (!term) {
       setSearchResults([]);
       setSelectedIndex(-1);
@@ -28,7 +28,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
     try {
       setIsLoading(true);
       
-      if(contentSearch){
+      if(isContentSearch){
         // 调用新接口，搜索文件内容
         const resp = await fetch(`/api/search-in-files?query=${encodeURIComponent(term)}`);
         const data = await resp.json();
@@ -66,7 +66,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
     } finally {
       setIsLoading(false);
     }
-  }, [contentSearch]);
+  }, []);
 
   const handleSmartSearch = async () => {
     if (!searchTerm) return;
@@ -181,7 +181,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            handleFileSearch(e.target.value);
+            handleFileSearch(e.target.value, contentSearch);
           }}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
@@ -199,7 +199,13 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
         />
         <Checkbox
           checked={contentSearch}
-          onChange={e => setContentSearch(e.target.checked)}
+          onChange={e => {
+            const newContentSearch = e.target.checked;
+            setContentSearch(newContentSearch);
+            if (searchTerm) {
+              handleFileSearch(searchTerm, newContentSearch);
+            }
+          }}
           style={{ color: '#e5e7eb' }}
         >
           搜索文件内容
