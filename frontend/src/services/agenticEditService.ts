@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { Message, AutoCommandEvent, StreamContent, ResultContent, AskUserContent, UserResponseContent, ErrorContent, CompletionContent, ResultTokenStatContent, ResultCommandPrepareStatContent, ResultCommandExecuteStatContent, ResultContextUsedContent, CodeContent, MarkdownContent, ResultSummaryContent, IndexBuildStartContent, IndexBuildEndContent } from '../components/AutoMode/types';
 import eventBus, { EVENTS } from './eventBus';
+import { v4 as uuidv4 } from 'uuid';
 
 
 export class AgenticEditService extends EventEmitter {
@@ -80,19 +81,21 @@ export class AgenticEditService extends EventEmitter {
   private handleEvent(event: AutoCommandEvent) {
     // Generate message ID based on event type and sequence
     let messageId: string;
+    const uuid = uuidv4();
+    const timestamp = Date.now();
 
     if (event.event_type === 'STREAM') {
       if (this.lastEventType !== 'STREAM') {
         // First STREAM in a sequence - create new message ID
-        messageId = `msg-${this.messageId++}`;
+        messageId = `agentic-${uuid}-${timestamp}-${this.messageId++}`;
         this.currentStreamMessageId = messageId;
       } else {
         // Consecutive STREAM event - use the current stream message ID
-        messageId = this.currentStreamMessageId || `msg-${this.messageId++}`;
+        messageId = this.currentStreamMessageId || `agentic-${uuid}-${timestamp}-${this.messageId++}`;
       }
     } else {
       // Non-STREAM event - always create a new message ID
-      messageId = `msg-${this.messageId++}`;
+      messageId = `agentic-${uuid}-${timestamp}-${this.messageId++}`;
 
       // If previous event was a STREAM, finalize any pending stream messages
       if (this.lastEventType === 'STREAM' && this.currentStreamMessageId) {

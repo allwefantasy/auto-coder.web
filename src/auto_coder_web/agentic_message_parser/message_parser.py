@@ -73,7 +73,16 @@ def parse_messages(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     Returns:
         List of processed messages
     """
-    return [parse_message(message) for message in messages]
+    # 先补充 metadata 字段
+    normalized_messages = []
+    for message in messages:
+        if 'metadata' not in message or message['metadata'] is None:
+            msg = message.copy()
+            msg['metadata'] = {}
+            normalized_messages.append(msg)
+        else:
+            normalized_messages.append(message)
+    return [parse_message(message) for message in normalized_messages]
 
 # Tool-specific parsers are defined in tool_parsers.py
 # and automatically registered when that module is imported

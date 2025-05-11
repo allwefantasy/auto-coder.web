@@ -608,9 +608,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     );
   };
 
-  const handleRevert = async () => {
-  };
-
   // 消息已经是 AutoMode 格式，所以不需要转换
   const getAutoModeMessages = (): MessageProps[] => {
     return messages;
