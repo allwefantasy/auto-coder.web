@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Switch, Select, Tooltip, message as AntdMessage, Spin } from 'antd';
 import { UndoOutlined, BuildOutlined, LoadingOutlined } from '@ant-design/icons';
-import EditorComponent from './EditorComponent';
+// EditorComponent is now replaced by PromptInput
+// import EditorComponent from './EditorComponent'; 
+import PromptInput from '../Common/PromptInput'; // Import the new PromptInput component
 import { getMessage } from './lang';
-import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
+import { FileGroup, ConfigState } from './types'; // EnhancedCompletionItem might not be needed here anymore
 import FileGroupSelect from './FileGroupSelect';
 import { chatService } from '../../services/chatService';
 import ProviderSelectors from './ProviderSelectors'; // Import the new parent component
@@ -68,6 +70,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   const [indexStatus, setIndexStatus] = useState<string>('');
   const [agenticActive, setAgenticActive] = useState(true);
   const [isInputAreaMaximized, setIsInputAreaMaximized] = useState<boolean>(false);
+  const [promptValue, setPromptValue] = useState(''); // State for PromptInput value
   const originalLayoutRef = useRef<{
     position: string,
     top: string,
@@ -114,9 +117,10 @@ const InputArea: React.FC<InputAreaProps> = ({
   }, [isWriteMode, isRuleMode, setIsWriteMode, setIsRuleMode]);
 
   // 自定义发送消息函数
-  const handleSendMessage = useCallback((text?: string) => {
-    // 使用eventBus发送消息
-    eventBus.publish(EVENTS.CHAT.SEND_MESSAGE, new SendMessageEventData(text, panelId));
+  const handleSendMessageFromInputArea = useCallback((currentPromptValue: string) => {
+    if (!currentPromptValue.trim()) return;
+    eventBus.publish(EVENTS.CHAT.SEND_MESSAGE, new SendMessageEventData(currentPromptValue, panelId));
+    setPromptValue(''); // Clear input after sending
   }, [panelId]);
 
   // 自定义停止生成函数
@@ -154,10 +158,15 @@ const InputArea: React.FC<InputAreaProps> = ({
       setIsInputAreaMaximized(prev => !prev);
     };
 
-    // 处理发送消息热键
-    const handleSendHotkey = (data: HotkeyEventData) => {
+    // 处理发送消息热键 - PromptInput handles its own Enter to send.
+    // This global hotkey might still be useful for a generic send command.
+    const handleSendHotkey = (data: HotkeyEventData) =>
       if (data.panelId !== panelId) return;
-      handleSendMessage();
+      // Trigger send using the current promptValue
+      // Check if editor is focused to avoid double send if PromptInput also handles it.
+      // For now, let PromptInput's internal mechanism handle direct editor "Enter".
+      // This event bus hotkey can be for a more global "send" action if needed.
+      // handleSendMessageFromInputArea(promptValue);
     };
 
     // 处理模式切换热键
@@ -168,15 +177,15 @@ const InputArea: React.FC<InputAreaProps> = ({
 
     // 订阅热键事件
     const unsubscribeFullscreen = eventBus.subscribe(EVENTS.HOTKEY.TOGGLE_FULLSCREEN, handleToggleFullscreenHotkey);
-    const unsubscribeSend = eventBus.subscribe(EVENTS.HOTKEY.SEND, handleSendHotkey);
+    // const unsubscribeSend = eventBus.subscribe(EVENTS.HOTKEY.SEND, handleSendHotkey); // PromptInput has its own send. Re-evaluate if needed.
     const unsubscribeMode = eventBus.subscribe(EVENTS.HOTKEY.TOGGLE_MODE, handleToggleModeHotkey);
 
     return () => {
       unsubscribeFullscreen();
-      unsubscribeSend();
+      // unsubscribeSend();
       unsubscribeMode();
     };
-  }, [isActive, panelId, handleSendMessage, toggleWriteMode]);
+  }, [isActive, panelId, toggleWriteMode]); // removed handleSendMessageFromInputArea, promptValue
 
   // 添加新的eventBus事件监听
   useEffect(() => {
@@ -493,28 +502,34 @@ const InputArea: React.FC<InputAreaProps> = ({
           scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}
         style={{ width: '100%' }}
       >
-        <div className={`flex-1 ${isInputAreaMaximized ? 'flex-grow h-full' : 'min-h-[80px]'}`}
-             style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)' } : {}}
+        <div className={`flex-1 ${isInputAreaMaximized ? 'flex-grow h-full' : ''}`}
+             style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column', height: 'calc(100% - 40px)' } : {}} // Adjusted height calculation
         >
-          <EditorComponent
-            isMaximized={isMaximized || isInputAreaMaximized}
-            onEditorDidMount={handleEditorDidMount}            
-            onToggleMaximize={() => {
-              if (isInputAreaMaximized) {
-                return;
-              }
-              setIsMaximized((prev: boolean): boolean => !prev);
-            }}            
+          <PromptInput
+            value={promptValue}
+            onValueChange={setPromptValue}
+            onSendMessage={handleSendMessageFromInputArea}
+            isLoading={sendLoading || isCancelling}
+            onEditorDidMount={handleEditorDidMount}
+            isFullScreen={isInputAreaMaximized}
+            onToggleFullScreen={toggleFullscreen}
             panelId={panelId}
-            isActive={isActive}
+            editorMinHeight={isInputAreaMaximized ? "100%" : "80px"}
+            editorMaxHeight={isInputAreaMaximized ? "100%" : "300px"} // Or a suitable max height for non-fullscreen
+            showStopButton={sendLoading} // Show stop if sendLoading is true
+            // placeholder is handled by PromptInput's i18n
           />
         </div>
-        <div className="flex flex-col mt-0 gap-0 flex-shrink-0">
-          <div className="space-y-0 bg-gray-850 p-0.5 rounded-lg shadow-inner border border-gray-700/50">
-            <div className="flex items-center justify-between px-0">
-              <div className="flex items-center space-x-0.5">
-                <span className="text-[9px] font-medium text-gray-400">Mode:</span>
-                <Tooltip title={`Switch between Chat and Write mode (${navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)`}>
+        
+        {/* The bottom controls (Mode select, hotkey hints, agentic mode, send/stop button) are now part of PromptInput or managed differently */}
+        {/* We will keep the Mode select and Agentic mode controls here for now, as they are specific to InputArea's broader context */}
+        
+        <div className="flex flex-col mt-1 gap-1 flex-shrink-0"> {/* Added gap-1 and mt-1 */}
+          <div className="space-y-0.5 bg-gray-850 p-1 rounded-lg shadow-inner border border-gray-700/50"> {/* Adjusted padding and spacing */}
+            <div className="flex items-center justify-between px-0.5"> {/* Adjusted padding */}
+              <div className="flex items-center space-x-1"> {/* Adjusted spacing */}
+                <span className="text-xs font-medium text-gray-400">Mode:</span> {/* Increased font size slightly */}
+                <Tooltip title={`Switch mode (${navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)`}>
                   <Select
                     size="small"
                     value={isRuleMode ? "rule" : (isWriteMode ? "write" : "chat")}
@@ -532,23 +547,19 @@ const InputArea: React.FC<InputAreaProps> = ({
                       { value: 'write', label: 'Write' },
                       { value: 'rule', label: 'Rule' },
                     ]}
-                    style={{ width: 80 }}
+                    style={{ width: 85 }} // Adjusted width
                     className="text-xs"                    
                     popupMatchSelectWidth={false}
                   />
                 </Tooltip>
-                <kbd className="px-0.5 py-0 ml-1 text-[8px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
-                  {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
-                </kbd>                
-                <span className="text-[8px] text-gray-500 inline-flex items-center">to send</span>
-                <div className="text-gray-400 text-[8px]">
-                    /{navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize
+                <div className="text-gray-400 text-xs ml-1"> {/* Increased font size and margin */}
+                    {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to fullscreen
                 </div>
               </div>
               
-              <div className="flex items-center space-x-1 mr-1">
+              <div className="flex items-center space-x-1.5 mr-1"> {/* Adjusted spacing */}
                 <button
-                  className={`p-0.5 rounded-md transition-all duration-200
+                  className={`p-1 rounded-md transition-all duration-200
                     ${agenticActive ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300'}`}
                   onClick={() => {
                     const newActive = !agenticActive;
@@ -557,61 +568,13 @@ const InputArea: React.FC<InputAreaProps> = ({
                       eventBus.publish(EVENTS.AGENTIC.MODE_CHANGED, new AgenticModeChangedEventData(newActive, panelId));
                     });
                   }}
-                  title="Step By Step"
+                  title="Step By Step Mode" // Changed title for clarity
                 >
-                  <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>{getMessage('agentButtonLabel')}</span>
+                  <span className={`text-xs font-semibold ${agenticActive ? '' : 'opacity-60'}`}>{getMessage('agentButtonLabel')}</span> {/* Adjusted font and opacity */}
                 </button>
-                <span className="text-[9px] text-gray-400 opacity-70 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                  {getMessage('agentButtonLabelDesc')}
-                </span>
+                {/* The send/stop button is now part of PromptInput. If a global stop is needed, it can be added here. */}
+                {/* For now, PromptInput's isLoading prop controls its internal send/stop button visibility. */}
               </div>
-
-              <button
-                className={`p-0.5 rounded-md transition-all duration-200
-                  focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
-                  ${sendLoading 
-                    ? 'text-gray-400 hover:text-gray-300' 
-                    : 'text-blue-500 hover:text-blue-600'
-                  }`}
-                onClick={sendLoading ? handleCancelGeneration : () => handleSendMessage()}
-                disabled={isCancelling}
-                title={sendLoading ? (isCancelling ? getMessage('cancelling') : getMessage('stop')) : getMessage('send')}
-              >
-                                {(() => {
-                  let icon;
-                  if (sendLoading) {
-                    if (isCancelling) {
-                      icon = (
-                        <div className="relative">
-                          <svg className="h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </div>
-                      );
-                    } else {
-                      icon = (
-                        <div className="relative">
-                          <svg className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </div>
-                      );
-                    }
-                  } else {
-                    icon = (
-                      <svg xmlns="http://www.w3.org/2000/svg" 
-                        className="h-3.5 w-3.5 transform rotate-45" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                      </svg>
-                    );
-                  }
-                  return <div className="flex items-center justify-center">{icon}</div>;
-                })()}
-              </button>
             </div>
           </div>
         </div>
