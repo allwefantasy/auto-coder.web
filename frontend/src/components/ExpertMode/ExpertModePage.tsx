@@ -17,6 +17,8 @@ import { FileMetadata } from '../../types/file_meta';
 import './SplitStyles.css';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import ModalDialog from '../Common/ModalDialog';
+// 导入声音播放函数
+import { playTaskComplete } from '../AutoMode/utils/SoundEffects';
 
 // Define the possible panel types, including the new split preview types
 type ActivePanelType = 'todo' | 'code' | 'filegroup' | 'preview_static' | 'preview_editable' | 'clipboard' | 'history' | 'settings';
@@ -114,6 +116,12 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
           timestamp: Date.now()
         };
         setActiveAskUserMessage(askUserMessage);
+        // 弹窗出现时播放声音
+        try {
+          playTaskComplete();
+        } catch (e) {
+          // 忽略播放声音异常，避免影响主流程
+        }
         console.log('ExpertModePage: Set activeAskUserMessage from eventBus');
       }
       
