@@ -147,7 +147,7 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
 
     def should_ignore(name: str) -> bool:
         """Check if a file or directory should be ignored"""
-        allowed_hidden_files = {'.autocoderrules', '.gitignore', '.autocoderignore'}
+        allowed_hidden_files = {'.autocoderrules', '.gitignore', '.autocoderignore',".autocodercommands"}
         # Ignore hidden files/directories (starting with '.'), unless explicitly allowed
         ## and name != ".auto-coder": # Original comment kept for context if needed
         if name.startswith('.') and name not in allowed_hidden_files:

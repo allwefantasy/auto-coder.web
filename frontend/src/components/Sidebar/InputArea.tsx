@@ -11,6 +11,7 @@ import { codingService } from '../../services/codingService';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import axios from 'axios';
 import { ToggleInputFullscreenEventData, AgenticModeChangedEventData, ToggleWriteModeEventData, HotkeyEventData, SendMessageEventData, StopGenerationEventData } from '../../services/event_bus_data';
+import CommandPanel from './CommandPanel';
 
 interface InputAreaProps {
   fileGroups: FileGroup[];
@@ -25,6 +26,8 @@ interface InputAreaProps {
   setIsWriteMode: (value: boolean) => void;
   isRuleMode: boolean;
   setIsRuleMode: (value: boolean) => void;
+  isCommandMode?: boolean;
+  setIsCommandMode?: (value: boolean) => void;
   handleRevert: () => void;
   sendLoading: boolean;
   isFullScreen: boolean;
@@ -47,6 +50,8 @@ const InputArea: React.FC<InputAreaProps> = ({
   setIsWriteMode,
   isRuleMode,
   setIsRuleMode,
+  isCommandMode = false,
+  setIsCommandMode = () => {},
   handleRevert,
   sendLoading,
   setConfig,
@@ -97,21 +102,29 @@ const InputArea: React.FC<InputAreaProps> = ({
 
   // 定义toggleWriteMode函数 - 放在使用之前
   const toggleWriteMode = useCallback(() => {
-    // 按照Chat -> Write -> Rule -> Chat的顺序循环切换
-    if (!isWriteMode && !isRuleMode) {
+    // 按照Chat -> Write -> Rule -> Command -> Chat的顺序循环切换
+    if (!isWriteMode && !isRuleMode && !isCommandMode) {
       // 当前是Chat模式，切换到Write模式
       setIsWriteMode(true);
       setIsRuleMode(false);
-    } else if (isWriteMode && !isRuleMode) {
+      setIsCommandMode(false);
+    } else if (isWriteMode && !isRuleMode && !isCommandMode) {
       // 当前是Write模式，切换到Rule模式
       setIsWriteMode(false);
       setIsRuleMode(true);
-    } else {
-      // 当前是Rule模式，切换到Chat模式
+      setIsCommandMode(false);
+    } else if (!isWriteMode && isRuleMode && !isCommandMode) {
+      // 当前是Rule模式，切换到Command模式
       setIsWriteMode(false);
       setIsRuleMode(false);
+      setIsCommandMode(true);
+    } else {
+      // 当前是Command模式，切换到Chat模式
+      setIsWriteMode(false);
+      setIsRuleMode(false);
+      setIsCommandMode(false);
     }
-  }, [isWriteMode, isRuleMode, setIsWriteMode, setIsRuleMode]);
+  }, [isWriteMode, isRuleMode, isCommandMode, setIsWriteMode, setIsRuleMode, setIsCommandMode]);
 
   // 自定义发送消息函数
   const handleSendMessage = useCallback((text?: string) => {
@@ -162,6 +175,7 @@ const InputArea: React.FC<InputAreaProps> = ({
 
     // 处理模式切换热键
     const handleToggleModeHotkey = (data: HotkeyEventData) => {
+      console.log(data)
       if (data.panelId !== panelId) return;
       toggleWriteMode();
     };
@@ -188,7 +202,7 @@ const InputArea: React.FC<InputAreaProps> = ({
       toggleWriteMode();
     };
 
-    const unsubscribe = eventBus.subscribe(EVENTS.UI.TOGGLE_WRITE_MODE, handleToggleWriteMode);
+    const unsubscribe = eventBus.subscribe(EVENTS.UI.TOGGLE_WRITE_MODE, handleToggleWriteMode);    
     
     return () => {
       unsubscribe();
@@ -474,18 +488,20 @@ const InputArea: React.FC<InputAreaProps> = ({
         
         <div className="h-[1px] bg-gray-700/50 my-1 w-full"></div>
         {/* Provider Selectors (RAG/MCPs) */}
-        <ProviderSelectors isWriteMode={isWriteMode} />
+        {!isCommandMode && <ProviderSelectors isWriteMode={isWriteMode} />}
 
         {/* File Group Selector */}
-        <div className="w-full mt-1"> {/* Add margin top if needed */}
-          <FileGroupSelect
-            fileGroups={fileGroups}
-            selectedGroups={selectedGroups}
-            setSelectedGroups={setSelectedGroups}
-            fetchFileGroups={fetchFileGroups}            
-            panelId={panelId}
-          />
-        </div>
+        {!isCommandMode && (
+          <div className="w-full mt-1"> {/* Add margin top if needed */}
+            <FileGroupSelect
+              fileGroups={fileGroups}
+              selectedGroups={selectedGroups}
+              setSelectedGroups={setSelectedGroups}
+              fetchFileGroups={fetchFileGroups}            
+              panelId={panelId}
+            />
+          </div>
+        )}
       </div>
 
       <div className={`px-1 py-0.5 flex flex-col ${isMaximized && !isInputAreaMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} 
@@ -496,18 +512,26 @@ const InputArea: React.FC<InputAreaProps> = ({
         <div className={`flex-1 ${isInputAreaMaximized ? 'flex-grow h-full' : 'min-h-[80px]'}`}
              style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)' } : {}}
         >
-          <EditorComponent
-            isMaximized={isMaximized || isInputAreaMaximized}
-            onEditorDidMount={handleEditorDidMount}            
-            onToggleMaximize={() => {
-              if (isInputAreaMaximized) {
-                return;
-              }
-              setIsMaximized((prev: boolean): boolean => !prev);
-            }}            
-            panelId={panelId}
-            isActive={isActive}
-          />
+          {isCommandMode ? (
+            <div className="w-full h-full bg-gray-800 border border-gray-700 rounded-md overflow-hidden">
+              <CommandPanel                 
+                panelId={panelId}
+              />
+            </div>
+          ) : (
+            <EditorComponent
+              isMaximized={isMaximized || isInputAreaMaximized}
+              onEditorDidMount={handleEditorDidMount}            
+              onToggleMaximize={() => {
+                if (isInputAreaMaximized) {
+                  return;
+                }
+                setIsMaximized((prev: boolean): boolean => !prev);
+              }}            
+              panelId={panelId}
+              isActive={isActive}
+            />
+          )}
         </div>
         <div className="flex flex-col mt-0 gap-0 flex-shrink-0">
           <div className="space-y-0 bg-gray-850 p-0.5 rounded-lg shadow-inner border border-gray-700/50">
@@ -517,20 +541,27 @@ const InputArea: React.FC<InputAreaProps> = ({
                 <Tooltip title={`Switch between Chat and Write mode (${navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)`}>
                   <Select
                     size="small"
-                    value={isRuleMode ? "rule" : (isWriteMode ? "write" : "chat")}
+                    value={isCommandMode ? "command" : (isRuleMode ? "rule" : (isWriteMode ? "write" : "chat"))}
                     onChange={(value) => {
                       if (value === "rule") {
                         setIsRuleMode(true);
                         setIsWriteMode(false);
+                        setIsCommandMode(false);
+                      } else if (value === "command") {
+                        setIsRuleMode(false);
+                        setIsWriteMode(false);
+                        setIsCommandMode(true);
                       } else {
                         setIsRuleMode(false);
                         setIsWriteMode(value === "write");
+                        setIsCommandMode(false);
                       }
                     }}
                     options={[
                       { value: 'chat', label: 'Chat' },
                       { value: 'write', label: 'Write' },
                       { value: 'rule', label: 'Rule' },
+                      { value: 'command', label: 'Command' },
                     ]}
                     style={{ width: 80 }}
                     className="text-xs"                    

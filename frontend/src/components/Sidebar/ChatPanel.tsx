@@ -45,6 +45,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [enableAgenticMode, setEnableAgenticMode] = React.useState<boolean>(true);
   // Rule 模式标记
   const [isRuleMode, setIsRuleMode] = useState<boolean>(false);
+  // Command 模式标记
+  const [isCommandMode, setIsCommandMode] = useState<boolean>(false);
+  const isCommandModeRef = useRef<boolean>(false);
   // 是否启用声音效果
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const soundEnabledRef = useRef<boolean>(false);
@@ -52,6 +55,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
+  
+  useEffect(() => {
+    isCommandModeRef.current = isCommandMode;
+  }, [isCommandMode]);
   
 
   const showNewChatModal = () => {
@@ -863,8 +870,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     console.log('==== 发送消息时的状态 ====');
     console.log('chatListName:', chatListNameRef.current);
     console.log('messages 长度:', messagesRef.current.length);
+    
     console.log('isWriteMode:', isWriteModeRef.current);
     console.log('isRuleMode:', isRuleModeRef.current);
+    console.log('isCommandMode:', isCommandModeRef.current);
+
     console.log('enableAgenticMode:', enableAgenticModeRef.current);
     console.log('enableRag:', enableRagRef.current);
     console.log('enableMCPs:', enableMCPsRef.current);
@@ -874,6 +884,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     console.log('panelId:', panelIdRef.current);
     console.log('sendLoading:', sendLoadingRef.current);
     console.log('localRequestId:', localRequestIdRef.current);
+    
     console.log('=======================');
 
     const trimmedText = text?.trim() || editorRef.current?.getValue()?.trim();
@@ -952,7 +963,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       }
 
       // 根据当前模式使用适当的服务
-      if (isWriteModeRef.current || isRuleModeRef.current) {
+      if (isWriteModeRef.current || isRuleModeRef.current || isCommandModeRef.current) {
         // 编码模式
         if (enableAgenticModeRef.current) {
           console.log('ChatPanel: Step By Step enabled, using agenticEditService');
@@ -1571,6 +1582,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               setIsWriteMode={setIsWriteMode}
               isRuleMode={isRuleMode}
               setIsRuleMode={setIsRuleMode}
+              isCommandMode={isCommandMode}
+              setIsCommandMode={setIsCommandMode}
               handleRevert={handleReset}
               sendLoading={sendLoading}
               setConfig={setConfig}

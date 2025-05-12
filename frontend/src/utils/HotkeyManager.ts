@@ -86,8 +86,7 @@ class HotkeyManager {
    * @param e 键盘事件
    */
   private handleKeyDown = (e: KeyboardEvent): void => {
-    if (!this.enabled) return;
-
+    if (!this.enabled) return;    
     const metaOrCtrl = this.isMac ? e.metaKey : e.ctrlKey;
     const isInEditor = this.isInMonacoEditor();
     
