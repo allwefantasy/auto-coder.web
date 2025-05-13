@@ -43,7 +43,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
                 </span>
                 <span className="text-indigo-400 message-title-text">{getMessage('user') || 'User'}</span>
             </div>
-            <div className="prose prose-invert prose-xs max-w-none pt-1"> {/* Add padding top to avoid overlap */}
+            <div className="prose prose-invert prose-xs max-w-none pt-1 user-message-content"> {/* Add padding top to avoid overlap */}
                 <ReactMarkdown
                     className="text-gray-200 break-words"
                     components={{
