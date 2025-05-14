@@ -551,70 +551,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     editorRef.current = editor;
   };
 
-  // 方便手动添加用户消息
-  const addUserMessage = (content: string) => {
-    const timestamp = Date.now();
-    const uuid = uuidv4();
-    const nextId = messageIdCounter + 1;
-    setMessageIdCounter(nextId);
-
-    const newMessage: AutoModeMessage = {
-      id: `user-${uuid}-${timestamp}-${nextId}`,
-      type: 'USER_RESPONSE',
-      content,
-      contentType: 'markdown',
-      isUser: true,
-      isStreaming: true,
-      isThinking: false
-    };
-    setMessages(prev => {
-      const newMessages = [...prev, newMessage];
-      if (newMessages.length > 0 && chatListName) {
-        saveChatList(chatListName, newMessages);
-      }
-      return newMessages;
-    });
-    return newMessage.id;
-  };
-
-  // 方便手动添加机器人消息
-  const addBotMessage = (content: string) => {
-    const timestamp = Date.now();
-    const uuid = uuidv4();
-    const nextId = messageIdCounter + 1;
-    setMessageIdCounter(nextId);
-
-    const newMessage: AutoModeMessage = {
-      id: `bot-${uuid}-${timestamp}-${nextId}`,
-      type: 'RESULT',
-      content,
-      contentType: 'markdown',
-      isUser: false,
-      isStreaming: false,
-      isThinking: false
-    };
-    setMessages(prev => {
-      const newMessages = [...prev, newMessage];
-      if (newMessages.length > 0 && chatListName) {
-        saveChatList(chatListName, newMessages);
-      }
-      return newMessages;
-    });
-    return newMessage.id;
-  };
-
-
-
-  const updateMessageStatus = (messageId: string, status: 'sending' | 'sent' | 'error') => {
-    setMessages(prev =>
-      prev.map(msg =>
-        msg.id === messageId
-          ? { ...msg, isStreaming: status === 'sending', isThinking: status === 'sending' }
-          : msg
-      )
-    );
-  };
-
   // 消息已经是 AutoMode 格式，所以不需要转换
   const getAutoModeMessages = (): MessageProps[] => {
     return messages;
@@ -640,34 +576,88 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   }, [messages, shouldSaveMessages, chatListName, panelId]);
 
-  // 处理来自聊天和编码服务的消息事件
-  const setupMessageListener = (service: typeof chatService | typeof codingService | typeof agenticEditService) => {
-    
-    service.on('message', (autoModeMessage: AutoModeMessage) => {
-      // 直接添加或更新 AutoMode 消息到我们的消息状态
-      console.log('ChatPanel: Received message from service:',
-        service === chatService ? 'chatService' : 'codingService',
-        autoModeMessage.type,
-        autoModeMessage.id);
-
-      eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, autoModeMessage); 
-
-      setMessages(prev => {
-        const existingMessageIndex = prev.findIndex(msg => msg.id === autoModeMessage.id);
-        if (existingMessageIndex !== -1) {
-          // 更新现有消息
-          const updatedMessages = [...prev];
-          updatedMessages[existingMessageIndex] = autoModeMessage;
-          return updatedMessages;
-        } else {
-          // 添加新消息
-          return [...prev, autoModeMessage];
-        }
-      });
+  // 修改消息更新逻辑，使用函数式更新减少不必要的组件重渲染
+  const updateMessage = useCallback((newMessage: AutoModeMessage) => {
+    setMessages(prevMessages => {
+      // 查找是否有相同id的消息
+      const messageIndex = prevMessages.findIndex(msg => msg.id === newMessage.id);
+      if (messageIndex !== -1) {
+        // 更新现有消息
+        const updatedMessages = [...prevMessages];
+        updatedMessages[messageIndex] = newMessage;
+        return updatedMessages;
+      } else {
+        // 添加新消息
+        return [...prevMessages, newMessage];
+      }
     });
+  }, []);
 
-    service.on('taskComplete', handleTaskCompletion);
-  };
+  // 方便手动添加用户消息
+  const addUserMessage = useCallback((content: string) => {
+    const timestamp = Date.now();
+    const uuid = uuidv4();
+    const nextId = messageIdCounter + 1;
+    setMessageIdCounter(nextId);
+
+    const newMessage: AutoModeMessage = {
+      id: `user-${uuid}-${timestamp}-${nextId}`,
+      type: 'USER_RESPONSE',
+      content,
+      contentType: 'markdown',
+      isUser: true,
+      isStreaming: true,
+      isThinking: false
+    };
+    
+    // 使用函数式更新
+    setMessages(prev => [...prev, newMessage]);
+    
+    // 标记需要保存消息
+    if (chatListName) {
+      setShouldSaveMessages(true);
+    }
+    
+    return newMessage.id;
+  }, [messageIdCounter, chatListName]);
+
+  // 方便手动添加机器人消息
+  const addBotMessage = useCallback((content: string) => {
+    const timestamp = Date.now();
+    const uuid = uuidv4();
+    const nextId = messageIdCounter + 1;
+    setMessageIdCounter(nextId);
+
+    const newMessage: AutoModeMessage = {
+      id: `bot-${uuid}-${timestamp}-${nextId}`,
+      type: 'RESULT',
+      content,
+      contentType: 'markdown',
+      isUser: false,
+      isStreaming: false,
+      isThinking: false
+    };
+    
+    // 使用函数式更新
+    setMessages(prev => [...prev, newMessage]);
+    
+    // 标记需要保存消息
+    if (chatListName) {
+      setShouldSaveMessages(true);
+    }
+    
+    return newMessage.id;
+  }, [messageIdCounter, chatListName]);
+
+  const updateMessageStatus = useCallback((messageId: string, status: 'sending' | 'sent' | 'error') => {
+    setMessages(prev =>
+      prev.map(msg =>
+        msg.id === messageId
+          ? { ...msg, isStreaming: status === 'sending', isThinking: status === 'sending' }
+          : msg
+      )
+    );
+  }, []);
 
   // 处理从特定消息重新开始对话
   const handleRefreshFromMessage = useCallback((data: { messageId: string, messageContent: string, panelId?: string }) => {
@@ -706,6 +696,23 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }, 200);
 
   }, [panelId]);
+
+  // 更新消息监听器的设置
+  const setupMessageListener = useCallback((service: typeof chatService | typeof codingService | typeof agenticEditService) => {
+    service.on('message', (autoModeMessage: AutoModeMessage) => {
+      console.log('ChatPanel: Received message from service:',
+        service === chatService ? 'chatService' : 'codingService',
+        autoModeMessage.type,
+        autoModeMessage.id);
+
+      eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, autoModeMessage); 
+      
+      // 使用优化的消息更新函数
+      updateMessage(autoModeMessage);
+    });
+
+    service.on('taskComplete', handleTaskCompletion);
+  }, [handleTaskCompletion, updateMessage]);
 
   // 在组件挂载时设置事件监听器
   useEffect(() => {
@@ -859,7 +866,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       unsubscribeStopGeneration()
 
     };
-  }, [handleRefreshFromMessage]);
+  }, [setupMessageListener, handleRefreshFromMessage, panelId]);
 
   // 新消息到达时自动滚动到底部
   // useEffect(() => {
@@ -1638,4 +1645,4 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   );
 };
 
-export default ChatPanel;
+export default React.memo(ChatPanel);
