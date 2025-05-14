@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import mermaid from 'mermaid';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { MessageProps } from '../MessageList';
@@ -94,7 +95,7 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
     // 定义Markdown渲染组件
     const markdownComponents = {
         // 代码块渲染
-        code: ({ className, children, ...props }: CodeProps) => {            
+        code: ({ className, children, ...props }: CodeProps) => {
             // 提取语言            
             const match = /language-(\w+)/.exec(className || '');
             //没有提取到语言，则认为是内联代码
@@ -120,6 +121,33 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
                 return null;
             }
             
+            // 处理Mermaid图表
+            if (language === 'mermaid') {
+                const mermaidRef = useRef(null);
+                
+                useEffect(() => {
+                    if (mermaidRef.current) {
+                        mermaid.initialize({
+                            startOnLoad: true,
+                            theme: 'dark',
+                            securityLevel: 'loose'
+                        });
+                        try {
+                            mermaid.init(undefined, mermaidRef.current);
+                        } catch (e) {
+                            console.error('Mermaid error:', e);
+                        }
+                    }
+                }, [content]);
+                
+                return (
+                    <div className="mermaid" ref={mermaidRef}>
+                        {content}
+                    </div>
+                );
+            }
+            
+            // 处理普通代码块
             return (
                 <div className="markdown-code-wrapper">
                     <SyntaxHighlighter
