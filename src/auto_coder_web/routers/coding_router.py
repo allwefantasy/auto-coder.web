@@ -60,23 +60,31 @@ def ensure_task_dir(project_path: str) -> str:
     return task_dir
 
 @byzerllm.prompt()
-def coding_prompt(messages: List[Dict[str, Any]], request: CodingCommandRequest):
-    '''
-    下面是我们已经产生的一个消息列表,其中 USER_RESPONSE 表示用户的输入，其他都是你的输出：
-    <messages>
+def coding_prompt(messages: List[Dict[str, Any]], query: str):
+    '''        
+    【历史对话】按时间顺序排列，从旧到新：
     {% for message in messages %}
     <message>
-    <type>{{ message.type }}</type>
-    <content>{{ message.content }}</content>
+    {% if message.type == "USER" or message.type == "USER_RESPONSE" or message.metadata.path == "/agent/edit/tool/result" %}【用户】{% else %}【助手】{% endif %}    
+    <content>
+    {{ message.content }}
+    </content>
     </message>
     {% endfor %}
-    </messages>
     
-    下面是用户的最新需求：
-    <request>
-    {{ request.command }}    
-    </request>
+    【当前问题】用户的最新需求如下:
+    <current_query>
+    {{ query }}
+    </current_query>            
     '''
+    # 使用消息解析器处理消息
+    from auto_coder_web.agentic_message_parser import parse_messages
+    processed_messages = parse_messages(messages)
+    
+    return {
+        "messages": processed_messages,
+        "query": query
+    }
 
 @router.post("/api/coding-command")
 async def coding_command(request: CodingCommandRequest, project_path: str = Depends(get_project_path)):
@@ -113,14 +121,9 @@ async def coding_command(request: CodingCommandRequest, project_path: str = Depe
                     chat_data = get_chat_list_sync(project_path, current_session_name)
                     
                     # 从聊天历史中提取消息
-                    for msg in chat_data.get("messages", []):
-                        # 只保留用户和中间结果信息
-                        if msg.get("type","") not in ["USER_RESPONSE","RESULT"]:
-                            continue     
-
+                    for msg in chat_data.get("messages", []):                        
                         if msg.get("contentType","") in ["token_stat"]:
-                            continue                            
-                        
+                            continue                                                    
                         messages.append(msg)
                 except Exception as e:
                     logger.error(f"Error reading chat history: {str(e)}")
