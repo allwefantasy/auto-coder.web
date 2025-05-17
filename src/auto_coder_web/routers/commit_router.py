@@ -412,7 +412,7 @@ def get_file_status_from_diff(diff_item) -> str:
         diff_item: Git diff对象
         
     Returns:
-        文件状态: added(新增), deleted(删除), renamed(重命名), copied(复制) 或 modified(修改)
+        文件状态: added(新增), deleted(删除), renamed(重命名) 或 modified(修改)
     """
     if diff_item.new_file:
         return "added"
@@ -420,8 +420,6 @@ def get_file_status_from_diff(diff_item) -> str:
         return "deleted"
     elif diff_item.renamed:
         return "renamed"
-    elif diff_item.copied:
-        return "copied"
     else:
         return "modified"
 
