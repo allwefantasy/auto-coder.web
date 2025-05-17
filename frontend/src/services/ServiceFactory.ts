@@ -30,10 +30,11 @@ export class ServiceFactory {
   }
 
   static getAgenticEditService(panelId: string): any {
-    if (!this.agenticEditServices.has(panelId)) {
-      this.agenticEditServices.set(panelId, new AgenticEditService(panelId));
-    }
-    return this.agenticEditServices.get(panelId)!;
+    // if (!this.agenticEditServices.has(panelId)) {
+    //   this.agenticEditServices.set(panelId, new AgenticEditService(panelId));
+    // }
+    // return this.agenticEditServices.get(panelId)!;
+    return new AgenticEditService(panelId)
   }
 
   static getAutoCoderConfService(panelId: string): any {
