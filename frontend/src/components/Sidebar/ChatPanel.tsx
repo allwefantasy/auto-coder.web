@@ -15,6 +15,12 @@ import {
 } from './types';
 import { FileMetadata } from '../../types/file_meta';
 import { ServiceFactory } from '../../services/ServiceFactory';
+import { ChatService } from '../../services/chatService';
+import { CodingService } from '../../services/codingService';
+import { AgenticEditService } from '../../services/agenticEditService';
+import { AutoCoderConfService } from '../../services/AutoCoderConfService';
+import { ChatListService } from '../../services/chatListService';
+import { FileGroupService } from '../../services/fileGroupService';
 import { Message as AutoModeMessage } from '../../components/AutoMode/types';
 import MessageList, { MessageProps } from '../../components/AutoMode/MessageList';
 import eventBus from '../../services/eventBus';
@@ -33,13 +39,59 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   panelId = '',
   isActive = true
 }) => {
-  // 使用ServiceFactory获取对应服务
-  const chatService = ServiceFactory.getChatService(panelId);
-  const codingService = ServiceFactory.getCodingService(panelId);
-  const agenticEditService = ServiceFactory.getAgenticEditService(panelId);
-  const autoCoderConfService = ServiceFactory.getAutoCoderConfService(panelId);
-  const chatListService = ServiceFactory.getChatListService(panelId);
-  const fileGroupService = ServiceFactory.getFileGroupService(panelId);
+  // 使用useRef存储服务实例，确保在组件重渲染时保持同一个实例
+  const chatServiceRef = useRef<ChatService | null>(null);
+  const codingServiceRef = useRef<CodingService | null>(null);
+  const agenticEditServiceRef = useRef<AgenticEditService | null>(null);
+  const autoCoderConfServiceRef = useRef<AutoCoderConfService | null>(null);
+  const chatListServiceRef = useRef<ChatListService | null>(null);
+  const fileGroupServiceRef = useRef<FileGroupService | null>(null);
+
+  // 确保服务实例已初始化
+  const ensureServices = useCallback(() => {
+    if (!chatServiceRef.current) {
+      chatServiceRef.current = ServiceFactory.getChatService(panelId);
+    }
+    if (!codingServiceRef.current) {
+      codingServiceRef.current = ServiceFactory.getCodingService(panelId);
+    }
+    if (!agenticEditServiceRef.current) {
+      agenticEditServiceRef.current = ServiceFactory.getAgenticEditService(panelId);
+    }
+    if (!autoCoderConfServiceRef.current) {
+      autoCoderConfServiceRef.current = ServiceFactory.getAutoCoderConfService(panelId);
+    }
+    if (!chatListServiceRef.current) {
+      chatListServiceRef.current = ServiceFactory.getChatListService(panelId);
+    }
+    if (!fileGroupServiceRef.current) {
+      fileGroupServiceRef.current = ServiceFactory.getFileGroupService(panelId);
+    }
+  }, [panelId]);
+
+  // 初始化服务
+  useEffect(() => {
+    ensureServices();
+    
+    // 在组件卸载时清理服务
+    return () => {
+      ServiceFactory.cleanupServices(panelId);
+      chatServiceRef.current = null;
+      codingServiceRef.current = null;
+      agenticEditServiceRef.current = null;
+      autoCoderConfServiceRef.current = null;
+      chatListServiceRef.current = null;
+      fileGroupServiceRef.current = null;
+    };
+  }, [panelId, ensureServices]);
+
+  // 获取当前的服务实例
+  const chatService = chatServiceRef.current || ServiceFactory.getChatService(panelId);
+  const codingService = codingServiceRef.current || ServiceFactory.getCodingService(panelId);
+  const agenticEditService = agenticEditServiceRef.current || ServiceFactory.getAgenticEditService(panelId);
+  const autoCoderConfService = autoCoderConfServiceRef.current || ServiceFactory.getAutoCoderConfService(panelId);
+  const chatListService = chatListServiceRef.current || ServiceFactory.getChatListService(panelId);
+  const fileGroupService = fileGroupServiceRef.current || ServiceFactory.getFileGroupService(panelId);
 
   // Step By Step 模式标记
   const [enableAgenticMode, setEnableAgenticMode] = React.useState<boolean>(true);

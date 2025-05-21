@@ -12,6 +12,11 @@ export class AgenticEditService extends EventEmitter {
   private currentStreamMessageId: string | null = null;
   private isStreamingActive: boolean = false;
   private panelId?: string;
+  private isConnectionActive: boolean = false;
+  private reconnectTimeout: NodeJS.Timeout | null = null;
+  private maxReconnectAttempts: number = 5;
+  private currentReconnectAttempts: number = 0;
+  private reconnectDelay: number = 3000; // 3秒重连延迟
 
   constructor(panelId?: string) {
     super();
@@ -57,25 +62,75 @@ export class AgenticEditService extends EventEmitter {
     this.closeEventStream();
 
     if (!this.eventFileId) {
-      console.error('No event file ID available');
+      console.error('无事件文件ID可用');
       return;
     }
 
-    this.eventSource = new EventSource(`/api/auto-command/events?event_file_id=${this.eventFileId}`);
-
-    this.eventSource.onmessage = (event) => {
-      try {
-        const eventData: AutoCommandEvent = JSON.parse(event.data);        
-        this.handleEvent(eventData);
-      } catch (error) {
-        console.error('Error parsing event data:', error);
+    // 设置连接状态为活跃
+    this.isConnectionActive = true;
+    this.currentReconnectAttempts = 0;
+    
+    const connect = () => {
+      // 如果已经不需要连接了，不执行重连
+      if (!this.isConnectionActive) {
+        console.log('不再需要SSE连接，取消重连');
+        return;
       }
+
+      console.log(`尝试建立SSE连接: ${this.eventFileId} (尝试次数: ${this.currentReconnectAttempts})`);
+      
+      // 创建新的EventSource连接
+      this.eventSource = new EventSource(`/api/auto-command/events?event_file_id=${this.eventFileId}`);
+
+      this.eventSource.onmessage = (event) => {
+        try {
+          const eventData: AutoCommandEvent = JSON.parse(event.data);        
+          this.handleEvent(eventData);
+        } catch (error) {
+          console.error('解析事件数据错误:', error);
+        }
+      };
+
+      this.eventSource.onerror = (error) => {
+        console.warn('EventSource连接错误:', error);
+        
+        // 关闭当前连接
+        if (this.eventSource) {
+          this.eventSource.close();
+          this.eventSource = null;
+        }
+        
+        // 重置流相关状态，但保留eventFileId
+        this.streamEvents.clear();
+        this.lastEventType = null;
+        this.currentStreamMessageId = null;
+        this.isStreamingActive = false;
+        
+        // 如果连接仍应该活跃，尝试重连
+        if (this.isConnectionActive) {
+          this.currentReconnectAttempts++;
+          
+          if (this.currentReconnectAttempts <= this.maxReconnectAttempts) {
+            console.log(`SSE连接错误，${this.reconnectDelay/1000}秒后重试 (尝试 ${this.currentReconnectAttempts}/${this.maxReconnectAttempts})`);
+            
+            // 清除任何现有的重连定时器
+            if (this.reconnectTimeout) {
+              clearTimeout(this.reconnectTimeout);
+            }
+            
+            // 设置新的重连定时器
+            this.reconnectTimeout = setTimeout(connect, this.reconnectDelay);
+          } else {
+            console.error(`SSE连接重试次数超过最大限制(${this.maxReconnectAttempts})，停止重试`);
+            this.isConnectionActive = false;
+            this.emit('error', '连接服务器失败，请刷新页面或重试');
+          }
+        }
+      };
     };
 
-    this.eventSource.onerror = (error) => {
-      console.error('EventSource error:', error);
-      this.closeEventStream();
-    };
+    // 初始连接
+    connect();
   }
 
   private handleEvent(event: AutoCommandEvent) {
@@ -417,11 +472,22 @@ export class AgenticEditService extends EventEmitter {
   }
 
   closeEventStream() {
+    // 标记连接状态为非活跃
+    this.isConnectionActive = false;
+    
+    // 清除重连定时器
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+    
     if (this.eventSource) {
+      console.log('关闭SSE事件流');
       this.eventSource.close();
       this.eventSource = null;
     }
-    // Finalize any pending stream messages
+    
+    // 清理流消息和状态
     Array.from(this.streamEvents.keys()).forEach(messageId => {
       this.finalizeStreamMessage(messageId);
     });
@@ -429,7 +495,7 @@ export class AgenticEditService extends EventEmitter {
     this.lastEventType = null;
     this.currentStreamMessageId = null;
     this.isStreamingActive = false;
-    // Don't reset eventFileId here as it might be needed for user responses
+    // 不要在这里重置eventFileId，它可能在用户响应中需要
   }
 
   async sendUserResponse(eventId: string, response: string): Promise<void> {

@@ -9,7 +9,7 @@ interface TerminalProps {
   useLocalHost?: boolean; // 控制是否使用本地固定地址
 }
 
-const Terminal: React.FC<TerminalProps> = ({ useLocalHost = true }) => {
+const Terminal: React.FC<TerminalProps> = ({ useLocalHost = false }) => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerminal | null>(null);
   const websocketRef = useRef<WebSocket | null>(null);
@@ -115,13 +115,17 @@ const Terminal: React.FC<TerminalProps> = ({ useLocalHost = true }) => {
       try {
         const data = event.data;
         if (typeof data === 'string') {
+          let isHeartbeat = false;
           try {
             const jsonData = JSON.parse(data);
-            if (typeof jsonData === 'object' && jsonData !== null && jsonData.type === 'heartbeat') {
-              return; // Ignore heartbeat messages
-            }
+            isHeartbeat =
+              typeof jsonData === 'object' &&
+              jsonData !== null &&
+              jsonData.type === 'heartbeat';
           } catch {
-            // Not JSON, treat as terminal data
+            /* Not JSON – fall through */
+          }
+          if (!isHeartbeat) {
             xterm.write(data);
           }
         } else if (data instanceof Blob) {
