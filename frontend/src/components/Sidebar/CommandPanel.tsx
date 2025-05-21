@@ -96,7 +96,9 @@ const CommandPanel: React.FC<CommandPanelProps> = ({ panelId = '' }) => {
     setError(null);
     try {
       // Fetch file content
-      const contentResponse = await axios.get(`/api/file_commands/${fileName}`);
+      const contentResponse = await axios.get('/api/file_commands', {
+        params: { file_name: fileName }
+      });
       
       if (contentResponse.data.success) {
         setFileContent(contentResponse.data.content || '');
@@ -106,7 +108,9 @@ const CommandPanel: React.FC<CommandPanelProps> = ({ panelId = '' }) => {
       }
 
       // Fetch file variables
-      const variablesResponse = await axios.get(`/api/file_commands/${fileName}/variables`);
+      const variablesResponse = await axios.get('/api/file_commands/variables', {
+        params: { file_name: fileName }
+      });
       
       if (variablesResponse.data.success && variablesResponse.data.analysis) {
         const variables = variablesResponse.data.analysis.variables || [];
@@ -254,8 +258,8 @@ const CommandPanel: React.FC<CommandPanelProps> = ({ panelId = '' }) => {
           dropdownClassName="dark-select-dropdown custom-select-dropdown"
         >
           {commandFiles.map(file => (
-            <Option key={file.file_name} value={file.file_name} style={{ color: 'white' }}>
-              <FileOutlined className="mr-1" /> {file.file_name}
+            <Option key={file.file_path} value={file.file_path} style={{ color: 'white' }}>
+              <FileOutlined className="mr-1" /> {file.file_path}
             </Option>
           ))}
         </Select>

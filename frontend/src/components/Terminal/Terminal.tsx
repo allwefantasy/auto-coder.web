@@ -5,7 +5,11 @@ import { WebLinksAddon } from '@xterm/addon-web-links';
 import { SearchAddon } from '@xterm/addon-search';
 import '@xterm/xterm/css/xterm.css';
 
-const Terminal: React.FC = () => {
+interface TerminalProps {
+  useLocalHost?: boolean; // 控制是否使用本地固定地址
+}
+
+const Terminal: React.FC<TerminalProps> = ({ useLocalHost = true }) => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerminal | null>(null);
   const websocketRef = useRef<WebSocket | null>(null);
@@ -46,7 +50,8 @@ const Terminal: React.FC = () => {
     }, 0);
 
     // Initialize WebSocket connection with heartbeat
-    const host = window.location.host
+    // const host = window.location.host
+    const host = useLocalHost ? "127.0.0.1:8007" : window.location.host;
     const ws = new WebSocket(`ws://${host}/ws/terminal`);
     websocketRef.current = ws;
 
@@ -78,7 +83,8 @@ const Terminal: React.FC = () => {
         
         if (websocketRef.current?.readyState === WebSocket.CLOSED) {
           xterm.writeln('\r\nConnection lost. Attempting to reconnect...');
-          const host = window.location.host
+          // const host = window.location.host
+          const host = useLocalHost ? "127.0.0.1:8007" : window.location.host;
           const newWs = new WebSocket(`ws://${host}/ws/terminal`);
           websocketRef.current = newWs;
           
@@ -111,7 +117,7 @@ const Terminal: React.FC = () => {
         if (typeof data === 'string') {
           try {
             const jsonData = JSON.parse(data);
-            if (jsonData.type === 'heartbeat') {
+            if (typeof jsonData === 'object' && jsonData !== null && jsonData.type === 'heartbeat') {
               return; // Ignore heartbeat messages
             }
           } catch {
@@ -148,7 +154,8 @@ const Terminal: React.FC = () => {
         // Try to reconnect after a delay
         reconnectTimeoutRef.current = setTimeout(() => {
           if (websocketRef.current?.readyState === WebSocket.CLOSED) {
-            const host = window.location.host
+            // const host = window.location.host
+            const host = useLocalHost ? "127.0.0.1:8007" : window.location.host;
             const newWs = new WebSocket(`ws://${host}/ws/terminal`);
             websocketRef.current = newWs;
             // Reattach all event handlers
@@ -164,7 +171,7 @@ const Terminal: React.FC = () => {
     // Handle terminal input
     xterm.onData((data) => {
       if (websocketRef.current?.readyState === WebSocket.OPEN) {
-        websocketRef.current.send(data);
+        websocketRef.current.send(JSON.stringify({ type: 'stdin', payload: data }));
       }
     });
 
@@ -203,7 +210,7 @@ const Terminal: React.FC = () => {
       }
       window.removeEventListener('resize', handleResize);
     };
-  }, []); // Empty dependency array since we want this to run once
+  }, [useLocalHost]); // 添加useLocalHost作为依赖
 
   return (
     <div className="h-full w-full bg-[#1e1e1e]">

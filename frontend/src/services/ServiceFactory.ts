@@ -16,45 +16,92 @@ export class ServiceFactory {
   private static fileGroupServices: Map<string, FileGroupService> = new Map();
 
   static getChatService(panelId: string): any {
-    if (!this.chatServices.has(panelId)) {
-      this.chatServices.set(panelId, new ChatService(panelId));
+    // If an instance already exists, safely destroy it
+    if (this.chatServices.has(panelId)) {
+      try {
+        const oldService = this.chatServices.get(panelId);
+        if (oldService) {
+          oldService.closeEventStream();
+        }
+      } catch (error) {
+        console.error(`Error closing event stream for chat service panel ${panelId}:`, error);
+        // Continue despite error, we still want to create a new instance
+      }
     }
-    return this.chatServices.get(panelId)!;
+    
+    // Create and store a new instance
+    const newService = new ChatService(panelId);
+    this.chatServices.set(panelId, newService);
+    return newService;
   }
 
   static getCodingService(panelId: string): any {
-    if (!this.codingServices.has(panelId)) {
-      this.codingServices.set(panelId, new CodingService(panelId));
+    // If an instance already exists, safely destroy it
+    if (this.codingServices.has(panelId)) {
+      try {
+        const oldService = this.codingServices.get(panelId);
+        if (oldService) {
+          oldService.closeEventStream();
+        }
+      } catch (error) {
+        console.error(`Error closing event stream for coding service panel ${panelId}:`, error);
+        // Continue despite error, we still want to create a new instance
+      }
     }
-    return this.codingServices.get(panelId)!;
+    
+    // Create and store a new instance
+    const newService = new CodingService(panelId);
+    this.codingServices.set(panelId, newService);
+    return newService;
   }
 
   static getAgenticEditService(panelId: string): any {
-    // if (!this.agenticEditServices.has(panelId)) {
-    //   this.agenticEditServices.set(panelId, new AgenticEditService(panelId));
-    // }
-    // return this.agenticEditServices.get(panelId)!;
-    return new AgenticEditService(panelId)
+    // If an instance already exists, safely destroy it
+    if (this.agenticEditServices.has(panelId)) {
+      try {
+        const oldService = this.agenticEditServices.get(panelId);
+        if (oldService) {
+          oldService.closeEventStream();
+        }
+      } catch (error) {
+        console.error(`Error closing event stream for panel ${panelId}:`, error);
+        // Continue despite error, we still want to create a new instance
+      }
+    }
+  
+    // Create and store a new instance
+    const newService = new AgenticEditService(panelId);
+    this.agenticEditServices.set(panelId, newService);
+    return newService;
   }
 
   static getAutoCoderConfService(panelId: string): any {
-    if (!this.autoCoderConfServices.has(panelId)) {
-      this.autoCoderConfServices.set(panelId, new AutoCoderConfService());
-    }
-    return this.autoCoderConfServices.get(panelId)!;
+    // AutoCoderConfService doesn't have a specific cleanup method,
+    // but we still create a new instance each time
+    
+    // Create and store a new instance
+    const newService = new AutoCoderConfService();
+    this.autoCoderConfServices.set(panelId, newService);
+    return newService;
   }
 
   static getChatListService(panelId: string): any {
-    if (!this.chatListServices.has(panelId)) {
-      this.chatListServices.set(panelId, new ChatListService());
-    }
-    return this.chatListServices.get(panelId)!;
+    // ChatListService doesn't have a specific cleanup method,
+    // but we still create a new instance each time
+    
+    // Create and store a new instance
+    const newService = new ChatListService();
+    this.chatListServices.set(panelId, newService);
+    return newService;
   }
 
   static getFileGroupService(panelId: string): any {
-    if (!this.fileGroupServices.has(panelId)) {
-      this.fileGroupServices.set(panelId, new FileGroupService());
-    }
-    return this.fileGroupServices.get(panelId)!;
+    // FileGroupService doesn't have a specific cleanup method,
+    // but we still create a new instance each time
+    
+    // Create and store a new instance
+    const newService = new FileGroupService();
+    this.fileGroupServices.set(panelId, newService);
+    return newService;
   }
 }

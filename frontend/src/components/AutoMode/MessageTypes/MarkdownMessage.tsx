@@ -4,6 +4,9 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import mermaid from 'mermaid';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeKatex from 'rehype-katex';
+import rehypeMath from 'rehype-math';
+import 'katex/dist/katex.min.css';
 import type { MessageProps } from '../MessageList';
 import { getMessage } from '../../Sidebar/lang';
 import './MessageStyles.css';
@@ -217,6 +220,7 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
                 <ReactMarkdown
                     className="markdown-body text-gray-200 break-words"
                     remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeMath, rehypeKatex]}
                     components={markdownComponents}
                 >
                     {getMessageContent()}

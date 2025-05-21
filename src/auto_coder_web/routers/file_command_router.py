@@ -127,13 +127,13 @@ async def list_documents(request: Request, recursive: bool = False):
             errors=[f"Error listing documents: {str(e)}"]
         )
 
-@router.get("/api/file_commands/{file_name}", response_model=ReadDocumentResponse)
+@router.get("/api/file_commands", response_model=ReadDocumentResponse)
 async def read_document(file_name: str, request: Request):
     """
     Read a document file.
     
     Args:
-        file_name: The name of the file to read.
+        file_name: The name of the file to read (passed as query parameter).
         
     Returns:
         A ReadDocumentResponse object.
@@ -168,13 +168,13 @@ async def read_document(file_name: str, request: Request):
             errors=[f"Error reading document: {str(e)}"]
         )
 
-@router.get("/api/file_commands/{file_name}/variables", response_model=AnalyzeDocumentResponse)
+@router.get("/api/file_commands/variables", response_model=AnalyzeDocumentResponse)
 async def analyze_document(file_name: str, request: Request):
     """
     Analyze a document file to extract variables.
     
     Args:
-        file_name: The name of the file to analyze.
+        file_name: The name of the file to analyze (passed as query parameter).
         
     Returns:
         An AnalyzeDocumentResponse object.

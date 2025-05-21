@@ -240,23 +240,29 @@ class TerminalManager:
 
             try:
                 while True:
+                    data = await websocket.receive_text()
+
+                    # ① 尝试解析 JSON
                     try:
-                        data = await websocket.receive_text()
-                        try:
-                            message = json.loads(data)
-                            if message['type'] == 'resize':
-                                session.resize(
-                                    message['rows'], message['cols'])
-                            elif message['type'] == 'heartbeat':
+                        msg = json.loads(data)
+                    except json.JSONDecodeError:
+                        session.write(data)
+                        continue          # 不是 JSON，直接当终端输入
+
+                    # ② 只有当解析结果是 dict 且包含 type 字段时，才按控制消息处理
+                    if isinstance(msg, dict) and 'type' in msg:
+                        match msg['type']:
+                            case 'resize':
+                                session.resize(msg['rows'], msg['cols'])
+                            case 'heartbeat':
                                 session._last_heartbeat = time.time()
-                            else:
-                                session.write(data)
-                        except json.JSONDecodeError:
-                            session.write(data)
-                    except RuntimeError as e:
-                        if "WebSocket is not connected" in str(e):
-                            break
-                        raise
+                            case 'stdin':
+                                if 'payload' in msg:
+                                    session.write(msg['payload'])
+                            case _:
+                                session.write(data)   # 兜底：未知控制消息 → 直接写
+                    else:
+                        session.write(data) 
             except websockets.exceptions.ConnectionClosed:
                 print("WebSocket closed normally during terminal session")
                 pass
