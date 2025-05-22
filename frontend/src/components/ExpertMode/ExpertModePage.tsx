@@ -228,7 +228,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
         <AskUserDialog 
           message={activeAskUserMessage} 
           onResponse={handleUserResponse}
-          onClose={() => setActiveAskUserMessage(null)}
+          onClose={() => {}}
         />
       )}
       

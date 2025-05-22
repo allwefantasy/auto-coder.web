@@ -381,11 +381,14 @@ const InputArea: React.FC<InputAreaProps> = ({
       ref={inputAreaRef}
       style={{ width: '100%' }}
     >
+      {/* 顶部设置和组选择区域 */}
       <div className={`px-0.5 pt-0 ${isInputAreaMaximized ? 'mb-2 flex-shrink-0' : 'w-full'}`}>
         <div className="space-y-0 w-full">
+          {/* 顶部设置区域和工具按钮 */}
           <div className="flex items-center justify-between w-full">
             <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
             <div className="flex items-center">
+              {/* 文档按钮 */}
               <Tooltip title="Open Documentation">
                 <button
                   onClick={() => window.open('https://uelng8wukz.feishu.cn/wiki/EFCEwiYZFit44ZkJgohcYjlMnVP?fromScene=spaceOverview', '_blank')}
@@ -408,6 +411,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                   </svg>
                 </button>
               </Tooltip>
+              {/* 全屏切换按钮 */}
               <Tooltip title={isInputAreaMaximized ? "退出全屏" : "全屏模式"}>
                 <button
                   onClick={toggleFullscreen}
@@ -436,6 +440,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                   </svg>
                 </button>
               </Tooltip>
+              {/* 构建索引按钮 */}
               <Tooltip title={indexBuilding ? "Building index..." : "Build index"}>
                 <button 
                   onClick={buildIndex}
@@ -450,6 +455,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                   )}
                 </button>
               </Tooltip>
+              {/* 索引状态指示器 */}
               {indexStatus === 'completed' && (
                 <Tooltip title="Index built successfully">
                   <span className="mr-1 text-green-500 text-xs">✓</span>
@@ -460,6 +466,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                   <span className="mr-1 text-red-500 text-xs">✗</span>
                 </Tooltip>
               )}
+              {/* 声音开关按钮 */}
               <Tooltip title={soundEnabled ? "关闭提示音" : "开启提示音"}>
                 <button
                   onClick={() => {                    
@@ -486,11 +493,13 @@ const InputArea: React.FC<InputAreaProps> = ({
          
         </div>
         
+        {/* 分隔线 */}
         <div className="h-[1px] bg-gray-700/50 my-1 w-full"></div>
-        {/* Provider Selectors (RAG/MCPs) */}
+        
+        {/* 提供者选择器区域 (RAG/MCPs) */}
         {!isCommandMode && <ProviderSelectors isWriteMode={isWriteMode} />}
 
-        {/* File Group Selector */}
+        {/* 文件组选择器区域 */}
         {!isCommandMode && (
           <div className="w-full mt-1"> {/* Add margin top if needed */}
             <FileGroupSelect
@@ -504,21 +513,25 @@ const InputArea: React.FC<InputAreaProps> = ({
         )}
       </div>
 
+      {/* 主内容区域（编辑器或命令面板） */}
       <div className={`px-1 py-0.5 flex flex-col ${isMaximized && !isInputAreaMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} 
           ${isInputAreaMaximized ? 'flex-1 overflow-hidden' : 'w-full'} 
           scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}
         style={{ width: '100%' }}
       >
+        {/* 编辑器/命令面板容器 */}
         <div className={`flex-1 ${isInputAreaMaximized ? 'flex-grow h-full' : 'min-h-[80px]'}`}
              style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)' } : {}}
         >
           {isCommandMode ? (
+            /* 命令面板模式 */
             <div className="w-full h-full bg-gray-800 border border-gray-700 rounded-md overflow-hidden">
               <CommandPanel                 
                 panelId={panelId}
               />
             </div>
           ) : (
+            /* 编辑器模式 */
             <EditorComponent
               isMaximized={isMaximized || isInputAreaMaximized}
               onEditorDidMount={handleEditorDidMount}            
@@ -533,9 +546,12 @@ const InputArea: React.FC<InputAreaProps> = ({
             />
           )}
         </div>
+        
+        {/* 底部控制区域 */}
         <div className="flex flex-col mt-0 gap-0 flex-shrink-0">
           <div className="space-y-0 bg-gray-850 p-0.5 rounded-lg shadow-inner border border-gray-700/50">
             <div className="flex items-center justify-between px-0">
+              {/* 模式选择区域 */}
               <div className="flex items-center space-x-0.5">
                 <span className="text-[9px] font-medium text-gray-400">Mode:</span>
                 <Tooltip title={`Switch between Chat and Write mode (${navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)`}>
@@ -568,6 +584,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                     popupMatchSelectWidth={false}
                   />
                 </Tooltip>
+                {/* 快捷键提示 */}
                 <kbd className="px-0.5 py-0 ml-1 text-[8px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
                   {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
                 </kbd>                
@@ -577,6 +594,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </div>
               </div>
               
+              {/* Agent模式切换 */}
               <div className="flex items-center space-x-1 mr-1">
                 <button
                   className={`p-0.5 rounded-md transition-all duration-200
@@ -597,6 +615,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </span>
               </div>
 
+              {/* 发送/停止按钮 */}
               <button
                 className={`p-0.5 rounded-md transition-all duration-200
                   focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
@@ -608,7 +627,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 disabled={isCancelling}
                 title={sendLoading ? (isCancelling ? getMessage('cancelling') : getMessage('stop')) : getMessage('send')}
               >
-                                {(() => {
+                {(() => {
                   let icon;
                   if (sendLoading) {
                     if (isCancelling) {

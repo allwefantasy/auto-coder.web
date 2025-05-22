@@ -29,20 +29,18 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
   // 对话框引用，用于检测点击外部区域
   const dialogRef = useRef<HTMLDivElement>(null);
   
-  // 处理点击对话框外部关闭对话框的逻辑
+  // 移除点击对话框外部关闭对话框的逻辑
   useEffect(() => {
+    // 不再处理点击外部关闭
     const handleClickOutside = (event: MouseEvent) => {
-      // Only close if the click is outside the dialog and response is not required
-      if (dialogRef.current && !dialogRef.current.contains(event.target as Node) && !message.responseRequired) {
-        onClose();
-      }
+      // 点击外部不再关闭对话框
     };
     
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [message.responseRequired, onClose]);
+  }, []);
   
   // 处理自定义响应提交
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,18 +88,6 @@ const AskUserDialog: React.FC<AskUserDialogProps> = ({ message, onResponse, onCl
         {/* 对话框标题和关闭按钮 - 更紧凑的标题区域 */}
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-white">{getMessage('askUserDialogTitle')}</h3>
-          {/* Only show close button if response is not required */}
-          {!message.responseRequired && (
-            <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
-              aria-label="Close dialog"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
         </div>
         
         {/* 对话框主体内容 - 更紧凑的内容区域 */}
