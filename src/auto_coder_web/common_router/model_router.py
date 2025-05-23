@@ -264,6 +264,22 @@ def load_providers() -> List[Dict]:
                     "output_price": 0.0,
                     "is_reasoning": False,
                     "max_output_tokens": 8096*2
+                },
+                {
+                    "id": "anthropic/claude-sonnet-4",
+                    "name": "claude-sonnet-4",
+                    "input_price": 22.0,
+                    "output_price": 111.0,
+                    "is_reasoning": False,
+                    "max_output_tokens": 8096*4
+                },
+                {
+                    "id": "anthropic/claude-opus-4",
+                    "name": "claude-opus-4",
+                    "input_price": 111.0,
+                    "output_price": 555.0,
+                    "is_reasoning": False,
+                    "max_output_tokens": 8096*4
                 }
             ]
         },        

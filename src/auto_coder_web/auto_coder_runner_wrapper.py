@@ -61,12 +61,16 @@ class AutoCoderRunnerWrapper:
         memory = get_memory()
         return memory["conf"]
 
+    def get_memory_wrapper(self):
+        return get_memory()
 
     def coding_wapper(self,query):
         return coding(query) 
 
     def chat_wrapper(self,query):
-        return chat(query)          
-        
-    
+        return chat(query)       
+
+    def lib_wrapper(self,query):
+        return lib_command(query)   
+            
     

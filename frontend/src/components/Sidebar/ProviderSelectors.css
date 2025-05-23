@@ -1,0 +1,32 @@
+/* 自定义标签页样式 */
+.provider-tabs .ant-tabs-tab {
+  padding: 4px 8px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.provider-tabs .ant-tabs-tab:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.provider-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #fff;
+}
+
+.provider-tabs .ant-tabs-ink-bar {
+  background: #1890ff;
+}
+
+.provider-tabs .ant-tabs-content {
+  padding-top: 8px;
+}
+
+/* 确保内容区域文字为白色 */
+.provider-tabs .ant-tabs-tabpane {
+  color: #fff;
+}
+
+/* 覆盖默认边框样式 */
+.provider-tabs .ant-tabs-nav::before {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+} 
