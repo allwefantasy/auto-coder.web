@@ -196,20 +196,21 @@ export class AgenticEditService extends EventEmitter {
 
     if (existingMessage) {
       // Update existing message
-      existingMessage.content += content.content;
-      existingMessage.isThinking = content.is_thinking;
-      existingMessage.isStreaming = true;
+      const newMessage = { ...existingMessage };
+      newMessage.content += content.content;
+      newMessage.isThinking = content.is_thinking;
+      newMessage.isStreaming = true;
 
       // If the state is complete, remove from streamEvents and emit the final message
       if (content.state === 'complete') {
-        existingMessage.isStreaming = false;
+        newMessage.isStreaming = false;
         this.streamEvents.delete(messageId);
-        this.emit('message', existingMessage);
+        this.emit('message', newMessage);
         this.isStreamingActive = false;
       } else {
         // Otherwise, update the map and emit the updated message
-        this.streamEvents.set(messageId, existingMessage);
-        this.emit('message', existingMessage);
+        this.streamEvents.set(messageId, newMessage);
+        this.emit('message', newMessage);
       }
     } else {
       // Create a new message
