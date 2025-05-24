@@ -5,6 +5,7 @@ import os
 import git
 import json
 from pathlib import Path
+from autocoder.auto_coder_runner import get_memory, save_memory_with_new_memory
 
 router = APIRouter()
 
@@ -13,15 +14,6 @@ async def get_project_path(request: Request) -> str:
     """获取项目路径作为依赖"""
     return request.app.state.project_path
 
-async def get_memory(request: Request) -> Dict:
-    """获取内存状态作为依赖"""
-    return request.app.state.memory
-
-async def save_memory(request: Request, memory: Dict) -> None:
-    """保存内存状态"""
-    from autocoder.auto_coder_runner import save_memory as runner_save_memory
-    request.app.state.memory = memory
-    runner_save_memory()
 
 # 模型定义
 class LibAddRequest(BaseModel):
@@ -107,7 +99,7 @@ async def add_lib(
     
     # 添加库到内存
     memory["libs"][lib_name] = {}
-    await save_memory(request, memory)
+    await save_memory_with_new_memory(memory)
     
     return LibResponse(
         success=True,
@@ -128,7 +120,7 @@ async def remove_lib(
         
     if lib_name in memory["libs"]:
         del memory["libs"][lib_name]
-        await save_memory(request, memory)
+        await save_memory_with_new_memory(memory)
         return LibResponse(
             success=True,
             message=f"Removed library: {lib_name}"
@@ -157,7 +149,7 @@ async def set_proxy(
     else:
         # 设置代理
         memory["lib-proxy"] = proxy_request.proxy_url
-        await save_memory(request, memory)
+        await save_memory_with_new_memory(memory)
         return LibResponse(
             success=True,
             message=f"Set proxy to: {proxy_request.proxy_url}"
