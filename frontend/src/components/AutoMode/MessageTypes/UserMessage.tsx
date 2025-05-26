@@ -45,7 +45,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
             </div>
             <div className="prose prose-invert prose-xs max-w-none pt-1 user-message-content"> {/* Add padding top to avoid overlap */}
                 <ReactMarkdown
-                    className="text-gray-200 break-words"
+                    className="text-gray-200 break-words whitespace-pre-wrap overflow-wrap-anywhere word-break-break-word"
                     components={{
                         code: ({ className, children, ...props }: any) => {
                             const match = /language-(\w+)/.exec(className || '');

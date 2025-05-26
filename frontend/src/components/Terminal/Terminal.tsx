@@ -9,7 +9,37 @@ interface TerminalProps {
   useLocalHost?: boolean; // 控制是否使用本地固定地址
 }
 
-const Terminal: React.FC<TerminalProps> = ({ useLocalHost = false }) => {
+// 检测是否为开发环境
+const isDevEnvironment = (): boolean => {
+  // 方法1: 检查 NODE_ENV
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+  
+  // 方法2: 检查是否在本地开发服务器端口运行
+  const port = window.location.port;
+  const hostname = window.location.hostname;
+  
+  // 常见的开发服务器端口和主机名
+  const devPorts = ['3000', '3001', '5173'];
+  const devHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+  
+  if (devHosts.includes(hostname) && devPorts.includes(port)) {
+    return true;
+  }
+  
+  // 方法3: 检查URL中是否包含开发相关的标识
+  const url = window.location.href;
+  if (url.includes('localhost') || url.includes('127.0.0.1') || url.includes('dev')) {
+    return true;
+  }
+  
+  return false;
+};
+
+const Terminal: React.FC<TerminalProps> = ({ 
+  useLocalHost = isDevEnvironment() // 根据环境自动设置默认值
+}) => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerminal | null>(null);
   const websocketRef = useRef<WebSocket | null>(null);

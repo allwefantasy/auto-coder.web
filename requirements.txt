@@ -1,5 +1,5 @@
-auto-coder>=0.1.383
-aiofiles
+auto-coder>=0.1.389
+aiofiles>=24.1.0
 psutil
 watchdog
 sse-starlette

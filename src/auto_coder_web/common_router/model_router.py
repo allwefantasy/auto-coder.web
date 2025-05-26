@@ -285,15 +285,16 @@ def load_providers() -> List[Dict]:
         },        
         {
             "name": "google",
-            "base_url": "default",
-            "model_type": "saas/gemini",
+            "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+            "model_type": "saas/openai",
             "models": [
                 {
-                    "id": "gemini-2.5-pro-exp-03-25",
-                    "name": "gemini-2.5-pro-exp-03-25",
-                    "input_price": 0,
-                    "output_price": 0,
-                    "is_reasoning": True
+                    "id": "gemini-2.5-pro-preview-05-06",
+                    "name": "gemini-2.5-pro-preview-05-06",
+                    "input_price": 8.8,
+                    "output_price": 77.0,
+                    "is_reasoning": False,
+                    "max_output_tokens": 8096*4
                 }
             ]
         }

@@ -299,13 +299,7 @@ async def analyze_rules(
             # Using a placeholder or assuming indexer provides files for now.
             # Let's try fetching from memory first, might be empty in web context.
             memory = get_memory() # Get memory specific to project
-            files = memory.get("current_files", {}).get("files", [])
-
-            if not files:
-                 # If no files in memory, maybe analyze all project files? Or require explicit list?
-                 # For now, report error if no files are targeted.
-                 raise ValueError("No active files found in memory for analysis. Specify files or use a different mechanism.")
-
+            files = memory.get("current_files", {}).get("files", [])            
 
             sources = SourceCodeList([])
             event_manager.write_event(EventContentCreator.create_message(f"Reading {len(files)} files for analysis...").to_dict())
@@ -622,10 +616,7 @@ async def get_context_prompt(
         
         # 获取内存中的文件
         memory = get_memory()
-        files = memory.get("current_files", {}).get("files", [])
-        
-        if not files:
-            raise HTTPException(status_code=400, detail="没有找到活跃的文件，请指定文件或使用其他机制")
+        files = memory.get("current_files", {}).get("files", [])                
             
         sources = SourceCodeList([])
         for file in files:
@@ -639,10 +630,7 @@ async def get_context_prompt(
                     sources.sources.append(SourceCode(module_name=file, source_code=source_code))
             except Exception as e:
                 logger.error(f"读取文件 {file_abs_path} 错误: {e}")
-                continue
-                
-        if not sources.sources:
-            raise HTTPException(status_code=400, detail="没有有效的源文件可以分析")
+                continue                        
             
         # 生成分析提示文本
         prompt_text = auto_learn.analyze_modules.prompt(sources=sources, query=request_data.query)
