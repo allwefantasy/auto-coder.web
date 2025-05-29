@@ -280,6 +280,14 @@ def load_providers() -> List[Dict]:
                     "output_price": 555.0,
                     "is_reasoning": False,
                     "max_output_tokens": 8096*4
+                },
+                {
+                    "id": "deepseek/deepseek-r1-0528",
+                    "name": "deepseek-r1-0528",
+                    "input_price": 4.0,
+                    "output_price": 16.0,
+                    "is_reasoning": True,
+                    "max_output_tokens": 8096*2
                 }
             ]
         },        
