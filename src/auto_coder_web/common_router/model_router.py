@@ -187,20 +187,34 @@ def load_providers() -> List[Dict]:
     # Default providers if file doesn't exist
     default_providers = [
         {
-            "name": "volcanoEngine",
-            "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+            "name": "siliconflow",
+            "base_url": "https://api.siliconflow.cn/v1",
             "model_type": "saas/openai",
             "models": [
                 {
-                    "id": "deepseek-v3-241226",
-                    "name": "Deepseek V3",
+                    "id": "Pro/deepseek-ai/DeepSeek-R1",
+                    "name": "Deepseek R1-0528",
+                    "input_price": 4.0,
+                    "output_price": 16.0,
+                    "is_reasoning": True
+                },              
+                {
+                    "id": "Pro/deepseek-ai/DeepSeek-V3",
+                    "name": "Deepseek V3-0324",
                     "input_price": 2.0,
                     "output_price": 8.0,
                     "is_reasoning": False
-                },
+                }
+            ]
+        },
+        {
+            "name": "volcanoEngine",
+            "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+            "model_type": "saas/openai",
+            "models": [                
                 {
-                    "id": "deepseek-r1-250120",
-                    "name": "Deepseek R1",
+                    "id": "deepseek-r1-250528",
+                    "name": "Deepseek r1-250528",
                     "input_price": 4.0,
                     "output_price": 16.0,
                     "is_reasoning": True
