@@ -15,7 +15,11 @@ import platform
 
 # 为不同平台选择合适的终端库
 if platform.system() == 'Windows':
-    import winpty
+    try:
+        import winpty
+    except ImportError:
+        print("Warning: winpty not found. Terminal functionality may not work on Windows.")
+        winpty = None
 else:
     import pty
     import fcntl
@@ -45,14 +49,21 @@ class TerminalSession:
         """Start the terminal session"""
         if self.platform == 'Windows':
             # Windows下使用winpty
+            if winpty is None:
+                raise RuntimeError("winpty is not available. Please install winpty: pip install winpty")
+            
             try:
                 self.pty = winpty.PTY(
                     cols=80,
                     rows=24
                 )
-                # 在Windows下，pid就是process.pid
-                self.pid = self.pty.spawn(self.shell)
-                self.fd = self.pty.fd  # winpty提供了类似的文件描述符
+                # 在Windows下，spawn 返回的是process对象或进程ID
+                process_result = self.pty.spawn(self.shell)
+                if hasattr(process_result, 'pid'):
+                    self.pid = process_result.pid
+                else:
+                    self.pid = process_result  # 假设直接返回的是 PID
+                self.fd = None  # winpty 不使用传统的文件描述符
                 self.running = True
                 asyncio.create_task(self._handle_io())
             except Exception as e:
@@ -97,8 +108,21 @@ class TerminalSession:
                     # Windows下使用winpty的读取方法
                     if self.pty:
                         try:
-                            data = self.pty.read(size)
-                            return data.encode('utf-8') if isinstance(data, str) else data
+                            # winpty 可能有不同的读取方法
+                            if hasattr(self.pty, 'read'):
+                                data = self.pty.read(size)
+                            elif hasattr(self.pty, 'read_blocking'):
+                                data = self.pty.read_blocking(size, timeout=100)  # 100ms超时
+                            else:
+                                # 如果没有直接的读取方法，返回空数据
+                                return b''
+                            
+                            if isinstance(data, str):
+                                return data.encode('utf-8')
+                            elif isinstance(data, bytes):
+                                return data
+                            else:
+                                return b''
                         except Exception as e:
                             print(f"Error reading from winpty: {e}")
                             return None
@@ -179,11 +203,17 @@ class TerminalSession:
             return
             
         try:
-            encoded_data = data.encode('utf-8')
             if self.platform == 'Windows':
                 if self.pty:
-                    self.pty.write(data)  # winpty接受字符串输入
+                    # winpty 可能有不同的写入方法
+                    if hasattr(self.pty, 'write'):
+                        self.pty.write(data)  # winpty接受字符串输入
+                    elif hasattr(self.pty, 'write_input'):
+                        self.pty.write_input(data)
+                    else:
+                        print(f"Warning: winpty object has no write method")
             else:
+                encoded_data = data.encode('utf-8')
                 if self.fd is not None:
                     os.write(self.fd, encoded_data)
         except Exception as e:
@@ -197,9 +227,21 @@ class TerminalSession:
         if self.platform == 'Windows':
             if self.pty:
                 try:
-                    self.pty.close()
+                    # winpty.PTY 对象没有 close() 方法，使用进程终止
+                    if self.pid:
+                        try:
+                            import psutil
+                            process = psutil.Process(self.pid)
+                            process.terminate()
+                            process.wait(timeout=3)
+                        except (psutil.NoSuchProcess, psutil.TimeoutExpired):
+                            pass
+                        except Exception as e:
+                            print(f"Error terminating winpty process: {e}")
+                    # 清空 pty 引用
+                    self.pty = None
                 except Exception as e:
-                    print(f"Error closing winpty: {e}")
+                    print(f"Error cleaning up winpty: {e}")
         else:
             if self.pid:
                 try:
@@ -234,6 +276,7 @@ class TerminalManager:
 
     async def handle_websocket(self, websocket: WebSocket, session_id: str):
         """Handle websocket connection for a terminal session"""
+        session = None
         try:
             await websocket.accept()
             session = await self.create_session(websocket, session_id)
@@ -265,14 +308,20 @@ class TerminalManager:
                         session.write(data) 
             except websockets.exceptions.ConnectionClosed:
                 print("WebSocket closed normally during terminal session")
-                pass
-            finally:
-                if session_id in self.sessions:
-                    await self.close_session(session_id)
+            except Exception as e:
+                # 检查是否是 WebSocket 断开连接相关的异常
+                if "1001" in str(e) or "ConnectionClosed" in str(e.__class__.__name__):
+                    print("WebSocket disconnected during terminal session")
+                else:
+                    print(f"Error in terminal websocket communication: {str(e)}")
+                    raise
         except Exception as e:
             print(f"Error in terminal websocket: {str(e)}")
+            # 只在非预期的异常时重新抛出
+            if not ("1001" in str(e) or "ConnectionClosed" in str(e.__class__.__name__)):
+                raise
+        finally:
             if session_id in self.sessions:
                 await self.close_session(session_id)
-            raise
 
 terminal_manager = TerminalManager()
