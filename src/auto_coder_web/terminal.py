@@ -53,18 +53,10 @@ class TerminalSession:
                 raise RuntimeError("winpty is not available. Please install winpty: pip install winpty")
             
             try:
-                # 使用更大的默认尺寸来避免显示过小的问题
                 self.pty = winpty.PTY(
-                    cols=120,  # 增加到120列
-                    rows=30    # 增加到30行
+                    cols=80,
+                    rows=24
                 )
-                
-                # 设置环境变量，确保正确的终端行为
-                env = os.environ.copy()
-                env["COLUMNS"] = "120"
-                env["LINES"] = "30"
-                env["TERM"] = "xterm-256color"
-                
                 # 在Windows下，spawn 返回的是process对象或进程ID
                 process_result = self.pty.spawn(self.shell)
                 if hasattr(process_result, 'pid'):
@@ -95,25 +87,9 @@ class TerminalSession:
         if not self.running:
             return
             
-        print(f"Resizing terminal to {cols}x{rows}")  # 添加调试信息
-        
         if self.platform == 'Windows':
             if self.pty:
-                try:
-                    # 尝试不同的 winpty resize 方法
-                    if hasattr(self.pty, 'set_size'):
-                        self.pty.set_size(rows, cols)
-                        print(f"Used set_size({rows}, {cols})")
-                    elif hasattr(self.pty, 'resize'):
-                        self.pty.resize(cols, rows)  # 注意参数顺序可能不同
-                        print(f"Used resize({cols}, {rows})")
-                    elif hasattr(self.pty, 'setwinsize'):
-                        self.pty.setwinsize(rows, cols)
-                        print(f"Used setwinsize({rows}, {cols})")
-                    else:
-                        print(f"Warning: winpty object has no resize method. Available methods: {dir(self.pty)}")
-                except Exception as e:
-                    print(f"Error resizing winpty terminal: {e}")
+                self.pty.set_size(rows, cols)
         else:
             if self.fd is not None:
                 # Get the current window size
@@ -184,8 +160,7 @@ class TerminalSession:
         try:
             while self.running:
                 try:                    
-                    # Windows 平台不使用 fd，不需要检查
-                    if self.platform != 'Windows' and self.fd is None:
+                    if self.fd is None:
                         break
                     data = await loop.run_in_executor(None, _read_pty, self.fd)
 
@@ -321,11 +296,7 @@ class TerminalManager:
                     if isinstance(msg, dict) and 'type' in msg:
                         match msg['type']:
                             case 'resize':
-                                print(f"Received resize message: {msg}")  # 添加调试信息
-                                if 'rows' in msg and 'cols' in msg:
-                                    session.resize(msg['rows'], msg['cols'])
-                                else:
-                                    print(f"Invalid resize message format: {msg}")
+                                session.resize(msg['rows'], msg['cols'])
                             case 'heartbeat':
                                 session._last_heartbeat = time.time()
                             case 'stdin':
@@ -334,7 +305,7 @@ class TerminalManager:
                             case _:
                                 session.write(data)   # 兜底：未知控制消息 → 直接写
                     else:
-                        session.write(data)
+                        session.write(data) 
             except websockets.exceptions.ConnectionClosed:
                 print("WebSocket closed normally during terminal session")
             except Exception as e:

@@ -58,8 +58,8 @@ const Terminal: React.FC<TerminalProps> = ({
         background: '#1e1e1e',
         foreground: '#d4d4d4',
       },
-      rows: 30,  // 与后端保持一致
-      cols: 120, // 与后端保持一致
+      rows: 24,
+      cols: 80,
     });
 
     // Initialize addons
@@ -130,15 +130,11 @@ const Terminal: React.FC<TerminalProps> = ({
 
       // Send initial size with error handling
       try {
-        const initialCols = xterm.cols;
-        const initialRows = xterm.rows;
-        const initialResizeMessage = {
+        ws.send(JSON.stringify({
           type: 'resize',
-          cols: initialCols,
-          rows: initialRows
-        };
-        console.log('Sending initial resize message:', initialResizeMessage);
-        ws.send(JSON.stringify(initialResizeMessage));
+          cols: xterm.cols,
+          rows: xterm.rows
+        }));
       } catch (error) {
         console.error('Failed to send initial size:', error);
         xterm.writeln('\r\nFailed to initialize terminal size');
@@ -216,18 +212,12 @@ const Terminal: React.FC<TerminalProps> = ({
     // Handle window resize
     const handleResize = () => {
       fitAddon.fit();
-      const newCols = xterm.cols;
-      const newRows = xterm.rows;
-      console.log(`Terminal resized to: ${newCols}x${newRows}`);
-      
       if (websocketRef.current?.readyState === WebSocket.OPEN) {
-        const resizeMessage = {
+        websocketRef.current.send(JSON.stringify({
           type: 'resize',
-          cols: newCols,
-          rows: newRows
-        };
-        console.log('Sending resize message:', resizeMessage);
-        websocketRef.current.send(JSON.stringify(resizeMessage));
+          cols: xterm.cols,
+          rows: xterm.rows
+        }));
       }
     };
 
