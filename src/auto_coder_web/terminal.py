@@ -54,8 +54,8 @@ class TerminalSession:
             
             try:
                 self.pty = winpty.PTY(
-                    cols=80,
-                    rows=24
+                    cols=120,  # 增加初始列数
+                    rows=30    # 增加初始行数
                 )
                 # 在Windows下，spawn 返回的是process对象或进程ID
                 process_result = self.pty.spawn(self.shell)
@@ -87,15 +87,29 @@ class TerminalSession:
         if not self.running:
             return
             
-        if self.platform == 'Windows':
-            if self.pty:
-                self.pty.set_size(rows, cols)
-        else:
-            if self.fd is not None:
-                # Get the current window size
-                size = struct.pack("HHHH", rows, cols, 0, 0)
-                # Set new window size
-                fcntl.ioctl(self.fd, termios.TIOCSWINSZ, size)
+        # 确保最小大小
+        rows = max(rows, 24)
+        cols = max(cols, 80)
+        
+        try:
+            if self.platform == 'Windows':
+                if self.pty and hasattr(self.pty, 'set_size'):
+                    self.pty.set_size(rows, cols)
+                    print(f"Windows terminal resized to: {cols}x{rows}")
+                elif self.pty and hasattr(self.pty, 'resize'):
+                    self.pty.resize(cols, rows)
+                    print(f"Windows terminal resized to: {cols}x{rows}")
+                else:
+                    print(f"Warning: winpty object doesn't support resizing")
+            else:
+                if self.fd is not None:
+                    # Get the current window size
+                    size = struct.pack("HHHH", rows, cols, 0, 0)
+                    # Set new window size
+                    fcntl.ioctl(self.fd, termios.TIOCSWINSZ, size)
+                    print(f"Unix terminal resized to: {cols}x{rows}")
+        except Exception as e:
+            print(f"Error resizing terminal: {e}")
 
     async def _handle_io(self):
         """Handle I/O between PTY and WebSocket"""
