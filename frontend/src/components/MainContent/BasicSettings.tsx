@@ -22,6 +22,7 @@ interface BasicSettingsState {
   skip_build_index: boolean; // Added skip_build_index
   skip_filter_index: boolean; // Added skip_filter_index
   enable_agentic_edit: boolean; // Added enable_agentic_edit
+  enable_agentic_auto_approve: boolean; // Added enable_agentic_auto_approve
   context_prune?: boolean;
   context_prune_safe_zone_tokens?: number;
 }
@@ -37,6 +38,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
     rank_times_same_model: 1,
     enable_agentic_filter: false,
     enable_agentic_edit: false, // Initialize to false
+    enable_agentic_auto_approve: false, // Initialize enable_agentic_auto_approve
     skip_build_index: false, // Initialize skip_build_index
     skip_filter_index: false, // Initialize skip_filter_index
     context_prune: true, // Initialize context_prune
@@ -81,6 +83,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         }
         if (currentConfig.enable_agentic_edit !== undefined) {
           updatedSettings.enable_agentic_edit = String(currentConfig.enable_agentic_edit).toLowerCase() === 'true';
+        }
+        if (currentConfig.enable_agentic_auto_approve !== undefined) { // Fetch enable_agentic_auto_approve
+          updatedSettings.enable_agentic_auto_approve = String(currentConfig.enable_agentic_auto_approve).toLowerCase() === 'true';
         }
         if (currentConfig.skip_build_index !== undefined) { // Fetch skip_build_index
           updatedSettings.skip_build_index = String(currentConfig.skip_build_index).toLowerCase() === 'true';
@@ -135,6 +140,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
       }
       if (key.key === 'enable_agentic_edit' && initialSettings.enable_agentic_edit === undefined) {
         initialSettings.enable_agentic_edit = String(key.default).toLowerCase() === 'true' || false;
+      }
+      if (key.key === 'enable_agentic_auto_approve' && initialSettings.enable_agentic_auto_approve === undefined) { // Fallback for enable_agentic_auto_approve
+        initialSettings.enable_agentic_auto_approve = String(key.default).toLowerCase() === 'true' || false;
       }
       if (key.key === 'skip_build_index' && initialSettings.skip_build_index === undefined) { // Fallback for skip_build_index
         initialSettings.skip_build_index = String(key.default).toLowerCase() === 'true' || false;
@@ -267,6 +275,24 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
             />
           </div>
           <p className="model-config-description">{getMessage('enableAgenticEditDescription')}</p>
+        </div>
+
+        {/* Enable Agentic Auto Approve - New */}
+        <div className="model-config-item">
+          <label className="model-config-label">{getMessage('enableAgenticAutoApprove') || 'Auto Approve Shell Command'}</label>
+          <div className="mt-1">
+            <Select
+              value={settings.enable_agentic_auto_approve}
+              onChange={(value) => handleSettingChange('enable_agentic_auto_approve', value)}
+              size="small"
+              style={{ width: '100%' }}
+              options={[
+                { value: true, label: getMessage('enable') },
+                { value: false, label: getMessage('disable') },
+              ]}
+            />
+          </div>
+          <p className="model-config-description">{getMessage('enableAgenticAutoApproveDescription') || '自动同意执行shell命令'}</p>
         </div>
 
         {/* Context Prune Setting */}

@@ -32,7 +32,9 @@ from autocoder.auto_coder_runner import (
     completer,
     summon,
     get_memory,
-    get_all_extensions
+    get_all_extensions,
+    start as start_engine,
+    stop as stop_engine
 )
 
 class AutoCoderRunnerWrapper:
@@ -41,6 +43,14 @@ class AutoCoderRunnerWrapper:
         self.product_mode = product_mode
         load_memory()
         load_tokenizer()
+
+
+    def start(self):
+        start_engine()
+
+    def stop(self):
+        stop_engine()                
+
     
     def get_all_extensions_wrapper(self):
         return get_all_extensions(self.project_path)

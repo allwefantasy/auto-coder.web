@@ -1,4 +1,4 @@
-auto-coder>=0.1.389
+auto-coder>=0.1.390
 aiofiles>=24.1.0
 psutil
 watchdog

@@ -50,6 +50,7 @@ class ProxyServer:
 
     def _initialize(self):
         self.auto_coder_runner = AutoCoderRunnerWrapper(self.project_path, product_mode=self.product_mode)        
+        self.auto_coder_runner.start()
         self.client = httpx.AsyncClient()
 
 
@@ -120,6 +121,8 @@ class ProxyServer:
 
         @self.app.on_event("shutdown")
         async def shutdown_event():
+            if self.auto_coder_runner:
+                self.auto_coder_runner.stop()
             await self.client.aclose()
 
         @self.app.websocket("/ws/terminal")

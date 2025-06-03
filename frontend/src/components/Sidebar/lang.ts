@@ -6,6 +6,7 @@ import { chatPanelsMessages } from './ChatPanels.lang'; // 添加ChatPanels.lang
 import { historyPanelMessages } from '../MainContent/HistoryPanel.lang';
 import { codeEditorMessages } from '../Editor/CodeEditor.lang'; // Import code editor messages
 import { libSelectorMessages } from './LibSelector.lang'; // Import LibSelector messages
+import { basicSettingsMessages } from '../MainContent/BasicSettings.lang'; // Import BasicSettings messages
 
 interface Message {
   en: string;
@@ -21,6 +22,7 @@ export const messages: { [key: string]: Message } = {
   ...historyPanelMessages,
   ...codeEditorMessages, // Merge code editor messages
   ...libSelectorMessages, // Merge LibSelector messages
+  ...basicSettingsMessages, // Merge BasicSettings messages
   contextPruneModel: {
     en: "Context Prune Model",
     zh: "上下文剪枝模型"
