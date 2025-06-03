@@ -5,6 +5,7 @@
 ## 规则列表
 
 *   [FastAPI 路由组织](./fastapi_router_organization.md): FastAPI 应用路由组织规范。
+*   [基础设置页配置新增规范](./basic_settings_configuration.md): 指导如何在 BasicSettings.tsx 中正确添加新的配置选项。
 *   [如何国际化](./如何国际化.md): 指导如何对页面进行国际化。
 *   [总是用中文回复](./always_repsond_in_chinese.md): 要求 Auto-coder 总是使用中文进行回复。
 *   [EventBus 参数修改规范](./eventbus_parameter_modification.md): 指导如何正确修改 EventBus 中的事件参数。
