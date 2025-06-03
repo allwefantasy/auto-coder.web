@@ -23,6 +23,7 @@ interface BasicSettingsState {
   skip_filter_index: boolean; // Added skip_filter_index
   enable_agentic_edit: boolean; // Added enable_agentic_edit
   enable_agentic_auto_approve: boolean; // Added enable_agentic_auto_approve
+  enable_agentic_dangerous_command_check: boolean; // Added enable_agentic_dangerous_command_check
   context_prune?: boolean;
   context_prune_safe_zone_tokens?: number;
 }
@@ -39,6 +40,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
     enable_agentic_filter: false,
     enable_agentic_edit: false, // Initialize to false
     enable_agentic_auto_approve: false, // Initialize enable_agentic_auto_approve
+    enable_agentic_dangerous_command_check: false, // Initialize enable_agentic_dangerous_command_check
     skip_build_index: false, // Initialize skip_build_index
     skip_filter_index: false, // Initialize skip_filter_index
     context_prune: true, // Initialize context_prune
@@ -86,6 +88,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
         }
         if (currentConfig.enable_agentic_auto_approve !== undefined) { // Fetch enable_agentic_auto_approve
           updatedSettings.enable_agentic_auto_approve = String(currentConfig.enable_agentic_auto_approve).toLowerCase() === 'true';
+        }
+        if (currentConfig.enable_agentic_dangerous_command_check !== undefined) { // Fetch enable_agentic_dangerous_command_check
+          updatedSettings.enable_agentic_dangerous_command_check = String(currentConfig.enable_agentic_dangerous_command_check).toLowerCase() === 'true';
         }
         if (currentConfig.skip_build_index !== undefined) { // Fetch skip_build_index
           updatedSettings.skip_build_index = String(currentConfig.skip_build_index).toLowerCase() === 'true';
@@ -143,6 +148,9 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
       }
       if (key.key === 'enable_agentic_auto_approve' && initialSettings.enable_agentic_auto_approve === undefined) { // Fallback for enable_agentic_auto_approve
         initialSettings.enable_agentic_auto_approve = String(key.default).toLowerCase() === 'true' || false;
+      }
+      if (key.key === 'enable_agentic_dangerous_command_check' && initialSettings.enable_agentic_dangerous_command_check === undefined) { // Fallback for enable_agentic_dangerous_command_check
+        initialSettings.enable_agentic_dangerous_command_check = String(key.default).toLowerCase() === 'true' || false;
       }
       if (key.key === 'skip_build_index' && initialSettings.skip_build_index === undefined) { // Fallback for skip_build_index
         initialSettings.skip_build_index = String(key.default).toLowerCase() === 'true' || false;
@@ -294,6 +302,26 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({ availableKeys, onSettingC
           </div>
           <p className="model-config-description">{getMessage('enableAgenticAutoApproveDescription') || '自动同意执行shell命令'}</p>
         </div>
+
+        {/* Enable Agentic Dangerous Command Check - New (only show when auto approve is enabled) */}
+        {settings.enable_agentic_auto_approve && (
+          <div className="model-config-item">
+            <label className="model-config-label">{getMessage('enableAgenticDangerousCommandCheck')}</label>
+            <div className="mt-1">
+              <Select
+                value={settings.enable_agentic_dangerous_command_check}
+                onChange={(value) => handleSettingChange('enable_agentic_dangerous_command_check', value)}
+                size="small"
+                style={{ width: '100%' }}
+                options={[
+                  { value: true, label: getMessage('enable') },
+                  { value: false, label: getMessage('disable') },
+                ]}
+              />
+            </div>
+            <p className="model-config-description">{getMessage('enableAgenticDangerousCommandCheckDescription')}</p>
+          </div>
+        )}
 
         {/* Context Prune Setting */}
         <div className="model-config-item">
