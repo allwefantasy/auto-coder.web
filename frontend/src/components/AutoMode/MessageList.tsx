@@ -35,6 +35,7 @@ import AgenticEditListFilesTool from './MessageTypes/AgenticEditListFilesTool';
 import AgenticEditReadFileTool from './MessageTypes/AgenticEditReadFileTool';
 import AgenticEditSearchFilesTool from './MessageTypes/AgenticEditSearchFilesTool';
 import AgenticEditUseMcpTool from './MessageTypes/AgenticEditUseMcpTool';
+import AgenticEditUseRAGTool from './MessageTypes/AgenticEditUseRAGTool';
 import AgenticEditAttemptCompletionTool from './MessageTypes/AgenticEditAttemptCompletionTool';
 import AgenticEditToolResult from './MessageTypes/AgenticEditToolResult';
 import AgenticEditApplyChanges from './MessageTypes/AgenticEditApplyChanges';
@@ -105,9 +106,13 @@ const MessageItem = React.memo(({
                     return <AgenticEditSearchFilesTool message={message} />;
                 }
 
-                if (content.tool_name === "UseMcpTool") {
-                    return <AgenticEditUseMcpTool message={message} />;
+                if (content.tool_name === "UseRAGTool") {
+                    return <AgenticEditUseRAGTool message={message} />;
                 }
+                // 如果工具名称和server_name都存在，则是MCP工具
+                if (content && content.tool_name && content.server_name) {
+                    return <AgenticEditUseMcpTool message={message} />;
+                }                
 
                 if (content.tool_name === "AttemptCompletionTool") {
                     return <AgenticEditAttemptCompletionTool message={message} />;

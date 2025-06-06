@@ -5,9 +5,12 @@ import { getMessage } from '../Sidebar/lang';
 import './ModelConfig.css';
 import '../../styles/custom_antd.css';
 import './CompilerConfig.css';
+import eventBus from '../../services/eventBus';
+import { EVENTS } from '../../services/eventBus';
 
 interface Rag {
   name: string;
+  description?: string;
   base_url: string;
   api_key: string;
 }
@@ -102,8 +105,8 @@ const RagConfig: React.FC = () => {
       
       setModalVisible(false);
       fetchRags();
-      EventBus.publish(EVENTS.RAG.UPDATED);
-      EventBus.publish(EVENTS.RAG.UPDATED);
+      eventBus.publish(EVENTS.RAG.UPDATED);
+      eventBus.publish(EVENTS.RAG.UPDATED);
     } catch (error) {
       console.error('Error saving RAG:', error);
       message.error(error instanceof Error ? error.message : getMessage('processingError'));
@@ -134,6 +137,12 @@ const RagConfig: React.FC = () => {
       title: getMessage('ragName') || 'Name',
       dataIndex: 'name',
       key: 'name',
+    },
+    {
+      title: getMessage('ragDescription') || 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: true,
     },
     {
       title: getMessage('ragBaseUrl') || 'RAG URL',
@@ -230,6 +239,13 @@ const RagConfig: React.FC = () => {
             rules={[{ required: true, message: getMessage('nameRequired') || 'Please enter a name' }]}
           >
             <Input disabled={!!editingRag} className="dark-input" />
+          </Form.Item>
+          
+          <Form.Item
+            name="description"
+            label={getMessage('ragDescription') || 'Description'}
+          >
+            <Input className="dark-input" placeholder={getMessage('ragDescriptionPlaceholder') || 'Enter RAG description'} />
           </Form.Item>
           
           <Form.Item

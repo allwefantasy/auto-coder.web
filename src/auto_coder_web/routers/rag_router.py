@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class Rag(BaseModel):
     name: str
+    description: Optional[str] = None
     base_url: str
     api_key: str = "xxxx"
 
