@@ -45,15 +45,19 @@ const AgenticEditAttemptCompletionTool: React.FC<AgenticEditAttemptCompletionToo
       <div className="completion-result">
         <MarkdownMessage message={resultMessage} />
       </div>
-      {/* Optional Command */}
-      {command && (
-        <div className="mt-2">
-          <span className="text-gray-400 text-xs">Suggested command: </span>
+      {/* Command Section - Always show */}
+      <div className="mt-2">
+        <span className="text-gray-400 text-xs">建议命令: </span>
+        {command ? (
           <span className="text-yellow-300 bg-gray-800 px-2 py-1 rounded text-sm font-mono break-all">
             {command}
           </span>
-        </div>
-      )}
+        ) : (
+          <span className="text-gray-500 text-sm italic">
+            无可用命令
+          </span>
+        )}
+      </div>
     </div>
   );
 };
