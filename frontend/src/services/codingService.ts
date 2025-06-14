@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'eventemitter3';
 import { v4 as uuidv4 } from 'uuid';
 import eventBus, { EVENTS } from './eventBus';
 import { 

@@ -1,5 +1,5 @@
 import { Message as AutoModeMessage } from '../components/AutoMode/types';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'eventemitter3';
 
 export class ChatListService extends EventEmitter {
   private defaultChatName: string = '';

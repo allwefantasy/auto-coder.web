@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'eventemitter3';
 
 /**
  * 文件组服务类 - 处理文件组相关操作

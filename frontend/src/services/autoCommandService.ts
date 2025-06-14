@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'eventemitter3';
 import { Message, AutoCommandEvent, StreamContent, ResultContent, AskUserContent, UserResponseContent, ErrorContent, CompletionContent, ResultTokenStatContent, ResultCommandPrepareStatContent, ResultCommandExecuteStatContent, ResultContextUsedContent, CodeContent, MarkdownContent, ResultSummaryContent, IndexBuildStartContent, IndexBuildEndContent } from '../components/AutoMode/types';
 
 

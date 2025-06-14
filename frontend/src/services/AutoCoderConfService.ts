@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'eventemitter3';
 import { message as AntdMessage } from 'antd';
 import { ConfigState, ConfigKey } from '../components/Sidebar/types';
 
