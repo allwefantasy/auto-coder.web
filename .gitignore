@@ -17,3 +17,7 @@ ref_repos
 /output.txt
 src/auto_coder_web.egg-info
 frontend/package-lock.json
+.venv/
+.auto-coder/
+/actions/
+/output.txt

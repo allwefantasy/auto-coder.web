@@ -80,26 +80,39 @@ export const EVENTS = {
     // 切换模式热键
     TOGGLE_MODE: 'hotkey.toggle.mode'
   }
-};
+}  as const;
 
 type Listener = (...args: any[]) => void;
+
+
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
+}[keyof T];
+
+type PickValues<T> = {
+  -readonly [k in keyof T]: T[k] extends Record<string,any> ?  Mutable<T[k]> : T[k];
+}[keyof T];
+
+type EventNames = PickValues<typeof EVENTS>;
+
+// type SubTypes<T> =   (T extends any ? (arg: T) => void : never) extends (arg: infer P) => void ? P : never
 
 class EventBus {
   private events: {[key: string]: Listener[]} = {};
   
-  subscribe(event: string, callback: Listener) {
+  subscribe(event: EventNames, callback: Listener) {
     if (!this.events[event]) {
       this.events[event] = [];
     }
-    this.events[event].push(callback);
+   const index =  this.events[event].push(callback);
     
     // 返回取消订阅函数
     return () => {
-      this.events[event] = this.events[event].filter(cb => cb !== callback);
+      this.events[event] = this.events[event].splice(index - 1, 1);
     };
   }
   
-  publish(event: string, ...args: any[]) {
+  publish(event: EventNames, ...args: any[]) {
     if (this.events[event]) {
       this.events[event].forEach(callback => callback(...args));
     }

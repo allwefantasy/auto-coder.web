@@ -44,9 +44,22 @@ const App: React.FC = () => {
     }
   );
 
+  async function checkUiMode(){
+   
+    try {
+         // Load saved mode preference
+    const response = await  fetch('/api/config/ui/mode')
+    const data = await response.json()
+    setIsExpertMode(data.mode === 'expert');
+    } catch (error) { console.error('Error loading mode preference:', error)
+    }
+       
+  }
+
   useEffect(() => {
+    
     // 初始化语言设置
-    initLanguage().then(() => {
+    initLanguage().then(async () => {
       // 其他初始化逻辑
       fetch('/api/project-path')
         .then(response => response.json())
@@ -56,17 +69,16 @@ const App: React.FC = () => {
           setProjectName(name);
         })
         .catch(error => console.error('Error fetching project path:', error));
-      
-      // Check initialization status
-      checkInitializationStatus();
 
-      // Load saved mode preference
-      fetch('/api/config/ui/mode')
-        .then(response => response.json())
-        .then(data => {
-          setIsExpertMode(data.mode === 'expert');
-        })
-        .catch(error => console.error('Error loading mode preference:', error));
+        // setIsCheckingInitialization(true);
+        Promise.allSettled([
+            // Check initialization status
+            checkInitializationStatus(),
+            checkUiMode()
+        ]).finally(() => {
+          setIsCheckingInitialization(false);
+        });
+
     });
 
     // 确保热键管理器在组件卸载时清理
@@ -78,16 +90,13 @@ const App: React.FC = () => {
   // Check if project is initialized
   const checkInitializationStatus = async () => {
     try {
-      setIsCheckingInitialization(true);
       const response = await fetch('/api/initialization-status');
       const data = await response.json();
       setIsInitialized(data.initialized);
     } catch (error) {
       console.error('Error checking initialization status:', error);
       setIsInitialized(false);
-    } finally {
-      setIsCheckingInitialization(false);
-    }
+    } 
   };
 
   // Toggle between expert and auto modes
@@ -141,6 +150,7 @@ const App: React.FC = () => {
   }
 
   return (
+   
     <TaskSplittingProvider>
       <div className="h-screen flex flex-col bg-gray-900 relative">
       {/* Mode Toggle - Fixed Panel */}
