@@ -20,7 +20,6 @@ from autocoder.events.event_manager_singleton import get_event_manager, gengerat
 from autocoder.events import event_content as EventContentCreator
 from autocoder.events.event_types import EventType
 from autocoder.common.global_cancel import global_cancel, CancelRequestedException
-from autocoder.command_parser import CommandParser
 # Add import for AutoCoderRunnerWrapper
 from auto_coder_web.auto_coder_runner_wrapper import AutoCoderRunnerWrapper
 from loguru import logger
