@@ -325,7 +325,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         
         {/* 消息区域 - 带滚动功能的主聊天界面，包含ChatPanel组件和侧边栏 */}
         {messages.length > 0 && isMessageAreaVisible && (
-          <div className="flex-1 mb-6 flex flex-col items-center w-full">
+          <div className="flex-1 mb-6 flex flex-col items-center w-full overflow-hidden">
             {/* 当自适应模式打开时，容器宽度接近页面宽度 */}
             <div className={`w-full max-h-full ${isMessageAreaAdaptive ? 'max-w-full px-4' : 'max-w-5xl'} flex`}>
               {/* 侧边栏 - 粘性定位，确保滚动时始终保持可见 */}
