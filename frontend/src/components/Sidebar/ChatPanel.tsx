@@ -1025,7 +1025,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       if (isWriteModeRef.current || isRuleModeRef.current || isCommandModeRef.current) {
         // 编码模式
         if (enableAgenticModeRef.current) {
-          console.log('ChatPanel: Step By Step enabled, using agenticEditService', processedText);
           const result = await agenticEditService.executeCommand(processedText, true);
           console.log('ChatPanel: Received result from agenticEditService:', result);
           setRequestId(result.event_file_id);

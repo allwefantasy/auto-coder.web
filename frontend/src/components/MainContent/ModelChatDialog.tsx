@@ -20,7 +20,6 @@ const ModelChatDialog: React.FC<ModelChatDialogProps> = ({ visible, onClose, mod
     setLoading(true);
     setMessages(msgs => [...msgs, { role: 'user', content: input }]);
     try {
-      console.log('Sending message:', input, 'with model:', model);
       // 调用真实API
       const reply = await directChat(input, model);
       if (reply && typeof reply === 'object' && reply.error) {

@@ -1,6 +1,9 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
 import { Editor, loader } from '@monaco-editor/react';
 import { Message as ServiceMessage, HistoryCommand } from './types';
+import { uploadImage } from '../../services/api';
+// 导入 monaco 编辑器类型
+import * as monaco from 'monaco-editor';
 
 // 定义 CompletionItem 类型用于自动完成
 interface CompletionItem {
@@ -72,6 +75,97 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   const [taskHistory, setTaskHistory] = useState<HistoryCommand[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      // 添加上传中状态反馈
+      const editor = editorRef.current;
+      if (editor) {
+        const position = editor.getPosition();
+        const loadingId = editor.executeEdits('', [{
+          range: new monaco.Range(
+            position.lineNumber,
+            position.column,
+            position.lineNumber,
+            position.column
+          ),
+          text: '![上传中...]()  ',
+          forceMoveMarkers: true
+        }]);
+
+        // 上传图片
+        const response = await uploadImage(file);
+        // console.log('Image upload response:', response);
+        if (response.success) {
+          // 获取当前光标位置
+          const currentPosition = editor.getPosition();
+
+          // 查找上传中文本的位置
+          const model = editor.getModel();
+          const content = model.getValue();
+          const loadingTextPos = content.indexOf('![上传中...]()');
+
+          if (loadingTextPos !== -1) {
+            // 计算行和列
+            let line = 1;
+            let col = 1;
+            for (let i = 0; i < loadingTextPos; i++) {
+              if (content[i] === '\n') {
+                line++;
+                col = 1;
+              } else {
+                col++;
+              }
+            }
+
+            // 替换上传中文本
+            editor.executeEdits('', [{
+              range: new monaco.Range(
+                line,
+                col,
+                line,
+                col + '![上传中...]()'.length
+              ),
+              text: `<_image_>${response.path}</_image_>`,
+              forceMoveMarkers: true
+            }]);
+          } else {
+            // 如果找不到上传中文本，则在当前位置插入
+            editor.executeEdits('', [{
+              range: new monaco.Range(
+                currentPosition.lineNumber,
+                currentPosition.column,
+                currentPosition.lineNumber,
+                currentPosition.column
+              ),
+              text: `<_image_>${response.path}</_image_>`,
+              forceMoveMarkers: true
+            }]);
+          }
+        } else {
+          console.error('Image upload failed:', response);
+        }
+      }
+    } catch (error) {
+      console.error('Image upload failed:', error);
+
+      // 显示错误信息
+      const editor = editorRef.current;
+      if (editor) {
+        const position = editor.getPosition();
+        editor.executeEdits('', [{
+          range: new monaco.Range(
+            position.lineNumber,
+            position.column,
+            position.lineNumber,
+            position.column
+          ),
+          text: ' [图片上传失败] ',
+          forceMoveMarkers: true
+        }]);
+      }
+    }
+  };
   
   // 加载历史命令
   useEffect(() => {
@@ -166,6 +260,33 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
   
   // 监听点击外部关闭历史列表
   useEffect(() => {
+    // 添加粘贴图片支持
+    const handlePaste = async (e: ClipboardEvent) => {
+      // 只处理当编辑器获得焦点时的粘贴事件
+      if (document.activeElement !== editorRef.current &&
+        !editorRef.current?.contains(document.activeElement)) {
+        return;
+      }
+
+      if (e.clipboardData && e.clipboardData.items) {
+        const items = e.clipboardData.items;
+
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') !== -1) {
+            // 阻止默认粘贴行为
+            e.preventDefault();
+
+            // 获取图片文件
+            const file = items[i].getAsFile();
+            if (file) {
+              await handleImageUpload(file);
+              break;
+            }
+          }
+        }
+      }
+    };
+
     const handleClickOutside = (event: MouseEvent) => {
       if (historyRef.current && !historyRef.current.contains(event.target as Node)) {
         setShowHistory(false);
@@ -175,9 +296,14 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
     if (showHistory) {
       document.addEventListener('mousedown', handleClickOutside);
     }
+
+    // 添加粘贴事件监听器到document
+    document.addEventListener('paste', handlePaste);
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      // 移除粘贴事件监听
+      document.removeEventListener('paste', handlePaste);
     };
   }, [showHistory]);
   
@@ -222,6 +348,36 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
         onToggleExpand();
       });
     }
+
+     // 添加粘贴事件监听器到编辑器实例
+    editor.onDidPaste(() => {
+      // 编辑器已经处理了粘贴，我们只需要检查是否有图片
+      setTimeout(() => {
+        // 延迟检查，确保系统粘贴事件已处理
+        const clipboardItems = navigator.clipboard && navigator.clipboard.read ?
+          navigator.clipboard.read().catch(() => null) : null;
+
+        if (clipboardItems) {
+          clipboardItems.then(items => {
+            if (items) {  // 添加null检查
+              for (const item of items) {
+                // 检查是否有图片类型
+                if (item.types && item.types.some(type => type.startsWith('image/'))) {
+                  const imageType = item.types.find(type => type.startsWith('image/'));
+                  if (imageType) {
+                    item.getType(imageType).then(blob => {
+                      const file = new File([blob], "pasted-image.png", { type: imageType });
+                      handleImageUpload(file);
+                    }).catch(e => console.error("获取图片失败:", e));
+                  }
+                }
+              }
+            }
+          }).catch(e => console.error("读取剪贴板失败:", e));
+        }
+      }, 0);
+    });
+
     
     // 注册自动完成提供者 - 支持 @文件 和 @@符号
     monacoInstance.languages.registerCompletionItemProvider('markdown', {
@@ -415,58 +571,59 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
           </div>
         )}
       </div>
-      
-      <Editor
-        height="100%"
-        defaultLanguage="markdown"
-        value={value}
-        onChange={(newValue) => onChange(newValue || '')}
-        theme="vs-dark"
-        onMount={handleEditorDidMount}
-        loading={null}
-        beforeMount={(monacoInstance) => {
-          // 配置 Monaco 环境，使用本地 worker
-          window.MonacoEnvironment = {
-            getWorkerUrl: (workerId: string, label: string): string => {
-              return `/monaco-editor/min/vs/base/worker/workerMain.js`;
-            }
-          };
-        }}
-        options={{
-          minimap: { enabled: false },
-          scrollBeyondLastLine: false,
-          wordWrap: 'on',
-          lineNumbers: 'off',
-          folding: false,
-          fontSize: 12,
-          lineHeight: 16,
-          automaticLayout: true,
-          contextmenu: false,
-          overviewRulerLanes: 0,
-          overviewRulerBorder: false,
-          hideCursorInOverviewRuler: true,
-          glyphMargin: false,
-          renderLineHighlight: 'none',
-          lineDecorationsWidth: 0,
-          lineNumbersMinChars: 0,
-          suggestOnTriggerCharacters: true,
-          quickSuggestions: true,
-          acceptSuggestionOnEnter: 'smart',
-          fixedOverflowWidgets: true,
-          padding: { top: 8, bottom: 8 },
-          scrollbar: {
-            vertical: 'hidden',
-            horizontal: 'hidden',
-            useShadows: false,
-            alwaysConsumeMouseWheel: false
-          },
-          suggest: {
-            insertMode: 'replace',
-            snippetsPreventQuickSuggestions: false,
-          },
-          readOnly: disabled
-        }}
-      />
+      <div ref={editorRef} className="w-full h-full">
+        <Editor
+          height="100%"
+          defaultLanguage="markdown"
+          value={value}
+          onChange={(newValue) => onChange(newValue || '')}
+          theme="vs-dark"
+          onMount={handleEditorDidMount}
+          loading={null}
+          beforeMount={(monacoInstance) => {
+            // 配置 Monaco 环境，使用本地 worker
+            window.MonacoEnvironment = {
+              getWorkerUrl: (workerId: string, label: string): string => {
+                return `/monaco-editor/min/vs/base/worker/workerMain.js`;
+              }
+            };
+          }}
+          options={{
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            wordWrap: 'on',
+            lineNumbers: 'off',
+            folding: false,
+            fontSize: 12,
+            lineHeight: 16,
+            automaticLayout: true,
+            contextmenu: false,
+            overviewRulerLanes: 0,
+            overviewRulerBorder: false,
+            hideCursorInOverviewRuler: true,
+            glyphMargin: false,
+            renderLineHighlight: 'none',
+            lineDecorationsWidth: 0,
+            lineNumbersMinChars: 0,
+            suggestOnTriggerCharacters: true,
+            quickSuggestions: true,
+            acceptSuggestionOnEnter: 'smart',
+            fixedOverflowWidgets: true,
+            padding: { top: 8, bottom: 8 },
+            scrollbar: {
+              vertical: 'hidden',
+              horizontal: 'hidden',
+              useShadows: false,
+              alwaysConsumeMouseWheel: false
+            },
+            suggest: {
+              insertMode: 'replace',
+              snippetsPreventQuickSuggestions: false,
+            },
+            readOnly: disabled
+          }}
+        />
+      </div>
       
       {/* 按钮容器 - 放置提交按钮或取消按钮 */}
       <div className="absolute right-0 top-0 bottom-0 flex items-center pr-2">
