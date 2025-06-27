@@ -33,7 +33,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
 
   // 滚动到消息列表底部的辅助函数
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current && messagesEndRef.current.parentNode) {
+      (messagesEndRef.current.parentNode as HTMLElement).scrollTop = messagesEndRef.current.offsetTop;
+    }
   }, []);
 
   // 当messages变化时更新累计统计
@@ -258,7 +260,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
         {!shouldAutoScroll && messages.length > 0 && (
           <button
             onClick={() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+              scrollToBottom();
               setShouldAutoScroll(true);
             }}
             className="fixed bottom-24 right-4 z-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"

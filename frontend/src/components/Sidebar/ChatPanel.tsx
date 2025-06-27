@@ -234,6 +234,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   // 添加 ref 来跟踪 localRequestId 的最新值
   const localRequestIdRef = useRef<string>('');
 
+    // 滚动到对话区域底部
+  const scrollToBottom = () => {
+    if (messagesEndRef.current && messagesEndRef.current.parentNode) {
+      // messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      (messagesEndRef.current.parentNode as HTMLElement).scrollTop = messagesEndRef.current.offsetTop;
+    }
+  };
+
   // 当 localRequestId 更新时，同步更新 ref
   useEffect(() => {
     localRequestIdRef.current = localRequestId;
@@ -292,7 +300,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   useEffect(() => {
     // 只有当用户在查看底部时，才自动滚动到新消息
     if (isAtBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      scrollToBottom();
     }
   }, [messages, isAtBottom]);
 
@@ -744,7 +752,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 滚动到底部
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      scrollToBottom();
     }, 200);
 
   }, [panelId]);
@@ -1323,13 +1331,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     };
   }, [messages]);
 
-  // 滚动到对话区域底部
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   // 重置对话
   const handleReset = async () => {
     if (pendingRevert) return;
@@ -1617,7 +1618,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                 size="small"
                 icon={<DownOutlined />}
                 onClick={() => {
-                  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  scrollToBottom();
                   setIsAtBottom(true);
                 }}
                 className="fixed bottom-24 right-4 z-10 bg-indigo-600 hover:bg-indigo-700 border-0 shadow-lg flex items-center justify-center"
