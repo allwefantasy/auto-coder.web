@@ -184,6 +184,98 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     return mentionData;
   }, [updateMentionDecorations]);
 
+  
+  const handleImageUpload = async (file: File) => {
+    try {
+      // 添加上传中状态反馈
+      const editor = editorRef.current;
+      if (editor) {
+        const position = editor.getPosition();
+        const loadingId = editor.executeEdits('', [{
+          range: new monaco.Range(
+            position.lineNumber,
+            position.column,
+            position.lineNumber,
+            position.column
+          ),
+          text: '![上传中...]()  ',
+          forceMoveMarkers: true
+        }]);
+
+        // 上传图片
+        const response = await uploadImage(file);
+        // console.log('Image upload response:', response);
+        if (response.success) {
+          // 获取当前光标位置
+          const currentPosition = editor.getPosition();
+
+          // 查找上传中文本的位置
+          const model = editor.getModel();
+          const content = model.getValue();
+          const loadingTextPos = content.indexOf('![上传中...]()');
+
+          if (loadingTextPos !== -1) {
+            // 计算行和列
+            let line = 1;
+            let col = 1;
+            for (let i = 0; i < loadingTextPos; i++) {
+              if (content[i] === '\n') {
+                line++;
+                col = 1;
+              } else {
+                col++;
+              }
+            }
+
+            // 替换上传中文本
+            editor.executeEdits('', [{
+              range: new monaco.Range(
+                line,
+                col,
+                line,
+                col + '![上传中...]()'.length
+              ),
+              text: `<_image_>${response.path}</_image_>`,
+              forceMoveMarkers: true
+            }]);
+          } else {
+            // 如果找不到上传中文本，则在当前位置插入
+            editor.executeEdits('', [{
+              range: new monaco.Range(
+                currentPosition.lineNumber,
+                currentPosition.column,
+                currentPosition.lineNumber,
+                currentPosition.column
+              ),
+              text: `<_image_>${response.path}</_image_>`,
+              forceMoveMarkers: true
+            }]);
+          }
+        } else {
+          console.error('Image upload failed:', response);
+        }
+      }
+    } catch (error) {
+      console.error('Image upload failed:', error);
+
+      // 显示错误信息
+      const editor = editorRef.current;
+      if (editor) {
+        const position = editor.getPosition();
+        editor.executeEdits('', [{
+          range: new monaco.Range(
+            position.lineNumber,
+            position.column,
+            position.lineNumber,
+            position.column
+          ),
+          text: ' [图片上传失败] ',
+          forceMoveMarkers: true
+        }]);
+      }
+    }
+  };
+
   React.useEffect(() => {
     // 在组件挂载时注入样式
     const styleElement = document.createElement('style');
@@ -315,97 +407,6 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
       unsubscribe();
     };
   }, [isActive, panelId]);
-
-  const handleImageUpload = async (file: File) => {
-    try {
-      // 添加上传中状态反馈
-      const editor = editorRef.current;
-      if (editor) {
-        const position = editor.getPosition();
-        const loadingId = editor.executeEdits('', [{
-          range: new monaco.Range(
-            position.lineNumber,
-            position.column,
-            position.lineNumber,
-            position.column
-          ),
-          text: '![上传中...]()  ',
-          forceMoveMarkers: true
-        }]);
-
-        // 上传图片
-        const response = await uploadImage(file);
-
-        if (response.success) {
-          // 获取当前光标位置
-          const currentPosition = editor.getPosition();
-
-          // 查找上传中文本的位置
-          const model = editor.getModel();
-          const content = model.getValue();
-          const loadingTextPos = content.indexOf('![上传中...]()');
-
-          if (loadingTextPos !== -1) {
-            // 计算行和列
-            let line = 1;
-            let col = 1;
-            for (let i = 0; i < loadingTextPos; i++) {
-              if (content[i] === '\n') {
-                line++;
-                col = 1;
-              } else {
-                col++;
-              }
-            }
-
-            // 替换上传中文本
-            editor.executeEdits('', [{
-              range: new monaco.Range(
-                line,
-                col,
-                line,
-                col + '![上传中...]()'.length
-              ),
-              text: `<_image_>${response.path}</_image_>`,
-              forceMoveMarkers: true
-            }]);
-          } else {
-            // 如果找不到上传中文本，则在当前位置插入
-            editor.executeEdits('', [{
-              range: new monaco.Range(
-                currentPosition.lineNumber,
-                currentPosition.column,
-                currentPosition.lineNumber,
-                currentPosition.column
-              ),
-              text: `<_image_>${response.path}</_image_>`,
-              forceMoveMarkers: true
-            }]);
-          }
-        } else {
-          console.error('Image upload failed:', response);
-        }
-      }
-    } catch (error) {
-      console.error('Image upload failed:', error);
-
-      // 显示错误信息
-      const editor = editorRef.current;
-      if (editor) {
-        const position = editor.getPosition();
-        editor.executeEdits('', [{
-          range: new monaco.Range(
-            position.lineNumber,
-            position.column,
-            position.lineNumber,
-            position.column
-          ),
-          text: ' [图片上传失败] ',
-          forceMoveMarkers: true
-        }]);
-      }
-    }
-  };
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     // 存储editor引用
