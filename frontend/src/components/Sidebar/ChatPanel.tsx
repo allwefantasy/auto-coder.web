@@ -959,6 +959,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       AntdMessage.warning('Please enter a message');
       return;
     }
+    // 优先设置loading，防止频繁点击点击
+    setSendLoading(true);
 
     // 如果有当前对话名称且有消息，先保存当前对话
     if (chatListNameRef.current && messagesRef.current.length > 0) {
@@ -989,7 +991,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     // 添加用户消息
     const messageId = addUserMessage(trimmedText);
     editorRef.current?.setValue("");
-    setSendLoading(true);
+   
     updateMessageStatus(messageId, 'sent');
 
     try {

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Tree, Dropdown, Modal, message, Input, Tooltip, Empty, Form } from 'antd';
-import { 
-  SearchOutlined, 
-  FolderOutlined, 
-  FileOutlined, 
+import {
+  SearchOutlined,
+  FolderOutlined,
+  FileOutlined,
   DeleteOutlined,
   ReloadOutlined,
   FolderAddOutlined,
@@ -19,12 +19,15 @@ import './FileTree.css';
 
 interface FileTreeProps {
   treeData: DataNode[];
+  expandedKeys?: string[];
   onSelect: (selectedKeys: React.Key[], info: any) => void;
   onRefresh: () => Promise<void>;
   projectName?: string;
 }
 
-const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, projectName }) => {
+const { DirectoryTree } = Tree;
+
+const FileTree: React.FC<FileTreeProps> = ({ treeData, expandedKeys, onSelect, onRefresh, projectName }) => {
   const [filteredTreeData, setFilteredTreeData] = useState<DataNode[]>(treeData);
   const [contextMenuNode, setContextMenuNode] = useState<DataNode | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -49,7 +52,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
       const response = await fetch(`/api/files/${node.key}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to delete');
       }
@@ -66,15 +69,15 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
     event.preventDefault();
     setContextMenuNode(node);
   };
-  
+
   const handleCreateNewFile = async () => {
     if (!newFileName.trim()) return;
-    
+
     // Determine the path for the new file
-    const fullPath = newFileParentPath 
-      ? `${newFileParentPath}/${newFileName}`.replace(/\/\//g, '/') 
+    const fullPath = newFileParentPath
+      ? `${newFileParentPath}/${newFileName}`.replace(/\/\//g, '/')
       : newFileName;
-    
+
     try {
       const response = await fetch(`/api/file/${fullPath}`, {
         method: 'POST',
@@ -83,12 +86,12 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
         },
         body: JSON.stringify({ content: '' }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Failed to create file');
       }
-      
+
       message.success(`Successfully created ${newFileName}`);
       setIsNewFileModalVisible(false);
       setNewFileName('');
@@ -98,25 +101,25 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
       message.error(error instanceof Error ? error.message : 'Failed to create file');
     }
   };
-  
+
   const handleCreateNewDirectory = async () => {
     if (!newDirName.trim()) return;
-    
+
     // Determine the path for the new directory
-    const fullPath = newDirParentPath 
-      ? `${newDirParentPath}/${newDirName}`.replace(/\/\//g, '/') 
+    const fullPath = newDirParentPath
+      ? `${newDirParentPath}/${newDirName}`.replace(/\/\//g, '/')
       : newDirName;
-    
+
     try {
       const response = await fetch(`/api/directory/${fullPath}`, {
         method: 'POST',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Failed to create directory');
       }
-      
+
       message.success(`Successfully created directory ${newDirName}`);
       setIsNewDirModalVisible(false);
       setNewDirName('');
@@ -126,7 +129,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
       message.error(error instanceof Error ? error.message : 'Failed to create directory');
     }
   };
-  
+
   // Helper function to get file extension
   const getFileExtension = (filename: string): string => {
     const parts = filename.toString().split('.');
@@ -141,13 +144,13 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
   const handleSearch = (value: string) => {
     const searchText = value.toLowerCase();
     setSearchValue(value);
-    
+
     if (!searchText) {
       setFilteredTreeData(treeData);
       setIsSearchActive(false);
       return;
     }
-    
+
     setIsSearchActive(true);
 
     // Helper function to get all leaf nodes (files) from tree
@@ -188,7 +191,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
 
   const getMenuItems = (): MenuProps['items'] => {
     const items: MenuProps['items'] = [];
-    
+
     // Only show "New File" and "New Directory" options for directories
     if (contextMenuNode && isDirectory(contextMenuNode)) {
       items.push({
@@ -200,7 +203,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
           setIsNewFileModalVisible(true);
         },
       });
-      
+
       items.push({
         key: 'new-directory',
         icon: <FolderAddOutlined />,
@@ -211,55 +214,55 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
         },
       });
     }
-    
+
     items.push(
-    {
-      key: 'info',
-      icon: <InfoCircleOutlined />,
-      label: 'File Info',
-      onClick: () => {
-        if (contextMenuNode) {
-          message.info(`Path: ${contextMenuNode.key}`);
-        }
+      {
+        key: 'info',
+        icon: <InfoCircleOutlined />,
+        label: 'File Info',
+        onClick: () => {
+          if (contextMenuNode) {
+            message.info(`Path: ${contextMenuNode.key}`);
+          }
+        },
       },
-    },
-    {
-      key: 'copy',
-      icon: <CopyOutlined />,
-      label: 'Copy Path',
-      onClick: () => {
-        if (contextMenuNode) {
-          navigator.clipboard.writeText(contextMenuNode.key.toString());
-          message.success('Path copied to clipboard');
-        }
+      {
+        key: 'copy',
+        icon: <CopyOutlined />,
+        label: 'Copy Path',
+        onClick: () => {
+          if (contextMenuNode) {
+            navigator.clipboard.writeText(contextMenuNode.key.toString());
+            message.success('Path copied to clipboard');
+          }
+        },
       },
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'delete',
-      icon: <DeleteOutlined />,
-      label: 'Delete',
-      danger: true,
-      onClick: () => {
-        if (contextMenuNode) {
-          const nodeKey = contextMenuNode.key.toString();
-          const nodeName = nodeKey.split('/').pop() || nodeKey; // Extract name from path
-          Modal.confirm({
-            title: 'Delete Confirmation',
-            content: `Are you sure you want to delete ${nodeName}?`,
-            okText: 'Yes',
-            okType: 'danger',
-            cancelText: 'No',
-            onOk() {
-              handleDelete(contextMenuNode);
-            },
-          });
-        }
+      {
+        type: 'divider',
       },
-    });
-    
+      {
+        key: 'delete',
+        icon: <DeleteOutlined />,
+        label: 'Delete',
+        danger: true,
+        onClick: () => {
+          if (contextMenuNode) {
+            const nodeKey = contextMenuNode.key.toString();
+            const nodeName = nodeKey.split('/').pop() || nodeKey; // Extract name from path
+            Modal.confirm({
+              title: 'Delete Confirmation',
+              content: `Are you sure you want to delete ${nodeName}?`,
+              okText: 'Yes',
+              okType: 'danger',
+              cancelText: 'No',
+              onOk() {
+                handleDelete(contextMenuNode);
+              },
+            });
+          }
+        },
+      });
+
     return items;
   };
 
@@ -282,7 +285,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
     const fileName = node.title?.toString() || '';
     const isDir = !node.isLeaf;
     const ext = getFileExtension(fileName);
-    
+
     return (
       <div className="file-node">
         <span className={`file-icon ${isDir ? 'folder' : `file file-${ext}`}`}>
@@ -300,14 +303,24 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
         ...node,
         title: renderTitle(node),
       };
-      
+
       if (node.children) {
         processedNode.children = processTreeData(node.children);
       }
-      
+
       return processedNode;
     });
   };
+
+
+  const handlerWrapper = (expandedKeys: React.Key[], info: any) => {
+    const { node, expanded, selected } = info
+    if (expanded === false || selected === false) return
+    //TODO 理论上远程仓库文件列表再已有得情况下，不需要每次展开都更新
+    if (node.children?.length > 0) return
+
+    onSelect(expandedKeys, info)
+  }
 
   // Processed tree data with custom rendering
   const processedTreeData = React.useMemo(() => {
@@ -343,7 +356,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
           </Form.Item>
         </Form>
       </Modal>
-      
+
       <Modal
         title={newDirParentPath ? `Create New Directory in ${newDirParentPath}` : "Create New Directory in Root"}
         open={isNewDirModalVisible}
@@ -371,7 +384,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
           </Form.Item>
         </Form>
       </Modal>
-      
+
       <div className="file-tree-header">
         <div className="file-tree-header-title">
           {projectName || 'Project Files'}
@@ -419,7 +432,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
           </Tooltip>
         </div>
       </div>
-      
+
       <div className="file-tree-search">
         <Input
           prefix={<SearchOutlined className="text-gray-400" />}
@@ -430,7 +443,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
           onChange={(e) => handleSearch(e.target.value)}
         />
       </div>
-      
+
       <div className="file-tree-content">
         {treeData.length === 0 ? (
           <div className="empty-state">
@@ -453,10 +466,13 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, onSelect, onRefresh, proj
         ) : (
           <Dropdown menu={{ items: getMenuItems() }} trigger={['contextMenu']} overlayClassName="vscode-dark-dropdown">
             <div className="file-tree">
-              <Tree
+              <DirectoryTree
+                autoExpandParent
+                // showLine
                 showIcon={false}
                 defaultExpandAll
-                onSelect={onSelect}
+                onSelect={handlerWrapper}
+                onExpand={handlerWrapper}
                 onRightClick={handleRightClick}
                 treeData={processedTreeData}
                 height={999999}

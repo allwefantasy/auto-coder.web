@@ -4,7 +4,7 @@ import asyncio
 import aiofiles
 import aiofiles.os
 from typing import List, Dict, Any, Optional
-
+from loguru import logger
 
 def get_directory_tree(root_path: str, path: str = None, lazy: bool = False) -> List[Dict[str, Any]]:
     """
@@ -189,6 +189,7 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
             is_dir = await aiofiles.os.path.isdir(full_path)
 
             if is_dir:
+                isLeaf = False
                 if lazy:
                     # For lazy loading, check if directory has any visible children asynchronously
                     has_children = False
@@ -205,26 +206,19 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
                         'title': name,
                         'key': relative_path,
                         'children': [],  # Empty children array for lazy loading
-                        'isLeaf': False,
+                        'isLeaf': isLeaf,
                         'hasChildren': has_children
                     }
                 else:
                     children = await build_tree(full_path)
-                    if children:  # Only add non-empty directories
-                        return {
-                            'title': name,
-                            'key': relative_path,
-                            'children': children,
-                            'isLeaf': False,
-                            'hasChildren': True
-                        }
-                    else: # Represent empty directories as leaves if not lazy loading
-                         return {
-                            'title': name,
-                            'key': relative_path,                            
-                            'isLeaf': True,
-                            'hasChildren': False
-                        }
+                    return {
+                        'title': name,
+                        'key': relative_path,
+                        'children': children,
+                        'isLeaf': isLeaf,
+                        'testAttr':"123",
+                        'hasChildren': bool(children)
+                    }
             else:
                 return {
                     'title': name,

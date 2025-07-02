@@ -14,14 +14,15 @@ const TerminalManager: React.FC = () => {
   ]);
   
   // 在组件挂载时触发resize事件
-  useEffect(() => {
-    const handleResize = () => {
-      window.dispatchEvent(new Event('resize'));
-    };
-    handleResize(); // 初始化时触发一次
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  // 注释掉，暂时没发现这里去掉后有什么影响，其他监听的都有自己的完整的监听卸载事件
+  // useEffect(() => {
+  //   const handleResize = () => {
+  //     window.dispatchEvent(new Event('resize'));
+  //   };
+  //   handleResize(); // 初始化时触发一次
+  //   window.addEventListener('resize', handleResize);
+  //   return () => window.removeEventListener('resize', handleResize);
+  // }, []);
   const [activeTerminal, setActiveTerminal] = useState<string>('1');
   const [isSettingsVisible, setIsSettingsVisible] = useState<boolean>(false);
 
