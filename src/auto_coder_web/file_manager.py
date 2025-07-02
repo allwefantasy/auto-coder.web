@@ -211,7 +211,8 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
                     }
                 else:
                     children = await build_tree(full_path)
-                     return {
+
+                    return {
                         'title': name,
                         'key': relative_path,
                         'children': children,
