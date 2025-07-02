@@ -9,6 +9,7 @@ import { FileMetadata } from '../../types/file_meta';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import { getMessage } from '../Sidebar/lang'; // Import getMessage for i18n
 import axios from 'axios';
+import { queryToString } from '@/utils/formatUtils'
 import './CodeEditor.css';
 
 interface CodeEditorProps {
@@ -37,6 +38,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [fileTabs, setFileTabs] = useState<FileTab[]>([]);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
+  
   const [saving, setSaving] = useState<boolean>(false);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         label: tab.label
       }));
       eventBus.publish(EVENTS.EDITOR.TABS_CHANGED, openedFiles);
-      
+
       // 保存标签页状态到后端
       saveTabsToBackend();
     }
@@ -82,7 +84,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
   useEffect(() => {
     fetchFileTree();
   }, []);
-  
+
   // 加载保存的标签页状态
   const loadTabsFromBackend = async (): Promise<EditorTabsConfig | null> => {
     try {
@@ -93,7 +95,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
       return null;
     }
   };
-  
+
   // 保存标签页状态到后端
   const saveTabsToBackend = async () => {
     try {
@@ -102,7 +104,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         label: tab.label,
         isActive: tab.key === activeFile
       }));
-      
+
       await axios.put('/api/editor/tabs', tabs);
     } catch (error) {
       console.error('保存编辑器标签页失败:', error);
@@ -116,21 +118,21 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         throw new Error('Failed to fetch file content');
       }
       const data = await response.json();
-      
+
       setFileTabs(prev => {
         const existingTab = prev.find(tab => tab.key === filePath);
         if (existingTab) {
-          return prev.map(tab => 
+          return prev.map(tab =>
             tab.key === filePath ? { ...tab, content: data.content } : tab
           );
         }
-        
+
         const newTab = {
           key: filePath,
           label: filePath.split('/').pop() || filePath,
           content: data.content
         };
-        
+
         // 添加新标签到后端
         try {
           axios.post('/api/editor/tabs', {
@@ -141,7 +143,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         } catch (error) {
           console.error('添加标签页失败:', error);
         }
-        
+
         return [...prev, newTab];
       });
     } catch (error) {
@@ -150,14 +152,14 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
     }
   };
 
-  const fetchFileTree = async () => {
+  const fetchFileTree = async (path = '') => {
     try {
-      const response = await fetch('/api/files');
+      const response = await fetch(`/api/files${queryToString({ lazy: true, path })}`);
       if (!response.ok) {
         throw new Error('Failed to fetch file tree');
       }
       const data = await response.json();
-      
+
       const transformNode = (node: any): DataNode => {
         const isLeaf = node.isLeaf;
         return {
@@ -168,9 +170,35 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
           isLeaf,
         };
       };
-      
+
       const transformedTree = data.tree.map(transformNode);
-      setTreeData(transformedTree);
+      if (!path) {
+        setTreeData(transformedTree);
+        return
+      }
+   
+      const pathList = path.split('\\')
+      let i = 0
+      const findCurPathData = (list: DataNode[]) => {
+        if (!list || !list.length) return
+        for (let k = 0; k < list.length; k++) {
+          const item = list[k]
+          const { children, title, isLeaf } = item
+          if (isLeaf) continue
+          const _pathName = pathList[i]
+          if (title !== _pathName) continue
+
+          if (pathList[++i]) {
+            return findCurPathData(children!)
+          }
+          return item
+        }
+      }
+      // 找到对应目录并更新数据
+      const _data = findCurPathData(treeData)
+      if (!_data) return
+      _data.children = data.tree.map(transformNode)
+      setTreeData([...treeData]);
     } catch (error) {
       console.error('Error fetching file tree:', error);
     }
@@ -178,7 +206,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
 
   const handleSave = async () => {
     if (!activeFile || saving) return;
-    
+
     try {
       setSaving(true);
       const currentTab = fileTabs.find(tab => tab.key === activeFile);
@@ -207,19 +235,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
 
   const handleSelect = async (selectedKeys: React.Key[], info: any) => {
     const key = selectedKeys[0] as string;
-    if (key && info.node.isLeaf) {
+    if (!key) return
+
+    const { isLeaf, key: filePath ,children} = info.node
+    if (isLeaf) {
       const newFile: FileMetadata = { path: key, isSelected: true };
       if (!selectedFiles.some(f => f.path === key)) {
         setSelectedFiles(prev => [...prev, newFile]);
       }
       setActiveFile(key);
       loadFileContent(key);
+      return
     }
+
+    await fetchFileTree(filePath)
   };
 
   const handleTabChange = async (key: string) => {
     setActiveFile(key);
-    
+
     // 更新后端活跃标签
     try {
       await axios.put('/api/editor/active-tab', { path: key });
@@ -232,7 +266,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
     if (action === 'remove') {
       setFileTabs(prev => prev.filter(tab => tab.key !== targetKey));
       setSelectedFiles(prev => prev.filter(file => file.path !== targetKey));
-      
+
       if (activeFile === targetKey) {
         // 如果关闭的是当前活跃标签，切换到第一个标签
         const remainingTabs = fileTabs.filter(tab => tab.key !== targetKey);
@@ -242,7 +276,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
           setActiveFile(null);
         }
       }
-      
+
       // 从后端删除标签
       try {
         await axios.delete(`/api/editor/tabs/${targetKey}`);
@@ -270,7 +304,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
     if (activeFile !== filePathToKeep) {
       setActiveFile(filePathToKeep);
     }
-    
+
     // 更新后端标签状态
     try {
       const tabs: EditorTab[] = [{
@@ -278,7 +312,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         label: filePathToKeep.split('/').pop() || filePathToKeep,
         isActive: true
       }];
-      
+
       await axios.put('/api/editor/tabs', tabs);
     } catch (error) {
       console.error('更新标签页失败:', error);
@@ -322,8 +356,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
               className="save-button"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
               </svg>
               {getMessage('codeEditor.save')}
             </button>
@@ -331,9 +365,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         </div>
       </div>
 
-      <Split 
+      <Split
         className="code-editor-content"
-        sizes={[20, 80]} 
+        sizes={[20, 80]}
         minSize={100}
         expandToMin={false}
         gutterSize={10}
@@ -343,9 +377,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
         direction="horizontal"
       >
         <div className="file-tree-panel">
-          <FileTree 
-            treeData={treeData} 
-            onSelect={handleSelect} 
+          <FileTree
+            treeData={treeData}
+            onSelect={handleSelect}
             onRefresh={fetchFileTree}
           />
         </div>
@@ -363,7 +397,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
                   key={tab.key}
                   tab={
                     <Dropdown overlay={renderContextMenu(tab.key, tab.label)} trigger={['contextMenu']} overlayClassName="vscode-dark-dropdown">
-                      <span style={{ 
+                      <span style={{
                         color: fileMeta?.modifiedBy === 'expert_chat_box' ? '#ff4d4f' : 'inherit',
                         display: 'inline-block' // Necessary for Dropdown trigger
                       }}>
@@ -377,8 +411,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
                     code={tab.content}
                     language={getLanguageByFileName(tab.key)}
                     onChange={(value) => {
-                      setFileTabs(prev => 
-                        prev.map(t => 
+                      setFileTabs(prev =>
+                        prev.map(t =>
                           t.key === tab.key ? { ...t, content: value || '' } : t
                         )
                       );

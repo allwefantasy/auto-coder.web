@@ -625,7 +625,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                   }`}
                 onClick={sendLoading ? handleCancelGeneration : () => handleSendMessage()}
                 disabled={isCancelling}
-                title={sendLoading ? (isCancelling ? getMessage('cancelling') : getMessage('stop')) : getMessage('send')}
+                title={sendLoading ? getMessage(isCancelling ? 'cancelling' : 'stop') : getMessage('send')}
               >
                 {(() => {
                   let icon;
