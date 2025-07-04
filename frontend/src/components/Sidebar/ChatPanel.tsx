@@ -1579,7 +1579,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-gray-400 animate-fade-in">
                 <MessageOutlined style={{ fontSize: '36px', marginBottom: '10px', opacity: 0.5 }} />
-                <Typography.Title level={5} className="text-gray-300 mb-1">
+                <Typography.Title level={5} className="!text-gray-300 mb-1">
                   开始一个新的对话
                 </Typography.Title>
                 <Typography.Text className="text-gray-400 text-center max-w-md text-xs">

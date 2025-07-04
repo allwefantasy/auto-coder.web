@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Switch, Select, Tooltip, message as AntdMessage, Spin } from 'antd';
-import { UndoOutlined, BuildOutlined, LoadingOutlined } from '@ant-design/icons';
+import { UndoOutlined, BuildOutlined, LoadingOutlined,QuestionCircleOutlined } from '@ant-design/icons';
 import EditorComponent from './EditorComponent';
 import { getMessage } from './lang';
 import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
@@ -584,14 +584,19 @@ const InputArea: React.FC<InputAreaProps> = ({
                     popupMatchSelectWidth={false}
                   />
                 </Tooltip>
-                {/* 快捷键提示 */}
-                <kbd className="px-0.5 py-0 ml-1 text-[8px] font-semibold text-gray-400 bg-gray-800 border border-gray-600 rounded shadow-sm">
-                  {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
-                </kbd>                
-                <span className="text-[8px] text-gray-500 inline-flex items-center">to send</span>
-                <div className="text-gray-400 text-[8px]">
-                    /{navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize
-                </div>
+                <Tooltip title={()=>{
+                    return <div className='w-[260px] text-white text-[10px]'>
+                              {/* 快捷键提示 */}
+                              <kbd className="px-0.5 py-0 mx-1 font-semibold bg-gray-800 border border-white-600 rounded shadow-sm">
+                                {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
+                              </kbd>                
+                              <span>to send / {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize</span>
+                             
+                          </div>
+                    }}>
+                  <QuestionCircleOutlined className='text-white'/>
+                </Tooltip>
+                
               </div>
               
               {/* Agent模式切换 */}
@@ -616,52 +621,63 @@ const InputArea: React.FC<InputAreaProps> = ({
               </div>
 
               {/* 发送/停止按钮 */}
-              <button
-                className={`p-0.5 rounded-md transition-all duration-200
-                  focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
-                  ${sendLoading 
-                    ? 'text-gray-400 hover:text-gray-300' 
-                    : 'text-blue-500 hover:text-blue-600'
-                  }`}
-                onClick={sendLoading ? handleCancelGeneration : () => handleSendMessage()}
-                disabled={isCancelling}
-                title={sendLoading ? getMessage(isCancelling ? 'cancelling' : 'stop') : getMessage('send')}
-              >
-                {(() => {
-                  let icon;
-                  if (sendLoading) {
-                    if (isCancelling) {
-                      icon = (
-                        <div className="relative">
-                          <svg className="h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </div>
-                      );
+              <Tooltip title={()=>{
+                return sendLoading?null:<div className=' text-white text-[10px]'>
+                          {/* 快捷键提示 */}
+                          <kbd className="px-0.5 py-0 mx-1 font-semibold bg-gray-800 border border-white-600 rounded shadow-sm">
+                            {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
+                          </kbd>                
+                          <span>to send</span>
+                          
+                      </div>
+                }}>
+                <button
+                  className={`p-0.5 rounded-md transition-all duration-200
+                    focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
+                    ${sendLoading 
+                      ? 'text-gray-400 hover:text-gray-300' 
+                      : 'text-blue-500 hover:text-blue-600'
+                    }`}
+                  onClick={sendLoading ? handleCancelGeneration : () => handleSendMessage()}
+                  disabled={isCancelling}
+                  title={sendLoading ? getMessage(isCancelling ? 'cancelling' : 'stop') : getMessage('send')}
+                >
+                  {(() => {
+                    let icon;
+                    if (sendLoading) {
+                      if (isCancelling) {
+                        icon = (
+                          <div className="relative">
+                            <svg className="h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </div>
+                        );
+                      } else {
+                        icon = (
+                          <div className="relative">
+                            <svg className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </div>
+                        );
+                      }
                     } else {
                       icon = (
-                        <div className="relative">
-                          <svg className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                          className="h-3.5 w-3.5 transform rotate-45" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
                       );
                     }
-                  } else {
-                    icon = (
-                      <svg xmlns="http://www.w3.org/2000/svg" 
-                        className="h-3.5 w-3.5 transform rotate-45" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                      </svg>
-                    );
-                  }
-                  return <div className="flex items-center justify-center">{icon}</div>;
-                })()}
-              </button>
+                    return <div className="flex items-center justify-center">{icon}</div>;
+                  })()}
+                </button>
+              </Tooltip>
             </div>
           </div>
         </div>

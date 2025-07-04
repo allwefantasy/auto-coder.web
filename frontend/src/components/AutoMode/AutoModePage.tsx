@@ -13,6 +13,7 @@ const CurrentChangePanel = lazy(() => import('./CurrentChangePanel'));
 interface AutoModePageProps {
   projectName: string;
   onSwitchToExpertMode: () => void;
+  className?:string
 }
 
 interface Message extends ServiceMessage {
@@ -20,7 +21,7 @@ interface Message extends ServiceMessage {
   timestamp?: number;
 }
 
-const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpertMode }) => {
+const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpertMode, className }) => {
   // 状态管理
   const [autoSearchTerm, setAutoSearchTerm] = useState(''); // 搜索/命令输入框的状态
   const [lastSubmittedQuery, setLastSubmittedQuery] = useState(''); // 最后提交的查询
@@ -296,7 +297,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
 
   return (
     // 页面主容器 - 全高、灰黑背景的弹性容器
-    <div className="flex-1 flex flex-col h-screen bg-gray-900">
+    <div className={`flex-1 flex flex-col h-screen bg-gray-900 ${className}`}>
       {/* 用户询问对话框 - 当需要用户输入时显示的模态框 */}
       {activeAskUserMessage && (
         <AskUserDialog 
