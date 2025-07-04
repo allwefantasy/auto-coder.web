@@ -118,7 +118,7 @@ const SettingsPanel: React.FC = () => {
           <Select
             value={config.language}
             onChange={updateLanguage}
-            className="custom-select dark-select"
+            className="custom-select dark-select w-32"
             popupClassName="custom-select-dropdown"
             options={[
               { value: 'en', label: 'English' },

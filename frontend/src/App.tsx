@@ -38,26 +38,27 @@ const App: React.FC = () => {
       event.preventDefault();
       setIsFileSearchOpen(true);
     },
-    { 
+    {
       enableOnFormTags: true,
       preventDefault: true
     }
   );
 
-  async function checkUiMode(){
-   
+  async function checkUiMode() {
+
     try {
-         // Load saved mode preference
-    const response = await  fetch('/api/config/ui/mode')
-    const data = await response.json()
-    setIsExpertMode(data.mode === 'expert');
-    } catch (error) { console.error('Error loading mode preference:', error)
+      // Load saved mode preference
+      const response = await fetch('/api/config/ui/mode')
+      const data = await response.json()
+      setIsExpertMode(data.mode === 'expert');
+    } catch (error) {
+      console.error('Error loading mode preference:', error)
     }
-       
+
   }
 
   useEffect(() => {
-    
+
     // 初始化语言设置
     initLanguage().then(async () => {
       // 其他初始化逻辑
@@ -70,14 +71,14 @@ const App: React.FC = () => {
         })
         .catch(error => console.error('Error fetching project path:', error));
 
-        // setIsCheckingInitialization(true);
-        Promise.allSettled([
-            // Check initialization status
-            checkInitializationStatus(),
-            checkUiMode()
-        ]).finally(() => {
-          setIsCheckingInitialization(false);
-        });
+      // setIsCheckingInitialization(true);
+      Promise.allSettled([
+        // Check initialization status
+        checkInitializationStatus(),
+        checkUiMode()
+      ]).finally(() => {
+        setIsCheckingInitialization(false);
+      });
 
     });
 
@@ -96,14 +97,14 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Error checking initialization status:', error);
       setIsInitialized(false);
-    } 
+    }
   };
 
   // Toggle between expert and auto modes
   const toggleMode = async () => {
     const newMode = !isExpertMode;
     setIsExpertMode(newMode);
-    
+
     try {
       const response = await fetch('/api/config/ui/mode', {
         method: 'PUT',
@@ -126,7 +127,7 @@ const App: React.FC = () => {
   const togglePanelVisibility = () => {
     setIsModeToggleVisible(!isModeToggleVisible);
   };
-  
+
   // Handle initialization complete
   const handleInitializationComplete = () => {
     setIsInitialized(true);
@@ -150,65 +151,66 @@ const App: React.FC = () => {
   }
 
   return (
-   
+
     <TaskSplittingProvider>
       <div className="h-screen flex flex-col bg-gray-900 relative">
-      {/* Mode Toggle - Fixed Panel */}
-      <div className="fixed top-0 right-0 z-10 flex items-center">
-        <Button 
-          type="text" 
-          size="small" 
-          onClick={togglePanelVisibility}
-          className="bg-gray-700 text-gray-300 h-8 w-8 flex items-center justify-center rounded-bl-lg"
-          icon={<span className="text-sm">{isModeToggleVisible ? '≫' : '≪'}</span>}
-        />
-        
-        {isModeToggleVisible && (
-          <div className="bg-gray-800 p-2 border-b border-l border-gray-700 flex items-center space-x-2 rounded-bl-lg shadow-md">
-            <span className="text-gray-400 text-sm">{getMessage('autoMode')}</span>
-            <Switch 
-              checked={isExpertMode} 
-              onChange={toggleMode} 
-              size="small"
-              className="bg-gray-600"
-            />
-            <span className="text-gray-400 text-sm">{getMessage('expertMode')}</span>
-          </div>
+        {/* Mode Toggle - Fixed Panel */}
+        <div className="fixed top-0 right-0 z-10 flex items-center">
+          <Button
+            type="text"
+            size="small"
+            onClick={togglePanelVisibility}
+            className="bg-gray-700 text-gray-300 h-8 w-8 flex items-center justify-center rounded-bl-lg"
+            icon={<span className="text-sm">{isModeToggleVisible ? '≫' : '≪'}</span>}
+          />
+
+          {isModeToggleVisible && (
+            <div className="bg-gray-800 p-2 border-b border-l border-gray-700 flex items-center space-x-2 rounded-bl-lg shadow-md">
+              <span className="text-gray-400 text-sm">{getMessage('autoMode')}</span>
+              <Switch
+                checked={isExpertMode}
+                onChange={toggleMode}
+                size="small"
+                className="bg-gray-600"
+              />
+              <span className="text-gray-400 text-sm">{getMessage('expertMode')}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Auto Mode Interface */}
+        {
+          <AutoModePage
+            className={`${!isExpertMode ? '' : 'hidden'}`}
+            projectName={projectName}
+            onSwitchToExpertMode={() => setIsExpertMode(true)}
+          />
+        }
+
+        {/* Expert Mode Interface */}
+        {isExpertMode && (
+          <ExpertModePage
+            projectName={projectName}
+            activePanel={activePanel}
+            setActivePanel={setActivePanel}
+            clipboardContent={clipboardContent}
+            setClipboardContent={setClipboardContent}
+            previewFiles={previewFiles}
+            setPreviewFiles={setPreviewFiles}
+            requestId={requestId}
+            setRequestId={setRequestId}
+            selectedFiles={selectedFiles}
+            setSelectedFiles={setSelectedFiles}
+            onSwitchToAutoMode={() => setIsExpertMode(false)}
+          />
         )}
-      </div>
 
-      {/* Auto Mode Interface */}
-      {!isExpertMode && (
-        <AutoModePage 
-          projectName={projectName} 
-          onSwitchToExpertMode={() => setIsExpertMode(true)} 
+        {/* File Search Component */}
+        <FileSearch
+          isOpen={isFileSearchOpen}
+          onClose={() => setIsFileSearchOpen(false)}
+          onSelectFile={openFileInEditor}
         />
-      )}
-
-      {/* Expert Mode Interface */}
-      {isExpertMode && (
-        <ExpertModePage
-          projectName={projectName}
-          activePanel={activePanel}
-          setActivePanel={setActivePanel}
-          clipboardContent={clipboardContent}
-          setClipboardContent={setClipboardContent}
-          previewFiles={previewFiles}
-          setPreviewFiles={setPreviewFiles}
-          requestId={requestId}
-          setRequestId={setRequestId}
-          selectedFiles={selectedFiles}
-          setSelectedFiles={setSelectedFiles}
-          onSwitchToAutoMode={() => setIsExpertMode(false)}
-        />
-      )}
-
-      {/* File Search Component */}
-      <FileSearch 
-        isOpen={isFileSearchOpen}
-        onClose={() => setIsFileSearchOpen(false)}
-        onSelectFile={openFileInEditor}
-      />
       </div>
     </TaskSplittingProvider>
   );

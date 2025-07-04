@@ -73,7 +73,8 @@
   padding: 0 6px !important;
 }
 
-.custom-input:hover, .custom-input:focus-within {
+.custom-input:hover,
+.custom-input:focus-within {
   border-color: #1890ff !important;
 }
 
@@ -156,11 +157,16 @@
   color: #9cdcfe;
 }
 
-.file-icon.file-js, .file-icon.file-ts, .file-icon.file-jsx, .file-icon.file-tsx {
+.file-icon.file-js,
+.file-icon.file-ts,
+.file-icon.file-jsx,
+.file-icon.file-tsx {
   color: #4fc1ff;
 }
 
-.file-icon.file-css, .file-icon.file-scss, .file-icon.file-less {
+.file-icon.file-css,
+.file-icon.file-scss,
+.file-icon.file-less {
   color: #ce9178;
 }
 
@@ -268,7 +274,7 @@
   color: #e0e0e0 !important;
 }
 
-.vscode-dark-modal .ant-form-item-label > label {
+.vscode-dark-modal .ant-form-item-label>label {
   color: #e0e0e0 !important;
 }
 
@@ -276,7 +282,8 @@
   color: #ff4d4f !important;
 }
 
-.vscode-dark-modal .ant-form-item-explain, .vscode-dark-modal .ant-form-item-extra {
+.vscode-dark-modal .ant-form-item-explain,
+.vscode-dark-modal .ant-form-item-extra {
   color: #aaa !important;
 }
 
@@ -286,7 +293,8 @@
   color: #e0e0e0 !important;
 }
 
-.vscode-dark-modal .ant-input:hover, .vscode-dark-modal .ant-input:focus {
+.vscode-dark-modal .ant-input:hover,
+.vscode-dark-modal .ant-input:focus {
   border-color: #1890ff !important;
 }
 
@@ -316,7 +324,8 @@
   border-color: #1177bb !important;
 }
 
-.vscode-dark-modal .ant-btn-primary[disabled], .vscode-dark-modal .ant-btn-primary[disabled]:hover {
+.vscode-dark-modal .ant-btn-primary[disabled],
+.vscode-dark-modal .ant-btn-primary[disabled]:hover {
   background-color: #164b6e !important;
   border-color: #164b6e !important;
   color: rgba(255, 255, 255, 0.5) !important;
@@ -353,4 +362,8 @@
 .vscode-dark-dropdown .ant-dropdown-menu-item-divider {
   background-color: #3c3c3c !important;
   margin: 4px 0 !important;
+}
+
+:where(.css-dev-only-do-not-override-ut69n1).ant-tree.ant-tree-directory .ant-tree-treenode-selected .ant-tree-node-content-wrapper:before {
+  background: #2b3037 !important;
 }

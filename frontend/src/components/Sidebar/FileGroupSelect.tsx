@@ -31,14 +31,14 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
   selectedGroups,
   setSelectedGroups,
   fetchFileGroups,
-  panelId = '',  
+  panelId = '',
 }) => {
   // 获取文件组服务
   const fileGroupService = ServiceFactory.getFileGroupService(panelId);
   const [fileCompletions, setFileCompletions] = useState<FileCompletion[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
-  const [dropdownVisible, setDropdownVisible] = useState(false);  
+  const [dropdownVisible, setDropdownVisible] = useState(false);
   const [mentionFiles, setMentionFiles] = useState<{ path: string, display: string }[]>([]);
   const [tokenCount, setTokenCount] = useState<number>(0);
   const selectRef = useRef<any>(null);
@@ -64,29 +64,29 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
 
   // 监听编辑器发来的mentions变化事件
   useEffect(() => {
-    const handleMentionsChanged = (mentions: Array<{type: string; text: string; path: string}>) => {
+    const handleMentionsChanged = (mentions: Array<{ type: string; text: string; path: string }>) => {
       console.log(mentions)
       // 仅处理文件类型的mentions
       const fileOnlyMentions = mentions;
-      
+
       if (fileOnlyMentions.length > 0) {
         // 转换为组件需要的格式
         const fileMentions = fileOnlyMentions.map(item => ({
           path: item.path,
           display: item.text
         }));
-        
+
         // 更新状态
         setMentionFiles(fileMentions);
-        
+
         // 更新已处理的mentions路径集合
         processedMentionPaths.current = new Set(fileMentions.map(file => file.path));
-        
+
         // 自动选中被提到的文件
         const mentionPaths = fileMentions.map(file => file.path);
         const newSelectedFiles = [...selectedFiles];
         let hasNewFiles = false;
-        
+
         // 添加尚未选中的提到文件
         mentionPaths.forEach(path => {
           if (!newSelectedFiles.includes(path)) {
@@ -94,12 +94,12 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             hasNewFiles = true;
           }
         });
-        
+
         // 如果有新文件被添加，更新选择
         if (hasNewFiles) {
           updateSelection(selectedGroups, newSelectedFiles);
         }
-      } 
+      }
     };
 
     // 订阅mentions变化事件
@@ -133,7 +133,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     // 组件卸载时取消订阅
     return () => unsubscribe();
   }, []);
-  
+
   const fetchFileCompletions = async (searchValue: string) => {
     if (searchValue.length < 2) {
       setFileCompletions([]);
@@ -153,7 +153,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
     // 去重处理
     const uniqueGroupValues = Array.from(new Set(groupValues));
     const uniqueFileValues = Array.from(new Set(fileValues));
-    
+
     setSelectedGroups(uniqueGroupValues);
     setSelectedFiles(uniqueFileValues);
 
@@ -164,7 +164,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
         if (result.totalTokens !== undefined) {
           setTokenCount(result.totalTokens);
         }
-        
+
         // 发布文件组选择更新事件，通知ChatPanel组件
         eventBus.publish(
           EVENTS.FILE_GROUP_SELECT.SELECTION_UPDATED,
@@ -223,7 +223,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           e.stopPropagation(); // 阻止事件冒泡
           // 选中当前聚焦的选项
           selectFocusedOption(focusedOptionIndex);
-          console.log(`选中选项: ${focusedOptionIndex}`);          
+          console.log(`选中选项: ${focusedOptionIndex}`);
         }
         break;
 
@@ -233,7 +233,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
           e.stopPropagation(); // 阻止事件冒泡
           // 与Enter键相同，选中当前聚焦的选项
           selectFocusedOption(focusedOptionIndex);
-          console.log(`选中选项: ${focusedOptionIndex}`);          
+          console.log(`选中选项: ${focusedOptionIndex}`);
         }
         break;
 
@@ -358,13 +358,14 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
       <div className="flex items-center gap-1 w-full">
         <Select
           ref={selectRef}
+          allowClear
           mode="multiple"
           style={{
             width: '100%',
             background: '#1f2937',
             borderColor: '#374151',
             color: '#e5e7eb',
-            minHeight: '28px',
+            // minHeight: '28px',
             height: 'auto',
             fontSize: '12px',
             flex: '1 1 auto'
@@ -399,6 +400,19 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             }
           }}
           open={dropdownVisible}
+          onClear={async () => {
+            try {
+              // 使用文件组服务清空当前文件
+              const result: { success: boolean; message: string } = await fileGroupService.clearCurrentFiles();
+              if (result.success) {
+                setSelectedGroups([]);
+                setSelectedFiles([]);
+                fetchFileGroups();
+              }
+            } catch (error: unknown) {
+              console.error(getMessage('clearFailed'), error);
+            }
+          }}
           onSearch={(value) => {
             setSearchText(value);
             fetchFileCompletions(value);
@@ -703,7 +717,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             </Select.OptGroup>
           )}
         </Select>
-        <CloseCircleOutlined
+        {/* <CloseCircleOutlined
           className="text-gray-400 hover:text-gray-200 cursor-pointer text-sm"
           onClick={async () => {
             try {
@@ -719,7 +733,7 @@ const FileGroupSelect: React.FC<FileGroupSelectProps> = ({
             }
           }}
           title={getMessage('clearContext')}
-        />
+        /> */}
       </div>
     </div>
   );

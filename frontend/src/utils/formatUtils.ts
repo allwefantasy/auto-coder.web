@@ -63,9 +63,22 @@ export function formatNumberToFixed(num: number | string, precision: number = 2)
   }
 
   if (typeof numericValue !== 'number' || isNaN(numericValue)) {
-     return ''; // Handle cases where conversion might still fail or input was not a number
+    return ''; // Handle cases where conversion might still fail or input was not a number
   }
 
   const effectivePrecision = precision < 0 ? 0 : precision;
   return numericValue.toFixed(effectivePrecision);
+}
+
+/**
+ * 将对象参数querystring
+ */
+export function queryToString(data: Record<string, any>) {
+  if (!data) return ''
+  const keys = Object.keys(data)
+  if (!keys.length) return ''
+  const _str = keys.reduce((pre, key) => {
+    return `${pre}${key}=${data[key] === undefined ? '' : data[key]}&`
+  }, '?')
+  return _str.slice(0, _str.length - 1)
 }
