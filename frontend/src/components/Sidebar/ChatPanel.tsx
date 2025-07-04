@@ -613,6 +613,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   // 消息已经是 AutoMode 格式，所以不需要转换
   const getAutoModeMessages = (): MessageProps[] => {
+    console.log(messages)
     return messages;
   };
 
@@ -879,6 +880,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 监听发送消息事件
     const handleSendMessageEvent = (data: SendMessageEventData) => {
+      console.log('接受新消息:',data,panelId,data.panelId && data.panelId !== panelId)
       // 如果传入了panelId且与当前面板的panelId不匹配，则不处理此事件
       if (data.panelId && data.panelId !== panelId) {
         return;

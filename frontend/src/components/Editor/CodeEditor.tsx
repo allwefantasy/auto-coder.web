@@ -368,7 +368,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ selectedFiles: initialFiles }) 
       <Split
         className="code-editor-content"
         sizes={[20, 80]}
-        minSize={100}
+        minSize={[300,300]}
         expandToMin={false}
         gutterSize={10}
         gutterAlign="center"

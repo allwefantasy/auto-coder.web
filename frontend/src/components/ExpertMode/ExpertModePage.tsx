@@ -235,9 +235,9 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       <Split 
         className="flex-1 flex"
         sizes={[25, 75]}
-        minSize={[180, 400]}
+        minSize={[0, 400]}
         gutterSize={3}
-        snapOffset={20}
+        snapOffset={100}
       >
         {/* Left Sidebar - Chat */}
         <div className="border-r border-gray-700 flex flex-col">

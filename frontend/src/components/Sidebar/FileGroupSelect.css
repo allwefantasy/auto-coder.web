@@ -1,6 +1,6 @@
 .multi-line-select .ant-select-selector {
   height: auto !important;
-  min-height: 56px !important; /* 足够显示至少两行元素的高度 */
+  min-height: 30px !important; 
   padding: 2px 4px !important;
   border-width: 1px !important;
   overflow-y: auto !important;

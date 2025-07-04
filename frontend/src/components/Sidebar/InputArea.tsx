@@ -72,6 +72,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   const [indexBuilding, setIndexBuilding] = useState<boolean>(false);
   const [indexStatus, setIndexStatus] = useState<string>('');
   const [agenticActive, setAgenticActive] = useState(true);
+  const [settings, setSetting] = useState(true);
   const [isInputAreaMaximized, setIsInputAreaMaximized] = useState<boolean>(false);
   const originalLayoutRef = useRef<{
     position: string,
@@ -129,6 +130,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   // 自定义发送消息函数
   const handleSendMessage = useCallback((text?: string) => {
     // 使用eventBus发送消息
+    console.log('发送信息：',text,new SendMessageEventData(text, panelId))
     eventBus.publish(EVENTS.CHAT.SEND_MESSAGE, new SendMessageEventData(text, panelId));
   }, [panelId]);
 
@@ -388,6 +390,18 @@ const InputArea: React.FC<InputAreaProps> = ({
           <div className="flex items-center justify-between w-full">
             <span className="text-gray-300 text-xs font-semibold">{getMessage('settingsAndGroups')}</span>
             <div className="flex items-center">
+              {/* 模型选择和文件选择开发关 */}
+              <Tooltip title={getMessage('settings')}>
+                <button
+                  onClick={() => { setSetting(!settings) }}
+                  className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+              </Tooltip>
               {/* 文档按钮 */}
               <Tooltip title="Open Documentation">
                 <button
@@ -490,38 +504,37 @@ const InputArea: React.FC<InputAreaProps> = ({
               </Tooltip>
             </div>
           </div>
-
         </div>
-
         {/* 分隔线 */}
         <div className="h-[1px] bg-gray-700/50 my-1 w-full"></div>
 
-        {/* 提供者选择器区域 (RAG/MCPs) */}
-        {!isCommandMode && <ProviderSelectors isWriteMode={isWriteMode} />}
+        <div className={settings ? '' : 'hidden'}>
+          {/* 提供者选择器区域 (RAG/MCPs) */}
+          {!isCommandMode && <ProviderSelectors isWriteMode={isWriteMode} />}
 
-        {/* 文件组选择器区域 */}
-        {!isCommandMode && (
-          <div className="w-full mt-1"> {/* Add margin top if needed */}
-            <FileGroupSelect
-              fileGroups={fileGroups}
-              selectedGroups={selectedGroups}
-              setSelectedGroups={setSelectedGroups}
-              fetchFileGroups={fetchFileGroups}
-              panelId={panelId}
-            />
-          </div>
-        )}
+          {/* 文件组选择器区域 */}
+          {!isCommandMode && (
+            <div className="w-full mt-1"> {/* Add margin top if needed */}
+              <FileGroupSelect
+                fileGroups={fileGroups}
+                selectedGroups={selectedGroups}
+                setSelectedGroups={setSelectedGroups}
+                fetchFileGroups={fetchFileGroups}
+                panelId={panelId}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 主内容区域（编辑器或命令面板） */}
-      <div className={`px-1 py-0.5 flex flex-col ${isMaximized && !isInputAreaMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} 
-          ${isInputAreaMaximized ? 'flex-1 overflow-hidden' : 'w-full'} 
+      <div className={`px-1 py-0.5 overflow-hidden flex-1 flex flex-col ${isMaximized && !isInputAreaMaximized ? 'fixed inset-0 z-50 bg-gray-800' : ''} 
           scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800`}
         style={{ width: '100%' }}
       >
         {/* 编辑器/命令面板容器 */}
-        <div className={`flex-1 ${isInputAreaMaximized ? 'flex-grow h-full' : 'min-h-[80px]'}`}
-          style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)' } : {}}
+        <div className={`flex-1 overflow-hidden ${isInputAreaMaximized ? 'flex-grow h-full' : 'min-h-[100px]'}`}
+          style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column' } : {}}
         >
           {isCommandMode ? (
             /* 命令面板模式 */
@@ -532,18 +545,20 @@ const InputArea: React.FC<InputAreaProps> = ({
             </div>
           ) : (
             /* 编辑器模式 */
-            <EditorComponent
-              isMaximized={isMaximized || isInputAreaMaximized}
-              onEditorDidMount={handleEditorDidMount}
-              onToggleMaximize={() => {
-                if (isInputAreaMaximized) {
-                  return;
-                }
-                setIsMaximized((prev: boolean): boolean => !prev);
-              }}
-              panelId={panelId}
-              isActive={isActive}
-            />
+            <div className="w-full h-full">
+              <EditorComponent
+                isMaximized={isMaximized || isInputAreaMaximized}
+                onEditorDidMount={handleEditorDidMount}
+                onToggleMaximize={() => {
+                  if (isInputAreaMaximized) {
+                    return;
+                  }
+                  setIsMaximized((prev: boolean): boolean => !prev);
+                }}
+                panelId={panelId}
+                isActive={isActive}
+              />
+            </div>
           )}
         </div>
 
@@ -552,9 +567,11 @@ const InputArea: React.FC<InputAreaProps> = ({
           <div className="space-y-0 bg-gray-850 p-0.5 rounded-lg shadow-inner border border-gray-700/50">
             <div className="flex items-center justify-between px-0">
               {/* 模式选择区域 */}
-              <div className="flex items-center space-x-0.5">
-                <span className="text-[9px] font-medium text-white mr-1">Mode:</span>
-                <Tooltip title={`Switch between Chat and Write mode (${navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)`}>
+              <div className="flex items-center space-x-1">
+                <span className="text-[9px] font-medium text-white">Mode:</span>
+                <Tooltip title={() => {
+                  return <div className='text-[12px]'>Switch between Chat and Write mode ({navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)</div>
+                }}>
                   <Select
                     size="small"
                     value={isCommandMode ? "command" : (isRuleMode ? "rule" : (isWriteMode ? "write" : "chat"))}
@@ -585,7 +602,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                   />
                 </Tooltip>
                 <Tooltip title={() => {
-                  return <div className='w-[260px] text-white text-[10px]'>
+                  return <div className=' text-white text-[12px]'>
                     {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize
 
                   </div>
@@ -593,89 +610,90 @@ const InputArea: React.FC<InputAreaProps> = ({
                   <QuestionCircleOutlined className='text-white' />
                 </Tooltip>
               </div>
-
-              {/* Agent模式切换 */}
-              <div className="flex items-center space-x-1 mr-1">
-                <button
-                  className={`p-0.5 rounded-md transition-all duration-200
+              <div className='flex items-center space-x-2'>
+                {/* Agent模式切换 */}
+                <div className="flex items-center space-x-1 mr-1">
+                  <button
+                    className={`p-0.5 rounded-md transition-all duration-200
                     ${agenticActive ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300'}`}
-                  onClick={() => {
-                    const newActive = !agenticActive;
-                    setAgenticActive(newActive);
-                    import('../../services/eventBus').then(({ default: eventBus }) => {
-                      eventBus.publish(EVENTS.AGENTIC.MODE_CHANGED, new AgenticModeChangedEventData(newActive, panelId));
-                    });
-                  }}
-                  title="Step By Step"
-                >
-                  <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>{getMessage('agentButtonLabel')}</span>
-                </button>
-                <span className="text-[9px] text-gray-400 opacity-70 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                  {getMessage('agentButtonLabelDesc')}
-                </span>
-              </div>
-
-              {/* 发送/停止按钮 */}
-              <Tooltip title={() => {
-                return <div className=' text-white text-[10px]'>
-                  {
-                    sendLoading ? '点击停止' : <>
-                      {/* 快捷键提示 */}
-                      <kbd className="px-0.5 py-0 mx-1 font-semibold bg-gray-800 border border-white-600 rounded shadow-sm">
-                        {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
-                      </kbd>
-                      <span>to send</span>
-                    </>
-                  }
+                    onClick={() => {
+                      const newActive = !agenticActive;
+                      setAgenticActive(newActive);
+                      import('../../services/eventBus').then(({ default: eventBus }) => {
+                        eventBus.publish(EVENTS.AGENTIC.MODE_CHANGED, new AgenticModeChangedEventData(newActive, panelId));
+                      });
+                    }}
+                    title="Step By Step"
+                  >
+                    <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>{getMessage('agentButtonLabel')}</span>
+                  </button>
+                  <span className="text-[9px] text-gray-400 opacity-70 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                    {getMessage('agentButtonLabelDesc')}
+                  </span>
                 </div>
-              }}>
-                <button
-                  className={`p-0.5 rounded-md transition-all duration-200
+
+                {/* 发送/停止按钮 */}
+                <Tooltip title={() => {
+                  return <div className=' text-white text-[12px]'>
+                    {
+                      sendLoading ? '点击停止' : <>
+                        {/* 快捷键提示 */}
+                        <kbd className="px-0.5 py-0 mx-1 font-semibold bg-gray-800 border border-white-600 rounded shadow-sm">
+                          {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
+                        </kbd>
+                        <span>to send</span>
+                      </>
+                    }
+                  </div>
+                }}>
+                  <button
+                    className={`p-0.5 rounded-md transition-all duration-200
                     focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
                     ${sendLoading
-                      ? 'text-gray-400 hover:text-gray-300'
-                      : 'text-blue-500 hover:text-blue-600'
-                    }`}
-                  onClick={sendLoading ? handleCancelGeneration : () => handleSendMessage()}
-                  disabled={isCancelling}
-                  title={sendLoading ? getMessage(isCancelling ? 'cancelling' : 'stop') : getMessage('send')}
-                >
-                  {(() => {
-                    let icon;
-                    if (sendLoading) {
-                      if (isCancelling) {
-                        icon = (
-                          <div className="relative">
-                            <svg className="h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                          </div>
-                        );
+                        ? 'text-gray-400 hover:text-gray-300'
+                        : 'text-blue-500 hover:text-blue-600'
+                      }`}
+                    onClick={sendLoading ? handleCancelGeneration : () => handleSendMessage()}
+                    disabled={isCancelling}
+                    title={sendLoading ? getMessage(isCancelling ? 'cancelling' : 'stop') : getMessage('send')}
+                  >
+                    {(() => {
+                      let icon;
+                      if (sendLoading) {
+                        if (isCancelling) {
+                          icon = (
+                            <div className="relative">
+                              <svg className="h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            </div>
+                          );
+                        } else {
+                          icon = (
+                            <div className="relative">
+                              <svg className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </div>
+                          );
+                        }
                       } else {
                         icon = (
-                          <div className="relative">
-                            <svg className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </div>
+                          <svg xmlns="http://www.w3.org/2000/svg"
+                            className="h-3.5 w-3.5 transform rotate-45"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
                         );
                       }
-                    } else {
-                      icon = (
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5 transform rotate-45"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                      );
-                    }
-                    return <div className="flex items-center justify-center">{icon}</div>;
-                  })()}
-                </button>
-              </Tooltip>
+                      return <div className="flex items-center justify-center">{icon}</div>;
+                    })()}
+                  </button>
+                </Tooltip>
+              </div>
             </div>
           </div>
         </div>
