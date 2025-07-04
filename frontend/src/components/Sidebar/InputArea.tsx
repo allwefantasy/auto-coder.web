@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Switch, Select, Tooltip, message as AntdMessage, Spin } from 'antd';
-import { UndoOutlined, BuildOutlined, LoadingOutlined,QuestionCircleOutlined } from '@ant-design/icons';
+import { UndoOutlined, BuildOutlined, LoadingOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import EditorComponent from './EditorComponent';
 import { getMessage } from './lang';
 import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
@@ -21,7 +21,7 @@ interface InputAreaProps {
   fetchFileGroups: () => void;
   isMaximized: boolean;
   setIsMaximized: React.Dispatch<React.SetStateAction<boolean>>;
-  handleEditorDidMount: (editor: any, monaco: any) => void;  
+  handleEditorDidMount: (editor: any, monaco: any) => void;
   isWriteMode: boolean;
   setIsWriteMode: (value: boolean) => void;
   isRuleMode: boolean;
@@ -45,13 +45,13 @@ const InputArea: React.FC<InputAreaProps> = ({
   fetchFileGroups,
   isMaximized,
   setIsMaximized,
-  handleEditorDidMount,  
+  handleEditorDidMount,
   isWriteMode,
   setIsWriteMode,
   isRuleMode,
   setIsRuleMode,
   isCommandMode = false,
-  setIsCommandMode = () => {},
+  setIsCommandMode = () => { },
   handleRevert,
   sendLoading,
   setConfig,
@@ -61,7 +61,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   setSoundEnabled,
   panelId,
   isActive = true
-}) => {    
+}) => {
   const [showConfig, setShowConfig] = useState<boolean>(true);
   const [config, setLocalConfig] = useState<ConfigState>({
     human_as_model: false,
@@ -84,14 +84,14 @@ const InputArea: React.FC<InputAreaProps> = ({
     height: string,
     background: string
   } | null>(null);
-  
+
   const inputAreaRef = useRef<HTMLDivElement>(null);
 
   // 处理编辑器全屏切换
   const toggleFullscreen = useCallback(() => {
     if (inputAreaRef.current) {
       const element = inputAreaRef.current;
-      
+
       if (!isInputAreaMaximized) {
         setIsInputAreaMaximized(true);
       } else {
@@ -145,12 +145,12 @@ const InputArea: React.FC<InputAreaProps> = ({
       if (data.panelId && data.panelId !== panelId) {
         return; // 如果事件不属于当前面板，直接返回
       }
-      
+
       setIsInputAreaMaximized(prev => !prev);
     };
 
     const unsubscribe = eventBus.subscribe(EVENTS.UI.TOGGLE_INPUT_FULLSCREEN, handleToggleFullscreenEvent);
-    
+
     return () => {
       unsubscribe();
     };
@@ -198,12 +198,12 @@ const InputArea: React.FC<InputAreaProps> = ({
       // 检查事件是否与当前面板相关      
       if (data.panelId && data.panelId !== panelId) {
         return; // 如果事件不属于当前面板，直接返回
-      }      
+      }
       toggleWriteMode();
     };
 
-    const unsubscribe = eventBus.subscribe(EVENTS.UI.TOGGLE_WRITE_MODE, handleToggleWriteMode);    
-    
+    const unsubscribe = eventBus.subscribe(EVENTS.UI.TOGGLE_WRITE_MODE, handleToggleWriteMode);
+
     return () => {
       unsubscribe();
     };
@@ -251,7 +251,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   useEffect(() => {
     checkIndexStatus();
     fetchConfig();
-    
+
     const handleTaskComplete = () => {
       setIsCancelling(false);
     };
@@ -266,41 +266,41 @@ const InputArea: React.FC<InputAreaProps> = ({
 
   const handleCancelGeneration = async () => {
     if (isCancelling) return;
-    
+
     setIsCancelling(true);
-    
+
     try {
       await handleStopGeneration();
     } catch (error) {
       console.error('Error cancelling task:', error);
       setIsCancelling(false);
       AntdMessage.error('取消任务失败');
-    }finally {
+    } finally {
       setIsCancelling(false);   // 确保状态重置
     }
-    
+
   };
 
 
   const buildIndex = async () => {
     if (indexBuilding) return;
-    
+
     try {
       setIndexBuilding(true);
       setIndexStatus('starting');
-      
+
       const response = await fetch('/api/index/build', {
         method: 'POST',
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to build index: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       setIndexStatus('building');
       AntdMessage.success('Index build started');
-      
+
       pollIndexStatus();
     } catch (error) {
       console.error('Error building index:', error);
@@ -313,13 +313,13 @@ const InputArea: React.FC<InputAreaProps> = ({
   const checkIndexStatus = async () => {
     try {
       const response = await fetch('/api/index/status');
-      
+
       if (!response.ok) {
         throw new Error(`Failed to get index status: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.status === 'completed') {
         setIndexBuilding(false);
         setIndexStatus('completed');
@@ -343,13 +343,13 @@ const InputArea: React.FC<InputAreaProps> = ({
     const interval = setInterval(async () => {
       try {
         const response = await fetch('/api/index/status');
-        
+
         if (!response.ok) {
           throw new Error(`Failed to get index status: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.status === 'completed') {
           setIndexBuilding(false);
           setIndexStatus('completed');
@@ -394,15 +394,15 @@ const InputArea: React.FC<InputAreaProps> = ({
                   onClick={() => window.open('https://uelng8wukz.feishu.cn/wiki/EFCEwiYZFit44ZkJgohcYjlMnVP?fromScene=spaceOverview', '_blank')}
                   className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
                 >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="14" 
-                    height="14" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
                     strokeLinejoin="round"
                   >
                     <circle cx="12" cy="12" r="10"></circle>
@@ -417,15 +417,15 @@ const InputArea: React.FC<InputAreaProps> = ({
                   onClick={toggleFullscreen}
                   className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
                 >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="14" 
-                    height="14" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
                     strokeLinejoin="round"
                   >
                     {isInputAreaMaximized ? (
@@ -442,7 +442,7 @@ const InputArea: React.FC<InputAreaProps> = ({
               </Tooltip>
               {/* 构建索引按钮 */}
               <Tooltip title={indexBuilding ? "Building index..." : "Build index"}>
-                <button 
+                <button
                   onClick={buildIndex}
                   disabled={indexBuilding}
                   className={`mr-1 p-0.5 rounded-md transition-all duration-200 
@@ -469,7 +469,7 @@ const InputArea: React.FC<InputAreaProps> = ({
               {/* 声音开关按钮 */}
               <Tooltip title={soundEnabled ? "关闭提示音" : "开启提示音"}>
                 <button
-                  onClick={() => {                    
+                  onClick={() => {
                     setSoundEnabled(!soundEnabled)
                   }}
                   className="ml-0.5 p-0.5 rounded-md transition-all duration-200 text-gray-400 hover:text-gray-300"
@@ -488,14 +488,14 @@ const InputArea: React.FC<InputAreaProps> = ({
                   )}
                 </button>
               </Tooltip>
-            </div>           
+            </div>
           </div>
-         
+
         </div>
-        
+
         {/* 分隔线 */}
         <div className="h-[1px] bg-gray-700/50 my-1 w-full"></div>
-        
+
         {/* 提供者选择器区域 (RAG/MCPs) */}
         {!isCommandMode && <ProviderSelectors isWriteMode={isWriteMode} />}
 
@@ -506,7 +506,7 @@ const InputArea: React.FC<InputAreaProps> = ({
               fileGroups={fileGroups}
               selectedGroups={selectedGroups}
               setSelectedGroups={setSelectedGroups}
-              fetchFileGroups={fetchFileGroups}            
+              fetchFileGroups={fetchFileGroups}
               panelId={panelId}
             />
           </div>
@@ -521,12 +521,12 @@ const InputArea: React.FC<InputAreaProps> = ({
       >
         {/* 编辑器/命令面板容器 */}
         <div className={`flex-1 ${isInputAreaMaximized ? 'flex-grow h-full' : 'min-h-[80px]'}`}
-             style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)' } : {}}
+          style={isInputAreaMaximized ? { display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)' } : {}}
         >
           {isCommandMode ? (
             /* 命令面板模式 */
             <div className="w-full h-full bg-gray-800 border border-gray-700 rounded-md overflow-hidden">
-              <CommandPanel                 
+              <CommandPanel
                 panelId={panelId}
               />
             </div>
@@ -534,26 +534,26 @@ const InputArea: React.FC<InputAreaProps> = ({
             /* 编辑器模式 */
             <EditorComponent
               isMaximized={isMaximized || isInputAreaMaximized}
-              onEditorDidMount={handleEditorDidMount}            
+              onEditorDidMount={handleEditorDidMount}
               onToggleMaximize={() => {
                 if (isInputAreaMaximized) {
                   return;
                 }
                 setIsMaximized((prev: boolean): boolean => !prev);
-              }}            
+              }}
               panelId={panelId}
               isActive={isActive}
             />
           )}
         </div>
-        
+
         {/* 底部控制区域 */}
         <div className="flex flex-col mt-0 gap-0 flex-shrink-0">
           <div className="space-y-0 bg-gray-850 p-0.5 rounded-lg shadow-inner border border-gray-700/50">
             <div className="flex items-center justify-between px-0">
               {/* 模式选择区域 */}
               <div className="flex items-center space-x-0.5">
-                <span className="text-[9px] font-medium text-gray-400">Mode:</span>
+                <span className="text-[9px] font-medium text-white mr-1">Mode:</span>
                 <Tooltip title={`Switch between Chat and Write mode (${navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)`}>
                   <Select
                     size="small"
@@ -580,25 +580,20 @@ const InputArea: React.FC<InputAreaProps> = ({
                       { value: 'command', label: 'Command' },
                     ]}
                     style={{ width: 80 }}
-                    className="text-xs"                    
+                    className="text-xs mr-1"
                     popupMatchSelectWidth={false}
                   />
                 </Tooltip>
-                <Tooltip title={()=>{
-                    return <div className='w-[260px] text-white text-[10px]'>
-                              {/* 快捷键提示 */}
-                              <kbd className="px-0.5 py-0 mx-1 font-semibold bg-gray-800 border border-white-600 rounded shadow-sm">
-                                {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
-                              </kbd>                
-                              <span>to send / {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize</span>
-                             
-                          </div>
-                    }}>
-                  <QuestionCircleOutlined className='text-white'/>
+                <Tooltip title={() => {
+                  return <div className='w-[260px] text-white text-[10px]'>
+                    {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize
+
+                  </div>
+                }}>
+                  <QuestionCircleOutlined className='text-white' />
                 </Tooltip>
-                
               </div>
-              
+
               {/* Agent模式切换 */}
               <div className="flex items-center space-x-1 mr-1">
                 <button
@@ -621,21 +616,24 @@ const InputArea: React.FC<InputAreaProps> = ({
               </div>
 
               {/* 发送/停止按钮 */}
-              <Tooltip title={()=>{
-                return sendLoading?null:<div className=' text-white text-[10px]'>
-                          {/* 快捷键提示 */}
-                          <kbd className="px-0.5 py-0 mx-1 font-semibold bg-gray-800 border border-white-600 rounded shadow-sm">
-                            {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
-                          </kbd>                
-                          <span>to send</span>
-                          
-                      </div>
-                }}>
+              <Tooltip title={() => {
+                return <div className=' text-white text-[10px]'>
+                  {
+                    sendLoading ? '点击停止' : <>
+                      {/* 快捷键提示 */}
+                      <kbd className="px-0.5 py-0 mx-1 font-semibold bg-gray-800 border border-white-600 rounded shadow-sm">
+                        {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
+                      </kbd>
+                      <span>to send</span>
+                    </>
+                  }
+                </div>
+              }}>
                 <button
                   className={`p-0.5 rounded-md transition-all duration-200
                     focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
-                    ${sendLoading 
-                      ? 'text-gray-400 hover:text-gray-300' 
+                    ${sendLoading
+                      ? 'text-gray-400 hover:text-gray-300'
                       : 'text-blue-500 hover:text-blue-600'
                     }`}
                   onClick={sendLoading ? handleCancelGeneration : () => handleSendMessage()}
@@ -665,10 +663,10 @@ const InputArea: React.FC<InputAreaProps> = ({
                       }
                     } else {
                       icon = (
-                        <svg xmlns="http://www.w3.org/2000/svg" 
-                          className="h-3.5 w-3.5 transform rotate-45" 
-                          fill="none" 
-                          viewBox="0 0 24 24" 
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                          className="h-3.5 w-3.5 transform rotate-45"
+                          fill="none"
+                          viewBox="0 0 24 24"
                           stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
