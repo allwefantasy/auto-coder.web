@@ -307,8 +307,6 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
         />
       )}
       
-
-      
       {/* 主内容区域 - 居中、最大宽度限制、垂直弹性布局 */}
       <div className={`w-full max-w-4xl mx-auto px-4 py-6 flex flex-col ${messages.length === 0 ? 'justify-center' : ''} h-full`}>
         {/* 标题区域 - 显示应用名称和当前项目 */}

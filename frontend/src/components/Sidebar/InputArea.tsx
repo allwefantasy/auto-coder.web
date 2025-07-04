@@ -129,8 +129,8 @@ const InputArea: React.FC<InputAreaProps> = ({
 
   // 自定义发送消息函数
   const handleSendMessage = useCallback((text?: string) => {
+
     // 使用eventBus发送消息
-    console.log('发送信息：',text,new SendMessageEventData(text, panelId))
     eventBus.publish(EVENTS.CHAT.SEND_MESSAGE, new SendMessageEventData(text, panelId));
   }, [panelId]);
 

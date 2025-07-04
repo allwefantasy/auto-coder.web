@@ -47,6 +47,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const chatListServiceRef = useRef<ChatListService | null>(null);
   const fileGroupServiceRef = useRef<FileGroupService | null>(null);
 
+  const isChatRunningRef = useRef(false);
+
   // 确保服务实例已初始化
   const ensureServices = useCallback(() => {
     if (!chatServiceRef.current) {
@@ -72,7 +74,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   // 初始化服务
   useEffect(() => {
     ensureServices();
-    
+
     // 在组件卸载时清理服务
     return () => {
       ServiceFactory.cleanupServices(panelId);
@@ -103,15 +105,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   // 是否启用声音效果
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const soundEnabledRef = useRef<boolean>(false);
-  
+
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
-  
+
   useEffect(() => {
     isCommandModeRef.current = isCommandMode;
   }, [isCommandMode]);
-  
+
 
   const showNewChatModal = () => {
     // 清空当前对话内容
@@ -153,12 +155,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   // 创建新对话，无需用户确认
-  const handleNewChatDirectly = async (message: NewChatEventData) => {    
+  const handleNewChatDirectly = async (message: NewChatEventData) => {
     // 如果传入了panelId且与当前面板的panelId不匹配，则不处理此事件
     if (message.panelId && message.panelId !== panelId) {
       return;
     }
-    
+
     try {
       // 清空当前对话内容
       setMessages([]);
@@ -167,7 +169,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       if (newChatName) {
         // 设置新的对话名称
         setChatListName(newChatName);
-        setChatLists(prev => [newChatName, ...prev.filter(name => name !== newChatName)]);        
+        setChatLists(prev => [newChatName, ...prev.filter(name => name !== newChatName)]);
       }
     } catch (error) {
       console.error('Error creating new chat directly:', error);
@@ -193,9 +195,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const editorRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null); // 添加消息容器的引用，用于导出图片
-  const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
+  const [isWriteMode, setIsWriteMode] = useState<boolean>(false);
 
-  const isWriteModeRef = useRef<boolean>(true);
+  const isWriteModeRef = useRef<boolean>(isWriteMode);
 
   useEffect(() => {
     isWriteModeRef.current = isWriteMode;
@@ -204,7 +206,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [isMaximized, setIsMaximized] = useState<boolean>(false);
   const [pendingRevert, setPendingRevert] = useState<boolean>(false);
   const [isNewChatModalVisible, setIsNewChatModalVisible] = useState<boolean>(false);
-  const [newChatName, setNewChatName] = useState<string>('');  
+  const [newChatName, setNewChatName] = useState<string>('');
   const [lastSelectedGroups, setLastSelectedGroups] = useState<string[]>([]);
   const [lastSelectedFiles, setLastSelectedFiles] = useState<string[]>([]);
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
@@ -234,7 +236,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   // 添加 ref 来跟踪 localRequestId 的最新值
   const localRequestIdRef = useRef<string>('');
 
-    // 滚动到对话区域底部
+  // 滚动到对话区域底部
   const scrollToBottom = () => {
     if (messagesEndRef.current && messagesEndRef.current.parentNode) {
       // messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -268,7 +270,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         cacheHits += message.metadata.cache_hit || 0;
         cacheMisses += message.metadata.cache_miss || 0;
       }
-      
+
       if (message.metadata?.stream_out_type === "index_build" && message.metadata?.input_tokens) {
         inputTokens += message.metadata.input_tokens || 0;
         outputTokens += message.metadata.output_tokens || 0;
@@ -279,7 +281,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         cacheMisses += message.metadata.cache_miss || 0;
       }
 
-      if (message.metadata?.path === "/agent/edit/window_length_change"){
+      if (message.metadata?.path === "/agent/edit/window_length_change") {
         const content = JSON.parse(message.content)
         contextWindowUsage = content.tokens_used
       }
@@ -359,7 +361,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   useEffect(() => {
     getCurrentSessionName();
-    fetchChatLists();        
+    fetchChatLists();
   }, [panelId]);
 
   const fetchChatLists = async () => {
@@ -367,8 +369,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       const lists = await chatListService.fetchChatLists();
 
       // 如果有任何聊天记录，自动加载最新的聊天
-      if (lists && lists.length > 0) {                
-        setChatLists(lists);        
+      if (lists && lists.length > 0) {
+        setChatLists(lists);
       } else {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const newChatName = `chat_${timestamp}`;
@@ -388,7 +390,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       const sessionInfo = await chatListService.getCurrentSessionName(panelId);
       if (sessionInfo) {
         // 支持新的返回格式，可能是字符串或包含sessionName属性的对象
-        const sessionName = typeof sessionInfo === 'string' ? sessionInfo : sessionInfo.sessionName;        
+        const sessionName = typeof sessionInfo === 'string' ? sessionInfo : sessionInfo.sessionName;
         if (sessionName) {
           setChatListName(sessionName);
           // 如果会话名称有效，加载该会话的消息
@@ -532,10 +534,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         playErrorSound();
       }
     } else {
-      AntdMessage.success('Task completed successfully');      
+      AntdMessage.success('Task completed successfully');
 
       // 使用 ref 中的最新值
-      const currentRequestId = localRequestIdRef.current;      
+      const currentRequestId = localRequestIdRef.current;
 
       // 在任务完成时设置标记，表示应该保存消息
       // 而不是直接保存，让 useEffect 在消息状态更新后处理保存
@@ -576,9 +578,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         }
       }
     }
+    endChatRunning();
     setSendLoading(false);
     setRequestId("");
-    setLocalRequestId("");    
+    setLocalRequestId("");
     if (soundEnabledRef.current) {
       console.log("play task completed")
       playTaskComplete()
@@ -613,7 +616,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   // 消息已经是 AutoMode 格式，所以不需要转换
   const getAutoModeMessages = (): MessageProps[] => {
-    console.log(messages)
+    console.log('最新的两条数据：', messages[messages.length - 1], messages[messages.length - 2])
     return messages;
   };
 
@@ -670,15 +673,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       isStreaming: true,
       isThinking: false
     };
-    
+
     // 使用函数式更新
-    setMessages(prev => [...prev, newMessage]);
-    
+    setMessages(prev => {
+      return [...prev, newMessage]
+    });
+
     // 标记需要保存消息
     if (chatListName) {
       setShouldSaveMessages(true);
     }
-    
+
     return newMessage.id;
   }, [messageIdCounter, chatListName]);
 
@@ -698,15 +703,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       isStreaming: false,
       isThinking: false
     };
-    
+
     // 使用函数式更新
     setMessages(prev => [...prev, newMessage]);
-    
+
     // 标记需要保存消息
     if (chatListName) {
       setShouldSaveMessages(true);
     }
-    
+
     return newMessage.id;
   }, [messageIdCounter, chatListName]);
 
@@ -726,7 +731,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     if (data.panelId && data.panelId !== panelId) {
       return; // 如果事件不属于当前面板，直接返回
     }
-    
+
     // 清理该消息后面的所有消息
     setMessages(prevMessages => {
       // 找到消息在数组中的实际位置
@@ -766,8 +771,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         autoModeMessage.type,
         autoModeMessage.id);
 
-      eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, autoModeMessage); 
-      
+      eventBus.publish(EVENTS.CHAT.NEW_MESSAGE, autoModeMessage);
+
       // 使用优化的消息更新函数
       updateMessage(autoModeMessage);
     });
@@ -795,24 +800,24 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         if (message && typeof message === 'object' && message.panelId && message.panelId !== panelId) {
           return;
         }
-        
+
         // 检查message是否为对象且具有action和commit_id属性
         if (message && typeof message === 'object' && message.action && message.commit_id) {
           console.log('ChatPanel: Received object message from eventBus:', message);
-          
-          const {action, commit_id, mode} = message;
-          
+
+          const { action, commit_id, mode } = message;
+
           // 如果mode为chat，设置isWriteMode为false
           if (mode === 'chat') {
             setIsWriteMode(false);
           }
-          
+
           // 根据action构建不同的命令格式
           let command = '';
           if (action === 'review') {
             command = `/review commit=${commit_id}`;
           }
-          
+
           // 将消息内容填入编辑器
           if (command && editorRef.current) {
             editorRef.current.setValue(command);
@@ -838,7 +843,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         if (eventPanelId && eventPanelId !== panelId) {
           return;
         }
-        
+
         console.log('ChatPanel: RAG enabled changed to', enabled);
         setEnableRag(enabled);
       }
@@ -852,7 +857,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         if (eventPanelId && eventPanelId !== panelId) {
           return;
         }
-        
+
         console.log('ChatPanel: MCPs enabled changed to', enabled);
         setEnableMCPs(enabled);
       }
@@ -872,7 +877,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         if (data.panelId && data.panelId !== panelId) {
           return;
         }
-        
+
         console.log('ChatPanel: Step By Step mode changed to', data.enabled);
         setEnableAgenticMode(data.enabled);
       }
@@ -880,12 +885,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 监听发送消息事件
     const handleSendMessageEvent = (data: SendMessageEventData) => {
-      console.log('接受新消息:',data,panelId,data.panelId && data.panelId !== panelId)
+      console.log('接受新消息:', data, panelId, data.panelId && data.panelId !== panelId)
       // 如果传入了panelId且与当前面板的panelId不匹配，则不处理此事件
       if (data.panelId && data.panelId !== panelId) {
         return;
       }
-      
+
       // 调用发送消息函数
       handleSendMessage(data.text);
     };
@@ -898,15 +903,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 监听停止生成事件
     const handleStopGenerationEvent = (data: StopGenerationEventData) => {
+      console.log('监听停止生成事件')
+      endChatRunning()
       // 如果传入了panelId且与当前面板的panelId不匹配，则不处理此事件
       if (data.panelId && data.panelId !== panelId) {
         return;
       }
-      
+
       // 调用停止生成函数
       handleStopGeneration();
     };
-    
+
     // 订阅停止生成事件
     const unsubscribeStopGeneration = eventBus.subscribe(
       EVENTS.CHAT.STOP_GENERATION,
@@ -935,11 +942,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   //   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   // }, [messages]);
 
-  const handleSendMessage = async (text?: string) => {        
+  function endChatRunning() {
+    isChatRunningRef.current = false
+  }
+
+
+  const handleSendMessage = async (text?: string) => {
     console.log('==== 发送消息时的状态 ====');
     console.log('chatListName:', chatListNameRef.current);
     console.log('messages 长度:', messagesRef.current.length);
-    
+
     console.log('isWriteMode:', isWriteModeRef.current);
     console.log('isRuleMode:', isRuleModeRef.current);
     console.log('isCommandMode:', isCommandModeRef.current);
@@ -953,7 +965,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     console.log('panelId:', panelIdRef.current);
     console.log('sendLoading:', sendLoadingRef.current);
     console.log('localRequestId:', localRequestIdRef.current);
-    
+
     console.log('=======================');
 
     const trimmedText = text?.trim() || editorRef.current?.getValue()?.trim();
@@ -961,19 +973,25 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       AntdMessage.warning('Please enter a message');
       return;
     }
+
+    // 控制开关
+    if (isChatRunningRef.current) return
+    isChatRunningRef.current = true
+
     // 优先设置loading，防止频繁点击点击
     setSendLoading(true);
+
 
     // 如果有当前对话名称且有消息，先保存当前对话
     if (chatListNameRef.current && messagesRef.current.length > 0) {
       await saveChatList(chatListNameRef.current, messagesRef.current, panelIdRef.current);
       console.log('Chat list saved before sending new message:', chatListNameRef.current);
     }
-  
+
     // 在发送消息前，再次调用文件组服务确保上下文是最新的
     if (lastSelectedGroupsRef.current.length > 0 || lastSelectedFilesRef.current.length > 0) {
       try {
-        console.log('ChatPanel: Re-syncing file groups before sending message', lastSelectedGroupsRef.current, lastSelectedFilesRef.current);        
+        console.log('ChatPanel: Re-syncing file groups before sending message', lastSelectedGroupsRef.current, lastSelectedFilesRef.current);
         // 再切换文件组
         const result = await fileGroupService.switchFileGroups(lastSelectedGroupsRef.current, lastSelectedFilesRef.current);
         console.log('ChatPanel: File groups re-synced successfully', result);
@@ -981,19 +999,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         console.error('ChatPanel: Error re-syncing file groups', error);
         // 继续发送消息，不阻止用户操作
       }
-    }else {
+    } else {
       // 清空当前文件组
       try {
         await fileGroupService.clearCurrentFiles();
       } catch (error) {
         console.error('ChatPanel: Error clearing current files', error);
       }
-    }  
+    }
 
     // 添加用户消息
+    console.log('addUserMessage: ', trimmedText)
     const messageId = addUserMessage(trimmedText);
     editorRef.current?.setValue("");
-   
+
     updateMessageStatus(messageId, 'sent');
 
     try {
@@ -1011,11 +1030,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               query: trimmedText
             }),
           });
-          
+
           if (!response.ok) {
             throw new Error(`Failed to get rule context prompt: ${response.statusText}`);
           }
-          
+
           const data = await response.json();
           if (data.prompt) {
             processedText = data.prompt;
@@ -1029,6 +1048,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           // 添加一条bot消息，显示错误信息
           const errorMessage = error instanceof Error ? error.message : String(error);
           addBotMessage(getMessage('ruleModePromptError', { error: errorMessage }));
+          endChatRunning()
           return;
         }
       }
@@ -1063,6 +1083,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             centered: true,
           });
           setSendLoading(false); // 重置加载状态
+          endChatRunning()
           return; // 阻止发送消息
         }
 
@@ -1082,10 +1103,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         setLocalRequestId(result.event_file_id);
       }
     } catch (error) {
+
       console.error('Error sending message:', error);
       AntdMessage.error('Failed to send message');
       updateMessageStatus(messageId, 'error');
       addBotMessage(getMessage('processingError'));
+      endChatRunning();
       setSendLoading(false);
     }
   };
@@ -1172,7 +1195,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       },
     });
   };
- 
+
   // 设置chatListService事件监听
   useEffect(() => {
     // 监听错误事件
@@ -1186,7 +1209,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       if (eventPanelId && eventPanelId !== panelId) {
         return;
       }
-      
+
       // 更新本地聊天列表
       setChatLists(prev => {
         const newList = [...prev];
@@ -1209,10 +1232,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       if (eventPanelId && eventPanelId !== panelId) {
         return;
       }
-      
+
       // 从列表中移除已删除的聊天
       setChatLists(prev => prev.filter(item => item !== name));
-      
+
       // 如果当前正在使用的聊天被删除，创建一个新的
       if (chatListName === name) {
         handleNewChatDirectly({ panelId });
@@ -1225,7 +1248,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       if (eventPanelId && eventPanelId !== panelId) {
         return;
       }
-      
+
       setChatListName(name);
       setChatLists(prev => [name, ...prev.filter(item => item !== name)]);
       setMessages([]);
@@ -1235,18 +1258,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     chatListService.on('error', handleError);
     chatListService.on('chatListRenamed', handleChatListRenamed);
     chatListService.on('chatListDeleted', handleChatListDeleted);
-    chatListService.on('newChatCreated', handleNewChatCreated);    
+    chatListService.on('newChatCreated', handleNewChatCreated);
 
     // 清理函数
     return () => {
       chatListService.off('error', handleError);
       chatListService.off('chatListRenamed', handleChatListRenamed);
       chatListService.off('chatListDeleted', handleChatListDeleted);
-      chatListService.off('newChatCreated', handleNewChatCreated);      
+      chatListService.off('newChatCreated', handleNewChatCreated);
     };
   }, [chatListName, panelId]);
 
-  
+
   // 监听RAG启用状态变更事件
   useEffect(() => {
     const handleRagEnabledChanged = (enabled: boolean) => {
@@ -1255,7 +1278,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 订阅事件
     const unsubscribe = eventBus.subscribe(EVENTS.RAG.ENABLED_CHANGED, handleRagEnabledChanged);
-    
+
     return () => {
       unsubscribe();
     };
@@ -1268,7 +1291,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       if (data.panelId && data.panelId !== panelId) {
         return;
       }
-      
+
       console.log('ChatPanel: Received file group selection update event', data.groupNames, data.filePaths);
       // 保存最近选择的文件组和文件
       setLastSelectedGroups(data.groupNames);
@@ -1277,7 +1300,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 订阅文件组选择更新事件
     const unsubscribe = eventBus.subscribe(
-      EVENTS.FILE_GROUP_SELECT.SELECTION_UPDATED, 
+      EVENTS.FILE_GROUP_SELECT.SELECTION_UPDATED,
       handleFileGroupSelectionUpdated
     );
 
@@ -1295,7 +1318,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 订阅事件
     const unsubscribe = eventBus.subscribe(EVENTS.MCPS.ENABLED_CHANGED, handleMcpsEnabledChanged);
-    
+
     return () => {
       unsubscribe();
     };
@@ -1318,7 +1341,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         // 保留点击的消息及之前的所有消息
         const updatedMessages = messages.slice(0, msgIndex + 1);
         setMessages(updatedMessages);
-        
+
         // 将最后一条用户消息的内容设置为编辑器内容
         const lastUserMsg = [...updatedMessages].reverse().find(m => m.isUser);
         if (lastUserMsg) {
@@ -1329,7 +1352,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // 订阅刷新事件
     const unsubscribe = eventBus.subscribe(EVENTS.CHAT.REFRESH_FROM_MESSAGE, handleRefreshFromMessage);
-    
+
     return () => {
       unsubscribe();
     };
@@ -1338,22 +1361,23 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   // 重置对话
   const handleReset = async () => {
     if (pendingRevert) return;
-    
+
     try {
       setPendingRevert(true);
-      
+
       // 重置消息列表
       setMessages([]);
-      
+
       // 重置编辑器内容
       setEditorContent('');
-      
+
       // 重置其他状态
+      endChatRunning();
       setSendLoading(false);
-      
+
       // 生成新会话ID
       const newSessionId = uuidv4();
-      
+
       // 发送重置请求到服务器
       await fetch('/api/chat/reset', {
         method: 'POST',
@@ -1365,7 +1389,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           panel_id: panelId || "main"
         })
       });
-      
+
       console.log('Chat reset successfully');
     } catch (error) {
       console.error('Failed to reset chat:', error);

@@ -234,7 +234,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       
       <Split 
         className="flex-1 flex"
-        sizes={[25, 75]}
+        sizes={[32, 68]}
         minSize={[0, 400]}
         gutterSize={3}
         snapOffset={100}
