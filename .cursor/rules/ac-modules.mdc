@@ -1,0 +1,121 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# AC Modules (.ac.mod.md) Guide
+
+## What is an AC Module?
+
+Any directory containing a `.ac.mod.md` file is considered an **AC Module** - a language-agnostic module that provides complete functionality and can be used as an API. These modules are self-contained units with well-defined interfaces and comprehensive documentation.
+
+## AC Module Purpose and Benefits
+
+- **Self-contained functionality**: Each AC module provides a complete feature set
+- **Language-agnostic**: Can be implemented in any programming language
+- **API-ready**: Designed to be consumed by other modules or external systems
+- **Well-documented**: Contains comprehensive usage examples and documentation
+- **Dependency-aware**: Clearly defines relationships with other AC modules
+
+## Identifying AC Modules
+
+Look for directories containing `.ac.mod.md` files. These files serve as the module's documentation and specification.
+
+## AC Module Structure Requirements
+
+Every `.ac.mod.md` file must follow this exact structure:
+
+### Required Sections
+
+1. **Module Name and Description**: One-sentence description of core functionality
+2. **Directory Structure**: Visual representation of all files and their purposes
+3. **Quick Start**: Basic usage examples with code snippets
+4. **Core Components**: Detailed explanation of main classes and functionality
+5. **Mermaid File Dependency Graph**: Visual representation of internal dependencies
+6. **Dependency Relationships**: List of other AC modules this module depends on
+7. **Commands to Verify Module Functionality**: Executable commands for testing
+
+### Template Structure
+
+```markdown
+# [Module Name]
+
+[One-sentence description of the module's core functionality and its role in the project]
+
+## Directory Structure
+[Complete file tree with detailed function descriptions]
+
+## Quick Start
+[Basic usage examples with code snippets]
+
+## Core Components
+[Detailed explanation of main classes and methods]
+
+## Mermaid File Dependency Graph
+[Visual representation of internal dependencies]
+
+## Dependency Relationships
+[List of other AC modules this module depends on]
+
+## Commands to Verify Module Functionality
+[Executable commands for testing and verification]
+```
+
+## When to Use AC Modules
+
+### Before Implementation
+1. **Check existing AC modules**: Always review project AC modules before implementing new features to avoid duplication
+2. **Understand dependencies**: Review dependency relationships between AC modules
+3. **Assess impact**: When modifying files, check if the directory is an AC module to understand full impact
+
+### During Development
+1. **Follow structure**: Maintain the required .ac.mod.md structure when creating new AC modules
+2. **Update documentation**: Keep .ac.mod.md files current with code changes
+3. **Test verification**: Ensure commands in "Commands to Verify Module Functionality" work correctly
+
+### For Understanding
+1. **Project architecture**: Review multiple AC modules to understand the entire project structure
+2. **Component relationships**: Use Mermaid diagrams to understand how modules interact
+3. **Usage patterns**: Study Quick Start sections to understand proper usage
+
+## Best Practices
+
+### Documentation
+- Keep descriptions concise but comprehensive
+- Provide working code examples in Quick Start sections
+- Update Mermaid diagrams when adding new dependencies
+- Verify all commands in the verification section work
+
+### Module Design
+- Ensure each AC module is truly self-contained
+- Minimize dependencies on other AC modules
+- Provide clear, well-defined APIs
+- Include comprehensive error handling examples
+
+### Maintenance
+- Regular review of .ac.mod.md files for accuracy
+- Update dependency relationships when modules change
+- Test verification commands with each update
+- Keep Quick Start examples current with latest API changes
+
+## Working with AC Modules in This Codebase
+
+When working with files in this project:
+
+1. **Check for AC modules**: Look for `.ac.mod.md` files in the current directory or parent directories
+2. **Review dependencies**: Check if your changes affect other AC modules listed in dependency relationships
+3. **Update documentation**: If modifying an AC module, update the corresponding `.ac.mod.md` file
+4. **Test functionality**: Run the verification commands after making changes
+
+## Common AC Module Locations
+
+Based on the project structure, look for AC modules in:
+- Core functionality directories (src/*)
+- Tool directories (src/tool/*)
+- Utility directories (src/*)
+- Feature-specific directories
+
+===
+
+1. Always check for `.ac.mod.md` files when working in any directory to understand the full context of your changes.
+2. When the AC Module are modified, you should update the module's .ac.mod.md file if you think you need to.

@@ -1,0 +1,147 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# AC Module Template (.ac.mod.md)
+
+## Exact Template Structure
+
+When creating a new `.ac.mod.md` file, use this exact template structure:
+
+```markdown
+# [Module Name]
+
+[One-sentence description of the module's core functionality and its role in the project]
+
+## Directory Structure
+
+```
+[module_path]/
+├── [main_file1]                 # [Detailed function description]
+├── [main_file2]                 # [Detailed function description]
+├── [subdirectory]/              # [Subdirectory function description]
+│   └── [subfile]                # [Subfile function description]
+└── .ac.mod.md                   # This document
+```
+
+## Quick Start
+
+### Basic Usage
+
+```python
+# Import necessary modules
+from [module_path] import [MainClassName], [HelperClassName]
+
+# 1. Initialize configuration
+[Specific initialization code example]
+
+# 2. Create instance
+[Instance creation code example]
+
+# 3. Basic usage
+[Basic usage code example]
+```
+
+### Helper Functions
+
+[Detailed explanation of helper functions provided by the module]
+
+### Configuration Management
+
+[Explanation of configuration options and management methods]
+
+## Core Components
+
+### 1. [MainClassName] Main Class
+[YOU SHOULD KEEP THIS PART AS SIMPLIFIED AS POSSIBLE]
+**Core Features:**
+- [Feature1]: [Detailed description]
+- [Feature2]: [Detailed description]
+
+**Main Methods:**
+- `[method1]()`: [Method functionality and parameter description]
+- `[method2]()`: [Method functionality and parameter description]
+
+### 2. [Module] Architecture
+
+[Detailed explanation of the module's design and implementation]
+
+## Mermaid File Dependency Graph
+[Main description of dependencies within the module]
+
+```mermaid
+graph TB
+    %% Core module definition
+    [MainModule][MainModule<br/>Core functionality description]
+    [SubModule1][SubModule1<br/>Functionality description]
+    
+    %% Dependency relationships
+    [MainModule] --> [SubModule1]
+    
+    %% Style definitions
+    classDef coreClass fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef subClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px
+    
+    class [MainModule] coreClass
+    class [SubModule1] subClass
+```
+
+## Dependency Relationships
+Dependencies on other modules with .ac.mod.md files, simply shown as a relative path list, for example:
+
+- ../a/.ac.mod.md
+- ../../b/.ac.mod.md
+
+## Commands to Verify Module Functionality
+
+Usually an executable command that can run a script or execute tests, for example:
+
+```
+node --experimental-transform-types ./a/b/c.ts
+```
+
+Or test execution commands:
+
+```
+pytest path/to/your/module/tests -v
+```
+```
+
+## Template Usage Guidelines
+
+### Replacement Instructions
+
+1. **[Module Name]**: Replace with the actual module name
+2. **[module_path]**: Replace with the actual directory path
+3. **[MainClassName]**: Replace with the primary class name
+4. **[HelperClassName]**: Replace with helper class names
+5. **[main_file1], [main_file2]**: Replace with actual file names
+6. **[subdirectory], [subfile]**: Replace with actual subdirectory and file names
+7. **[Feature1], [Feature2]**: Replace with actual feature descriptions
+8. **[method1](), [method2]()**: Replace with actual method names and signatures
+
+### Language-Specific Adaptations
+
+The template shows Python examples, but adapt the code syntax for your specific language:
+
+- **TypeScript/JavaScript**: Use import/export syntax
+- **Go**: Use package and import statements
+- **Rust**: Use mod and use statements
+- **Java**: Use package and import statements
+
+### Critical Requirements
+
+1. **Strict Structure**: Follow the exact section order and formatting
+2. **Mermaid Styling**: Use the exact CSS classes provided for consistent visual appearance
+3. **Dependency Paths**: Use relative paths from the current module to referenced AC modules
+4. **Executable Commands**: Ensure all commands in the verification section actually work
+5. **Core Components Simplification**: Keep the Core Components section as simplified as possible
+
+### Common Mistakes to Avoid
+
+- Don't skip any required sections
+- Don't change the section order
+- Don't omit the `.ac.mod.md` file in the directory structure
+- Don't forget to update dependency relationships when they change
+- Don't include non-working commands in the verification section
