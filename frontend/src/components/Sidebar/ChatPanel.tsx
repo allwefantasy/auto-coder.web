@@ -195,7 +195,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const editorRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null); // 添加消息容器的引用，用于导出图片
-  const [isWriteMode, setIsWriteMode] = useState<boolean>(false);
+  const [isWriteMode, setIsWriteMode] = useState<boolean>(true);
 
   const isWriteModeRef = useRef<boolean>(isWriteMode);
 
@@ -616,7 +616,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   // 消息已经是 AutoMode 格式，所以不需要转换
   const getAutoModeMessages = (): MessageProps[] => {
-    console.log('最新的两条数据：', messages[messages.length - 1], messages[messages.length - 2])
     return messages;
   };
 
@@ -1567,7 +1566,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         {/* 消息列表区域 */}
         <Layout.Content className="flex-1 overflow-hidden flex flex-col">
           <div
-            className="flex-1 overflow-y-auto bg-gray-900 p-2 transition-all duration-300"
+            className="flex-1 overflow-y-auto bg-gray-900 p-2 transition-all duration-300 relative"
             ref={messagesContainerRef}
             style={{
               backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0)',
@@ -1624,6 +1623,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                         headers: {
                           'Content-Type': 'application/json',
                         },
+
                         body: JSON.stringify({
                           request_id: requestId,
                           event: eventData,
@@ -1653,6 +1653,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                 style={{ width: '36px', height: '36px' }}
               />
             )}
+            <div className={`sticky bottom-1 left-0 w-full flex items-center justify-center ${messages.length > 0&&!isChatRunningRef.current?'hidden':''}`}>
+              <div className="flex space-x-1 mt-1">
+                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
           </div>
 
           {/* 输入区域 */}

@@ -1,1 +1,11 @@
 target
+node_modules
+__pycache__
+web
+actions
+.auto-coder
+*.md
+.vscode
+.txt
+dist
+monaco-editor/

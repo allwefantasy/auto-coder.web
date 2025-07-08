@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Select, message, Skeleton, Button, Tag } from 'antd';
+import { Select, message, Skeleton, Button, Tag, notification } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { getMessage } from '../Sidebar/lang';
 import type { AutoCoderArgs } from './types';
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';
 import eventBus, { EVENTS } from '../../services/eventBus';
+import { validModelHasApiKey } from '@/utils/validModelHasApiKey';
 
 interface ModelConfigProps {
   availableKeys: AutoCoderArgs[];
@@ -94,37 +95,37 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
         }
         const data = await response.json();
         const currentConfig = data.conf;
-        
+
         // Update selected models with current configuration
         const updatedModels = { ...selectedModels };
-        
+
         if (currentConfig.model) {
           updatedModels.model = currentConfig.model;
         }
-        
+
         if (currentConfig.code_model) {
           // If code_model is a string, split it by comma to create an array
-          updatedModels.code_model = typeof currentConfig.code_model === 'string' 
-            ? currentConfig.code_model.split(',') 
+          updatedModels.code_model = typeof currentConfig.code_model === 'string'
+            ? currentConfig.code_model.split(',')
             : currentConfig.code_model;
         }
-        
+
         if (currentConfig.chat_model) {
           updatedModels.chat_model = currentConfig.chat_model;
         }
-        
+
         if (currentConfig.generate_rerank_model) {
           updatedModels.generate_rerank_model = currentConfig.generate_rerank_model;
         }
-        
+
         if (currentConfig.index_model) {
           updatedModels.index_model = currentConfig.index_model;
         }
-        
+
         if (currentConfig.index_filter_model) {
           updatedModels.index_filter_model = currentConfig.index_filter_model;
         }
-        
+
         if (currentConfig.commit_model) {
           updatedModels.commit_model = currentConfig.commit_model;
         }
@@ -136,7 +137,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
         if (currentConfig.conversation_prune_model) {
           updatedModels.conversation_prune_model = currentConfig.conversation_prune_model;
         }
-        
+
         setSelectedModels(updatedModels);
       } catch (error) {
         console.error('Error fetching current configuration:', error);
@@ -144,7 +145,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
         setConfigLoading(false);
       }
     };
-    
+
     fetchCurrentConfig();
   }, []);
 
@@ -154,11 +155,11 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     const initialModels: Record<string, string | string[]> = { ...selectedModels };
     availableKeys.forEach(key => {
       if ((key.key === 'model' || key.key === 'code_model' ||
-          key.key === 'chat_model' || key.key === 'generate_rerank_model' ||
-          key.key === 'index_model' || key.key === 'index_filter_model' ||
-          key.key === 'commit_model' || key.key === 'context_prune_model' || 
-          key.key === 'conversation_prune_model') &&
-          !initialModels[key.key]) {
+        key.key === 'chat_model' || key.key === 'generate_rerank_model' ||
+        key.key === 'index_model' || key.key === 'index_filter_model' ||
+        key.key === 'commit_model' || key.key === 'context_prune_model' ||
+        key.key === 'conversation_prune_model') &&
+        !initialModels[key.key]) {
         initialModels[key.key] = (key as any).value || '';
       }
     });
@@ -174,7 +175,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
       setSelectedModels(prev => {
         // Only update if the value is actually different
         if (JSON.stringify(prev.code_model) !== JSON.stringify(modelsArray)) {
-          console.log("ModelConfig received update:", modelsArray);          
+          console.log("ModelConfig received update:", modelsArray);
           return { ...prev, code_model: modelsArray };
         }
         return prev; // Return previous state if no change
@@ -191,43 +192,47 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
 
   const handleModelChange = (key: string, value: string | string[]) => {
     const isEmpty = Array.isArray(value) ? value.length === 0 : value === '';
-    
+
+    if (!validModelHasApiKey(models, value)) {
+      notification.info({ message: '您未配置该模型的API-KEY', duration: 1.5 })
+    }
+
     setSelectedModels(prev => ({ ...prev, [key]: value }));
 
     if (isEmpty) {
       // If the value is empty, call the delete endpoint for this specific key
       deleteConfigKey(key);
       // Also notify the parent component about the change (to empty)
-      onModelChange(key, Array.isArray(value) ? '' : value); 
+      onModelChange(key, Array.isArray(value) ? '' : value);
     } else {
       // If the value is not empty, format it (e.g., for code_model) and notify the parent
       let formattedValue = value;
       if (key === 'code_model' && Array.isArray(value)) {
-       formattedValue = value.join(',');
-       }
-       onModelChange(key, formattedValue as string); // Notify parent (e.g., for saving)
+        formattedValue = value.join(',');
+      }
+      onModelChange(key, formattedValue as string); // Notify parent (e.g., for saving)
 
-       // Publish event if code_model changed here
-       if (key === 'code_model' && !isEmpty) {
-         // Ensure we publish an array
-         const modelsArray = Array.isArray(value) ? value : [];
-         // Check if the current state actually matches the new value before publishing
-         if(JSON.stringify(selectedModels.code_model) !== JSON.stringify(modelsArray)) {
-            console.log("ModelConfig publishing update:", modelsArray);
-            eventBus.publish(EVENTS.CONFIG.CODE_MODEL_UPDATED, modelsArray);
-         }
-       }
-     }
-   };
+      // Publish event if code_model changed here
+      if (key === 'code_model' && !isEmpty) {
+        // Ensure we publish an array
+        const modelsArray = Array.isArray(value) ? value : [];
+        // Check if the current state actually matches the new value before publishing
+        if (JSON.stringify(selectedModels.code_model) !== JSON.stringify(modelsArray)) {
+          console.log("ModelConfig publishing update:", modelsArray);
+          eventBus.publish(EVENTS.CONFIG.CODE_MODEL_UPDATED, modelsArray);
+        }
+      }
+    }
+  };
 
   const selectProps = {
     loading: loading || configLoading,
     className: "custom-select",
     popupClassName: "custom-select-dropdown",
     showSearch: true,
-    filterOption: (input: string, option?: { label: string, value: string }) => 
+    filterOption: (input: string, option?: { label: string, value: string }) =>
       option?.label.toLowerCase().includes(input.toLowerCase()) || false,
-    style: { 
+    style: {
       width: '100%'
     }
   };
@@ -247,17 +252,17 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
     <div>
       <div className="flex items-center justify-between">
         <h3 className="settings-title">{getMessage('modelConfiguration')}</h3>
-        <Button 
-          type="text" 
-          icon={<ReloadOutlined />} 
+        <Button
+          type="text"
+          icon={<ReloadOutlined />}
           onClick={() => {
-            fetchModels();            
+            fetchModels();
           }}
           loading={loading}
           className="text-gray-400 hover:text-white"
         />
       </div>
-      
+
       <div className="space-y-3">
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('defaultModel')}</label>
@@ -267,32 +272,32 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             value={selectedModels.model || undefined} // Handle empty string for placeholder/clear
             onChange={(value) => handleModelChange('model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,              
+              value: model.name,
               label: model.name
             }))}
           />
           <p className="model-config-description">{getMessage('defaultModelDescription')}</p>
         </div>
-                        
+
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('codeModel')}</label>
           <Select
             {...selectProps}
-            allowClear 
+            allowClear
             mode="multiple"
-            value={selectedModels.code_model as string[] || []} 
-            onChange={(value) => handleModelChange('code_model', value || [])} 
+            value={selectedModels.code_model as string[] || []}
+            onChange={(value) => handleModelChange('code_model', value || [])}
             options={models.map(model => ({
-              value: model.name,              
+              value: model.name,
               label: model.name
             }))}
             tagRender={(props) => {
               const { label, value, closable, onClose } = props;
               return (
-                <Tag 
-                  color="blue" 
-                  closable={closable} 
-                  onClose={onClose} 
+                <Tag
+                  color="blue"
+                  closable={closable}
+                  onClose={onClose}
                   style={{ marginRight: 3 }}
                 >
                   {label}
@@ -301,8 +306,8 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             }}
           />
           <p className="model-config-description">{getMessage('codeModelDescription')}</p>
-        </div> 
-       
+        </div>
+
 
         <div className="model-config-item">
           <label className="model-config-label">{getMessage('chatModel')}</label>
@@ -312,7 +317,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             value={selectedModels.chat_model || undefined} // Handle empty string for placeholder/clear
             onChange={(value) => handleModelChange('chat_model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,              
+              value: model.name,
               label: model.name
             }))}
           />
@@ -327,7 +332,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             value={selectedModels.generate_rerank_model || undefined} // Handle empty string for placeholder/clear
             onChange={(value) => handleModelChange('generate_rerank_model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,              
+              value: model.name,
               label: model.name
             }))}
           />
@@ -342,7 +347,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             value={selectedModels.index_model || undefined} // Handle empty string for placeholder/clear
             onChange={(value) => handleModelChange('index_model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,              
+              value: model.name,
               label: model.name
             }))}
           />
@@ -357,7 +362,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             value={selectedModels.index_filter_model || undefined} // Handle empty string for placeholder/clear
             onChange={(value) => handleModelChange('index_filter_model', value || '')} // Ensure empty string on clear
             options={models.map(model => ({
-              value: model.name,              
+              value: model.name,
               label: model.name
             }))}
           />
@@ -372,7 +377,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             value={selectedModels.commit_model || undefined}
             onChange={(value) => handleModelChange('commit_model', value || '')}
             options={models.map(model => ({
-              value: model.name,              
+              value: model.name,
               label: model.name
             }))}
           />
@@ -387,7 +392,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             value={selectedModels.context_prune_model || undefined}
             onChange={(value) => handleModelChange('context_prune_model', value || '')}
             options={models.map(model => ({
-              value: model.name,              
+              value: model.name,
               label: model.name
             }))}
           />
@@ -402,7 +407,7 @@ const ModelConfig: React.FC<ModelConfigProps> = ({ availableKeys, onModelChange 
             value={selectedModels.conversation_prune_model || undefined}
             onChange={(value) => handleModelChange('conversation_prune_model', value || '')}
             options={models.map(model => ({
-              value: model.name,              
+              value: model.name,
               label: model.name
             }))}
           />

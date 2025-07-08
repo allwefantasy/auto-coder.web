@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Select, message, Tag, Tooltip } from 'antd';
+import { Select, message, Tag, Tooltip, notification } from 'antd';
 import { CodeOutlined } from '@ant-design/icons';
 import { getMessage } from './lang';
 import '../../styles/custom_antd.css';
 import './ragSelectorStyles.css';
 import eventBus, { EVENTS } from '../../services/eventBus';
+import { validModelHasApiKey } from '@/utils/validModelHasApiKey';
 
 interface Model {
   name: string;
@@ -52,12 +53,12 @@ const CodeModelSelector: React.FC = () => {
       const currentConfig = data.conf;
 
       if (currentConfig && currentConfig.code_model) {
-          const models = typeof currentConfig.code_model === 'string'
-              ? currentConfig.code_model.split(',').map((m: string) => m.trim()).filter((m: string) => m) // Handle empty strings after split
-              : Array.isArray(currentConfig.code_model) ? currentConfig.code_model : []; // Ensure it's an array
-          setSelectedCodeModels(models);
+        const models = typeof currentConfig.code_model === 'string'
+          ? currentConfig.code_model.split(',').map((m: string) => m.trim()).filter((m: string) => m) // Handle empty strings after split
+          : Array.isArray(currentConfig.code_model) ? currentConfig.code_model : []; // Ensure it's an array
+        setSelectedCodeModels(models);
       } else {
-          setSelectedCodeModels([]); // Ensure it's an empty array if not set or config is missing
+        setSelectedCodeModels([]); // Ensure it's an empty array if not set or config is missing
       }
     } catch (error) {
       console.error('Error fetching current configuration:', error);
@@ -73,10 +74,10 @@ const CodeModelSelector: React.FC = () => {
   const updateOrDeleteConfig = async (key: string, value: string[]) => {
     setIsUpdating(true);
     const isEmpty = value.length === 0;
-    
+
     try {
       let response;
-      
+
       if (isEmpty) {
         // Use DELETE endpoint with key in path
         response = await fetch(`/api/conf/${key}`, {
@@ -103,7 +104,7 @@ const CodeModelSelector: React.FC = () => {
         }
         throw new Error(errorDetail);
       }
-      
+
       // Publish event on successful update/delete
       eventBus.publish(EVENTS.CONFIG.CODE_MODEL_UPDATED, value);
       // Optionally show success message
@@ -165,6 +166,11 @@ const CodeModelSelector: React.FC = () => {
 
   const handleModelChange = (value: string[]) => {
     const validValues = Array.isArray(value) ? value : []; // Ensure it's always an array
+
+    if (!validModelHasApiKey(availableModels, value)) {
+      notification.info({ message: '您未配置该模型的API-KEY', duration: 1.5})
+    }
+
     // Optimistically update UI
     setSelectedCodeModels(validValues);
     // Trigger API update (which will publish event on success)
@@ -204,13 +210,13 @@ const CodeModelSelector: React.FC = () => {
           option?.label.toLowerCase().includes(input.toLowerCase()) || false
         }
         tagRender={(props) => {
-          const { label, closable, onClose, value } = props;          
-          
+          const { label, closable, onClose, value } = props;
+
           // Don't truncate the first selected item, but truncate others if needed
-          const displayLabel = (typeof label === 'string' && label.length > 10 ? 
-              `${label.substring(0, 20)}...` : 
-              label);
-          
+          const displayLabel = (typeof label === 'string' && label.length > 10 ?
+            `${label.substring(0, 20)}...` :
+            label);
+
           return (
             <Tag
               color="blue"
