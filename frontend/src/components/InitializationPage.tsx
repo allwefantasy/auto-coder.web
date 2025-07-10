@@ -68,6 +68,12 @@ const InitializationPage: React.FC<InitializationPageProps> = ({ onInitializatio
       const response = await fetch('/api/initialization-project', {
         method: 'POST'
       });
+
+      const tip = document.querySelector('#not_initialized_warning')
+
+      if(tip){
+        document.removeChild(tip)
+      }
       
       if (response.ok) {
         setCurrentStep(1);

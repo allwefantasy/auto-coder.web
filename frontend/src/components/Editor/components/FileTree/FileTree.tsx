@@ -317,7 +317,7 @@ const FileTree: React.FC<FileTreeProps> = ({ treeData, expandedKeys, onSelect, o
     const { node, expanded, selected } = info
     if (expanded === false || selected === false) return
     //TODO 理论上远程仓库文件列表再已有得情况下，不需要每次展开都更新
-    if (node.children?.length > 0) return
+    // if (node.children?.length > 0) return
 
     onSelect(expandedKeys, info)
   }
