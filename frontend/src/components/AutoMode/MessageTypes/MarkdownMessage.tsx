@@ -47,7 +47,7 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
   // 处理JSON格式的模型信息
   const processModelInfo = (content: string): string => {
     // 匹配JSON格式的模型信息
-    const jsonPattern = /\{[^}]*"model[_ ]name"[^}]*\}/g;
+    const jsonPattern = /\{[^}]*"[a-zA-z_]+"[^}]*\}/g;
 
     return content.replace(jsonPattern, (match) => {
       try {
@@ -57,61 +57,53 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
         let result = "";
 
         // 模型名称
-        if (jsonData["model name"] || jsonData["model_name"]) {
-          result += `模型名称：${
-            jsonData["model name"] || jsonData["model_name"]
-          }\n`;
+        if (jsonData["model_name"]) {
+          result += `模型名称：${jsonData["model_name"]}\n`;
         }
 
         // 输入tokens
-        if (
-          jsonData["input tokens"] ||
-          jsonData["in-put tokens"] ||
-          jsonData["input_tokens"]
-        ) {
-          const inputTokens =
-            jsonData["input tokens"] ||
-            jsonData["in-put tokens"] ||
-            jsonData["input_tokens"];
+        if (jsonData["input_tokens"]) {
+          const inputTokens = jsonData["input_tokens"];
           result += `输入token：${inputTokens}\n`;
         }
 
         // 输出tokens
-        if (jsonData["output tokens"] || jsonData["output_tokens"]) {
-          const outputTokens =
-            jsonData["output tokens"] || jsonData["output_tokens"];
+        if (jsonData["output_tokens"]) {
+          const outputTokens = jsonData["output_tokens"];
           result += `输出token：${outputTokens}\n`;
         }
 
         // 耗时
-        if (jsonData["elapsed time"] || jsonData["elapsed_time"]) {
-          const elapsedTime =
-            jsonData["elapsed time"] || jsonData["elapsed_time"];
+        if (jsonData["elapsed_time"]) {
+          const elapsedTime = jsonData["elapsed_time"];
           result += `耗时：${elapsedTime}秒\n`;
         }
 
         // 首token时间
-        if (jsonData["first token time"] || jsonData["first_token_time"]) {
-          const firstTokenTime =
-            jsonData["first token time"] || jsonData["first_token_time"];
+        if (jsonData["first_token_time"]) {
+          const firstTokenTime = jsonData["first_token_time"];
           result += `首token时间：${firstTokenTime}秒\n`;
         }
 
         // 输入成本
-        if (jsonData["input_cost"] || jsonData["input cost"]) {
-          const inputCost = jsonData["input_cost"] || jsonData["input cost"];
+        if (jsonData["input cost"]) {
+          const inputCost = jsonData["input_cost"];
           result += `输入成本：$${inputCost}\n`;
         }
 
         // 输出成本
-        if (jsonData["output cost"] || jsonData["output_cost"]) {
-          const outputCost = jsonData["output cost"] || jsonData["output_cost"];
+        if (jsonData["output_cost"]) {
+          const outputCost = jsonData["output_cost"];
           result += `输出成本：$${outputCost}\n`;
         }
 
         // 速度
         if (jsonData["speed"]) {
           result += `速度：${jsonData["speed"]} tokens/秒\n`;
+        }
+        // 会话id
+        if (jsonData["conversation_id"]) {
+          result += `会话ID：${jsonData["conversation_id"]}\n`;
         }
 
         return result.trim();
