@@ -57,6 +57,8 @@ def get_directory_tree(root_path: str, path: str = None, lazy: bool = False) -> 
 
                 full_path = os.path.join(current_path, name)
                 relative_path = os.path.relpath(full_path, root_path)
+                # 统一使用 Linux 风格的路径分隔符
+                relative_path = relative_path.replace(os.sep, '/')
 
                 if os.path.isdir(full_path):
                     if lazy:
@@ -184,6 +186,8 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
         try:
             full_path = os.path.join(current_path, name)
             relative_path = os.path.relpath(full_path, root_path)
+            # 统一使用 Linux 风格的路径分隔符
+            relative_path = relative_path.replace(os.sep, '/')
 
             # Use aiofiles.os.path.isdir
             is_dir = await aiofiles.os.path.isdir(full_path)
