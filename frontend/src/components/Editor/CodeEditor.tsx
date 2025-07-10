@@ -257,7 +257,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       loadFileContent(key);
       return;
     }
-
+    if (info.event === "select") return;
     await fetchFileTree(filePath);
   };
 
