@@ -1333,9 +1333,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     fetchFileGroups();
 
     // 监听Chat面板刷新消息事件
-    const handleRefreshFromMessage = (messageId: string) => {
+    const handleRefreshFromMessage = (data: {
+      messageId: string,
+      messageContent: string
+    }) => {
+      const { messageId, messageContent } = data
       // 查找消息索引
       const msgIndex = messages.findIndex(m => m.id === messageId);
+      console.log('刷新消息index：', msgIndex)
       if (msgIndex >= 0) {
         // 保留点击的消息及之前的所有消息
         const updatedMessages = messages.slice(0, msgIndex + 1);
@@ -1653,7 +1658,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                 style={{ width: '36px', height: '36px' }}
               />
             )}
-            <div className={`sticky bottom-1 left-0 w-full flex items-center justify-center ${isChatRunningRef.current?'':'hidden'}`}>
+            <div className={`sticky bottom-0 left-0 w-full flex items-center justify-center ${sendLoading && isChatRunningRef.current ? '' : 'hidden'}`}>
               <div className="flex space-x-1 mt-1">
                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>

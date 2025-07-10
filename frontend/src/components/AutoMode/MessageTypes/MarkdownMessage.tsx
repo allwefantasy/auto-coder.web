@@ -32,7 +32,7 @@ interface MarkdownComponentProps {
 }
 
 const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(message.type === 'ERROR');
 
   // 处理thinking标签
   const processThinkingTags = (content: string): string => {
@@ -44,71 +44,63 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
       }
     );
   };
-  // 处理JSON格式的模型信息
-  const processModelInfo = (content: string): string => {
-    // 匹配JSON格式的模型信息
-    const jsonPattern = /\{[^}]*"[a-zA-z_]+"[^}]*\}/g;
+  // 处理JSON格式的模型信息                                                                                                                     
+  function processModelInfo(content: string) {
+    // 匹配JSON格式的模型信息（改进正则以处理嵌套结构）                                                                                         
+    const jsonPattern = /{[\s\S]*?}/g;
 
     return content.replace(jsonPattern, (match) => {
       try {
-        // 尝试解析JSON
+        // 解析JSON数据                                                                                                                         
         const jsonData = JSON.parse(match);
+        const lines: string[] = [];
 
-        let result = "";
+        // 定义属性映射表（包含单位和格式化处理）                                                                                               
+        const propertyMap: Record<string, { label: string; format?: (value: any) => string }> = {
+          model_name: { label: "模型名称" },
+          input_tokens: { label: "输入token" },
+          output_tokens: { label: "输出token" },
+          elapsed_time: { label: "耗时", format: (v) => `${v}秒` },
+          first_token_time: { label: "首token时间", format: (v) => `${v}秒` },
+          input_cost: { label: "输入成本", format: (v) => `$${v}` },
+          output_cost: { label: "输出成本", format: (v) => `$${v}` },
+          speed: { label: "速度", format: (v) => `${v} tokens/秒` },
+          conversation_id: { label: "会话ID" },
+        };
 
-        // 模型名称
-        if (jsonData["model_name"]) {
-          result += `模型名称：${jsonData["model_name"]}\n`;
-        }
+        // 1. 处理已知属性（按定义的顺序）                                                                                                      
+        const orderedKeys = [
+          "model_name", "input_tokens", "output_tokens",
+          "elapsed_time", "first_token_time", "speed",
+          "input_cost", "output_cost", "conversation_id"
+        ];
 
-        // 输入tokens
-        if (jsonData["input_tokens"]) {
-          const inputTokens = jsonData["input_tokens"];
-          result += `输入token：${inputTokens}\n`;
-        }
+        orderedKeys.forEach(key => {
+          if (jsonData[key] !== undefined && jsonData[key] !== null) {
+            const mapping = propertyMap[key];
+            const value = mapping.format
+              ? mapping.format(jsonData[key])
+              : jsonData[key];
+            lines.push(`${mapping.label}：${value}`);
+          }
+        });
 
-        // 输出tokens
-        if (jsonData["output_tokens"]) {
-          const outputTokens = jsonData["output_tokens"];
-          result += `输出token：${outputTokens}\n`;
-        }
+        // 2. 处理其他未知属性（按字母顺序）                                                                                                    
+        const unknownKeys = Object.keys(jsonData)
+          .filter(key => !propertyMap.hasOwnProperty(key) && key !== "__type")
+          .sort();
 
-        // 耗时
-        if (jsonData["elapsed_time"]) {
-          const elapsedTime = jsonData["elapsed_time"];
-          result += `耗时：${elapsedTime}秒\n`;
-        }
+        unknownKeys.forEach(key => {
+          // 尝试美化键名                                                                                                                       
+          const formattedKey = key.replace(/_/g, " ")
+            .replace(/\b\w/g, char => char.toUpperCase());
+          lines.push(`${formattedKey}：${jsonData[key]}`);
+        });
 
-        // 首token时间
-        if (jsonData["first_token_time"]) {
-          const firstTokenTime = jsonData["first_token_time"];
-          result += `首token时间：${firstTokenTime}秒\n`;
-        }
-
-        // 输入成本
-        if (jsonData["input cost"]) {
-          const inputCost = jsonData["input_cost"];
-          result += `输入成本：$${inputCost}\n`;
-        }
-
-        // 输出成本
-        if (jsonData["output_cost"]) {
-          const outputCost = jsonData["output_cost"];
-          result += `输出成本：$${outputCost}\n`;
-        }
-
-        // 速度
-        if (jsonData["speed"]) {
-          result += `速度：${jsonData["speed"]} tokens/秒\n`;
-        }
-        // 会话id
-        if (jsonData["conversation_id"]) {
-          result += `会话ID：${jsonData["conversation_id"]}\n`;
-        }
-
-        return result.trim();
+        // 使用<br>确保Markdown中的换行效果                                                                                                     
+        return lines.join("<br>");
       } catch (e) {
-        // 如果解析失败，返回原始内容
+        // 如果解析失败，返回原始内容                                                                                                           
         return match;
       }
     });
@@ -116,7 +108,6 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
 
   const processMessageContent = (content: string): string => {
     let processedContent = content;
-
     // 先处理thinking标签
     processedContent = processThinkingTags(processedContent);
 
