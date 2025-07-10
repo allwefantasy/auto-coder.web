@@ -3,6 +3,7 @@ import json
 import asyncio
 import aiofiles
 import aiofiles.os
+import re
 from typing import List, Dict, Any, Optional
 
 
@@ -249,10 +250,33 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
     return await build_tree(target_path)
 
 
+def normalize_path(path: str) -> str:
+    """规范化路径，统一分隔符并清除不安全字符"""
+    # 替换所有路径分隔符为POSIX风格
+    normalized = path.replace('\\', '/')
+    # 移除多个连续分隔符
+    normalized = re.sub(r'/+', '/', normalized)
+    # 移除开头和结尾的分隔符
+    normalized = normalized.strip('/')
+    return normalized
+
+
 def read_file_content(project_path: str, file_path: str) -> str:
     """Read the content of a file"""
     try:
-        full_path = os.path.join(project_path, file_path)
+        # 规范化输入路径
+        normalized_path = normalize_path(file_path)
+        
+        # 安全验证：路径是否包含上跳目录
+        if any(part in ('..', '~') for part in normalized_path.split('/')):
+            return None
+        
+        # 创建完整路径，使用规范化的路径组件
+        if normalized_path:
+            full_path = os.path.join(project_path, *normalized_path.split('/'))
+        else:
+            full_path = project_path
+            
         # Check if the path exists and is a file before attempting to open
         if not os.path.exists(full_path) or not os.path.isfile(full_path):
             return None # Or raise a specific error like FileNotFoundError
@@ -269,8 +293,20 @@ def read_file_content(project_path: str, file_path: str) -> str:
 
 async def read_file_content_async(project_path: str, file_path: str) -> Optional[str]:
     """Asynchronously read the content of a file using aiofiles"""
-    full_path = os.path.join(project_path, file_path)
     try:
+        # 规范化输入路径
+        normalized_path = normalize_path(file_path)
+        
+        # 安全验证：路径是否包含上跳目录
+        if any(part in ('..', '~') for part in normalized_path.split('/')):
+            return None
+        
+        # 创建完整路径，使用规范化的路径组件
+        if normalized_path:
+            full_path = os.path.join(project_path, *normalized_path.split('/'))
+        else:
+            full_path = project_path
+            
         # Check if the path exists and is a file before attempting to open using aiofiles.os
         path_exists = await aiofiles.os.path.exists(full_path)
         is_file = await aiofiles.os.path.isfile(full_path)
