@@ -1649,11 +1649,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                   scrollToBottom();
                   setIsAtBottom(true);
                 }}
-                className="fixed bottom-24 right-4 z-10 bg-indigo-600 hover:bg-indigo-700 border-0 shadow-lg flex items-center justify-center"
+                className="sticky bottom-2 right-0 float-right z-10 bg-indigo-600 hover:bg-indigo-700 border-0 shadow-lg flex items-center justify-center"
                 style={{ width: '36px', height: '36px' }}
               />
             )}
-            <div className={`sticky bottom-1 left-0 w-full flex items-center justify-center ${messages.length > 0&&!isChatRunningRef.current?'hidden':''}`}>
+            <div className={`sticky bottom-1 left-0 w-full flex items-center justify-center ${isChatRunningRef.current?'':'hidden'}`}>
               <div className="flex space-x-1 mt-1">
                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>

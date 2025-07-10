@@ -77,7 +77,7 @@ const InitializationPage: React.FC<InitializationPageProps> = ({
       const tip = document.querySelector("#not_initialized_warning");
       console.log("#not_initialized_warning:", tip);
       if (tip) {
-        document.removeChild(tip);
+        document.body.removeChild(tip);
       }
 
       if (response.ok) {
