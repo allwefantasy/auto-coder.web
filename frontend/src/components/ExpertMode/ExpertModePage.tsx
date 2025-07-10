@@ -54,19 +54,19 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
 }) => {
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
-  
-  
+
+
   // 弹出框状态
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
   const [modalFormat, setModalFormat] = useState<'markdown' | 'monaco'>('markdown');
   const [modalLanguage, setModalLanguage] = useState('plaintext');
   const [modalTitle, setModalTitle] = useState('内容预览');
-  
+
   // AskUserDialog相关状态
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<any | null>(null);
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null);
-  
+
   // 添加对requestId变化的监听，更新currentEventFileId
   useEffect(() => {
     if (requestId) {
@@ -74,7 +74,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       console.log('ExpertModePage: Updated currentEventFileId from requestId:', requestId);
     }
   }, [requestId]);
-  
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -82,13 +82,13 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
         setShowToolsDropdown(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showToolsDropdown]);
-  
+
   // Listen for panel activation events
   useEffect(() => {
     const unsubscribe = eventBus.subscribe(EVENTS.UI.ACTIVATE_PANEL, (panelName) => {
@@ -96,18 +96,18 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
         setActivePanel('history');
       }
     });
-    
+
     return () => {
       unsubscribe();
     };
   }, [setActivePanel]);
-  
+
   // 监听消息事件，只通过 eventBus 接收消息
   useEffect(() => {
     // 订阅新消息事件，包括 ASK_USER 和带有 event_file_id 的消息
     const unsubscribeNewMessage = eventBus.subscribe(EVENTS.CHAT.NEW_MESSAGE, (message: any) => {
       console.log('ExpertModePage: Received message via eventBus:', message.type);
-      
+
       // 处理用户询问类型的消息
       if (message.type === 'ASK_USER') {
         const askUserMessage = {
@@ -124,25 +124,25 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
         }
         console.log('ExpertModePage: Set activeAskUserMessage from eventBus');
       }
-      
+
       // 从消息中提取 event_file_id
       if (message.event_file_id && !currentEventFileId) {
         setCurrentEventFileId(message.event_file_id);
         console.log('ExpertModePage: Set currentEventFileId from message:', message.event_file_id);
       }
-      
+
       // 从消息元数据中提取 event_file_id
       if (message.metadata?.event_file_id && !currentEventFileId) {
         setCurrentEventFileId(message.metadata.event_file_id);
         console.log('ExpertModePage: Set currentEventFileId from message metadata:', message.metadata.event_file_id);
       }
     });
-    
+
     return () => {
       unsubscribeNewMessage();
     };
   }, [currentEventFileId]);
-  
+
   // 订阅显示弹出框事件
   useEffect(() => {
     const unsubscribe = eventBus.subscribe(EVENTS.UI.SHOW_MODAL, (data: {
@@ -157,7 +157,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       setModalTitle(data.title || '内容预览');
       setModalOpen(true);
     });
-    
+
     return () => {
       unsubscribe();
     };
@@ -169,24 +169,24 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       console.error('Cannot respond to event: No event ID provided');
       return;
     }
-    
+
     if (!currentEventFileId) {
       console.error('Cannot respond to event: No event file ID available');
       return;
     }
-    
+
     // 如果匹配事件ID，关闭活动的ASK_USER对话框
     if (activeAskUserMessage?.eventId === eventId) {
       setActiveAskUserMessage(null);
     }
-    
+
     try {
       console.log('ExpertModePage: Sending response to event:', {
         event_id: eventId,
         event_file_id: currentEventFileId,
         response: response
       });
-      
+
       // 将响应发送回服务器
       const result = await fetch('/api/auto-command/response', {
         method: 'POST',
@@ -199,12 +199,12 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
           response: response
         })
       });
-      
+
       if (!result.ok) {
         const errorData = await result.json();
         throw new Error(`Failed to send response: ${errorData.detail || result.statusText}`);
       }
-      
+
       console.log('Response sent successfully to event:', eventId);
     } catch (error) {
       console.error('Error sending response to server:', error);
@@ -225,14 +225,14 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
     <>
       {/* 用户询问对话框 - 当需要用户输入时显示的模态框 */}
       {activeAskUserMessage && (
-        <AskUserDialog 
-          message={activeAskUserMessage} 
+        <AskUserDialog
+          message={activeAskUserMessage}
           onResponse={handleUserResponse}
-          onClose={() => {}}
+          onClose={() => { }}
         />
       )}
-      
-      <Split 
+
+      <Split
         className="flex-1 flex"
         sizes={[32, 68]}
         minSize={[0, 400]}
@@ -246,7 +246,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
             setActivePanel={setActivePanel as any}
             setClipboardContent={setClipboardContent}
             clipboardContent={clipboardContent}
-            setRequestId={setRequestId}          
+            setRequestId={setRequestId}
             projectName={projectName}
             setSelectedFiles={setSelectedFiles}
           />
@@ -255,7 +255,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
         {/* Right Content Area */}
         <div className="relative flex flex-col flex-grow h-full w-full overflow-hidden">
           <div className="absolute inset-0">
-            <Split 
+            <Split
               direction="vertical"
               sizes={[75, 25]}
               minSize={[180, 80]}
@@ -274,7 +274,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                 {/* Panel Switch Buttons */}
                 <div className="bg-gray-800 p-2 border-b border-gray-700">
                   <div className="flex space-x-2">
-                                        <button
+                    <button
                       className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 
                         ${activePanel === 'history'
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
@@ -359,16 +359,15 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                         <span>{getMessage('more')}</span>
                       </button>
                       {showToolsDropdown && (
-                        <div 
+                        <div
                           className="absolute z-10 mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                         >
                           <div className="py-1">
                             <button
-                              className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${
-                                activePanel === 'clipboard'
+                              className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${activePanel === 'clipboard'
                                   ? 'bg-blue-600 text-white'
                                   : 'text-gray-300 hover:bg-gray-700'
-                              }`}
+                                }`}
                               onClick={() => {
                                 setActivePanel('clipboard');
                                 setShowToolsDropdown(false);
@@ -381,11 +380,10 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                             </button>
 
                             <button
-                              className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${
-                                activePanel === 'todo'
+                              className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${activePanel === 'todo'
                                   ? 'bg-blue-600 text-white'
                                   : 'text-gray-300 hover:bg-gray-700'
-                              }`}
+                                }`}
                               onClick={() => {
                                 setActivePanel('todo');
                                 setShowToolsDropdown(false);
@@ -426,9 +424,9 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                   <div className={`h-full ${activePanel === 'code' ? 'block' : 'hidden'}`}>
                     <CodeEditorPanel selectedFiles={selectedFiles} />
                   </div>
-                  <div className={`h-full ${activePanel === 'filegroup' ? 'block' : 'hidden'}`}>
+                  {activePanel === 'filegroup' ? <div className={`h-full`}>
                     <FileGroupPanel />
-                  </div>
+                  </div> : null}
                   <div className={`h-full ${activePanel === 'clipboard' ? 'block' : 'hidden'}`}>
                     <div className="h-full p-4">
                       <Editor
@@ -479,8 +477,8 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       <button
                         key={tab}
                         className={`px-2 py-0.5 text-xs rounded-t transition-colors ${activeToolPanel === tab.toLowerCase()
-                            ? 'text-white bg-[#2d2d2d]'
-                            : 'text-gray-400 hover:text-white'
+                          ? 'text-white bg-[#2d2d2d]'
+                          : 'text-gray-400 hover:text-white'
                           }`}
                         onClick={() => setActiveToolPanel(tab.toLowerCase())}
                       >

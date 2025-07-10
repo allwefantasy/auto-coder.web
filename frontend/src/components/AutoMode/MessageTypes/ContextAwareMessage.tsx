@@ -76,7 +76,7 @@ const StreamingContextMessage: React.FC<{ message: MessageProps; isCompleted: bo
             
             {/* Message content - only show when not collapsed */}
             {!isCollapsed && (
-                <div className={`bg-gray-800/50 p-2 rounded-md border border-gray-700 whitespace-pre-wrap text-xs ${message.isStreaming ? 'text-white' : 'text-gray-200'}`}>
+                <div className={`break-words break-all bg-gray-800/50 p-2 rounded-md border border-gray-700 whitespace-pre-wrap text-xs ${message.isStreaming ? 'text-white' : 'text-gray-200'}`}>
                     {messageContent}                
                 </div>
             )}
