@@ -38,7 +38,9 @@ async def get_models():
     """
     try:
         models_list = model_utils.load_models()
-        return models_list
+        if len(models_list) == 0:
+            return []
+        return sorted(models_list, key=lambda x: 'api_key' not in x)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
