@@ -10,6 +10,7 @@ import eventBus, { EVENTS } from "../../services/eventBus";
 import { getMessage } from "../Sidebar/lang"; // Import getMessage for i18n
 import axios from "axios";
 import { queryToString } from "@/utils/formatUtils";
+import {VSCodeFileTree,type VSCodeFileTreeNode} from '@/components/VSCodeFileTree'
 import "./CodeEditor.css";
 
 interface CodeEditorProps {
@@ -41,7 +42,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   );
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [fileTabs, setFileTabs] = useState<FileTab[]>([]);
-  const [treeData, setTreeData] = useState<DataNode[]>([]);
+  const [treeData, setTreeData] = useState<VSCodeFileTreeNode[]>([]);
 
   const [saving, setSaving] = useState<boolean>(false);
 
@@ -255,9 +256,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       }
       setActiveFile(key);
       loadFileContent(key);
-      return;
+      
     }
-    if (info.event === "select") return;
+    
+  };
+
+  const handleExpand= async (selectedKeys: React.Key[], info: any) => {
+    const key = selectedKeys[0] as string;
+    if (!key) return;
+
+    const { isLeaf, key: filePath } = info.node;
+    if (isLeaf) return 
     await fetchFileTree(filePath);
   };
 
@@ -406,6 +415,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         direction="horizontal"
       >
         <div className="file-tree-panel">
+          {/* <VSCodeFileTree
+            treeData={treeData}
+            onSelect={handleSelect}
+            onExpand={handleExpand}
+            onRefresh={fetchFileTree}
+          /> */}
           <FileTree
             treeData={treeData}
             onSelect={handleSelect}
