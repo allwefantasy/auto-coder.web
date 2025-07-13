@@ -360,8 +360,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       </button>
                       {showToolsDropdown && (
                         <div
-                          className="absolute z-[9999] mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-                          style={{ zIndex: 9999 }}
+                          className="absolute z-10 mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                         >
                           <div className="py-1">
                             <button
