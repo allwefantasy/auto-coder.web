@@ -41,7 +41,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   );
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [fileTabs, setFileTabs] = useState<FileTab[]>([]);
-  const [treeData, setTreeData] = useState<VSCodeFileTreeNode[]>([]);
+  const [treeData, setTreeData] = useState<DataNode[]>([]);
 
   const [saving, setSaving] = useState<boolean>(false);
 
@@ -255,17 +255,15 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       }
       setActiveFile(key);
       loadFileContent(key);
-      
     }
-    
   };
 
-  const handleExpand= async (selectedKeys: React.Key[], info: any) => {
+  const handleExpand = async (selectedKeys: React.Key[], info: any) => {
     const key = selectedKeys[0] as string;
     if (!key) return;
 
     const { isLeaf, key: filePath } = info.node;
-    if (isLeaf) return 
+    if (isLeaf) return;
     await fetchFileTree(filePath);
   };
 
