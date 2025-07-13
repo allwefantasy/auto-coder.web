@@ -263,7 +263,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, currentTask, onUserResp
               scrollToBottom();
               setShouldAutoScroll(true);
             }}
-            className="fixed bottom-24 right-4 z-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+            className="sticky bottom-24 right-4 z-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
             style={{ width: '36px', height: '36px' }}
             aria-label="滚动到底部"
           >
