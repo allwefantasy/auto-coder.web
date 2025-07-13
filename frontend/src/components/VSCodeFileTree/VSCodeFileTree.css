@@ -1,0 +1,428 @@
+/* VSCode File Tree Styles */
+.vscode-file-tree {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #1e1e1e;
+  color: #cccccc;
+  font-family: 'Segoe UI', 'Segoe WPC', 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+  font-size: 13px;
+  border-right: 1px solid #2d2d30;
+  user-select: none;
+}
+
+/* Header Styles */
+.vscode-file-tree-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px 8px 20px;
+  background-color: #252526;
+  border-bottom: 1px solid #2d2d30;
+  flex-shrink: 0;
+}
+
+.vscode-file-tree-title {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #cccccc;
+}
+
+.vscode-file-tree-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.vscode-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: #cccccc;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.1s ease;
+}
+
+.vscode-action-button:hover:not(:disabled) {
+  background-color: #2a2d2e;
+}
+
+.vscode-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vscode-loading-spinner {
+  width: 14px;
+  height: 14px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Search Styles */
+.vscode-file-tree-search {
+  padding: 8px 12px;
+  background-color: #252526;
+  border-bottom: 1px solid #2d2d30;
+  flex-shrink: 0;
+}
+
+.vscode-search-input {
+  background-color: #3c3c3c !important;
+  border: 1px solid #3c3c3c !important;
+  border-radius: 3px !important;
+  color: #cccccc !important;
+  font-size: 13px !important;
+  height: 22px !important;
+}
+
+.vscode-search-input:hover,
+.vscode-search-input:focus,
+.vscode-search-input.ant-input-focused {
+  border-color: #007acc !important;
+  box-shadow: none !important;
+}
+
+.vscode-search-input .ant-input {
+  background-color: transparent !important;
+  border: none !important;
+  color: #cccccc !important;
+  font-size: 13px !important;
+  padding: 0 4px !important;
+}
+
+.vscode-search-icon {
+  color: #cccccc;
+}
+
+/* Content Area */
+.vscode-file-tree-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Tree Styles */
+.vscode-tree {
+  background-color: transparent !important;
+  color: #cccccc !important;
+  height: 100% !important;
+  overflow: auto !important;
+  padding: 4px 0 !important;
+}
+
+.vscode-tree .ant-tree-list {
+  height: auto !important;
+}
+
+.vscode-tree .ant-tree-treenode {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.vscode-tree .ant-tree-node-content-wrapper {
+  padding: 1px 8px 1px 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  line-height: 22px !important;
+  height: 22px !important;
+  transition: background-color 0.1s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+.vscode-tree .ant-tree-node-content-wrapper:hover {
+  background-color: #2a2d2e !important;
+}
+
+.vscode-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+  background-color: #37373d !important;
+}
+
+.vscode-tree .ant-tree-switcher {
+  width: 16px !important;
+  height: 22px !important;
+  line-height: 22px !important;
+  margin-right: 0 !important;
+  color: #cccccc !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.vscode-tree .ant-tree-switcher-icon {
+  font-size: 10px !important;
+}
+
+.vscode-tree .ant-tree-title {
+  color: #cccccc !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+}
+
+/* File Node Styles */
+.vscode-file-node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.vscode-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.vscode-file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.vscode-file-path {
+  font-size: 11px;
+  color: #999999;
+  margin-left: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.vscode-file-readonly-indicator {
+  font-size: 10px;
+  color: #ffd700;
+  margin-left: 4px;
+}
+
+/* Empty State */
+.vscode-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.vscode-empty .ant-empty-description {
+  color: #999999 !important;
+  font-size: 13px !important;
+}
+
+.vscode-empty .ant-empty-image {
+  opacity: 0.6;
+}
+
+/* Context Menu */
+.vscode-context-menu .ant-dropdown-menu {
+  background-color: #252526 !important;
+  border: 1px solid #454545 !important;
+  border-radius: 3px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  padding: 4px 0 !important;
+  min-width: 180px !important;
+}
+
+.vscode-context-menu .ant-dropdown-menu-item {
+  color: #cccccc !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  line-height: 18px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.vscode-context-menu .ant-dropdown-menu-item:hover {
+  background-color: #094771 !important;
+  color: #ffffff !important;
+}
+
+.vscode-context-menu .ant-dropdown-menu-item-danger {
+  color: #f48771 !important;
+}
+
+.vscode-context-menu .ant-dropdown-menu-item-danger:hover {
+  background-color: #5a1d1d !important;
+  color: #ffffff !important;
+}
+
+.vscode-context-menu .ant-dropdown-menu-item .anticon {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.vscode-context-menu .ant-dropdown-menu-item-divider {
+  background-color: #454545 !important;
+  margin: 4px 8px !important;
+}
+
+/* Scrollbar Styles */
+.vscode-file-tree-content::-webkit-scrollbar,
+.vscode-tree::-webkit-scrollbar {
+  width: 10px;
+}
+
+.vscode-file-tree-content::-webkit-scrollbar-track,
+.vscode-tree::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vscode-file-tree-content::-webkit-scrollbar-thumb,
+.vscode-tree::-webkit-scrollbar-thumb {
+  background-color: #424242;
+  border-radius: 5px;
+  border: 2px solid #1e1e1e;
+}
+
+.vscode-file-tree-content::-webkit-scrollbar-thumb:hover,
+.vscode-tree::-webkit-scrollbar-thumb:hover {
+  background-color: #4f4f4f;
+}
+
+/* Modal Styles */
+.vscode-dark-modal .ant-modal-content {
+  background-color: #252526 !important;
+  border: 1px solid #454545 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.vscode-dark-modal .ant-modal-header {
+  background-color: #2d2d30 !important;
+  border-bottom: 1px solid #454545 !important;
+}
+
+.vscode-dark-modal .ant-modal-title {
+  color: #cccccc !important;
+  font-size: 14px !important;
+}
+
+.vscode-dark-modal .ant-modal-close {
+  color: #cccccc !important;
+}
+
+.vscode-dark-modal .ant-modal-close:hover {
+  color: #ffffff !important;
+}
+
+.vscode-dark-modal .ant-modal-body {
+  background-color: #252526 !important;
+  color: #cccccc !important;
+}
+
+.vscode-dark-modal .ant-modal-footer {
+  background-color: #2d2d30 !important;
+  border-top: 1px solid #454545 !important;
+}
+
+.vscode-dark-modal .ant-btn {
+  background-color: #0e639c !important;
+  border-color: #0e639c !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  height: 26px !important;
+  border-radius: 2px !important;
+}
+
+.vscode-dark-modal .ant-btn:hover {
+  background-color: #1177bb !important;
+  border-color: #1177bb !important;
+}
+
+.vscode-dark-modal .ant-btn-default {
+  background-color: #3c3c3c !important;
+  border-color: #3c3c3c !important;
+  color: #cccccc !important;
+}
+
+.vscode-dark-modal .ant-btn-default:hover {
+  background-color: #464647 !important;
+  border-color: #464647 !important;
+  color: #ffffff !important;
+}
+
+/* Focus and Selection States */
+.vscode-file-tree:focus-within .vscode-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+  background-color: #094771 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .vscode-file-tree-header {
+    padding: 6px 8px 6px 16px;
+  }
+  
+  .vscode-file-tree-search {
+    padding: 6px 8px;
+  }
+  
+  .vscode-file-node {
+    gap: 4px;
+  }
+  
+  .vscode-file-name {
+    font-size: 12px;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .vscode-file-tree {
+    border-right-color: #ffffff;
+  }
+  
+  .vscode-file-tree-header,
+  .vscode-file-tree-search {
+    border-bottom-color: #ffffff;
+  }
+  
+  .vscode-tree .ant-tree-node-content-wrapper:hover {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .vscode-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+    background-color: #0078d4 !important;
+    color: #ffffff !important;
+  }
+}
+
+/* Animation for smooth interactions */
+.vscode-tree .ant-tree-treenode {
+  transition: all 0.1s ease;
+}
+
+.vscode-action-button,
+.vscode-tree .ant-tree-switcher {
+  transition: all 0.1s ease;
+}
+
+/* Ensure proper text rendering */
+.vscode-file-tree * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

@@ -139,7 +139,7 @@ class ProxyServer:
                     # If project is not initialized, inject a warning banner
                     if not self.is_initialized:
                         init_warning = f"""
-                        <div style="background-color: #fff3cd; color: #856404; padding: 15px; margin: 15px; border-radius: 5px; text-align: center; font-weight: bold;">
+                        <div id="not_initialized_warning" style="background-color: #fff3cd; color: #856404; padding: 15px; margin: 15px; border-radius: 5px; text-align: center; font-weight: bold;">
                             <p>⚠️ {get_message("project_not_initialized")}</p>
                             <p>{get_message("run_auto_coder_chat")}</p>
                         </div>

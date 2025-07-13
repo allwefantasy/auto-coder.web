@@ -360,13 +360,14 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       </button>
                       {showToolsDropdown && (
                         <div
-                          className="absolute z-10 mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                          className="absolute z-[9999] mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                          style={{ zIndex: 9999 }}
                         >
                           <div className="py-1">
                             <button
                               className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${activePanel === 'clipboard'
-                                  ? 'bg-blue-600 text-white'
-                                  : 'text-gray-300 hover:bg-gray-700'
+                                ? 'bg-blue-600 text-white'
+                                : 'text-gray-300 hover:bg-gray-700'
                                 }`}
                               onClick={() => {
                                 setActivePanel('clipboard');
@@ -381,8 +382,8 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
 
                             <button
                               className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${activePanel === 'todo'
-                                  ? 'bg-blue-600 text-white'
-                                  : 'text-gray-300 hover:bg-gray-700'
+                                ? 'bg-blue-600 text-white'
+                                : 'text-gray-300 hover:bg-gray-700'
                                 }`}
                               onClick={() => {
                                 setActivePanel('todo');

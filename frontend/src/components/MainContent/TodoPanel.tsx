@@ -775,7 +775,7 @@ const TodoPanel: React.FC = () => {
   };
 
   return (
-      <div className="todo-container bg-gray-900 p-4" style={{ height: '650px' }} data-testid="todo-panel">
+      <div className="todo-container bg-gray-900 p-4 h-full" data-testid="todo-panel">
       {error && (
         <Alert
           message={error}
