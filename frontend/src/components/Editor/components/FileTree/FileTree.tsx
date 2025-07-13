@@ -25,12 +25,15 @@ import {
 import type { DataNode } from "antd/es/tree";
 import type { MenuProps } from "antd";
 import "./FileTree.css";
+import FileTreeNode from "./components/FileTreeNode";
+import {sortTreeNodes} from './utils/treeUtils'
 
 interface FileTreeProps {
   treeData: DataNode[];
   expandedKeys?: string[];
   onSelect: (selectedKeys: React.Key[], info: any) => void;
   onRefresh: () => Promise<void>;
+  onExpand: (selectedKeys: React.Key[], info: any) => void;
   projectName?: string;
 }
 
@@ -40,6 +43,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   treeData,
   expandedKeys,
   onSelect,
+  onExpand,
   onRefresh,
   projectName,
 }) => {
@@ -329,20 +333,36 @@ const FileTree: React.FC<FileTreeProps> = ({
     );
   };
 
+
+  function addCustomTitles (nodes: DataNode[]): DataNode[] {
+    return nodes.map(node => ({
+      ...node,
+      title: (
+        <FileTreeNode
+          node={node}
+          customIcons
+          showFullPath={!!searchValue}
+        />
+      ),
+      children: node.children ? addCustomTitles(node.children) : undefined,
+    }));
+  };
+
   // Process tree data to add custom titles
   const processTreeData = (data: DataNode[]): DataNode[] => {
-    return data.map((node) => {
-      const processedNode: DataNode = {
-        ...node,
-        title: renderTitle(node),
-      };
+    return addCustomTitles(data);
+    // return data.map((node) => {
+    //   const processedNode: DataNode = {
+    //     ...node,
+    //     title: renderTitle(node),
+    //   };
 
-      if (node.children) {
-        processedNode.children = processTreeData(node.children);
-      }
+    //   if (node.children) {
+    //     processedNode.children = processTreeData(node.children);
+    //   }
 
-      return processedNode;
-    });
+    //   return processedNode;
+    // });
   };
 
   const handlerWrapper = (expandedKeys: React.Key[], info: any) => {
@@ -354,11 +374,29 @@ const FileTree: React.FC<FileTreeProps> = ({
     onSelect(expandedKeys, info);
   };
 
+   // Handle tree selection
+   const handleSelect = (selectedKeys: React.Key[], info: any) => {
+    onSelect?.(selectedKeys, info);
+  }
+
+  // Handle tree expansion
+  const handleExpand = (selectedKeys: React.Key[], info: any) => {
+    onExpand?.(selectedKeys, info);
+  }
+
+  
+
   // Processed tree data with custom rendering
   const processedTreeData = React.useMemo(() => {
+
+    let processed = [...filteredTreeData];
+    
+    // Sort nodes
+    processed = sortTreeNodes(processed);
+
     return isSearchActive
-      ? filteredTreeData
-      : processTreeData(filteredTreeData);
+      ? processed
+      : processTreeData(processed);
   }, [filteredTreeData, isSearchActive]);
 
   return (
@@ -529,8 +567,8 @@ const FileTree: React.FC<FileTreeProps> = ({
                 // showLine
                 showIcon={false}
                 defaultExpandAll
-                onSelect={handlerWrapper}
-                onExpand={handlerWrapper}
+                onSelect={handleSelect}
+                onExpand={handleExpand}
                 onRightClick={handleRightClick}
                 treeData={processedTreeData}
                 height={999999}

@@ -10,7 +10,6 @@ import eventBus, { EVENTS } from "../../services/eventBus";
 import { getMessage } from "../Sidebar/lang"; // Import getMessage for i18n
 import axios from "axios";
 import { queryToString } from "@/utils/formatUtils";
-import {VSCodeFileTree,type VSCodeFileTreeNode} from '@/components/VSCodeFileTree'
 import "./CodeEditor.css";
 
 interface CodeEditorProps {
@@ -415,15 +414,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         direction="horizontal"
       >
         <div className="file-tree-panel">
-          {/* <VSCodeFileTree
-            treeData={treeData}
-            onSelect={handleSelect}
-            onExpand={handleExpand}
-            onRefresh={fetchFileTree}
-          /> */}
           <FileTree
             treeData={treeData}
             onSelect={handleSelect}
+            onExpand={handleExpand}
             onRefresh={fetchFileTree}
           />
         </div>
