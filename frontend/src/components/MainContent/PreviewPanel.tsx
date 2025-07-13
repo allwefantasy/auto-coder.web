@@ -75,7 +75,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
   };
 
   return (
-    <div className="flex flex-col" style={{ height: '650px' }}>
+    <div className="flex flex-col h-full">
       <div className="flex-1 overflow-hidden">
         <Split 
           className="split-container"

@@ -367,3 +367,9 @@
 :where(.css-dev-only-do-not-override-ut69n1).ant-tree.ant-tree-directory .ant-tree-treenode-selected .ant-tree-node-content-wrapper:before {
   background: #2b3037 !important;
 }
+
+:where(.css-dev-only-do-not-override-ut69n1).ant-tree .ant-tree-switcher,
+:where(.css-dev-only-do-not-override-ut69n1).ant-tree .ant-tree-checkbox {
+  margin-inline-end: 0;
+  width: 18px;
+}
