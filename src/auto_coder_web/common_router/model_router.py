@@ -1,3 +1,4 @@
+from token import OP
 from fastapi import APIRouter, HTTPException, Request
 from typing import List, Dict, Optional
 import json
@@ -23,8 +24,8 @@ class Model(BaseModel):
     model_name: str
     model_type: str = "saas/openai"
     base_url: str
-    api_key: str = ""
-    api_key_path:str = ""
+    api_key: Optional[str] = ""
+    api_key_path:Optional[str] = ""
     is_reasoning: bool = False
     input_price: float = 0.0
     output_price: float = 0.0

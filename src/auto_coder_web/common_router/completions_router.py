@@ -15,7 +15,7 @@ from autocoder.index.symbols_utils import (
 
 from autocoder.auto_coder_runner import get_memory
 from autocoder.common.ignorefiles.ignore_file_utils import should_ignore
-from autocoder.common.directory_cache.cache import DirectoryCache, initialize_cache
+from auto_coder_web.common.directory_cache.cache import DirectoryCache, initialize_cache
 import json
 import asyncio
 import aiofiles

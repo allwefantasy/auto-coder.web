@@ -4,7 +4,7 @@ import os
 from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
-from autocoder.common.mcp_server_types import (
+from autocoder.common.mcp_tools.types import (
     McpInstallRequest,
     McpRemoveRequest,
     McpListRequest,
@@ -27,7 +27,7 @@ from autocoder.common.mcp_server_types import (
     MarketplaceUpdateRequest,  # Added for update endpoint
     MarketplaceUpdateResult,  # Added for update endpoint
 )
-from autocoder.common.mcp_server import get_mcp_server
+from autocoder.common.mcp_tools.server import get_mcp_server
 from autocoder.common.printer import Printer  # For messages
 from autocoder.chat_auto_coder_lang import (
     get_message_with_format,
