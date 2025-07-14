@@ -8,6 +8,7 @@ import {
   Tooltip,
   Empty,
   Form,
+  Switch,
 } from "antd";
 import {
   SearchOutlined,
@@ -26,7 +27,7 @@ import type { DataNode } from "antd/es/tree";
 import type { MenuProps } from "antd";
 import "./FileTree.css";
 import FileTreeNode from "./components/FileTreeNode";
-import {sortTreeNodes} from './utils/treeUtils'
+import { sortTreeNodes, compactFolders } from './utils/treeUtils'
 
 interface FileTreeProps {
   treeData: DataNode[];
@@ -53,6 +54,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>("");
   const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
+  const [isCompactFolders, setCompactFolders] = useState(true)
   const [isNewFileModalVisible, setIsNewFileModalVisible] =
     useState<boolean>(false);
   const [newFileName, setNewFileName] = useState<string>("");
@@ -317,24 +319,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     }
   };
 
-  // Custom title renderer for tree nodes
-  const renderTitle = (node: DataNode) => {
-    const fileName = node.title?.toString() || "";
-    const isDir = !node.isLeaf;
-    const ext = getFileExtension(fileName);
-
-    return (
-      <div className="file-node">
-        <span className={`file-icon ${isDir ? "folder" : `file file-${ext}`}`}>
-          {isDir ? <FolderOutlined /> : <FileOutlined />}
-        </span>
-        <span className="file-name">{fileName}</span>
-      </div>
-    );
-  };
-
-
-  function addCustomTitles (nodes: DataNode[]): DataNode[] {
+  function addCustomTitles(nodes: DataNode[]): DataNode[] {
     return nodes.map(node => ({
       ...node,
       title: (
@@ -348,34 +333,8 @@ const FileTree: React.FC<FileTreeProps> = ({
     }));
   };
 
-  // Process tree data to add custom titles
-  const processTreeData = (data: DataNode[]): DataNode[] => {
-    return addCustomTitles(data);
-    // return data.map((node) => {
-    //   const processedNode: DataNode = {
-    //     ...node,
-    //     title: renderTitle(node),
-    //   };
-
-    //   if (node.children) {
-    //     processedNode.children = processTreeData(node.children);
-    //   }
-
-    //   return processedNode;
-    // });
-  };
-
-  const handlerWrapper = (expandedKeys: React.Key[], info: any) => {
-    const { expanded, selected } = info;
-    if (expanded === false || selected === false) return;
-    //TODO 理论上远程仓库文件列表再已有得情况下，不需要每次展开都更新
-    // if (node.children?.length > 0) return
-
-    onSelect(expandedKeys, info);
-  };
-
-   // Handle tree selection
-   const handleSelect = (selectedKeys: React.Key[], info: any) => {
+  // Handle tree selection
+  const handleSelect = (selectedKeys: React.Key[], info: any) => {
     onSelect?.(selectedKeys, info);
   }
 
@@ -384,19 +343,19 @@ const FileTree: React.FC<FileTreeProps> = ({
     onExpand?.(selectedKeys, info);
   }
 
-  
+
 
   // Processed tree data with custom rendering
   const processedTreeData = React.useMemo(() => {
 
     let processed = [...filteredTreeData];
-    
+
     // Sort nodes
     processed = sortTreeNodes(processed);
-
+    processed = isCompactFolders ? compactFolders(processed) : processed
     return isSearchActive
       ? processed
-      : processTreeData(processed);
+      : addCustomTitles(processed);
   }, [filteredTreeData, isSearchActive]);
 
   return (
@@ -466,10 +425,13 @@ const FileTree: React.FC<FileTreeProps> = ({
       </Modal>
 
       <div className="file-tree-header">
-        <div className="file-tree-header-title">
+        <div title={projectName || "Project Files"} className="file-tree-header-title truncate flex-1">
           {projectName || "Project Files"}
         </div>
-        <div className="file-tree-actions">
+        <div className="file-tree-actions ml-2 shrink-0">
+          <Tooltip title="To Compact Folders">
+            <Switch size="small" checked={isCompactFolders} onChange={setCompactFolders} />
+          </Tooltip>
           <Tooltip title="New File">
             <button
               onClick={() => {
@@ -563,10 +525,10 @@ const FileTree: React.FC<FileTreeProps> = ({
           >
             <div className="file-tree">
               <Tree
+                showIcon={false}
                 autoExpandParent
                 // showLine
-                showIcon={false}
-                defaultExpandAll
+                // defaultExpandAll
                 onSelect={handleSelect}
                 onExpand={handleExpand}
                 onRightClick={handleRightClick}
