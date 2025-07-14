@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Select, message, Tag, Tooltip, notification } from 'antd';
 import { CodeOutlined } from '@ant-design/icons';
-import { getMessage } from './lang';
+import { getMessage } from '../../lang';
 import '../../styles/custom_antd.css';
 import './ragSelectorStyles.css';
 import eventBus, { EVENTS } from '../../services/eventBus';

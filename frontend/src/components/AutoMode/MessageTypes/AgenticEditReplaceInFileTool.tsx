@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { MessageProps } from '../MessageList';
-import './MessageStyles.css';
-import { getMessage } from '../../Sidebar/lang';
+import React, { useState } from "react";
+import { MessageProps } from "../MessageList";
+import "./MessageStyles.css";
+import { getMessage } from "@/lang";
 
 interface AgenticEditReplaceInFileToolProps {
   message: MessageProps;
 }
 
-const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> = ({ message }) => {
+const AgenticEditReplaceInFileTool: React.FC<
+  AgenticEditReplaceInFileToolProps
+> = ({ message }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const content = JSON.parse(message.content);
   const toolName = content.tool_name;
@@ -16,7 +18,8 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
 
   const renderDiffBlocks = (diffText: string) => {
     const blocks: { search: string; replace: string }[] = [];
-    const regex = /<<<<<<< SEARCH\n([\s\S]*?)=======\n([\s\S]*?)>>>>>>> REPLACE/gm;
+    const regex =
+      /<<<<<<< SEARCH\n([\s\S]*?)=======\n([\s\S]*?)>>>>>>> REPLACE/gm;
     let match;
     while ((match = regex.exec(diffText)) !== null) {
       blocks.push({
@@ -26,18 +29,29 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
     }
 
     return blocks.map((block, idx) => (
-      <div key={idx} className="mb-1.5 border border-gray-700 rounded overflow-hidden text-xs font-mono shadow-sm">
+      <div
+        key={idx}
+        className="mb-1.5 border border-gray-700 rounded overflow-hidden text-xs font-mono shadow-sm"
+      >
         <div className="flex">
           <div className="w-1/2 border-r border-gray-700">
-            <div className="bg-gray-800 px-1.5 py-0.5 text-xs font-medium text-gray-300 border-b border-gray-700">SEARCH</div>
+            <div className="bg-gray-800 px-1.5 py-0.5 text-xs font-medium text-gray-300 border-b border-gray-700">
+              SEARCH
+            </div>
             <div className="bg-gray-900 h-56 overflow-auto">
-              <pre className="px-1.5 py-1 whitespace-pre text-red-300 min-w-full text-xs">{block.search}</pre>
+              <pre className="px-1.5 py-1 whitespace-pre text-red-300 min-w-full text-xs">
+                {block.search}
+              </pre>
             </div>
           </div>
           <div className="w-1/2">
-            <div className="bg-gray-800 px-1.5 py-0.5 text-xs font-medium text-gray-300 border-b border-gray-700">REPLACE</div>
+            <div className="bg-gray-800 px-1.5 py-0.5 text-xs font-medium text-gray-300 border-b border-gray-700">
+              REPLACE
+            </div>
             <div className="bg-gray-900 h-56 overflow-auto">
-              <pre className="px-1.5 py-1 whitespace-pre text-green-300 min-w-full text-xs">{block.replace}</pre>
+              <pre className="px-1.5 py-1 whitespace-pre text-green-300 min-w-full text-xs">
+                {block.replace}
+              </pre>
             </div>
           </div>
         </div>
@@ -53,7 +67,11 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
           className="message-toggle-button text-gray-400"
         >
           {isCollapsed ? (
-            <svg className="message-toggle-icon" viewBox="0 0 20 20" fill="currentColor">
+            <svg
+              className="message-toggle-icon"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
               <path
                 fillRule="evenodd"
                 d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -61,7 +79,11 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
               />
             </svg>
           ) : (
-            <svg className="message-toggle-icon" viewBox="0 0 20 20" fill="currentColor">
+            <svg
+              className="message-toggle-icon"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
               <path
                 fillRule="evenodd"
                 d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
@@ -72,7 +94,12 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
         </button>
 
         <span className="message-title-icon">
-          <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4 text-yellow-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -94,7 +121,7 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
           </svg>
         </span>
         <span className="message-title-text ml-1 text-yellow-400 font-semibold">
-          {getMessage('agenticEditReplaceInFileToolTitle')}
+          {getMessage("agenticEditReplaceInFileToolTitle")}
         </span>
       </div>
 
@@ -105,9 +132,7 @@ const AgenticEditReplaceInFileTool: React.FC<AgenticEditReplaceInFileToolProps> 
       </div>
 
       {!isCollapsed && (
-        <div className="mt-2 text-white">                
-          {renderDiffBlocks(diff)}  
-        </div>
+        <div className="mt-2 text-white">{renderDiffBlocks(diff)}</div>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { MessageProps } from '../MessageList';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '@/lang';
 import './MessageStyles.css';
 
 interface DefaultMessageProps {

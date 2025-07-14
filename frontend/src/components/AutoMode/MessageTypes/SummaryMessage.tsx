@@ -3,7 +3,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import type { MessageProps } from '../MessageList';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 import './MessageStyles.css';
 
 interface SummaryMessageProps {

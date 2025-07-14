@@ -10,7 +10,7 @@ import {
   DeleteOutlined,
   PlusOutlined
 } from '@ant-design/icons';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 import { SubTask, SubTasksPanelProps } from './types';
 
 const { Panel } = Collapse;

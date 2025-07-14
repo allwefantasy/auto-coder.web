@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'; // Import lazy and Suspense
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import { Message as ServiceMessage, HistoryCommand } from './types';
 import { ChatPanel } from './index';
 import InputPanel from './InputPanel';

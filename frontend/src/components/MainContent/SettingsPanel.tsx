@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Select, message, Divider, Tabs } from 'antd';
-import { getMessage, setLanguage } from '../Sidebar/lang';
+import { getMessage, setLanguage } from '../../lang';
 import type { AutoCoderArgs } from './types';
 import ModelConfig from './ModelConfig';
 import ModelManagement from './ModelManagement';

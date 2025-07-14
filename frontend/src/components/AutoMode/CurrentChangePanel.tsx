@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import { Editor, loader } from '@monaco-editor/react';
 
 // 防止Monaco加载多次

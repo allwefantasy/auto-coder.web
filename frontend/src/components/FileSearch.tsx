@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Modal, Input, List, Button, Checkbox } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { getMessage } from './Sidebar/lang';
+import { getMessage } from '../lang';
 interface FileSearchProps {
   isOpen: boolean;
   onClose: () => void;

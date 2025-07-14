@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Switch, Select, Tooltip, message as AntdMessage, Spin } from 'antd';
 import { UndoOutlined, BuildOutlined, LoadingOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import EditorComponent from './EditorComponent';
-import { getMessage } from './lang';
+import { getMessage } from '../../lang';
 import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
 import FileGroupSelect from './FileGroupSelect';
 import { chatService } from '../../services/chatService';

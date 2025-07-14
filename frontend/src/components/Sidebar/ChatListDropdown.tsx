@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Dropdown, Button, Tooltip, message as AntdMessage, Modal, Input } from 'antd';
 import { MessageOutlined, PlusOutlined, DeleteOutlined, DownOutlined, EditOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
-import { getMessage } from './lang';
+import { getMessage } from '../../lang';
 import type { InputRef } from 'antd';
 
 interface ChatListDropdownProps {

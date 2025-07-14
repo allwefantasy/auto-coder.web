@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { JsonExtractor } from '../../../services/JsonExtractor';
 import axios from 'axios';
 import { Collapse, Typography, Alert, Tooltip, message as AntMessage, Badge, Button } from 'antd';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 import { CaretRightOutlined, InfoCircleOutlined, NodeIndexOutlined, BranchesOutlined, LinkOutlined, CloseOutlined } from '@ant-design/icons';
 
 // Import sub-components

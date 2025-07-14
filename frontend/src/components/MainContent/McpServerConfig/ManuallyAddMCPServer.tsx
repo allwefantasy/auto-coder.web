@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message, Space, Tabs } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 
 const { Option } = Select;
 const { TabPane } = Tabs;

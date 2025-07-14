@@ -8,7 +8,7 @@ import rehypeKatex from "rehype-katex";
 import rehypeMath from "rehype-math";
 import "katex/dist/katex.min.css";
 import type { MessageProps } from "../MessageList";
-import { getMessage } from "../../Sidebar/lang";
+import { getMessage } from "../../../lang";
 import "./MessageStyles.css";
 import eventBus, { EVENTS } from "../../../services/eventBus";
 

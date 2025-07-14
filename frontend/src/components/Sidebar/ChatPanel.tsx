@@ -6,7 +6,7 @@ import ChatListDropdown from './ChatListDropdown';
 import html2canvas from 'html2canvas';
 import './ChatPanel.css';
 import InputArea from './InputArea';
-import { getMessage } from './lang';
+import { getMessage } from '../../lang';
 import {
   FileGroup,
   ConfigState,

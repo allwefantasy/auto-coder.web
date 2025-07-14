@@ -3,7 +3,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { Switch, Button } from 'antd';
 import AutoModePage from './components/AutoMode';
 import { ExpertModePage } from './components/ExpertMode';
-import { getMessage, initLanguage } from './components/Sidebar/lang';
+import { getMessage, initLanguage } from './lang';
 import FileSearch from './components/FileSearch';
 import InitializationPage from './components/InitializationPage';
 import './App.css';

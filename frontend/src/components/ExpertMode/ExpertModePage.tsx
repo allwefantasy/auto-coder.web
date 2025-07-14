@@ -12,7 +12,7 @@ import OutputPanel from '../Terminal/OutputPanel';
 import PreviewPanel from '../MainContent/PreviewPanel'; // Import static preview panel
 import TodoPanel from '../MainContent/TodoPanel';
 import AskUserDialog from '../AutoMode/AskUserDialog'; // Import AskUserDialog component
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import { FileMetadata } from '../../types/file_meta';
 import './SplitStyles.css';
 import eventBus, { EVENTS } from '../../services/eventBus';
