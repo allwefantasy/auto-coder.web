@@ -55,7 +55,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>("");
   const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
-  const [isCompactFolders, setCompactFolders] = useState(true)
+  const [isCompactFolders, setCompactFolders] = useState(false)
   const [isNewFileModalVisible, setIsNewFileModalVisible] =
     useState<boolean>(false);
   const [newFileName, setNewFileName] = useState<string>("");
@@ -336,7 +336,6 @@ const FileTree: React.FC<FileTreeProps> = ({
 
   // Handle tree selection
   const handleSelect = (selectedKeys: React.Key[], info: any) => {
-    selectNode.current = info
     onSelect?.(selectedKeys, info);
   }
 

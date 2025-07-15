@@ -248,6 +248,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     if (!key) return;
 
     const { isLeaf, key: filePath, children } = info.node;
+    console.log(isLeaf,key)
     if (isLeaf) {
       const newFile: FileMetadata = { path: key, isSelected: true };
       if (!selectedFiles.some((f) => f.path === key)) {
