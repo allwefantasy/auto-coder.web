@@ -23,7 +23,7 @@ const SettingsPanel: React.FC = () => {
     available_keys: [],
     language: 'zh'
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [showRefreshNotice, setShowRefreshNotice] = useState(false);
 
@@ -87,20 +87,8 @@ const SettingsPanel: React.FC = () => {
 
   const updateLanguage = async (value: string) => {
     try {
-      const response = await fetch('/api/settings/language', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ language: value })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update language settings');
-      }
-      
+      await setLanguage(value as 'en' | 'zh');
       setConfig(prev => ({ ...prev, language: value }));
-      setLanguage(value as 'en' | 'zh');
       message.success(getMessage('settingsUpdateSuccess'));
       setShowRefreshNotice(true);
     } catch (error) {
@@ -109,36 +97,40 @@ const SettingsPanel: React.FC = () => {
     }
   };
 
+  const reloadWindows = () => {
+    window.location.reload()
+  }
+
   return (
     <div className="settings-container p-2 overflow-y-auto h-full bg-gray-900">
       <div className="settings-section pb-2">
         <h3 className="settings-title text-white">{getMessage('languageSettings') || 'Language'}</h3>
         <div className="language-selector">
-          <label className="language-label text-gray-300">Language / 语言</label>
+          {/* <label className="language-label text-gray-300 mb-1">{getMessage('language')}</label> */}
           <Select
             value={config.language}
             onChange={updateLanguage}
             className="custom-select dark-select w-32"
             popupClassName="custom-select-dropdown"
             options={[
-              { value: 'en', label: 'English' },
-              { value: 'zh', label: '中文' }
+              { value: 'en', label: getMessage('English') },
+              { value: 'zh', label: getMessage('chinese') }
             ]}
           />
           {showRefreshNotice && (
             <div className="refresh-notice text-yellow-400 mt-1">
-              {getMessage('refreshToApplyLanguage')}
+              {getMessage('refreshToApplyLanguage')}<span onClick={reloadWindows} className='px-2 underline cursor-pointer'>{getMessage('clickReload')}</span>
             </div>
           )}
         </div>
       </div>
-      
+
       <Divider className="border-gray-700 my-2" />
-      
+
       <Tabs defaultActiveKey="general" className="settings-tabs">
         <TabPane tab={<span className="text-gray-300">{getMessage('modelConfiguration')}</span>} key="general">
-          <ModelConfig 
-            availableKeys={config.available_keys} 
+          <ModelConfig
+            availableKeys={config.available_keys}
             onModelChange={updateConfig}
           />
         </TabPane>
@@ -155,14 +147,14 @@ const SettingsPanel: React.FC = () => {
           <RagConfig />
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('basicSettings')}</span>} key="basic">
-          <BasicSettings 
-            availableKeys={config.available_keys} 
+          <BasicSettings
+            availableKeys={config.available_keys}
             onSettingChange={updateConfig}
           />
         </TabPane>
         <TabPane tab={<span className="text-gray-300">{getMessage('advancedSettings')}</span>} key="advanced">
-          <AdvancedSettings 
-            availableKeys={config.available_keys} 
+          <AdvancedSettings
+            availableKeys={config.available_keys}
             onSettingChange={updateConfig}
           />
         </TabPane>

@@ -5,6 +5,7 @@ import CodeModelSelector from './CodeModelSelector';
 import LibSelector from './LibSelector';
 import { Tabs } from 'antd';
 import { CodeOutlined, ApiOutlined, DatabaseOutlined, BookOutlined } from '@ant-design/icons';
+import { getMessage } from '../../lang';
 import './ProviderSelectors.css';
 
 interface ProviderSelectorsProps {
@@ -22,7 +23,7 @@ const ProviderSelectors: React.FC<ProviderSelectorsProps> = ({ isWriteMode }) =>
       label: (
         <span className="flex items-center text-xs">
           <CodeOutlined className="mr-1" />
-          代码模型
+          {getMessage('providerCodeModel')}
         </span>
       ),
       children: <CodeModelSelector />
@@ -33,7 +34,7 @@ const ProviderSelectors: React.FC<ProviderSelectorsProps> = ({ isWriteMode }) =>
       label: (
         <span className="flex items-center text-xs">
           <DatabaseOutlined className="mr-1" />
-          RAG
+          {getMessage('providerRag')}
         </span>
       ),
       children: <RagSelector />
@@ -43,7 +44,7 @@ const ProviderSelectors: React.FC<ProviderSelectorsProps> = ({ isWriteMode }) =>
       label: (
         <span className="flex items-center text-xs">
           <ApiOutlined className="mr-1" />
-          MCPs
+          {getMessage('providerMcps')}
         </span>
       ),
       children: <MCPsSelector />
@@ -53,7 +54,7 @@ const ProviderSelectors: React.FC<ProviderSelectorsProps> = ({ isWriteMode }) =>
       label: (
         <span className="flex items-center text-xs">
           <BookOutlined className="mr-1" />
-          LLM友好包
+          {getMessage('providerLlmFriendlyPackages')}
         </span>
       ),
       children: <LibSelector />

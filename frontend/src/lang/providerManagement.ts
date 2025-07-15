@@ -113,8 +113,8 @@ export const providerManagementMessages: { [key: string]: Message } = {
     zh: "模型删除成功"
   },
   modelOperationFailed: {
-    en: "Operation failed: {message}",
-    zh: "操作失败：{message}"
+    en: "Operation failed: {{message}}",
+    zh: "操作失败：{{message}}"
   },
   confirmDeleteModel: {
     en: "Are you sure you want to delete this model?",

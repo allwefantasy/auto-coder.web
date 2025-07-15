@@ -131,7 +131,7 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
 
   if (isLoading) {
     return <div className="flex h-full items-center justify-center">
-      <span className="text-white">加载中...</span>
+      <span className="text-white">{getMessage('loading')}</span>
     </div>;
   }
 

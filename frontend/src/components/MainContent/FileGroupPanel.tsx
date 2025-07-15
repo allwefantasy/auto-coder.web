@@ -4,6 +4,7 @@ import { DeleteOutlined, PlusOutlined, SearchOutlined, CheckOutlined, Thunderbol
 import type { DataNode, EventDataNode } from 'antd/es/tree';
 import Editor from '@monaco-editor/react';
 import { getLanguageByFileName } from '../../utils/fileUtils';
+import { getMessage } from '../../lang';
 import FileDirectorySelector from './FileDirectorySelector';
 import FileGroupDetail from './FileGroupDetail';
 import './FileGroupPanel.css'; // 假设会创建这个文件
@@ -109,13 +110,13 @@ const FileGroupPanel: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to create group');
 
-      message.success('Group created successfully');
+      message.success(getMessage('fileGroup.createSuccess'));
       setIsModalVisible(false);
       setNewGroupName('');
       setNewGroupDesc('');
       fetchFileGroups();
     } catch (error) {
-      message.error('Failed to create group');
+      message.error(getMessage('fileGroup.createFailed'));
     }
   };
 
@@ -127,11 +128,11 @@ const FileGroupPanel: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to delete group');
 
-      message.success('Group deleted successfully');
+      message.success(getMessage('fileGroup.deleteSuccess'));
       fetchFileGroups();
       if (selectedGroup?.name === name) setSelectedGroup(null);
     } catch (error) {
-      message.error('Failed to delete group');
+      message.error(getMessage('fileGroup.deleteFailed'));
     }
   };
 
@@ -147,7 +148,7 @@ const FileGroupPanel: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to add files');
 
-      message.success('Files added successfully');
+      message.success(getMessage('fileGroup.addFilesSuccess'));
       fetchFileGroups();
       setCheckedKeys([]);
       if (response.ok) {
@@ -161,7 +162,7 @@ const FileGroupPanel: React.FC = () => {
         }
       }
     } catch (error) {
-      message.error('Failed to add files');
+      message.error(getMessage('fileGroup.addFilesFailed'));
     }
   };
 
@@ -175,7 +176,7 @@ const FileGroupPanel: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to remove file');
 
-      message.success('File removed successfully');
+      message.success(getMessage('fileGroup.removeSuccess'));
       fetchFileGroups(); // Refresh all groups data
       if (selectedGroup) {
         const updatedGroups = await (await fetch('/api/file-groups')).json();
@@ -185,7 +186,7 @@ const FileGroupPanel: React.FC = () => {
         }
       }
     } catch (error) {
-      message.error('Failed to remove file');
+      message.error(getMessage('fileGroup.removeFailed'));
     }
   };
 
@@ -198,7 +199,7 @@ const FileGroupPanel: React.FC = () => {
       setSelectedFile(path);
       setFileContent(data.content);
     } catch (error) {
-      message.error('Failed to load file content');
+      message.error(getMessage('fileGroup.loadFailed'));
     }
   };
 
@@ -207,7 +208,7 @@ const FileGroupPanel: React.FC = () => {
       <div className="bg-gray-800 p-2 border-b border-gray-700">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <h2 className="text-white text-lg font-semibold">File Groups</h2>
+            <h2 className="text-white text-lg font-semibold">{getMessage('fileGroup.title')}</h2>
             <div className="flex gap-2">
               <Button
                 type="primary"
@@ -247,7 +248,7 @@ const FileGroupPanel: React.FC = () => {
               pagination={false}
               columns={[
                 {
-                  title: 'Group',
+                  title: getMessage('common.group'),
                   dataIndex: 'name',
                   key: 'name',
                   render: (name, record) => (
@@ -258,9 +259,9 @@ const FileGroupPanel: React.FC = () => {
                   )
                 },
                 {
-                  title: 'Action',
+                  title: getMessage('common.action'),
                   key: 'action',
-                  width: 40,
+                  width: 60,
                   render: (_, record) => (
                     <Button
                       type="text"
@@ -278,7 +279,7 @@ const FileGroupPanel: React.FC = () => {
                 emptyText: (
                   <div className="py-4">
                     <Empty 
-                      description={<span className="text-gray-400">No file groups yet</span>}
+                      description={<span className="text-gray-400">{getMessage('fileGroup.noGroups')}</span>}
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
                       className="custom-empty-state"
                     />
@@ -354,7 +355,7 @@ const FileGroupPanel: React.FC = () => {
               <div className="h-full flex items-center justify-center">
                 <Empty 
                   description={
-                    <span className="text-gray-400">Select a file to preview</span>
+                    <span className="text-gray-400">{getMessage('fileGroup.selectFile')}</span>
                   }
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                   className="custom-empty-state"
@@ -367,7 +368,7 @@ const FileGroupPanel: React.FC = () => {
 
       {/* External File Modal */}
       <Modal
-        title="Add External File"
+        title={getMessage('fileGroup.addExternalFile')}
         open={isExternalFileModalVisible}
         className="dark-theme-modal"
         styles={{
@@ -410,7 +411,7 @@ const FileGroupPanel: React.FC = () => {
               if (Array.isArray(data)) {
                 filesToAdd = data.map((item: { path: string }) => item.path);
               } else {
-                message.error('Unexpected response from list-files API');
+                message.error(getMessage('fileGroup.unexpectedResponse'));
                 return;
               }
             }
@@ -422,7 +423,7 @@ const FileGroupPanel: React.FC = () => {
               body: JSON.stringify({ files: filesToAdd }),
             });
 
-            message.success('External file(s) added successfully');
+            message.success(getMessage('fileGroup.externalFileSuccess'));
             setIsExternalFileModalVisible(false);
             setExternalFilePath('');
             fetchFileGroups();
@@ -435,7 +436,7 @@ const FileGroupPanel: React.FC = () => {
             }
           } catch (error) {
             console.error(error);
-            message.error('Failed to add external file(s)');
+            message.error(getMessage('fileGroup.externalFileFailed'));
           }
         }}
         onCancel={() => {
@@ -446,11 +447,11 @@ const FileGroupPanel: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">File Path or URL</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">{getMessage('fileGroup.externalFilePath')}</label>
             <Input
               value={externalFilePath}
               onChange={(e) => setExternalFilePath(e.target.value)}
-              placeholder="Enter full file path or URL (e.g., /absolute/path/to/file or https://example.com/file)"
+              placeholder={getMessage('fileGroup.externalFilePathPlaceholder')}
               className="bg-gray-800 border-gray-700 text-gray-200"
             />
           </div>
@@ -459,7 +460,7 @@ const FileGroupPanel: React.FC = () => {
 
       {/* New Group Modal */}
       <Modal
-        title="Create New Group"
+        title={getMessage('fileGroup.createNewGroup')}
         open={isModalVisible}
         onOk={handleCreateGroup}
         onCancel={() => setIsModalVisible(false)}
@@ -484,20 +485,20 @@ const FileGroupPanel: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">Group Name</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">{getMessage('fileGroup.groupName')}</label>
             <Input
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
-              placeholder="Enter group name"
+              placeholder={getMessage('fileGroup.groupNamePlaceholder')}
               className="bg-gray-800 border-gray-700 text-gray-200"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-200 mb-2">Description</label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">{getMessage('fileGroup.description')}</label>
             <Input.TextArea
               value={newGroupDesc}
               onChange={(e) => setNewGroupDesc(e.target.value)}
-              placeholder="Enter group description"
+              placeholder={getMessage('fileGroup.descriptionPlaceholder')}
               rows={4}
               className="bg-gray-800 border-gray-700 text-gray-200"
             />

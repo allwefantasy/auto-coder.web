@@ -134,7 +134,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   const handleNewChatCreate = async () => {
     if (!newChatName.trim()) {
-      AntdMessage.error('聊天名称不能为空');
+      AntdMessage.error(getMessage('chatNameEmpty'));
       return;
     }
 
@@ -146,11 +146,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       // 保存新的空聊天列表
       await chatListService.saveChatList(newChatName, [], panelId);
 
-      AntdMessage.success('新聊天创建成功');
+      AntdMessage.success(getMessage('newChatCreated'));
       setIsNewChatModalVisible(false);
     } catch (error) {
       console.error('Error creating new chat:', error);
-      AntdMessage.error('创建新聊天失败');
+      AntdMessage.error(getMessage('createNewChatFailed'));
     }
   };
 
@@ -173,7 +173,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       }
     } catch (error) {
       console.error('Error creating new chat directly:', error);
-      AntdMessage.error('创建新聊天失败');
+      AntdMessage.error(getMessage('createNewChatFailed'));
     }
   };
 
@@ -379,7 +379,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       }
     } catch (error: any) {
       console.error('Error fetching chat lists:', error);
-      AntdMessage.error('获取聊天列表失败');
+      AntdMessage.error(getMessage('getChatListsFailed'));
     }
   };
 
@@ -457,7 +457,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       }
     } catch (error: any) {
       console.error('Error loading chat list:', error);
-      AntdMessage.error('加载聊天列表失败');
+      AntdMessage.error(getMessage('loadChatListFailed'));
     }
   };
 
@@ -470,14 +470,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     try {
       const success = await chatListService.deleteChatList(name);
       if (success) {
-        AntdMessage.success('聊天列表已成功删除');
+        AntdMessage.success(getMessage('chatListDeletedSuccessfully'));
         fetchChatLists();
       } else {
-        AntdMessage.error('删除聊天列表失败');
+        AntdMessage.error(getMessage('deleteChatListFailed'));
       }
     } catch (error) {
       console.error('Error deleting chat list:', error);
-      AntdMessage.error('删除聊天列表失败');
+      AntdMessage.error(getMessage('deleteChatListFailed'));
     }
   };
 
@@ -501,7 +501,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           setChatListName(newName);
         }
 
-        AntdMessage.success(`聊天已重命名为 ${newName}`);
+        AntdMessage.success(getMessage('chatRenamedTo', { name: newName }));
         return true;
       }
       return false;
@@ -514,7 +514,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const updateConfig = async (key: string, value: boolean | string) => {
     const success = await autoCoderConfService.updateConfig(key, value);
     if (success) {
-      AntdMessage.success('Configuration updated successfully');
+      AntdMessage.success(getMessage('configurationUpdatedSuccessfully'));
     }
   };
 
@@ -528,13 +528,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   // 处理任务完成后的逻辑
   const handleTaskCompletion = useCallback(async (hasError: boolean) => {
     if (hasError) {
-      AntdMessage.error('Task completed with errors');
+      AntdMessage.error(getMessage('taskCompletedWithErrors'));
       if (soundEnabledRef.current) {
         console.log("play error sound")
         playErrorSound();
       }
     } else {
-      AntdMessage.success('Task completed successfully');
+      AntdMessage.success(getMessage('taskCompletedSuccessfully'));
 
       // 使用 ref 中的最新值
       const currentRequestId = localRequestIdRef.current;
@@ -574,7 +574,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           }
         } catch (error) {
           console.error('Error fetching current changes:', error);
-          AntdMessage.error('Failed to fetch changed files');
+          AntdMessage.error(getMessage('fetchChangedFilesFailed'));
         }
       }
     }
@@ -969,7 +969,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     const trimmedText = text?.trim() || editorRef.current?.getValue()?.trim();
     if (!trimmedText) {
-      AntdMessage.warning('Please enter a message');
+      AntdMessage.warning(getMessage('pleaseEnterMessage'));
       return;
     }
 
@@ -1104,7 +1104,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     } catch (error) {
 
       console.error('Error sending message:', error);
-      AntdMessage.error('Failed to send message');
+      AntdMessage.error(getMessage('failedToSendMessage'));
       updateMessageStatus(messageId, 'error');
       addBotMessage(getMessage('processingError'));
       endChatRunning();
@@ -1133,7 +1133,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       setSendLoading(false);
     } catch (error) {
       console.error('Error stopping generation:', error);
-      AntdMessage.error('Failed to stop generation');
+      AntdMessage.error(getMessage('failedToStopGeneration'));
     }
   };
 
@@ -1141,7 +1141,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const handleExportMessagesAsImage = async () => {
     const container = messagesContainerRef.current;
     if (!container) {
-      AntdMessage.error('未找到消息列表区域');
+      AntdMessage.error(getMessage('messageAreaNotFound'));
       return;
     }
     // 记录原始样式
@@ -1171,7 +1171,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       link.click();
     } catch (error) {
       console.error('导出图片失败:', error);
-      AntdMessage.error('导出图片失败');
+      AntdMessage.error(getMessage('exportImageFailed'));
     } finally {
       // 恢复原样式
       container.style.height = originalHeight;
@@ -1183,14 +1183,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   // 删除聊天列表的处理函数
   const handleDeleteChat = async (name: string) => {
     Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除对话 "${name}" 吗？此操作不可撤销。`,
-      okText: '删除',
+      title: getMessage('confirmDeleteTitle'),
+      content: getMessage('confirmDeleteContent', { name }),
+      okText: getMessage('deleteButton'),
       okType: 'danger',
-      cancelText: '取消',
+      cancelText: getMessage('cancelButton'),
       onOk: async () => {
         await deleteChatList(name);
-        AntdMessage.success('对话已删除');
+        AntdMessage.success(getMessage('chatDeleted'));
       },
     });
   };
@@ -1499,29 +1499,29 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               panelId={panelId}
             />
 
-            <Tooltip title="清空当前对话">
+            <Tooltip title={getMessage('clearCurrentChat')}>
               <Button
                 icon={<ClearOutlined style={{ fontSize: '10px' }} />}
                 onClick={() => {
                   if (chatListName) {
                     Modal.confirm({
-                      title: '确认清空',
-                      content: '确定要清空当前对话中的所有消息吗？此操作不可撤销。',
-                      okText: '清空',
+                      title: getMessage('confirmClear'),
+                      content: getMessage('confirmClearContent'),
+                      okText: getMessage('clearButton'),
                       okType: 'danger',
-                      cancelText: '取消',
+                      cancelText: getMessage('cancelButton'),
                       onOk: async () => {
                         // 清空消息列表
                         setMessages([]);
                         // 触发会话更新逻辑
                         if (chatListName) {
                           await saveChatList(chatListName, [], panelId);
-                          AntdMessage.success('对话已清空');
+                          AntdMessage.success(getMessage('chatCleared'));
                         }
                       },
                     });
                   } else {
-                    AntdMessage.warning('请先选择或创建一个对话');
+                    AntdMessage.warning(getMessage('selectOrCreateChat'));
                   }
                 }}
                 className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
@@ -1529,18 +1529,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               />
             </Tooltip>
 
-            <Tooltip title="保存当前对话">
+            <Tooltip title={getMessage('saveCurrentChat')}>
               <Button
                 icon={<SaveOutlined style={{ fontSize: '10px' }} />}
                 onClick={() => {
                   if (chatListName && messages.length > 0) {
                     // 使用与自动保存相同的机制
                     setShouldSaveMessages(true);
-                    AntdMessage.success('对话已保存');
+                    AntdMessage.success(getMessage('chatSaved'));
                   } else if (!chatListName) {
-                    AntdMessage.warning('请先选择或创建一个对话');
+                    AntdMessage.warning(getMessage('selectOrCreateChat'));
                   } else {
-                    AntdMessage.warning('没有消息可保存');
+                    AntdMessage.warning(getMessage('noMessagesToSave'));
                   }
                 }}
                 className="text-gray-300 border-gray-600 bg-gray-700 hover:bg-gray-600 px-1 py-0 h-6 w-6 flex items-center justify-center"
@@ -1548,7 +1548,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               />
             </Tooltip>
 
-            <Tooltip title="设置">
+            <Tooltip title={getMessage('settings')}>
               <Button
                 icon={<SettingOutlined style={{ fontSize: '10px' }} />}
                 onClick={() => setShowConfig(!showConfig)}
@@ -1557,7 +1557,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               />
             </Tooltip>
 
-            <Tooltip title="导出对话为图片">
+            <Tooltip title={getMessage('exportChatAsImage')}>
               <Button
                 icon={<PictureOutlined style={{ fontSize: '10px' }} />}
                 onClick={handleExportMessagesAsImage}
@@ -1610,10 +1610,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               <div className="h-full flex flex-col items-center justify-center text-gray-400 animate-fade-in">
                 <MessageOutlined style={{ fontSize: '36px', marginBottom: '10px', opacity: 0.5 }} />
                 <Typography.Title level={5} className="!text-gray-300 mb-1">
-                  开始一个新的对话
+                  {getMessage('startNewConversation')}
                 </Typography.Title>
                 <Typography.Text className="text-gray-400 text-center max-w-md text-xs">
-                  有任何问题都可以在下方输入，我会尽力帮助您。
+                  {getMessage('askAnything')}
                 </Typography.Text>
               </div>
             ) : (
@@ -1645,18 +1645,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
             {/* 添加"滚动到底部"按钮，当有新消息且用户不在底部时显示 */}
             {!isAtBottom && messages.length > 0 && (
-              <Button
-                type="primary"
-                shape="circle"
-                size="small"
-                icon={<DownOutlined />}
-                onClick={() => {
-                  scrollToBottom();
-                  setIsAtBottom(true);
-                }}
-                className="sticky bottom-2 right-0 float-right z-10 bg-indigo-600 hover:bg-indigo-700 border-0 shadow-lg flex items-center justify-center"
-                style={{ width: '36px', height: '36px' }}
-              />
+              <Tooltip title={getMessage('scrollToBottom')}>
+                <Button
+                  type="primary"
+                  shape="circle"
+                  size="small"
+                  icon={<DownOutlined />}
+                  onClick={() => {
+                    scrollToBottom();
+                    setIsAtBottom(true);
+                  }}
+                  className="sticky bottom-2 right-0 float-right z-10 bg-indigo-600 hover:bg-indigo-700 border-0 shadow-lg flex items-center justify-center"
+                  style={{ width: '36px', height: '36px' }}
+                />
+              </Tooltip>
             )}
             <div className={`sticky bottom-0 left-0 w-full flex items-center justify-center ${sendLoading && isChatRunningRef.current ? '' : 'hidden'}`}>
               <div className="flex space-x-1 mt-1">
@@ -1699,12 +1701,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
       {/* 新建对话模态框 */}
       <Modal
-        title={<span style={{ color: '#FFFFFF' }}>创建新对话</span>}
+        title={<span style={{ color: '#FFFFFF' }}>{getMessage('createNewChat')}</span>}
         open={isNewChatModalVisible}
         onOk={handleNewChatCreate}
         onCancel={handleNewChatCancel}
-        okText="创建"
-        cancelText="取消"
+        okText={getMessage('createButton')}
+        cancelText={getMessage('cancelButton')}
         centered
         okButtonProps={{
           disabled: !newChatName.trim(),
@@ -1715,11 +1717,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         className="custom-modal"
       >
         <div className="mb-4">
-          <Typography.Text strong className="block mb-2" style={{ color: '#FFFFFF' }}>对话名称</Typography.Text>
+          <Typography.Text strong className="block mb-2" style={{ color: '#FFFFFF' }}>{getMessage('chatName')}</Typography.Text>
           <Input
             value={newChatName}
             onChange={(e) => setNewChatName(e.target.value)}
-            placeholder="请输入新对话的名称"
+            placeholder={getMessage('enterChatName')}
             onPressEnter={handleNewChatCreate}
             prefix={<MessageOutlined style={{ color: '#8B5CF6' }} />}
             autoFocus
@@ -1728,7 +1730,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           />
           {!newChatName.trim() && (
             <Typography.Text type="danger" className="mt-1 block">
-              对话名称不能为空
+              {getMessage('chatNameEmpty')}
             </Typography.Text>
           )}
         </div>

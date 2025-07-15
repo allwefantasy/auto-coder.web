@@ -13,7 +13,7 @@ export const mainContentMessages: { [key: string]: Message } = {
     en: "Advanced",
     zh: "高级设置"
   },
-  
+
   // 模型配置
   modelConfiguration: {
     en: "Model Configuration",
@@ -91,7 +91,7 @@ export const mainContentMessages: { [key: string]: Message } = {
     en: "Used for filtering index content",
     zh: "用于过滤索引内容"
   },
-  
+
   // 编译器配置
   compilerConfiguration: {
     en: "Compiler Configuration",
@@ -125,7 +125,7 @@ export const mainContentMessages: { [key: string]: Message } = {
     en: "Actions",
     zh: "操作"
   },
-  
+
   // RAG配置
   ragConfiguration: {
     en: "RAG Configuration",
@@ -155,7 +155,7 @@ export const mainContentMessages: { [key: string]: Message } = {
     en: "API Key",
     zh: "API密钥"
   },
-  
+
   // MCP服务配置
   mcpServerConfiguration: {
     en: "MCP Servers",
@@ -177,7 +177,7 @@ export const mainContentMessages: { [key: string]: Message } = {
     en: "Install",
     zh: "安装"
   },
-  
+
   // 记忆系统
   memorySystemTasks: {
     en: "Memory System Tasks",
@@ -215,7 +215,7 @@ export const mainContentMessages: { [key: string]: Message } = {
     en: "Processed Dirs",
     zh: "处理的目录"
   },
-  
+
   // 任务管理
   todos: {
     en: "Requirements",
@@ -249,7 +249,7 @@ export const mainContentMessages: { [key: string]: Message } = {
     en: "Tags",
     zh: "标签"
   },
-  
+
   // 优先级
   priorityP0: {
     en: "P0 - Urgent",
@@ -267,7 +267,7 @@ export const mainContentMessages: { [key: string]: Message } = {
     en: "P3 - Low",
     zh: "P3 - 低"
   },
-  
+
   // 状态
   statusPending: {
     en: "Pending",
@@ -285,4 +285,117 @@ export const mainContentMessages: { [key: string]: Message } = {
     en: "Done",
     zh: "已完成"
   },
+
+  // 文件组相关 - 从 FileGroupPanel.tsx 中提取
+  fileGroupTitle: {
+    en: "File Groups",
+    zh: "文件组"
+  },
+  fileGroupCreateSuccess: {
+    en: "Group created successfully",
+    zh: "分组创建成功"
+  },
+  fileGroupCreateFailed: {
+    en: "Failed to create group",
+    zh: "创建分组失败"
+  },
+  fileGroupDeleteSuccess: {
+    en: "Group deleted successfully",
+    zh: "分组删除成功"
+  },
+  fileGroupDeleteFailed: {
+    en: "Failed to delete group",
+    zh: "删除分组失败"
+  },
+  fileGroupAddFilesSuccess: {
+    en: "Files added successfully",
+    zh: "文件添加成功"
+  },
+  fileGroupAddFilesFailed: {
+    en: "Failed to add files",
+    zh: "添加文件失败"
+  },
+  fileGroupRemoveSuccess: {
+    en: "File removed successfully",
+    zh: "文件移除成功"
+  },
+  fileGroupRemoveFailed: {
+    en: "Failed to remove file",
+    zh: "移除文件失败"
+  },
+  fileGroupLoadFailed: {
+    en: "Failed to load file content",
+    zh: "加载文件内容失败"
+  },
+  fileGroupNoGroups: {
+    en: "No groups available",
+    zh: "暂无分组"
+  },
+  fileGroupSelectFile: {
+    en: "Select a file to preview",
+    zh: "选择文件以预览"
+  },
+  fileGroupCreateNewGroup: {
+    en: "Create New Group",
+    zh: "创建新分组"
+  },
+  fileGroupGroupName: {
+    en: "Group Name",
+    zh: "分组名称"
+  },
+  fileGroupGroupNamePlaceholder: {
+    en: "Enter group name",
+    zh: "请输入分组名称"
+  },
+  fileGroupDescription: {
+    en: "Description",
+    zh: "描述"
+  },
+  fileGroupDescriptionPlaceholder: {
+    en: "Enter group description",
+    zh: "请输入分组描述"
+  },
+  fileGroupAddExternalFile: {
+    en: "Add External File",
+    zh: "添加外部文件"
+  },
+  fileGroupExternalFilePath: {
+    en: "File Path or URL",
+    zh: "文件路径或URL"
+  },
+  fileGroupExternalFilePathPlaceholder: {
+    en: "Enter file path or HTTP(S) URL",
+    zh: "输入文件路径或HTTP(S) URL"
+  },
+  fileGroupExternalFileSuccess: {
+    en: "External file added successfully",
+    zh: "外部文件添加成功"
+  },
+  fileGroupExternalFileFailed: {
+    en: "Failed to add external file",
+    zh: "添加外部文件失败"
+  },
+  fileGroupUnexpectedResponse: {
+    en: "Unexpected response format",
+    zh: "意外的响应格式"
+  },
+
+  //语言设置
+  language: {
+    en: "Select Language",
+    zh: "切换语言"
+  },
+  clickReload: {
+    en: "Click Reload Page",
+    zh: "点击重载页面"
+
+  },
+  English: {
+    en: "English",
+    zh: "英语",
+  },
+  chinese: {
+    en: "Chinese",
+    zh: "中文"
+  }
 };

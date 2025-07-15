@@ -3,6 +3,7 @@ import { Terminal as XTerminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { SearchAddon } from '@xterm/addon-search';
+import { getMessage } from '../../lang';
 import '@xterm/xterm/css/xterm.css';
 
 interface TerminalProps {
@@ -86,7 +87,7 @@ const Terminal: React.FC<TerminalProps> = ({
     websocketRef.current = ws;
 
     ws.onopen = () => {
-      xterm.writeln('Connected to terminal backend');
+      xterm.writeln(getMessage('connectedToTerminal'));
       
       // Start heartbeat with error handling and retry mechanism
       const startHeartbeat = () => {
@@ -112,7 +113,7 @@ const Terminal: React.FC<TerminalProps> = ({
         }
         
         if (websocketRef.current?.readyState === WebSocket.CLOSED) {
-          xterm.writeln('\r\nConnection lost. Attempting to reconnect...');
+          xterm.writeln('\r\n' + getMessage('connectionLost'));
           // const host = window.location.host
           const host = useLocalHost ? "127.0.0.1:8007" : window.location.host;
           const newWs = new WebSocket(`ws://${host}/ws/terminal`);
@@ -137,7 +138,7 @@ const Terminal: React.FC<TerminalProps> = ({
         }));
       } catch (error) {
         console.error('Failed to send initial size:', error);
-        xterm.writeln('\r\nFailed to initialize terminal size');
+        xterm.writeln('\r\n' + getMessage('failedToInitTerminalSize'));
       }
     };
 
@@ -167,13 +168,13 @@ const Terminal: React.FC<TerminalProps> = ({
         }
       } catch (error) {
         console.error('Error writing to terminal:', error);
-        xterm.writeln('\r\nError writing to terminal: ' + error);
+        xterm.writeln('\r\n' + getMessage('errorWritingToTerminal') + error);
       }
     };
 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
-      xterm.writeln('\r\nWebSocket error: ' + error);
+      xterm.writeln('\r\n' + getMessage('websocketError') + error);
     };
 
     ws.onclose = (event) => {
@@ -181,10 +182,10 @@ const Terminal: React.FC<TerminalProps> = ({
         clearInterval(heartbeatIntervalRef.current);
       }
 
-      xterm.writeln(`\r\nConnection closed. Code: ${event.code}, Reason: ${event.reason}`);
+      xterm.writeln(`\r\n${getMessage('connectionClosed')}${event.code}${getMessage('reason')}${event.reason}`);
       
       if (!event.wasClean) {
-        xterm.writeln('\r\nWebSocket closed unexpectedly. Reconnecting...');
+        xterm.writeln('\r\n' + getMessage('websocketClosedUnexpectedly'));
         // Try to reconnect after a delay
         reconnectTimeoutRef.current = setTimeout(() => {
           if (websocketRef.current?.readyState === WebSocket.CLOSED) {

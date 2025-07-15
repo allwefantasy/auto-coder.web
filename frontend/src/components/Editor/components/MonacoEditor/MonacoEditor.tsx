@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Editor, { loader } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
+import { getMessage } from '../../../../lang';
 import './MonacoEditor.css';
 
 // 配置loader使用本地路径
@@ -63,7 +64,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
   const loadLanguageSupport = () => {
     if (!language || language === 'plaintext' || !monacoRef.current) return;
     
-    console.log(`Attempting to load language support for: ${language}`);
+      console.log(`${getMessage('dev.monacoEditor.attemptingLoad')} ${language}`);
     
     try {
       // 检查语言是否已经注册
@@ -73,7 +74,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
       );
       
       if (isLanguageSupported) {
-        console.log(`Language ${language} is already supported`);
+        console.log(getMessage('dev.monacoEditor.languageSupported', { language }));
         
         // 即使语言已支持，也要确保应用到模型
         if (editorRef.current) {
@@ -81,7 +82,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
           if (model) {
             // 强制设置模型语言
             monacoRef.current.editor.setModelLanguage(model, language);
-            console.log(`Explicitly set model language to: ${language}`);
+            console.log(`${getMessage('dev.monacoEditor.explicitlySet')} ${language}`);
             
             // 触发重新渲染
             setTimeout(() => {
@@ -97,7 +98,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
       script.src = `/monaco-editor/min/vs/basic-languages/${language}/${language}.js`;
       script.async = true;
       script.onload = () => {
-        console.log(`Language support loaded for: ${language}`);
+        console.log(`${getMessage('monacoEditor.languageSupportLoaded')}: ${language}`);
         // 如果编辑器已加载，更新语言模式
         if (editorRef.current) {
           const model = editorRef.current.getModel();
@@ -112,11 +113,11 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
         }
       };
       script.onerror = (err) => {
-        console.warn(`Failed to load language support for ${language}:`, err);
+        console.warn(getMessage('monacoEditor.languageSupportFailed', { language }), err);
       };
       document.body.appendChild(script);
     } catch (error) {
-      console.error("Error loading language support:", error);
+      console.error(getMessage('monacoEditor.errorLoadingLanguage'), error);
     }
   };
   
@@ -128,7 +129,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
   }, [language, isMonacoMounted]);
 
   const handleEditorWillMount = (monaco: any) => {
-    console.log("Monaco editor will mount");
+    console.log(getMessage('dev.monacoEditor.willMount'));
     monacoRef.current = monaco;
     
     // 定义主题
@@ -156,7 +157,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
   };
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
-    console.log("Monaco editor did mount");
+    console.log(getMessage('dev.monacoEditor.didMount'));
     editorRef.current = editor;
     monacoRef.current = monaco;
     setIsMonacoMounted(true);
@@ -217,7 +218,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ code, language, onChange })
         onChange={onChange}
         beforeMount={handleEditorWillMount}
         onMount={handleEditorDidMount}
-        loading={<div className="loading">Loading editor...</div>}
+        loading={<div className="loading">{getMessage('monacoEditor.loading')}</div>}
         options={{
           fontLigatures: true,
           contextmenu: true,

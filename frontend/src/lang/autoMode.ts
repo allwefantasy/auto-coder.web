@@ -124,8 +124,8 @@ export const autoModeMessages: { [key: string]: Message } = {
     zh: "文件过滤完成"
   },
   fileSelected: {
-    en: "Selected file: {file}",
-    zh: "已选择文件: {file}"
+    en: "Selected file: {{file}}",
+    zh: "已选择文件: {{file}}"
   },
   
   // 完成状态
@@ -268,5 +268,57 @@ export const autoModeMessages: { [key: string]: Message } = {
   refreshFromHere: {
     en: "Refresh from here",
     zh: "从此处刷新"
+  },
+  
+  // ExpertMode 面板相关
+  codeViewer: {
+    en: "Code Editor",
+    zh: "代码编辑器"
+  },
+  previewChangesStatic: {
+    en: "Preview",
+    zh: "预览"
+  },
+  previewChangesEditable: {
+    en: "Editable Preview",
+    zh: "可编辑预览"
+  },
+  more: {
+    en: "More",
+    zh: "更多"
+  },
+  todos: {
+    en: "Todos",
+    zh: "待办事项"
+  },
+  
+  // 工具面板
+  output: {
+    en: "Output",
+    zh: "输出"
+  },
+  terminal: {
+    en: "Terminal",
+    zh: "终端"
+  },
+  
+  // 弹窗和对话框
+  contentPreview: {
+    en: "Content Preview",
+    zh: "内容预览"
+  },
+  loadingHistory: {
+    en: "Loading History...",
+    zh: "加载历史记录中..."
+  },
+  
+  // Tooltip 提示
+  previewChangesStaticTooltip: {
+    en: "Preview code changes in read-only mode",
+    zh: "以只读模式预览代码变更"
+  },
+  previewChangesEditableTooltip: {
+    en: "Preview and edit code changes",
+    zh: "预览并编辑代码变更"
   },
 };

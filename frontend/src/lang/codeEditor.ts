@@ -16,6 +16,18 @@ export const codeEditorMessages: { [key: string]: Message } = {
     en: 'Refresh',
     zh: '刷新',
   },
+  'codeEditor.tab.refresh': {
+    en: 'Refresh',
+    zh: '刷新',
+  },
+  'codeEditor.tab.copyPath': {
+    en: 'Copy Path',
+    zh: '复制路径',
+  },
+  'codeEditor.tab.closeOthers': {
+    en: 'Close Other Tabs',
+    zh: '关闭其他标签页',
+  },
   'codeEditor.refreshSuccess': {
     en: 'Refreshed {{fileName}}',
     zh: '已刷新 {{fileName}}',
@@ -45,7 +57,7 @@ export const codeEditorMessages: { [key: string]: Message } = {
     zh: '复制文件路径失败',
   },
   'codeEditor.loadFailed': {
-    en: 'Failed to load {filePath}',
-    zh: '加载文件 {filePath} 失败',
+    en: 'Failed to load {{filePath}}',
+    zh: '加载文件 {{filePath}} 失败',
   },
 };
