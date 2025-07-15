@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Modal, Input, List, Button, Checkbox } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { getMessage } from './Sidebar/lang';
+import { getMessage } from '../lang';
 interface FileSearchProps {
   isOpen: boolean;
   onClose: () => void;
@@ -208,24 +208,24 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
           }}
           style={{ color: '#e5e7eb' }}
         >
-          搜索文件内容
+          {getMessage('searchFileContent')}
         </Checkbox>
       </div>
       <div ref={listRef} className="dark-theme-list max-h-96 overflow-y-auto">
         {isLoading ? (
           <div className="flex justify-center items-center py-4 text-gray-400">
-            Loading...
+            {getMessage('loading')}
           </div>
         ) : showSmartSearch ? (
           <div className="flex flex-col items-center py-4">
-            <p className="text-gray-400 mb-3">No exact matches found. Try smart search?</p>
+            <p className="text-gray-400 mb-3">{getMessage('noExactMatchesFound')}</p>
             <Button 
               type="primary" 
               icon={<SearchOutlined />} 
               onClick={handleSmartSearch}
               className="bg-blue-600 hover:bg-blue-700 border-blue-600"
             >
-              Smart Search
+              {getMessage('smartSearch')}
             </Button>
           </div>
         ) : (
@@ -248,7 +248,7 @@ const FileSearch: React.FC<FileSearchProps> = ({ isOpen, onClose, onSelectFile }
               </div>
               </List.Item>
             )}
-            locale={{ emptyText: 'No results found' }}
+            locale={{ emptyText: getMessage('noResultsFound') }}
           />
         )}
       </div>

@@ -222,7 +222,6 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
                         'key': relative_path,
                         'children': children,
                         'isLeaf': isLeaf,
-                        'testAttr':"123",
                         'hasChildren': bool(children)
                     }
             else:

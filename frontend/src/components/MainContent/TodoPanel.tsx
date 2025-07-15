@@ -4,7 +4,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautif
 import { Button, Input, Select, Tag, Modal, Badge, Tooltip, Alert, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, SyncOutlined, CodeOutlined, ExpandOutlined, CompressOutlined, DeleteOutlined } from '@ant-design/icons';
 import { ErrorBoundary } from 'react-error-boundary';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import TodoEditModal from './TodoEditModal';
 import AutoExecuteNotificationModal from './AutoExecuteNotificationModal';
 import TaskSplitResultView from './TaskSplitResult/TaskSplitResultView';

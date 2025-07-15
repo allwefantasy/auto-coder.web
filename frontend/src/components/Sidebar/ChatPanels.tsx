@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ChatPanel from './ChatPanel';
 import { FileMetadata } from '../../types/file_meta';
-import { getMessage } from './lang';
+import { getMessage } from '../../lang';
 import axios from 'axios';
 import HotkeyManager from '../../utils/HotkeyManager';
 
@@ -131,7 +131,7 @@ const ChatPanels: React.FC<ChatPanelsProps> = ({
 
   if (isLoading) {
     return <div className="flex h-full items-center justify-center">
-      <span className="text-white">加载中...</span>
+      <span className="text-white">{getMessage('loading')}</span>
     </div>;
   }
 

@@ -12,7 +12,7 @@ import OutputPanel from '../Terminal/OutputPanel';
 import PreviewPanel from '../MainContent/PreviewPanel'; // Import static preview panel
 import TodoPanel from '../MainContent/TodoPanel';
 import AskUserDialog from '../AutoMode/AskUserDialog'; // Import AskUserDialog component
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import { FileMetadata } from '../../types/file_meta';
 import './SplitStyles.css';
 import eventBus, { EVENTS } from '../../services/eventBus';
@@ -61,7 +61,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   const [modalContent, setModalContent] = useState('');
   const [modalFormat, setModalFormat] = useState<'markdown' | 'monaco'>('markdown');
   const [modalLanguage, setModalLanguage] = useState('plaintext');
-  const [modalTitle, setModalTitle] = useState('内容预览');
+  const [modalTitle, setModalTitle] = useState(getMessage('contentPreview'));
 
   // AskUserDialog相关状态
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<any | null>(null);
@@ -74,6 +74,11 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       console.log('ExpertModePage: Updated currentEventFileId from requestId:', requestId);
     }
   }, [requestId]);
+
+  // 更新modalTitle的初始化，确保使用多语言
+  useEffect(() => {
+    setModalTitle(getMessage('contentPreview'));
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -154,7 +159,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       setModalContent(data.content);
       setModalFormat(data.format);
       setModalLanguage(data.language || 'plaintext');
-      setModalTitle(data.title || '内容预览');
+      setModalTitle(data.title || getMessage('contentPreview'));
       setModalOpen(true);
     });
 
@@ -308,7 +313,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                           : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
                         } flex items-center space-x-1`} // Reduced space for icon+text
                       onClick={() => setActivePanel('preview_static')}
-                      title={getMessage('previewChangesStatic')}
+                      title={getMessage('previewChangesStaticTooltip')}
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -356,7 +361,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
-                        <span>{getMessage('more')}</span>
+                      <span>{getMessage('more')}</span>
                       </button>
                       {showToolsDropdown && (
                         <div
@@ -406,7 +411,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                                 setActivePanel('preview_editable');
                                 setShowToolsDropdown(false);
                               }}
-                              title={getMessage('previewChangesEditable')}
+                              title={getMessage('previewChangesEditableTooltip')}
                             >
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -456,7 +461,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                   </div> */}
                   <div className={`h-full ${activePanel === 'history' ? 'block' : 'hidden'}`}>
                     {/* Wrap HistoryPanel with Suspense for lazy loading */}
-                    <Suspense fallback={<div className='p-4 text-gray-400 text-center'>Loading History...</div>}>
+                    <Suspense fallback={<div className='p-4 text-gray-400 text-center'>{getMessage('loadingHistory')}</div>}>
                       <HistoryPanel />
                     </Suspense>
                   </div>
@@ -474,16 +479,19 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                 {/* Tool Panel Navigation */}
                 <div className="bg-[#1f1f1f] border-b border-gray-700 px-2">
                   <div className="flex items-center gap-1">
-                    {['Output', 'Terminal'].map((tab, index) => (
+                    {[
+                      { key: 'output', label: getMessage('output') },
+                      { key: 'terminal', label: getMessage('terminal') }
+                    ].map((tab, index) => (
                       <button
-                        key={tab}
-                        className={`px-2 py-0.5 text-xs rounded-t transition-colors ${activeToolPanel === tab.toLowerCase()
+                        key={tab.key}
+                        className={`px-2 py-0.5 text-xs rounded-t transition-colors ${activeToolPanel === tab.key
                           ? 'text-white bg-[#2d2d2d]'
                           : 'text-gray-400 hover:text-white'
                           }`}
-                        onClick={() => setActiveToolPanel(tab.toLowerCase())}
+                        onClick={() => setActiveToolPanel(tab.key)}
                       >
-                        {tab}
+                        {tab.label}
                       </button>
                     ))}
                   </div>

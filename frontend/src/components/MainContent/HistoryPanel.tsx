@@ -7,7 +7,7 @@ import axios from 'axios';
 import { Editor, loader } from '@monaco-editor/react';
 import DiffViewer from './DiffViewer';
 import eventBus, { EVENTS } from '../../services/eventBus';
-import { getMessage } from '../Sidebar/lang'; // Import getMessage
+import { getMessage } from '../../lang'; // Import getMessage
 import { FilterByCommitEventData } from '../../services/event_bus_data';
 
 // 防止Monaco加载多次

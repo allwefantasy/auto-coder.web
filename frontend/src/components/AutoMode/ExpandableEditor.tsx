@@ -2,6 +2,7 @@ import React from 'react';
 import { Editor, loader } from '@monaco-editor/react';
 // 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
+import { getMessage } from '../../lang';
 // 导入 CompletionItem 类型
 interface CompletionItem {
   display: string;
@@ -130,7 +131,7 @@ const ExpandableEditor: React.FC<ExpandableEditorProps> = ({
         onChange={onContentChange}
         theme="vs-dark"
         onMount={handleEditorDidMount}
-        loading={<div className="flex items-center justify-center h-full">加载编辑器中...</div>}
+        loading={<div className="flex items-center justify-center h-full">{getMessage('expandableEditor.loading')}</div>}
         beforeMount={(monaco) => {
           // Configure Monaco environment to use local worker
           window.MonacoEnvironment = {

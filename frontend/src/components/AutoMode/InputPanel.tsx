@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import ExpandableEditor from './ExpandableEditor';
 import SimpleEditor from './SimpleEditor';
 import { HistoryCommand } from './types';

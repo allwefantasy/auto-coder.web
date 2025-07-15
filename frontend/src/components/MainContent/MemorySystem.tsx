@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Table, Tag, Spin, message } from 'antd';
 import '../../styles/custom_antd.css';
 import '../../styles/MemorySystem.css';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 
 interface TaskInfo {
   task_id: string;

@@ -2,6 +2,7 @@ import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } f
 import { Editor, loader } from '@monaco-editor/react';
 import { Message as ServiceMessage, HistoryCommand } from './types';
 import { uploadImage } from '../../services/api';
+import { getMessage } from '../../lang';
 // 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
 
@@ -89,7 +90,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
             position.lineNumber,
             position.column
           ),
-          text: '![上传中...]()  ',
+          text: `![${getMessage('simpleEditor.imageUploading')}...]()  `,
           forceMoveMarkers: true
         }]);
 
@@ -160,7 +161,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
             position.lineNumber,
             position.column
           ),
-          text: ' [图片上传失败] ',
+              text: ` [${getMessage('simpleEditor.imageUploadFailed')}] `,
           forceMoveMarkers: true
         }]);
       }
@@ -180,7 +181,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
         // 从服务器加载任务历史
         await loadTaskHistory();
       } catch (error) {
-        console.error('Failed to load command history', error);
+        console.error(getMessage('dev.simpleEditor.loadCommandHistory'), error);
       }
     };
     
@@ -197,7 +198,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
         setTaskHistory(data.tasks || []);
       }
     } catch (error) {
-      console.error('Failed to load task history from server', error);
+      console.error(getMessage('dev.simpleEditor.loadTaskHistory'), error);
     } finally {
       setIsLoadingHistory(false);
     }
@@ -453,7 +454,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
           type="button"
           className="p-1 rounded-full text-gray-400 hover:text-gray-200 transition-colors focus:outline-none"
           onClick={() => setShowHistory(!showHistory)}
-          title="命令历史"
+          title={getMessage('simpleEditor.history.commands')}
           disabled={isProcessing || isCancelling}
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -469,16 +470,16 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
           >
             <div className="py-1 border-b border-gray-700">
               <div className="px-4 py-2 text-sm text-gray-300 font-semibold flex justify-between items-center">
-                <span>历史任务</span>
+                <span>{getMessage('simpleEditor.history.tasks')}</span>
                 {isLoadingHistory ? (
-                  <span className="text-xs text-gray-400">加载中...</span>
+                  <span className="text-xs text-gray-400">{getMessage('simpleEditor.loading')}</span>
                 ) : (
                   <button
                     type="button"
                     className="text-xs text-blue-400 hover:text-blue-300 focus:outline-none"
                     onClick={loadTaskHistory}
                   >
-                    刷新
+                    {getMessage('simpleEditor.refresh')}
                   </button>
                 )}
               </div>
@@ -500,20 +501,20 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
                           <span className={`px-1.5 py-0.5 rounded ${
                             task.status === 'completed' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'
                           }`}>
-                            {task.status === 'completed' ? '完成' : '错误'}
+                            {task.status === 'completed' ? getMessage('simpleEditor.status.completed') : getMessage('simpleEditor.status.error')}
                           </span>
                           <span className="text-gray-400 ml-2">
                             {new Date(task.timestamp).toLocaleString()}
                           </span>
                           <span className="text-gray-400 ml-2">
-                            {(task.messages?.length || 0)} 条消息
+                            {(task.messages?.length || 0)} {getMessage('simpleEditor.messages')}
                           </span>
                           {task.event_file_id && (
                             <span className="text-blue-400 ml-2 flex items-center">
                               <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M13 9h5.5L13 3.5V9M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.11.89-2 2-2m9 16v-2H6v2h9m3-4v-2H6v2h12z" />
                               </svg>
-                              可恢复
+                              {getMessage('simpleEditor.recoverable')}
                             </span>
                           )}                          
                         </div>
@@ -524,25 +525,25 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
               </div>
             ) : (
               <div className="px-4 py-3 text-sm text-gray-400 text-center">
-                {isLoadingHistory ? '加载历史任务...' : '没有历史任务'}
+                {isLoadingHistory ? getMessage('simpleEditor.loadingHistory') : getMessage('simpleEditor.noHistory')}
               </div>
             )}
             
             <div className="py-1 border-t border-gray-700">
               <div className="px-4 py-2 text-sm text-gray-300 font-semibold flex justify-between items-center">
-                <span>最近使用的命令</span>
+                <span>{getMessage('simpleEditor.history.recent')}</span>
                 {commandHistory.length > 0 && (
                   <button
                     type="button"
                     className="text-xs text-red-400 hover:text-red-300 focus:outline-none"
                     onClick={() => {
-                      if (window.confirm('确定要清空历史命令吗？')) {
+                      if (window.confirm(getMessage('simpleEditor.clearHistoryConfirm'))) {
                         setCommandHistory([]);
                         localStorage.removeItem('commandHistory');
                       }
                     }}
                   >
-                    清空历史
+                    {getMessage('simpleEditor.clearHistory')}
                   </button>
                 )}
               </div>
@@ -565,7 +566,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
               </ul>
             ) : (
               <div className="px-4 py-3 text-sm text-gray-400 text-center">
-                没有本地历史命令
+                {getMessage('simpleEditor.noLocalHistory')}
               </div>
             )}
           </div>
@@ -633,7 +634,7 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
           className="p-1 mx-1 rounded-full transition-colors bg-gray-700 hover:bg-gray-600 z-10"
           onClick={onToggleExpand}
           disabled={isProcessing}
-          title="展开编辑器"
+          title={getMessage('simpleEditor.expandEditor')}
         >
           <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
@@ -652,13 +653,13 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
             }`}
             onClick={() => {
               if (!isCancelling && onCancelTask && currentEventFileId) {
-                if (window.confirm('确定要取消当前运行的任务吗？')) {
+                if (window.confirm(getMessage('simpleEditor.cancelTaskConfirm'))) {
                   onCancelTask(currentEventFileId);
                 }
               }
             }}
             disabled={isCancelling}
-            title={isCancelling ? "正在取消任务..." : "取消当前任务"}
+            title={isCancelling ? getMessage('simpleEditor.cancellingTask') : getMessage('simpleEditor.cancelTask')}
           >
             {isCancelling ? (
               // 加载动画
@@ -692,3 +693,4 @@ const SimpleEditor = forwardRef<any, SimpleEditorProps>(({
 });
 
 export default SimpleEditor; 
+                         

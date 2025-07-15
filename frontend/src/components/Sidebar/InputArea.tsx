@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Switch, Select, Tooltip, message as AntdMessage, Spin } from 'antd';
 import { UndoOutlined, BuildOutlined, LoadingOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import EditorComponent from './EditorComponent';
-import { getMessage } from './lang';
+import { getMessage } from '../../lang';
 import { FileGroup, ConfigState, EnhancedCompletionItem } from './types';
 import FileGroupSelect from './FileGroupSelect';
 import { chatService } from '../../services/chatService';
@@ -227,7 +227,7 @@ const InputArea: React.FC<InputAreaProps> = ({
       }
     } catch (error) {
       console.error('Error fetching config:', error);
-      AntdMessage.error('Failed to fetch configuration');
+      AntdMessage.error(getMessage('failedToFetchConfiguration'));
     }
   }, [setConfig]);
 
@@ -246,7 +246,7 @@ const InputArea: React.FC<InputAreaProps> = ({
       await axios.post('/api/conf', { [key]: value });
     } catch (error) {
       console.error(`Error updating config ${key}:`, error);
-      AntdMessage.error(`Failed to update ${key}`);
+      AntdMessage.error(`${getMessage('failedToUpdate')} ${key}`);
     }
   }, [setConfig]);
 
@@ -276,7 +276,7 @@ const InputArea: React.FC<InputAreaProps> = ({
     } catch (error) {
       console.error('Error cancelling task:', error);
       setIsCancelling(false);
-      AntdMessage.error('取消任务失败');
+      AntdMessage.error(getMessage('cancelTaskFailed'));
     } finally {
       setIsCancelling(false);   // 确保状态重置
     }
@@ -301,12 +301,12 @@ const InputArea: React.FC<InputAreaProps> = ({
 
       const data = await response.json();
       setIndexStatus('building');
-      AntdMessage.success('Index build started');
+      AntdMessage.success(getMessage('indexBuildStarted'));
 
       pollIndexStatus();
     } catch (error) {
       console.error('Error building index:', error);
-      AntdMessage.error('Failed to build index');
+      AntdMessage.error(getMessage('failedToBuildIndex'));
       setIndexBuilding(false);
       setIndexStatus('error');
     }
@@ -355,12 +355,12 @@ const InputArea: React.FC<InputAreaProps> = ({
         if (data.status === 'completed') {
           setIndexBuilding(false);
           setIndexStatus('completed');
-          AntdMessage.success('Index build completed');
+          AntdMessage.success(getMessage('indexBuildCompleted'));
           clearInterval(interval);
         } else if (data.status === 'error') {
           setIndexBuilding(false);
           setIndexStatus('error');
-          AntdMessage.error(`Index build failed: ${data.error}`);
+          AntdMessage.error(`${getMessage('indexBuildFailedWithError')} ${data.error}`);
           clearInterval(interval);
         } else if (data.status === 'running') {
           setIndexBuilding(true);
@@ -403,7 +403,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </button>
               </Tooltip>
               {/* 文档按钮 */}
-              <Tooltip title="Open Documentation">
+              <Tooltip title={getMessage('openDocumentation')}>
                 <button
                   onClick={() => window.open('https://uelng8wukz.feishu.cn/wiki/EFCEwiYZFit44ZkJgohcYjlMnVP?fromScene=spaceOverview', '_blank')}
                   className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
@@ -426,7 +426,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </button>
               </Tooltip>
               {/* 全屏切换按钮 */}
-              <Tooltip title={isInputAreaMaximized ? "退出全屏" : "全屏模式"}>
+              <Tooltip title={isInputAreaMaximized ? getMessage('exitFullscreen') : getMessage('fullscreenMode')}>
                 <button
                   onClick={toggleFullscreen}
                   className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
@@ -455,7 +455,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </button>
               </Tooltip>
               {/* 构建索引按钮 */}
-              <Tooltip title={indexBuilding ? "Building index..." : "Build index"}>
+              <Tooltip title={indexBuilding ? getMessage('buildingIndex') : getMessage('buildIndex')}>
                 <button
                   onClick={buildIndex}
                   disabled={indexBuilding}
@@ -471,17 +471,17 @@ const InputArea: React.FC<InputAreaProps> = ({
               </Tooltip>
               {/* 索引状态指示器 */}
               {indexStatus === 'completed' && (
-                <Tooltip title="Index built successfully">
+                <Tooltip title={getMessage('indexBuiltSuccessfully')}>
                   <span className="mr-1 text-green-500 text-xs">✓</span>
                 </Tooltip>
               )}
               {indexStatus === 'error' && (
-                <Tooltip title="Index build failed">
+                <Tooltip title={getMessage('indexBuildFailed')}>
                   <span className="mr-1 text-red-500 text-xs">✗</span>
                 </Tooltip>
               )}
               {/* 声音开关按钮 */}
-              <Tooltip title={soundEnabled ? "关闭提示音" : "开启提示音"}>
+              <Tooltip title={soundEnabled ? getMessage('disableSound') : getMessage('enableSound')}>
                 <button
                   onClick={() => {
                     setSoundEnabled(!soundEnabled)
@@ -568,9 +568,9 @@ const InputArea: React.FC<InputAreaProps> = ({
             <div className="flex items-center justify-between px-0">
               {/* 模式选择区域 */}
               <div className="flex items-center space-x-1">
-                <span className="text-[9px] font-medium text-white">Mode:</span>
+                <span className="text-[9px] font-medium text-white">{getMessage('mode')}</span>
                 <Tooltip title={() => {
-                  return <div className='text-[12px]'>Switch between Chat and Write mode ({navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)</div>
+                  return <div className='text-[12px]'>{getMessage('switchModeTooltip')} ({navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + .)</div>
                 }}>
                   <Select
                     size="small"
@@ -603,7 +603,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </Tooltip>
                 <Tooltip title={() => {
                   return <div className=' text-white text-[12px]'>
-                    {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L to maximize/minimize
+                    {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + L {getMessage('maximizeMinimizeTooltip')}
 
                   </div>
                 }}>
@@ -623,7 +623,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                         eventBus.publish(EVENTS.AGENTIC.MODE_CHANGED, new AgenticModeChangedEventData(newActive, panelId));
                       });
                     }}
-                    title="Step By Step"
+                    title={getMessage('stepByStep')}
                   >
                     <span className={`text-xs ${agenticActive ? '' : 'opacity-50'}`}>{getMessage('agentButtonLabel')}</span>
                   </button>
@@ -636,12 +636,12 @@ const InputArea: React.FC<InputAreaProps> = ({
                 <Tooltip title={() => {
                   return <div className=' text-white text-[12px]'>
                     {
-                      sendLoading ? '点击停止' : <>
+                      sendLoading ? getMessage('clickToStop') : <>
                         {/* 快捷键提示 */}
                         <kbd className="px-0.5 py-0 mx-1 font-semibold bg-gray-800 border border-white-600 rounded shadow-sm">
                           {navigator.platform.indexOf('Mac') === 0 ? '⌘' : 'Ctrl'} + Enter
                         </kbd>
-                        <span>to send</span>
+                        <span>{getMessage('toSend')}</span>
                       </>
                     }
                   </div>

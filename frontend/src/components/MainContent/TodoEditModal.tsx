@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { JsonExtractor } from '../../services/JsonExtractor';
 import { Modal, Input, Select, DatePicker, Button, Tag, message as AntMessage } from 'antd';
 import { PlusOutlined, SplitCellsOutlined } from '@ant-design/icons';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import { useTaskSplitting } from '../../contexts/TaskSplittingContext';
 import moment from 'moment';
 import { autoCommandService } from '../../services/autoCommandService';

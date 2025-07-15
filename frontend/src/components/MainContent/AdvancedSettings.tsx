@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Switch, message } from 'antd';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import type { AutoCoderArgs } from './types';
 import './ModelConfig.css';
 

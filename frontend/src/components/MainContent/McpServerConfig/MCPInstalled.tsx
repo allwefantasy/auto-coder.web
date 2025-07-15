@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { List, Button, message, Spin, Popconfirm, Empty } from 'antd';
 import { DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 
 // --- Interface Definitions ---
 // Corresponds to the backend's ServerInfo in ListRunningResult

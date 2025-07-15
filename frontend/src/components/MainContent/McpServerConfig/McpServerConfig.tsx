@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'antd';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 import MCPMarketplace from './MCPMarketplace'; // Renamed import
 import ManuallyAddMCPServer from './ManuallyAddMCPServer';
 import MCPInstalled from './MCPInstalled'; // Renamed import

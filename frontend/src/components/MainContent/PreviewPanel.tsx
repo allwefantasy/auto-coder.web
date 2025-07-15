@@ -5,6 +5,7 @@ import Split from 'react-split';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import './PreviewPanel.css';
 import { getLanguageByFileName } from '../../utils/fileUtils';
+import { getMessage } from '../../lang';
 import axios from 'axios';
 
 interface PreviewPanelProps {
@@ -98,8 +99,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
               {(isCollapsed && <RightOutlined />) || <LeftOutlined />}
             </button>
             {(files.length === 0 && (
-              <div className="w-full flex items-center justify-center text-gray-400">
-                No changes to preview
+              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                {getMessage('noChangesToPreview')}
               </div>
             )) || (
               <>
@@ -154,7 +155,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                   onFocus={() => setIsUrlFocused(true)}
                   onBlur={() => setIsUrlFocused(false)}
                   className="flex-1 px-2 py-1 bg-transparent text-white text-sm focus:outline-none"
-                  placeholder="Enter URL to preview"
+                  placeholder={getMessage('enterUrlToPreview')}
                 />
                 <button
                   onClick={() => {
@@ -182,7 +183,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ files }) => {
                 />
               )) || (
                 <div className="h-full flex items-center justify-center text-gray-400">
-                  Enter a URL above to preview web content
+                  {getMessage('enterUrlAboveToPreview')}
                 </div>
               )}
             </div>

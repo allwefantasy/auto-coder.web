@@ -7,7 +7,7 @@ import FileTree from "./components/FileTree";
 import MonacoEditor from "./components/MonacoEditor";
 import { FileMetadata } from "../../types/file_meta";
 import eventBus, { EVENTS } from "../../services/eventBus";
-import { getMessage } from "../Sidebar/lang"; // Import getMessage for i18n
+import { getMessage } from "../../lang"; // Import getMessage for i18n
 import axios from "axios";
 import { queryToString } from "@/utils/formatUtils";
 import "./CodeEditor.css";
