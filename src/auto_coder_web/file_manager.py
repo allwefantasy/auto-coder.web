@@ -184,10 +184,19 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
 
         return items
     
+    def replace_title(__path__:str,new_path:str)->str:
+        if not bool(__path__):
+            return new_path
+        return new_path.replace(f"{__path__}/", '')
+    
+    def add_path(__path__:str,new_path:str)->str:
+        if not bool(__path__):
+            return new_path
+        return f"{__path__}/{new_path}"
+    
     def fn_compact_folders(nodes: List[Dict[str, Any]], parent_path: str = "") -> List[Dict[str, Any]]:
         def map_node(node: Dict[str, Any]) -> Dict[str, Any]:
             current_path = f"{parent_path}/{node['title']}" if parent_path else node['title']
-
             # 如果是文件，直接返回（不参与路径合并）
             if node.get('isLeaf', False):
                 return {**node}
@@ -198,22 +207,18 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
                 return {
                     **merged_child,
                     'title': f"{node['title']}/{merged_child['title']}",
-                    'key': f"{current_path}/{merged_child['title']}"
+                    'key': add_path(path, f"{current_path}/{merged_child['title']}")
                 }
 
             # 普通目录（有多个子节点或子节点是文件）
             return {
                 **node,
-                'key': current_path,
+                'key': add_path(path, current_path),
                 'children': fn_compact_folders(node['children'], current_path) if 'children' in node else []
             }
 
         return list(map(map_node, nodes))
     
-    def replace_title(__path__:str,new_path:str)->str:
-        if not bool(__path__):
-            return new_path
-        return new_path.replace(f"{__path__}/", '')
 
     async def process_item(current_path: str, name: str) -> Optional[Dict[str, Any]]:
         """Process a single directory item asynchronously"""
@@ -298,8 +303,8 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
         
     __list__ = await build_tree(target_path)
 
-    if compact_folders and not lazy:
-        return compact_folders(__list__)
+    if bool(compact_folders) and not bool(lazy):
+        return fn_compact_folders(__list__)
     
     return __list__
 
