@@ -11,6 +11,7 @@ export function getLanguageByFileName(fileName: string): string {
     'js': 'javascript',
     'jsx': 'javascript',
     'html': 'html',
+    'vue':'vue',
     'htm': 'html',
     'css': 'css',
     'scss': 'scss',

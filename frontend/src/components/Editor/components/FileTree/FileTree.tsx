@@ -37,6 +37,8 @@ interface FileTreeProps {
   onRefresh: () => Promise<void>;
   onExpand: (selectedKeys: React.Key[], info: any) => void;
   projectName?: string;
+  setCompactFolders:(a:boolean)=>any,
+  isCompactFolders:boolean
 }
 
 const { DirectoryTree } = Tree;
@@ -48,6 +50,8 @@ const FileTree: React.FC<FileTreeProps> = ({
   onExpand,
   onRefresh,
   projectName,
+  setCompactFolders,
+  isCompactFolders
 }) => {
   const [filteredTreeData, setFilteredTreeData] =
     useState<DataNode[]>(treeData);
@@ -55,7 +59,6 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>("");
   const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
-  const [isCompactFolders, setCompactFolders] = useState(false)
   const [isNewFileModalVisible, setIsNewFileModalVisible] =
     useState<boolean>(false);
   const [newFileName, setNewFileName] = useState<string>("");
@@ -64,6 +67,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     useState<boolean>(false);
   const [newDirName, setNewDirName] = useState<string>("");
   const [newDirParentPath, setNewDirParentPath] = useState<string>("");
+  const [_expandedKeys,setExpandedKeys] = useState<string[]>(expandedKeys||[])
 
   useEffect(() => {
     setFilteredTreeData(treeData);
@@ -336,15 +340,23 @@ const FileTree: React.FC<FileTreeProps> = ({
 
   // Handle tree selection
   const handleSelect = (selectedKeys: React.Key[], info: any) => {
-    onSelect?.(selectedKeys, info);
+    onSelect?.(selectedKeys, {...info,isCompactFolders});
   }
 
   // Handle tree expansion
   const handleExpand = (selectedKeys: React.Key[], info: any) => {
-    onExpand?.(selectedKeys, info);
+
+    const {expanded,node:{key}} = info
+    if(!expanded){
+      selectedKeys = (selectedKeys as string[]).filter(_key=>!_key.startsWith(key))
+    }
+    setExpandedKeys(selectedKeys as string[])
+    onExpand?.(selectedKeys, {...info,isCompactFolders});
   }
 
-
+  useEffect(()=>{
+    setExpandedKeys(expandedKeys||[])
+  },[isCompactFolders,expandedKeys])
 
   // Processed tree data with custom rendering
   const processedTreeData = React.useMemo(() => {
@@ -528,6 +540,7 @@ const FileTree: React.FC<FileTreeProps> = ({
               <Tree
                 showIcon={false}
                 autoExpandParent
+                expandedKeys={_expandedKeys}
                 // showLine
                 // defaultExpandAll
                 onSelect={handleSelect}
