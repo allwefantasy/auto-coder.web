@@ -1,42 +1,61 @@
-interface Message {
-  en: string;
-  zh: string;
-}
-
-export const chatPanelMessages: { [key: string]: Message } = {
-  showMore: {
-    en: "Show More",
-    zh: "显示更多"
-  },
+export const chatPanelLang = {
   newChat: {
     en: "New Chat",
     zh: "新建对话"
   },
-  confirmDeleteTitle: {
-    en: "Confirm Deletion",
-    zh: "确认删除"
+  noActiveTask: {
+    en: "No active task",
+    zh: "暂无活动任务"
   },
-  confirmDeleteContent: {
-    en: "Are you sure you want to delete the chat \"{{name}}\"? This action cannot be undone.",
-    zh: "确定要删除对话 \"{{name}}\" 吗？此操作不可撤销。"
+  tokens: {
+    en: "Tokens",
+    zh: "令牌"
   },
-  deleteButton: {
-    en: "Delete",
-    zh: "删除"
+  cache: {
+    en: "Cache",
+    zh: "缓存"
   },
-  cancelButton: {
-    en: "Cancel",
-    zh: "取消"
+  apiCost: {
+    en: "API Cost",
+    zh: "API费用"
   },
-  chatDeleted: {
-    en: "Chat deleted",
-    zh: "对话已删除"
+  contextWindow: {
+    en: "Context Window",
+    zh: "上下文窗口"
   },
-  chatNameEmpty: {
-    en: "Chat name cannot be empty",
-    zh: "对话名称不能为空"
+  inputTokens: {
+    en: "Input Tokens",
+    zh: "输入令牌"
   },
-  chatNameExists: {
+  outputTokens: {
+    en: "Output Tokens",
+    zh: "输出令牌"
+  },
+  totalCost: {
+    en: "Total Cost",
+    zh: "总费用"
+  },
+  cacheHits: {
+    en: "Cache Hits",
+    zh: "缓存命中"
+  },
+  cacheMisses: {
+    en: "Cache Misses",
+    zh: "缓存未命中"
+  },
+  sendMessage: {
+    en: "Send Message",
+    zh: "发送消息"
+  },
+  stopGeneration: {
+    en: "Stop Generation",
+    zh: "停止生成"
+  },
+  enterMessage: {
+    en: "Enter your message...",
+    zh: "请输入您的消息..."
+  },
+  chatExists: {
     en: "Chat with the same name already exists",
     zh: "已存在同名对话"
   },
@@ -208,5 +227,13 @@ export const chatPanelMessages: { [key: string]: Message } = {
   processingError: {
     en: "Processing error occurred",
     zh: "处理过程中发生错误"
+  },
+  saveSession: {
+    en: "Save session",
+    zh: "保存会话"
+  },
+  exportCompleteImage: {
+    en: "Export complete image",
+    zh: "导出完整图片"
   }
 };
