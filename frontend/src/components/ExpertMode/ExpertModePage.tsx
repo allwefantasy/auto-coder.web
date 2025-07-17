@@ -62,7 +62,6 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   const [splitSizes, setSplitSizes] = useState([75, 25]);
   const [isTerminalCollapsed, setIsTerminalCollapsed] = useState(false);
   const [isTerminalMinimized, setIsTerminalMinimized] = useState(false);
-=======
 
   // 弹出框状态
   const [modalOpen, setModalOpen] = useState(false);
