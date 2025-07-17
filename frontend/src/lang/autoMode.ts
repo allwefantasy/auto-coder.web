@@ -321,4 +321,34 @@ export const autoModeMessages: { [key: string]: Message } = {
     en: "Preview and edit code changes",
     zh: "预览并编辑代码变更"
   },
+  
+  // AutoModePage 中需要的多语言配置
+  navigationMenu: {
+    en: "Navigation Menu",
+    zh: "导航菜单"
+  },
+  currentChange: {
+    en: "Current Changes",
+    zh: "当前变化"
+  },
+  fullScreenWidth: {
+    en: "Full screen width",
+    zh: "全屏宽度"
+  },
+  limitedWidth: {
+    en: "Limited width",
+    zh: "限制宽度"
+  },
+  close: {
+    en: "Close",
+    zh: "关闭"
+  },
+  projectName: {
+    en: "Project",
+    zh: "项目名称"
+  },
+  noProjectSelected: {
+    en: "No Project Selected",
+    zh: "未选择项目"
+  },
 };
