@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, Suspense, lazy } from 
 import { Editor } from '@monaco-editor/react';
 import Split from 'react-split';
 import { Tooltip } from 'antd';
+import { UpOutlined, DownOutlined } from '@ant-design/icons';
 import ChatPanels from '../Sidebar/ChatPanels';
 import CodeEditorPanel from '../MainContent/CodeEditorPanel';
 import FileGroupPanel from '../MainContent/FileGroupPanel';
@@ -56,6 +57,12 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
   const [isFull, setFull] = useState(false);
+  
+  // 新增状态：跟踪分割面板的尺寸和折叠状态
+  const [splitSizes, setSplitSizes] = useState([75, 25]);
+  const [isTerminalCollapsed, setIsTerminalCollapsed] = useState(false);
+  const [isTerminalMinimized, setIsTerminalMinimized] = useState(false);
+=======
 
   // 弹出框状态
   const [modalOpen, setModalOpen] = useState(false);
@@ -75,6 +82,38 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
       window.dispatchEvent(new Event('resize'));
     }, 50);
   }
+
+  // 处理拖拽结束，检查终端区域是否被拖到底部
+  const handleSplitChange = (sizes: number[]) => {
+    setSplitSizes(sizes);
+    // 如果下方面板的大小小于等于5%，认为已经拖到底部
+    const isMinimized = sizes[1] <= 5;
+    setIsTerminalMinimized(isMinimized);
+    
+    // 触发resize事件以更新Terminal大小
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+  };
+
+  // 切换终端区域展开/收起状态
+  const toggleTerminalCollapse = () => {
+    if (isTerminalCollapsed) {
+      // 展开：恢复到之前的大小或默认大小
+      setSplitSizes([75, 25]);
+      setIsTerminalCollapsed(false);
+      setIsTerminalMinimized(false);
+    } else {
+      // 收起：设置为最小高度
+      setSplitSizes([95, 5]);
+      setIsTerminalCollapsed(true);
+      setIsTerminalMinimized(true);
+    }
+    
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+  };
 
   // 添加对requestId变化的监听，更新currentEventFileId
   useEffect(() => {
@@ -271,13 +310,14 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
           <div className="absolute inset-0">
             <Split
               direction="vertical"
-              sizes={[75, 25]}
+              sizes={splitSizes}
               minSize={[180, 20]}
               gutterSize={5}
               snapOffset={100}
               dragInterval={1}
               cursor="row-resize"
               className="split-vertical"
+              onChange={handleSplitChange}
               onDragEnd={() => {
                 // 触发resize事件以更新Terminal大小
                 window.dispatchEvent(new Event('resize'));
@@ -503,35 +543,49 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                         {tab.label}
                       </button>
                     ))}
-                    {/* 全屏切换按钮 */}
-                    <Tooltip title={isFull ? getMessage('exitFullscreen') : getMessage('fullscreenMode')}>
-                      <button
-                        onClick={toggleFullscreen}
-                        className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                    {/* 全屏切换按钮 - 当终端区域被最小化时隐藏 */}
+                    {!isTerminalMinimized && (
+                      <Tooltip title={isFull ? getMessage('exitFullscreen') : getMessage('fullscreenMode')}>
+                        <button
+                          onClick={toggleFullscreen}
+                          className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
                         >
-                          {isFull ? (
-                            <>
-                              <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-                            </>
-                          ) : (
-                            <>
-                              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                            </>
-                          )}
-                        </svg>
-                      </button>
-                    </Tooltip>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            {isFull ? (
+                              <>
+                                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                              </>
+                            ) : (
+                              <>
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                              </>
+                            )}
+                          </svg>
+                        </button>
+                      </Tooltip>
+                    )}
+                    
+                    {/* 展开/收起箭头按钮 - 当终端区域被最小化时显示 */}
+                    {isTerminalMinimized && (
+                      <Tooltip title="展开终端区域">
+                        <button
+                          onClick={toggleTerminalCollapse}
+                          className="mr-1 p-0.5 rounded-md transition-all duration-200 text-green-500 hover:text-green-400 hover:bg-gray-700"
+                        >
+                          <UpOutlined style={{ fontSize: '14px' }} />
+                        </button>
+                      </Tooltip>
+                    )}
                   </div>
                 </div>
 
