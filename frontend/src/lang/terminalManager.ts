@@ -30,5 +30,13 @@ export const terminalManagerMessages = {
   terminal: {
     en: "Terminal",
     zh: "终端"
+  },
+  expandTerminal: {
+    en: "expandTerminal",
+    zh: "展开终端"
+  },
+  collapseTerminal: {
+    en: "collapseTerminal",
+    zh: "收起终端"
   }
 };

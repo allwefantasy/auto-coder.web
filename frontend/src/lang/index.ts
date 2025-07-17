@@ -15,7 +15,7 @@ import { editorMessages } from "./editor";
 import { editorComponentMessages } from "./editorComponent";
 import { fileTreeMessages } from "./fileTree";
 import { terminalMessages } from "./terminal";
-import { terminalManagerMessages } from "../components/Terminal/TerminalManager.lang";
+import { terminalManagerMessages } from "./terminalManager";
 import { appMessages } from "./app";
 import { componentsMessages } from "./components";
 import { messagesConfig } from "./messages";
