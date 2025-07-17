@@ -15,6 +15,7 @@ import { editorMessages } from "./editor";
 import { editorComponentMessages } from "./editorComponent";
 import { fileTreeMessages } from "./fileTree";
 import { terminalMessages } from "./terminal";
+import { terminalManagerMessages } from "../components/Terminal/TerminalManager.lang";
 import { appMessages } from "./app";
 import { componentsMessages } from "./components";
 import { messagesConfig } from "./messages";
@@ -42,6 +43,7 @@ export const messages: { [key: string]: Message } = {
   ...editorComponentMessages,
   ...fileTreeMessages,
   ...terminalMessages,
+  ...terminalManagerMessages,
   ...appMessages,
   ...componentsMessages,
   ...messagesConfig,
