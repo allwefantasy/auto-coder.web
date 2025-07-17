@@ -555,7 +555,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       )}
 
                       {/* 展开/收起箭头按钮 */}
-                      <Tooltip placement='topLeft' title={isTerminalMinimized ? '展开终端区域' : '收起终端区域'}>
+                      <Tooltip placement='topLeft' title={isTerminalMinimized ? getMessage('expandTerminal') : getMessage('collapseTerminal')}>
                         <button
                           onClick={toggleTerminalExpand}
                           className="ml-2 mr-1 p-0 rounded-md transition-all duration-200 text-white hover:bg-gray-700"
