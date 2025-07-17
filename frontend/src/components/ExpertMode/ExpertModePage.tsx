@@ -272,9 +272,9 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
             <Split
               direction="vertical"
               sizes={[75, 25]}
-              minSize={[180, 80]}
+              minSize={[180, 20]}
               gutterSize={5}
-              snapOffset={20}
+              snapOffset={100}
               dragInterval={1}
               cursor="row-resize"
               className="split-vertical"
@@ -483,7 +483,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                 </div>
               </div>
 
-              {/* Lower Section - Tool Panels */}
+              {/* 输出，终端区域*/}
               <div className={`border-t border-gray-700 flex flex-col overflow-hidden ${isFull ? 'fixed left-0 top-0 w-full h-full z-[9999] p-0' : ''}`}>
                 {/* Tool Panel Navigation */}
                 <div className="bg-[#1f1f1f] border-b border-gray-700 px-2">
