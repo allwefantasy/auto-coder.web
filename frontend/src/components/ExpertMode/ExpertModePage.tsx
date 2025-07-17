@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, Suspense, lazy } from 'react'; // Import Suspense and lazy
 import { Editor } from '@monaco-editor/react';
 import Split from 'react-split';
+import { Tooltip } from 'antd';
 import ChatPanels from '../Sidebar/ChatPanels';
 import CodeEditorPanel from '../MainContent/CodeEditorPanel';
 import FileGroupPanel from '../MainContent/FileGroupPanel';
@@ -54,7 +55,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
 }) => {
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
-
+  const [isFull, setFull] = useState(false);
 
   // 弹出框状态
   const [modalOpen, setModalOpen] = useState(false);
@@ -66,6 +67,14 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   // AskUserDialog相关状态
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<any | null>(null);
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null);
+
+  // 处理编辑器全屏切换
+  const toggleFullscreen = () => {
+    setFull(!isFull)
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+  }
 
   // 添加对requestId变化的监听，更新currentEventFileId
   useEffect(() => {
@@ -361,7 +370,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
-                      <span>{getMessage('more')}</span>
+                        <span>{getMessage('more')}</span>
                       </button>
                       {showToolsDropdown && (
                         <div
@@ -475,7 +484,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
               </div>
 
               {/* Lower Section - Tool Panels */}
-              <div className="border-t border-gray-700 flex flex-col overflow-hidden">
+              <div className={`border-t border-gray-700 flex flex-col overflow-hidden ${isFull ? 'fixed left-0 top-0 w-full h-full z-[9999] p-0' : ''}`}>
                 {/* Tool Panel Navigation */}
                 <div className="bg-[#1f1f1f] border-b border-gray-700 px-2">
                   <div className="flex items-center gap-1">
@@ -494,6 +503,35 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                         {tab.label}
                       </button>
                     ))}
+                    {/* 全屏切换按钮 */}
+                    <Tooltip title={isFull ? getMessage('exitFullscreen') : getMessage('fullscreenMode')}>
+                      <button
+                        onClick={toggleFullscreen}
+                        className="mr-1 p-0.5 rounded-md transition-all duration-200 text-blue-500 hover:text-blue-400 hover:bg-gray-700"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          {isFull ? (
+                            <>
+                              <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                            </>
+                          ) : (
+                            <>
+                              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                            </>
+                          )}
+                        </svg>
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
 
