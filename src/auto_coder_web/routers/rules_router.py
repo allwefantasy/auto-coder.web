@@ -10,7 +10,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
 
-from autocoder.common.rulefiles.autocoderrules_utils import get_rules, AutocoderRulesManager, RuleFile, parse_rule_file
+from autocoder.common.rulefiles import get_rules, AutocoderRulesManager, RuleFile, parse_rule_file
 from autocoder.agent.auto_learn import AutoLearn
 from autocoder.common import SourceCode, SourceCodeList
 from autocoder.auto_coder_runner import get_final_config, get_single_llm, get_memory
