@@ -48,13 +48,15 @@ export class SendMessageEventData {
 export class StopGenerationEventData {
   /** 面板ID */
   panelId?: string;
+  isWriteMode?:boolean;
   
   /**
    * 构造函数
    * @param panelId 面板ID
    */
-  constructor(panelId?: string) {
-    this.panelId = panelId;
+  constructor(options: { panelId?: string; isWriteMode?:boolean }) {
+    this.panelId = options.panelId;
+    this.isWriteMode = options.isWriteMode;
   }
 }
 

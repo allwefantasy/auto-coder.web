@@ -82,10 +82,11 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   }
 
   // 处理拖拽变化，检查终端区域是否被拖到底部
-  const handleSplitChange = (sizes: number[]) => {
+  const handleSplitChange = (sizes: any) => {
+   
     setSplitSizes(sizes);
     // 如果下方面板的大小小于等于8%，认为已经拖到底部
-    const isMinimized = sizes[1] <= 8;
+    const isMinimized = sizes[1] <= 3;
     setIsTerminalMinimized(isMinimized);
 
     // 触发resize事件以更新Terminal大小
@@ -313,11 +314,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
               dragInterval={1}
               cursor="row-resize"
               className="split-vertical"
-              onChange={handleSplitChange}
-              onDragEnd={() => {
-                // 触发resize事件以更新Terminal大小
-                window.dispatchEvent(new Event('resize'));
-              }}
+              onDragEnd={handleSplitChange}
             >
               {/* Upper Section - 顶部内容区域 */}
               <div className="flex flex-col overflow-hidden">

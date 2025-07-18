@@ -11,6 +11,7 @@ import { getMessage } from "../../lang"; // Import getMessage for i18n
 import axios from "axios";
 import { queryToString } from "@/utils/formatUtils";
 import "./CodeEditor.css";
+import type { StopGenerationEventData } from "@/services/event_bus_data";
 
 interface CodeEditorProps {
   selectedFiles?: FileMetadata[];
@@ -42,7 +43,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [fileTabs, setFileTabs] = useState<FileTab[]>([]);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
-  const [isCompactFolders, setCompactFolders] = useState(true)
+  const [isCompactFolders, setCompactFolders] = useState(true);
 
   const [saving, setSaving] = useState<boolean>(false);
 
@@ -157,15 +158,32 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     }
   };
 
-  const undateCompactFolders = (data:boolean)=>{
-    setCompactFolders(data)
-  }
-  
+  const undateCompactFolders = (data: boolean) => {
+    setCompactFolders(data);
+  };
+
+  // 订阅停止生成事件
+  const unsubscribeStopGeneration = eventBus.subscribe(
+    EVENTS.CHAT.STOP_GENERATION,
+    (data:StopGenerationEventData) => {
+      if (data.isWriteMode){
+        fetchFileTree()
+      }
+    }
+  );
+
+  useEffect(() => {
+    return unsubscribeStopGeneration;
+  }, []);
 
   const fetchFileTree = async (path = "") => {
     try {
       const response = await fetch(
-        `/api/files${queryToString({ lazy: true, path, compact_folders: isCompactFolders })}`
+        `/api/files${queryToString({
+          lazy: true,
+          path,
+          compact_folders: isCompactFolders,
+        })}`
       );
       console.log("fetchFileTree:", response.ok);
       if (!response.ok) {
@@ -192,45 +210,47 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         return;
       }
 
-      let _data
+      let _data;
 
-      const each = (list:any[],callback:(item:any,index:number)=>any)=>{
+      const each = (
+        list: any[],
+        callback: (item: any, index: number) => any
+      ) => {
         if (!list || !list.length) return;
         for (let k = 0; k < list.length; k++) {
-          const res = callback( list[k],k)
-         if(res) return res
+          const res = callback(list[k], k);
+          if (res) return res;
         }
-      }
-   
-      if(isCompactFolders){
-        const callback = (item:DataNode)=>{
+      };
+
+      if (isCompactFolders) {
+        const callback = (item: DataNode) => {
           const { children, key, isLeaf } = item;
           if (isLeaf) return;
           if (key === path) return item;
-          if(children&&children.length>0){
-           const res =  each(children,callback) as DataNode;
-           if(res) return res
+          if (children && children.length > 0) {
+            const res = each(children, callback) as DataNode;
+            if (res) return res;
           }
-        }
-        _data = each(treeData,callback)
-      }else{
-
+        };
+        _data = each(treeData, callback);
+      } else {
         const pathList = path.split("/");
         let i = 0;
-        const callback = (item:DataNode)=>{
+        const callback = (item: DataNode) => {
           const { children, title, isLeaf } = item;
           if (isLeaf) return;
           const _pathName = pathList[i];
           if (title !== _pathName) return;
 
           if (pathList[++i]) {
-            return each(children!,callback);
+            return each(children!, callback);
           }
           return item;
-        }
+        };
 
-         // 找到对应目录并更新数据
-      _data = each(treeData,callback);
+        // 找到对应目录并更新数据
+        _data = each(treeData, callback);
       }
       console.log("找到对应目录数--", _data);
       if (!_data) return;

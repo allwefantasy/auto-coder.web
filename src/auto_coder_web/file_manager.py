@@ -250,7 +250,7 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
                     if compact_folders:
                         if(children.__len__() > 0):
                             child = children[0]
-                            __is_dir__ = await aiofiles.os.path.isdir(f"{full_path}\{child}")
+                            __is_dir__ = await aiofiles.os.path.isdir(f"{full_path}/{child}")
                             
                             if children.__len__() == 1 and __is_dir__:
                                 __obj__ = await process_item(full_path, child)
