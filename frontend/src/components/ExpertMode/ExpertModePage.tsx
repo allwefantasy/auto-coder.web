@@ -347,15 +347,16 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       </svg>
                       <span>{getMessage('codeViewer')}</span>
                     </button>
-                    {/* Static Preview Button */}
+                    {/* Static Preview Button - 预览功能已屏蔽 */}
                     <button
-                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300
-                        ${activePanel === 'preview_static'
-                          ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
-                          : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
-                        } flex items-center space-x-1`} // Reduced space for icon+text
-                      onClick={() => setActivePanel('preview_static')}
-                      title={getMessage('previewChangesStaticTooltip')}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 opacity-50 cursor-not-allowed
+                        bg-gray-800/60 text-gray-500 flex items-center space-x-1`} // Reduced space for icon+text
+                      onClick={() => {
+                        // 预览功能已屏蔽 - 不执行任何操作
+                        console.log('预览功能已被屏蔽');
+                      }}
+                      title="预览功能暂时不可用"
+                      disabled
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -475,10 +476,23 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       />
                     </div>
                   </div>
-                  {/* Static Preview Panel */}
+                  {/* Static Preview Panel - 预览功能已屏蔽 */}
                   <div className={`h-full ${activePanel === 'preview_static' ? 'block' : 'hidden'}`}>
-                    <PreviewPanel files={previewFiles} />
+                    <div className="h-full flex items-center justify-center bg-gray-900">
+                      <div className="text-center text-gray-400">
+                        <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          <line x1="3" y1="3" x2="21" y2="21" strokeWidth={2} />
+                        </svg>
+                        <p className="text-lg font-medium mb-2">预览功能暂时不可用</p>
+                        <p className="text-sm">该功能正在维护中，请稍后再试</p>
+                      </div>
+                    </div>
+                    {/* 原始预览组件已屏蔽 */}
+                    {/* <PreviewPanel files={previewFiles} /> */}
                   </div>
+=======
                   <div className={`h-full ${activePanel === 'history' ? 'block' : 'hidden'}`}>
                     {/* Wrap HistoryPanel with Suspense for lazy loading */}
                     <Suspense fallback={<div className='p-4 text-gray-400 text-center'>{getMessage('loadingHistory')}</div>}>
