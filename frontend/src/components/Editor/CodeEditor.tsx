@@ -162,13 +162,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     setCompactFolders(data);
   };
 
-  // 订阅停止生成事件
+  // 订阅CODE完成事件
   const unsubscribeStopGeneration = eventBus.subscribe(
-    EVENTS.CHAT.STOP_GENERATION,
-    (data:StopGenerationEventData) => {
-      if (data.isWriteMode){
-        fetchFileTree()
-      }
+    EVENTS.CODING.TASK_COMPLETE,
+    ({ success }) => {
+      if (!success) return
+      fetchFileTree()
     }
   );
 
