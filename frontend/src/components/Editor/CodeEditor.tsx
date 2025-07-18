@@ -97,7 +97,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       const response = await axios.get<EditorTabsConfig>("/api/editor/tabs");
       return response.data;
     } catch (error) {
-      console.error("加载编辑器标签页配置失败:", error);
+      console.error(getMessage("codeEditor.loadTabsConfigFailed"), error);
       return null;
     }
   };
@@ -113,7 +113,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
       await axios.put("/api/editor/tabs", tabs);
     } catch (error) {
-      console.error("保存编辑器标签页失败:", error);
+      console.error(getMessage("codeEditor.saveTabsFailed"), error);
     }
   };
 
@@ -147,7 +147,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             isActive: activeFile === null, // 如果没有活跃标签，则将新标签设为活跃
           });
         } catch (error) {
-          console.error("添加标签页失败:", error);
+          console.error(getMessage("codeEditor.addTabFailed"), error);
         }
 
         return [...prev, newTab];
@@ -252,7 +252,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         // 找到对应目录并更新数据
         _data = each(treeData, callback);
       }
-      console.log("找到对应目录数--", _data);
+      console.log("Found directory data:", _data);
       if (!_data) return;
       _data.children = data.tree.map(transformNode);
       setTreeData([...treeData]);
@@ -321,7 +321,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     try {
       await axios.put("/api/editor/active-tab", { path: key });
     } catch (error) {
-      console.error("更新活跃标签失败:", error);
+      console.error(getMessage("codeEditor.updateActiveTabFailed"), error);
     }
   };
 
@@ -346,7 +346,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       try {
         await axios.delete(`/api/editor/tabs/${targetKey}`);
       } catch (error) {
-        console.error("删除标签页失败:", error);
+        console.error(getMessage("codeEditor.deleteTabFailed"), error);
       }
     }
   };
@@ -385,7 +385,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
       await axios.put("/api/editor/tabs", tabs);
     } catch (error) {
-      console.error("更新标签页失败:", error);
+      console.error(getMessage("codeEditor.updateTabsFailed"), error);
     }
   };
 
