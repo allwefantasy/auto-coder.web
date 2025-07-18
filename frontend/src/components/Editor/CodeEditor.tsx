@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { message, Tabs, Dropdown, Menu } from "antd";
 import type { DataNode } from "antd/es/tree";
 import Split from "react-split";
@@ -162,12 +162,16 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     setCompactFolders(data);
   };
 
+  const isLoadingTree = useRef(false)
   // 订阅CODE完成事件
   const unsubscribeStopGeneration = eventBus.subscribe(
     EVENTS.CODING.TASK_COMPLETE,
-    ({ success }) => {
+   async ({ success }) => {
       if (!success) return
-      fetchFileTree()
+      if(isLoadingTree.current) return
+      isLoadingTree.current = true
+      await fetchFileTree()
+      isLoadingTree.current = false
     }
   );
 
