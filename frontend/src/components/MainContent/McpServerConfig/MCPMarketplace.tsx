@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { List, Button, message, Spin, Empty } from 'antd'; // Removed Modal, Form, Input, Select, Space, PlusOutlined, DeleteOutlined
 // Option is no longer needed here
 import { DownloadOutlined, EditOutlined } from '@ant-design/icons'; // Removed PlusOutlined, DeleteOutlined
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 import EditMcpServerModal from './EditMcpServerModal'; // Import the new modal component
 import { McpServerInfo, McpListApiResponse } from './types'; // Import types from shared file
 import './MCPMarketplace.css';

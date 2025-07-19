@@ -9,6 +9,7 @@ from auto_coder_web.file_manager import (
     read_file_content_async,
 )
 from pydantic import BaseModel
+from loguru import logger
 from typing import List, Optional
 import pathspec
 
@@ -101,6 +102,7 @@ async def get_files(
     request: Request, # Need request to access project_path if not using Depends
     path: str = None, # Optional path parameter for lazy loading
     lazy: bool = False, # Optional lazy parameter
+    compact_folders: bool = False, # Optional compact_folders parameter
     project_path: str = Depends(get_project_path)
 ):
     try:
@@ -108,8 +110,9 @@ async def get_files(
         query_params = request.query_params
         path_param = query_params.get("path")
         lazy_param = query_params.get("lazy", "false").lower() == "true"
-
-        tree = await get_directory_tree_async(project_path, path=path_param, lazy=lazy_param)
+        compact_folders = query_params.get("compact_folders", "false").lower() == "true"
+        
+        tree = await get_directory_tree_async(project_path, path=path_param, lazy=lazy_param, compact_folders=compact_folders)
         return {"tree": tree}
     except Exception as e:
         # Log the error e

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button, Card, Steps, Input, message, Spin, Select } from "antd";
-import { getMessage } from "./Sidebar/lang";
+import { getMessage } from "../lang";
 import "../styles/custom_antd.css";
 import "../styles/initialization.css";
 

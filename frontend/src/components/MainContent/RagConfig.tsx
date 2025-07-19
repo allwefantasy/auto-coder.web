@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, Space, message, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import './ModelConfig.css';
 import '../../styles/custom_antd.css';
 import './CompilerConfig.css';

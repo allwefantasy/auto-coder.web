@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Select, Input, Button, Tooltip, message } from 'antd';
 import { SearchOutlined, BookOutlined, ReloadOutlined } from '@ant-design/icons';
-import { getMessage } from './lang';
+import { getMessage } from '../../lang';
 
 const { Option } = Select;
 

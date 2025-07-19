@@ -6,7 +6,7 @@ import { FileGroup, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import { FileMetadata } from '../../types/file_meta';
 import './FileGroupSelect.css';
-import { getMessage } from './lang';
+import { getMessage } from '../../lang';
 import { FileGroupSelectionUpdatedEventData } from '../../services/event_bus_data';
 import { ServiceFactory } from '../../services/ServiceFactory';
 

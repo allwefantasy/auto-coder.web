@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { message, Tabs, Dropdown, Menu } from "antd";
 import type { DataNode } from "antd/es/tree";
 import Split from "react-split";
@@ -7,10 +7,11 @@ import FileTree from "./components/FileTree";
 import MonacoEditor from "./components/MonacoEditor";
 import { FileMetadata } from "../../types/file_meta";
 import eventBus, { EVENTS } from "../../services/eventBus";
-import { getMessage } from "../Sidebar/lang"; // Import getMessage for i18n
+import { getMessage } from "../../lang"; // Import getMessage for i18n
 import axios from "axios";
 import { queryToString } from "@/utils/formatUtils";
 import "./CodeEditor.css";
+import type { StopGenerationEventData } from "@/services/event_bus_data";
 
 interface CodeEditorProps {
   selectedFiles?: FileMetadata[];
@@ -42,6 +43,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [fileTabs, setFileTabs] = useState<FileTab[]>([]);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
+  const [isCompactFolders, setCompactFolders] = useState(true);
 
   const [saving, setSaving] = useState<boolean>(false);
 
@@ -87,7 +89,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   useEffect(() => {
     fetchFileTree();
-  }, []);
+  }, [isCompactFolders]);
 
   // 加载保存的标签页状态
   const loadTabsFromBackend = async (): Promise<EditorTabsConfig | null> => {
@@ -95,7 +97,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       const response = await axios.get<EditorTabsConfig>("/api/editor/tabs");
       return response.data;
     } catch (error) {
-      console.error("加载编辑器标签页配置失败:", error);
+      console.error(getMessage("codeEditor.loadTabsConfigFailed"), error);
       return null;
     }
   };
@@ -111,7 +113,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
       await axios.put("/api/editor/tabs", tabs);
     } catch (error) {
-      console.error("保存编辑器标签页失败:", error);
+      console.error(getMessage("codeEditor.saveTabsFailed"), error);
     }
   };
 
@@ -145,7 +147,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             isActive: activeFile === null, // 如果没有活跃标签，则将新标签设为活跃
           });
         } catch (error) {
-          console.error("添加标签页失败:", error);
+          console.error(getMessage("codeEditor.addTabFailed"), error);
         }
 
         return [...prev, newTab];
@@ -156,10 +158,35 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     }
   };
 
+  const undateCompactFolders = (data: boolean) => {
+    setCompactFolders(data);
+  };
+
+  const isLoadingTree = useRef(false)
+  // 订阅CODE完成事件
+  const unsubscribeStopGeneration = eventBus.subscribe(
+    EVENTS.CODING.TASK_COMPLETE,
+   async ({ success }) => {
+      if (!success) return
+      if(isLoadingTree.current) return
+      isLoadingTree.current = true
+      await fetchFileTree()
+      isLoadingTree.current = false
+    }
+  );
+
+  useEffect(() => {
+    return unsubscribeStopGeneration;
+  }, []);
+
   const fetchFileTree = async (path = "") => {
     try {
       const response = await fetch(
-        `/api/files${queryToString({ lazy: true, path })}`
+        `/api/files${queryToString({
+          lazy: true,
+          path,
+          compact_folders: isCompactFolders,
+        })}`
       );
       console.log("fetchFileTree:", response.ok);
       if (!response.ok) {
@@ -186,26 +213,49 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         return;
       }
 
-      const pathList = path.split("/");
-      let i = 0;
-      const findCurPathData = (list: DataNode[]) => {
+      let _data;
+
+      const each = (
+        list: any[],
+        callback: (item: any, index: number) => any
+      ) => {
         if (!list || !list.length) return;
         for (let k = 0; k < list.length; k++) {
-          const item = list[k];
-          const { children, title, isLeaf } = item;
-          if (isLeaf) continue;
-          const _pathName = pathList[i];
-          if (title !== _pathName) continue;
-
-          if (pathList[++i]) {
-            return findCurPathData(children!);
-          }
-          return item;
+          const res = callback(list[k], k);
+          if (res) return res;
         }
       };
-      // 找到对应目录并更新数据
-      const _data = findCurPathData(treeData);
-      console.log("找到对应目录数", _data);
+
+      if (isCompactFolders) {
+        const callback = (item: DataNode) => {
+          const { children, key, isLeaf } = item;
+          if (isLeaf) return;
+          if (key === path) return item;
+          if (children && children.length > 0) {
+            const res = each(children, callback) as DataNode;
+            if (res) return res;
+          }
+        };
+        _data = each(treeData, callback);
+      } else {
+        const pathList = path.split("/");
+        let i = 0;
+        const callback = (item: DataNode) => {
+          const { children, title, isLeaf } = item;
+          if (isLeaf) return;
+          const _pathName = pathList[i];
+          if (title !== _pathName) return;
+
+          if (pathList[++i]) {
+            return each(children!, callback);
+          }
+          return item;
+        };
+
+        // 找到对应目录并更新数据
+        _data = each(treeData, callback);
+      }
+      console.log("Found directory data:", _data);
       if (!_data) return;
       _data.children = data.tree.map(transformNode);
       setTreeData([...treeData]);
@@ -274,7 +324,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     try {
       await axios.put("/api/editor/active-tab", { path: key });
     } catch (error) {
-      console.error("更新活跃标签失败:", error);
+      console.error(getMessage("codeEditor.updateActiveTabFailed"), error);
     }
   };
 
@@ -299,7 +349,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       try {
         await axios.delete(`/api/editor/tabs/${targetKey}`);
       } catch (error) {
-        console.error("删除标签页失败:", error);
+        console.error(getMessage("codeEditor.deleteTabFailed"), error);
       }
     }
   };
@@ -338,7 +388,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
       await axios.put("/api/editor/tabs", tabs);
     } catch (error) {
-      console.error("更新标签页失败:", error);
+      console.error(getMessage("codeEditor.updateTabsFailed"), error);
     }
   };
 
@@ -413,6 +463,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       >
         <div className="file-tree-panel">
           <FileTree
+            isCompactFolders={isCompactFolders}
+            setCompactFolders={undateCompactFolders}
             treeData={treeData}
             onSelect={handleSelect}
             onExpand={handleExpand}

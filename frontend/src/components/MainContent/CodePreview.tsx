@@ -1,4 +1,5 @@
 import React from 'react';
+import { getMessage } from '../../lang';
 
 const CodeEditor: React.FC = () => {
   return (
@@ -7,10 +8,10 @@ const CodeEditor: React.FC = () => {
       <div className="bg-gray-800 p-2 border-b border-gray-700">
         <div className="flex items-center space-x-4">
           <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
-            Code
+            {getMessage('codePreview.btn.code')}
           </button>
           <button className="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">
-            Preview
+            {getMessage('codePreview.btn.preview')}
           </button>
         </div>
       </div>
@@ -22,10 +23,10 @@ const CodeEditor: React.FC = () => {
           <div className="w-48 bg-gray-900 border-r border-gray-700 overflow-y-auto">
             <div className="p-2">
               <div className="text-gray-400 hover:text-white cursor-pointer">
-                <span className="text-sm">📁 src</span>
+                <span className="text-sm">📁 {getMessage('codePreview.fileTree.src')}</span>
                 <div className="pl-4">
-                  <div className="text-sm">📄 index.tsx</div>
-                  <div className="text-sm">📄 App.tsx</div>
+                  <div className="text-sm">📄 {getMessage('codePreview.fileTree.indexTsx')}</div>
+                  <div className="text-sm">📄 {getMessage('codePreview.fileTree.appTsx')}</div>
                 </div>
               </div>
             </div>
@@ -35,8 +36,7 @@ const CodeEditor: React.FC = () => {
           <div className="flex-1 bg-gray-900 overflow-y-auto">
             <pre className="p-4">
               <code className="text-gray-300 font-mono">
-                // Your code will appear here
-                Preview
+                {getMessage('codePreview.placeholder')}
               </code>
             </pre>
           </div>

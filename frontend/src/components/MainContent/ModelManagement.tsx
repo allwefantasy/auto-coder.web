@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Select, Switch, Modal, Table, message, Popconfirm, Spin, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, QuestionCircleOutlined, EyeOutlined, EyeInvisibleOutlined, MessageOutlined } from '@ant-design/icons';
 import ModelChatDialog from './ModelChatDialog';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import eventBus, { EVENTS } from '../../services/eventBus'; // Import eventBus
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';

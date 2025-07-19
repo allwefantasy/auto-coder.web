@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Table, Empty, Input, message } from 'antd';
 import { DeleteOutlined, PlusOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import Editor from '@monaco-editor/react';
+import { getMessage } from '../../lang';
 
 interface FileGroup {
   name: string;
@@ -30,7 +31,7 @@ const FileGroupDetail: React.FC<FileGroupDetailProps> = ({
   if (!selectedGroup) {
     return (
       <div className="text-gray-400 text-center mt-4">
-        Select a group to view details
+        {getMessage('fileGroupDetail.selectGroup')}
       </div>
     );
   }
@@ -49,9 +50,9 @@ const FileGroupDetail: React.FC<FileGroupDetailProps> = ({
               if (editingDesc) {
                 try {
                   await onUpdateDescription(selectedGroup.name, currentDesc);
-                  message.success('Description updated successfully');
+                  message.success(getMessage('fileGroupDetail.descriptionUpdated'));
                 } catch (error) {
-                  message.error('Failed to update description');
+                  message.error(getMessage('fileGroupDetail.descriptionUpdateFailed'));
                 }
               } else {
                 setCurrentDesc(selectedGroup.description || '');
@@ -59,7 +60,7 @@ const FileGroupDetail: React.FC<FileGroupDetailProps> = ({
               setEditingDesc(!editingDesc);
             }}
           >
-            {editingDesc ? 'Save Description' : 'Edit Description'}
+            {editingDesc ? getMessage('fileGroupDetail.saveDescription') : getMessage('fileGroupDetail.editDescription')}
           </Button>
         </div>
         {editingDesc ? (
@@ -81,13 +82,13 @@ const FileGroupDetail: React.FC<FileGroupDetailProps> = ({
           </div>
         ) : (
           <p className="text-gray-400 text-sm">
-            {selectedGroup.description || 'No description'}
+            {selectedGroup.description || getMessage('fileGroupDetail.noDescription')}
           </p>
         )}
       </div>
       <div>
         <div className="flex justify-between items-center mb-2">
-          <h4 className="text-white font-medium">Files ({selectedGroup.files.length})</h4>
+          <h4 className="text-white font-medium">{getMessage('fileGroupDetail.files')} ({selectedGroup.files.length})</h4>
           <Button
             type="primary"
             size="small"
@@ -95,13 +96,13 @@ const FileGroupDetail: React.FC<FileGroupDetailProps> = ({
             onClick={onAddExternalFile}
             className="bg-blue-600 hover:bg-blue-700 border-none"
           >
-            Add External File
+            {getMessage('fileGroupDetail.addExternalFile')}
           </Button>
         </div>
         {selectedGroup.files.length === 0 ? (
           <div className="empty-files-container">
             <Empty 
-              description={<span className="text-gray-400">No files added yet</span>}
+              description={<span className="text-gray-400">{getMessage('fileGroupDetail.noFiles')}</span>}
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               className="custom-empty-state"
             />
@@ -154,7 +155,7 @@ const FileGroupDetail: React.FC<FileGroupDetailProps> = ({
               emptyText: (
                 <div className="py-4">
                   <Empty 
-                    description={<span className="text-gray-400">No files in this group</span>}
+                    description={<span className="text-gray-400">{getMessage('fileGroupDetail.noFilesInGroup')}</span>}
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     className="custom-empty-state"
                   />

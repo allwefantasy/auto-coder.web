@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Select, message, Skeleton, Button, Tag, notification } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import type { AutoCoderArgs } from './types';
 import '../../styles/custom_antd.css';
 import './ModelConfig.css';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { MessageProps } from '../MessageList';
-import { getMessage } from '../../../components/Sidebar/lang';
+import { getMessage } from '../../../lang';
 import './MessageStyles.css';
 
 interface AgenticEditToolResultProps {

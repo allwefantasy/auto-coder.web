@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { MessageProps } from '../MessageList';
 import './MessageStyles.css'; // Ensure styles are imported
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 
 interface AgenticEditSearchFilesToolProps {
   message: MessageProps;

@@ -151,46 +151,32 @@ export function getFileIcon(
 ): React.ReactNode {
   const extension = getFileExtension(filename);
   
-  console.log('[iconUtils] getFileIcon called:', {
-    filename,
-    extension,
-    hasCustomIcons: !!customIcons,
-    customIconsKeys: customIcons ? Object.keys(customIcons) : [],
-  });
-  
   // Check custom icons first
   if (customIcons && customIcons[extension]) {
-    console.log('[iconUtils] Using custom icon for extension:', extension);
     return customIcons[extension];
   }
   
   // Check default icons
   if (defaultFileIcons[extension]) {
-    console.log('[iconUtils] Using default icon for extension:', extension);
     return defaultFileIcons[extension];
   }
   
   // Special cases for files without extensions or specific names
   const lowerFilename = filename.toLowerCase();
   if (lowerFilename === 'dockerfile') {
-    console.log('[iconUtils] Using Dockerfile icon');
     return <CodeOutlined style={{ color: '#0db7ed' }} />;
   }
   if (lowerFilename === 'makefile') {
-    console.log('[iconUtils] Using Makefile icon');
     return <CodeOutlined style={{ color: '#427819' }} />;
   }
   if (lowerFilename.startsWith('.git')) {
-    console.log('[iconUtils] Using .git icon');
     return <SettingOutlined style={{ color: '#f56565' }} />;
   }
   if (lowerFilename.startsWith('.env')) {
-    console.log('[iconUtils] Using .env icon');
     return <SettingOutlined style={{ color: '#ffd700' }} />;
   }
   
   // Default file icon
-  console.log('[iconUtils] Using default file icon for:', filename);
   return <FileOutlined style={{ color: '#9cdcfe' }} />;
 }
 
@@ -203,29 +189,18 @@ export function getFolderIcon(
   customIcons?: FileIconMapping
 ): React.ReactNode {
   const lowerFolderName = folderName.toLowerCase();
-  
-  console.log('[iconUtils] getFolderIcon called:', {
-    folderName,
-    lowerFolderName,
-    isOpen,
-    hasCustomIcons: !!customIcons,
-    customIconsKeys: customIcons ? Object.keys(customIcons) : [],
-  });
-  
+ 
   // Check custom icons first
   if (customIcons && customIcons[lowerFolderName]) {
-    console.log('[iconUtils] Using custom folder icon for:', lowerFolderName);
     return customIcons[lowerFolderName];
   }
   
   // Check special folder icons
   if (specialFolderIcons[lowerFolderName]) {
-    console.log('[iconUtils] Using special folder icon for:', lowerFolderName);
     return specialFolderIcons[lowerFolderName];
   }
   
   // Default folder icon
-  console.log('[iconUtils] Using default folder icon, isOpen:', isOpen);
   return isOpen ? defaultFolderIcons.open : defaultFolderIcons.closed;
 }
 

@@ -45,7 +45,7 @@ html, body {
 }
 
 .custom-select .ant-select-selection-item {
-  background-color: #4B5563 !important;
+  background-color: transparent !important;
   border-color: #6B7280 !important;
   color: white !important;
 }

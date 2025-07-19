@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 
 // Define the Message interface directly or import it if it's shared
 // Assuming Message structure needed by AskUserDialog
