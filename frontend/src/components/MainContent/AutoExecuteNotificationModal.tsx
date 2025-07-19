@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, Result, Button, Spin } from 'antd';
 import { RocketOutlined, QuestionCircleOutlined } from '@ant-design/icons';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 
 interface AutoExecuteNotificationModalProps {
   visible: boolean;

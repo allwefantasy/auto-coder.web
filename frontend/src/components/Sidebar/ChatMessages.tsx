@@ -1,5 +1,5 @@
 import React from 'react';
-import { getMessage } from './lang';
+import { getMessage } from '../../lang';
 import { Message } from './types';
 import MessageRenderer from './MessageRenderer';
 

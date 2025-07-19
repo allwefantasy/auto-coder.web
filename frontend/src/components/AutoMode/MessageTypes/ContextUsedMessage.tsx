@@ -4,7 +4,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { MessageProps } from '../MessageList';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 import './MessageStyles.css';
 
 interface ContextUsedMessageProps {

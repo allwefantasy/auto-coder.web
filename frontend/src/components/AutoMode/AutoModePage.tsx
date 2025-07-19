@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'; // Import lazy and Suspense
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import { Message as ServiceMessage, HistoryCommand } from './types';
 import { ChatPanel } from './index';
 import InputPanel from './InputPanel';
@@ -331,7 +331,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
               <div className="w-48 sticky top-0 self-start max-h-screen bg-gray-800 rounded-l-lg p-4 flex flex-col shadow-lg">
                 {/* 标签按钮区域 - 始终保持可见 */}
                 <div className="space-y-3 mb-6">
-                  <h3 className="text-gray-300 font-medium text-xs uppercase tracking-wider mb-2">导航菜单</h3>
+                  <h3 className="text-gray-300 font-medium text-xs uppercase tracking-wider mb-2">{getMessage('navigationMenu')}</h3>
                   <button
                     className={`w-full px-3 py-2 text-left font-medium text-xs rounded-md flex items-center ${activeTab === 'messages' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}
                     onClick={() => setActiveTab('messages')}
@@ -366,7 +366,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                   <button
                     className="w-full flex items-center justify-center text-gray-400 hover:text-white p-2 transition-colors rounded hover:bg-gray-700"
                     onClick={() => setIsMessageAreaAdaptive(!isMessageAreaAdaptive)}
-                    title={isMessageAreaAdaptive ? '全屏宽度' : '限制宽度'}
+                    title={isMessageAreaAdaptive ? getMessage('fullScreenWidth') : getMessage('limitedWidth')}
                   >
                     {isMessageAreaAdaptive ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -381,7 +381,7 @@ const AutoModePage: React.FC<AutoModePageProps> = ({ projectName, onSwitchToExpe
                   <button
                     className="w-full flex items-center justify-center text-gray-400 hover:text-white p-2 transition-colors rounded hover:bg-gray-700"
                     onClick={() => setIsMessageAreaVisible(false)}
-                    title="关闭"
+                    title={getMessage('close')}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

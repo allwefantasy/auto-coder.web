@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Typography, Collapse } from 'antd';
 import { NodeIndexOutlined, EditOutlined } from '@ant-design/icons';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 import { TaskAnalysisPanelProps } from './types';
 
 const { Panel } = Collapse;

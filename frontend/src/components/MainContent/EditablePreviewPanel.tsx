@@ -13,6 +13,7 @@ import {
 import { Button, Input, message, Spin, Tooltip } from "antd";
 import "./PreviewPanel.css"; // Reuse existing styles if applicable, or create new ones
 import { getLanguageByFileName } from "../../utils/fileUtils";
+import { getMessage } from "../../lang";
 import axios from "axios";
 
 interface EditablePreviewPanelProps {
@@ -385,7 +386,7 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({
     sendCommandToIframe(newState ? "enableEditing" : "disableEditing");
     // Update state optimistically - message listener will correct if command fails
     setIsEditing(newState);
-    message.info(newState ? "Editing enabled" : "Editing disabled");
+    message.info(newState ? getMessage('editingEnabled') : getMessage('editingDisabled'));
   };
 
   const requestDOM = () => {
@@ -493,7 +494,7 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({
           {/* Right Panel - Editable Web Preview */}
           <div className="flex flex-col border-l border-gray-700 relative">
             {/* Collapse/Expand Toggle Button */}
-            <Tooltip title={isCollapsed ? "Show Code" : "Hide Code"}>
+            <Tooltip title={isCollapsed ? getMessage('showCode') : getMessage('hideCode')}>
               <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="absolute left-0 top-1/2 transform -translate-x-full -translate-y-1/2 z-20
@@ -528,7 +529,7 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({
                   placeholder="Enter URL to preview (e.g., http://localhost:3000)"
                   disabled={isLoading} // Disable input while loading
                 />
-                <Tooltip title="Reload Preview">
+                <Tooltip title={getMessage('reloadPreview')}>
                   <button
                     onClick={reloadIframe}
                     className="px-2 text-gray-400 hover:text-white disabled:text-gray-600"
@@ -541,7 +542,7 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({
                 </Tooltip>
               </div>
               {/* Edit and Save Buttons */}
-              <Tooltip title={isEditing ? "Disable Editing" : "Enable Editing"}>
+              <Tooltip title={isEditing ? getMessage('disableEditing') : getMessage('enableEditing')}>
                 <Button
                   icon={<EditOutlined />}
                   onClick={toggleEditing}
@@ -550,7 +551,7 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({
                   ghost={!isEditing} // Make it ghost when not active
                 />
               </Tooltip>
-              <Tooltip title="Save Edited HTML">
+              <Tooltip title={getMessage('saveEditedHTML')}>
                 <Button
                   icon={<SaveOutlined />}
                   onClick={requestDOM}
@@ -605,8 +606,8 @@ const EditablePreviewPanel: React.FC<EditablePreviewPanelProps> = ({
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-400">
                   {previewUrl
-                    ? "Loading preview..."
-                    : "Enter a URL above to start the preview"}
+                    ? getMessage('loadingPreview')
+                    : getMessage('enterUrlToStartPreview')}
                 </div>
               )}
             </div>

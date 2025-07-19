@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, Button, message, Space } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { McpServerInfo, EnvVar } from './types'; // Assuming types are moved or defined here/imported
-import { getMessage } from '../../Sidebar/lang'; // Adjust path if necessary
+import { getMessage } from '../../../lang'; // Adjust path if necessary
 import '../../../styles/custom_antd.css'; // Import the custom styles
 
 const { Option } = Select;

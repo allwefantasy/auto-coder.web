@@ -1,6 +1,6 @@
 import React from 'react';
 import type { MessageProps } from '../MessageList';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 
 interface CommandPrepareMessageProps {
     message: MessageProps;

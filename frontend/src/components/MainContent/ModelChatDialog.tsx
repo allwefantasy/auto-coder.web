@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Input, Button, Spin, message as AntMessage } from 'antd';
 import { MessageOutlined, SendOutlined } from '@ant-design/icons';
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import '../../styles/custom_antd.css';
 
 interface ModelChatDialogProps {

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { MessageProps } from '../MessageList';
-import { getMessage } from '../../../components/Sidebar/lang';
+import { getMessage } from '../../../lang';
 import './MessageStyles.css';
 import eventBus, { EVENTS } from '../../../services/eventBus';
 import { FilterByCommitEventData } from '../../../services/event_bus_data';

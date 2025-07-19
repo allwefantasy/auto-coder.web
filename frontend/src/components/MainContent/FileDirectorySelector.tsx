@@ -14,6 +14,7 @@ import {
   SwapOutlined
 } from '@ant-design/icons';
 import type { DataNode } from 'antd/es/tree';
+import { getMessage } from '../../lang';
 import './FileDirectorySelector.css';
 
 // 自定义防抖 hook
@@ -286,30 +287,30 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
         {isDir ? (
           <>
             <Menu.Item key="expand" icon={<FolderOpenOutlined />}>
-              {expandedKeys.includes(path) ? "Collapse" : "Expand"}
+              {expandedKeys.includes(path) ? getMessage('collapse') : getMessage('expand')}
             </Menu.Item>
             <Menu.Item key="selectAll" icon={<CheckOutlined />}>
-              Select All Files Inside
+              {getMessage('selectAllFilesInside')}
             </Menu.Item>
             <Menu.Divider />
           </>
         ) : (
           <>
             <Menu.Item key="select" icon={<CheckOutlined />}>
-              {checkedKeys.includes(path) ? "Deselect" : "Select"}
+              {checkedKeys.includes(path) ? getMessage('deselect') : getMessage('select')}
             </Menu.Item>
             <Menu.Item key="preview" icon={<FileOutlined />}>
-              Preview File
+              {getMessage('previewFile')}
             </Menu.Item>
             <Menu.Divider />
           </>
         )}
         <Menu.Item key="copy" icon={<CopyOutlined />}>
-          Copy Path
+          {getMessage('copyPath')}
         </Menu.Item>
         {selectedGroup && !isDir && (
           <Menu.Item key="add" icon={<PlusOutlined />} disabled={!selectedGroup}>
-            Add to {selectedGroup.name}
+            {getMessage('addTo')} {selectedGroup.name}
           </Menu.Item>
         )}
       </Menu>
@@ -348,8 +349,8 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
         break;
       case 'copy':
         navigator.clipboard.writeText(path)
-          .then(() => message.success('Path copied to clipboard'))
-          .catch(() => message.error('Failed to copy path'));
+          .then(() => message.success(getMessage('pathCopiedToClipboard')))
+          .catch(() => message.error(getMessage('failedToCopyPath')));
         break;
       case 'add':
         if (selectedGroup && onAddFiles) {
@@ -393,7 +394,7 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
     if (info.dragNode.isLeaf) {
       if (!checkedKeys.includes(dragKey)) {
         onCheckedKeysChange([...checkedKeys, dragKey]);
-        message.success('File added to selection');
+        message.success(getMessage('fileAddedToSelection'));
       }
     }
   };
@@ -487,12 +488,12 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
     if (isSelectAllMode) {
       // 全选模式
       onCheckedKeysChange(allFiles);
-      message.success(`已选择 ${allFiles.length} 个文件`);
+      message.success(`${allFiles.length} ${getMessage('filesSelected')}`);
     } else {
       // 反选模式
       const invertedSelection = allFiles.filter(file => !checkedKeys.includes(file));
       onCheckedKeysChange(invertedSelection);
-      message.success(`已反选 ${invertedSelection.length} 个文件`);
+      message.success(`${invertedSelection.length} ${getMessage('filesInverted')}`);
     }
     
     // 切换模式
@@ -503,7 +504,7 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
   const renderFilterDropdown = () => {
     return (
       <Menu className="file-type-filter-menu">
-        <Menu.ItemGroup title="Filter by File Type">
+        <Menu.ItemGroup title={getMessage('filterByFileType')}>
           {fileTypeFilters.map(type => (
             <Menu.Item key={type}>
               <Checkbox>{type}</Checkbox>
@@ -520,7 +521,7 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
         <div className="search-header" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <Input
             prefix={<SearchOutlined className="text-gray-400" />}
-            placeholder="Search files..."
+            placeholder={getMessage('searchFiles')}
             className="search-input"
             value={searchValue}
             onChange={(e) => {
@@ -540,7 +541,7 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
             }
           />
           {onRefreshTree && (
-            <Tooltip title="刷新目录树">
+            <Tooltip title={getMessage('refreshDirectoryTree')}>
               <Button
                 icon={
                   refreshLoading ? (
@@ -576,9 +577,9 @@ const FileDirectorySelector: React.FC<FileDirectorySelectorProps> = ({
               className="add-button"
               block
             >
-              Add Selected ({getProcessedFileCount()})
+              {getMessage('addSelected')} ({getProcessedFileCount()})
             </Button>
-            <Tooltip title={isSelectAllMode ? "全选当前可见文件" : "反选当前可见文件"}>
+            <Tooltip title={isSelectAllMode ? getMessage('selectAllCurrentVisible') : getMessage('invertCurrentVisible')}>
               <Button
                 onClick={handleSelectionToggle}
                 icon={isSelectAllMode ? <CheckOutlined /> : <SwapOutlined />}

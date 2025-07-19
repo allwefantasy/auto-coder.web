@@ -4,6 +4,7 @@ import { uploadImage } from '../../services/api';
 import { CompletionItem, EnhancedCompletionItem } from './types';
 import eventBus, { EVENTS } from '../../services/eventBus';
 import { NewChatEventData, EditorMentionsEventData, ToggleInputFullscreenEventData, FileGroupSelectFocusEventData, ToggleWriteModeEventData, HotkeyEventData, SendMessageEventData } from '../../services/event_bus_data';
+import { getMessage } from '../../lang';
 // 导入 monaco 编辑器类型
 import * as monaco from 'monaco-editor';
 
@@ -117,14 +118,14 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
   const updateMentionDecorations = React.useCallback(() => {
     if (!editorRef.current) return;
 
-    const decorations = mentionsRef.current.map(mention => ({
-      range: mention.range,
-      options: {
-        inlineClassName: 'monaco-mention',
-        hoverMessage: { value: `**${mention.type === 'file' ? '文件' : '符号'}**: ${mention.path}` },
-        stickiness: monaco.editor.TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges
-      }
-    }));
+      const decorations = mentionsRef.current.map(mention => ({
+        range: mention.range,
+        options: {
+          inlineClassName: 'monaco-mention',
+          hoverMessage: { value: `**${mention.type === 'file' ? getMessage('file') : getMessage('symbol')}**: ${mention.path}` },
+          stickiness: monaco.editor.TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges
+        }
+      }));
 
     decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, decorations);
 
@@ -198,7 +199,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             position.lineNumber,
             position.column
           ),
-          text: '![上传中...]()  ',
+          text: `![${getMessage('uploading')}...]()  `,
           forceMoveMarkers: true
         }]);
 
@@ -212,7 +213,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           // 查找上传中文本的位置
           const model = editor.getModel();
           const content = model.getValue();
-          const loadingTextPos = content.indexOf('![上传中...]()');
+          const loadingTextPos = content.indexOf(`![${getMessage('uploading')}...]()`)
 
           if (loadingTextPos !== -1) {
             // 计算行和列
@@ -228,12 +229,13 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             }
 
             // 替换上传中文本
+            const loadingText = `![${getMessage('uploading')}...]()`;
             editor.executeEdits('', [{
               range: new monaco.Range(
                 line,
                 col,
                 line,
-                col + '![上传中...]()'.length
+                col + loadingText.length
               ),
               text: `<_image_>${response.path}</_image_>`,
               forceMoveMarkers: true
@@ -252,11 +254,11 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             }]);
           }
         } else {
-          console.error('Image upload failed:', response);
+          console.error(getMessage('uploadFailed'), response);
         }
       }
     } catch (error) {
-      console.error('Image upload failed:', error);
+      console.error(getMessage('uploadFailed'), error);
 
       // 显示错误信息
       const editor = editorRef.current;
@@ -269,7 +271,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             position.lineNumber,
             position.column
           ),
-          text: ' [图片上传失败] ',
+          text: ` [${getMessage('uploadFailed')}] `,
           forceMoveMarkers: true
         }]);
       }
@@ -461,7 +463,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
     // 添加上传图片按钮
     editor.addAction({
       id: 'upload-image',
-      label: 'Upload Image',
+      label: getMessage('uploadImage'),
       contextMenuGroupId: 'navigation',
       contextMenuOrder: 1.5,
       run: () => {
@@ -502,12 +504,12 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
                     item.getType(imageType).then(blob => {
                       const file = new File([blob], "pasted-image.png", { type: imageType });
                       handleImageUpload(file);
-                    }).catch(e => console.error("获取图片失败:", e));
+                    }).catch(e => console.error(getMessage('getImageFailed'), e));
                   }
                 }
               }
             }
-          }).catch(e => console.error("读取剪贴板失败:", e));
+          }).catch(e => console.error(getMessage('clipboardReadFailed'), e));
         }
       }, 0);
     });
@@ -529,10 +531,10 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
         path = restArgs[1];
         mentionType = restArgs[2] as 'file' | 'symbol';
         item = restArgs[3] || {} as EnhancedCompletionItem;
-      } else {
-        console.warn('Insufficient arguments for mention completion');
-        return null;
-      }
+        } else {
+          console.warn(getMessage('insufficientArguments'));
+          return null;
+        }
 
       // 获取当前光标位置
       const position = currentEditor.getPosition();
@@ -603,7 +605,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
             query = textBeforeCursor.substring(atSignIndex + 1); // +1 跳过@字符本身
           }
 
-          console.log('提取的查询:', query, '原始文本:', textBeforeCursor);
+          console.log(getMessage('extractedQuery'), query, getMessage('originalText'), textBeforeCursor);
 
           // 并行获取文件和符号补全
           const [fileResponse, symbolResponse] = await Promise.all([
@@ -627,11 +629,11 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               label: item.name,
               kind: monaco.languages.CompletionItemKind.File,
               insertText: item.name,
-              detail: "文件",
-              documentation: `路径: ${item.location || item.path}`,
+              detail: getMessage('file'),
+              documentation: `${getMessage('path')}: ${item.location || item.path}`,
               command: {
                 id: 'editor.acceptedCompletion',
-                title: '选择完成',
+                title: getMessage('file'),
                 arguments: [item.name, item.path, 'file', enhancedItem]
               },
               insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
@@ -649,11 +651,11 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
               label: `${item.name}(${item.path})`,
               kind: monaco.languages.CompletionItemKind.Function,
               insertText: `${item.name}(${item.path})`,
-              detail: "符号",
-              documentation: `位置: ${item.path}`,
+              detail: getMessage('symbol'),
+              documentation: `${getMessage('location')}: ${item.path}`,
               command: {
                 id: 'editor.acceptedCompletion',
-                title: '选择完成',
+                title: getMessage('symbol'),
                 arguments: [item.name, item.path, 'symbol', enhancedItem]
               },
               insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
@@ -679,7 +681,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
 
       // 设置为已注册
       isProviderRegistered = true;
-      console.log('Completion provider registered successfully');
+      console.log(getMessage('completionProviderRegistered'));
     }
   };
 
@@ -698,7 +700,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({
           theme="vs-dark"
           onMount={handleEditorDidMount}
           // 禁用自动检测和加载远程资源
-          loading={<div className="flex items-center justify-center h-full">加载编辑器中...</div>}
+          loading={<div className="flex items-center justify-center h-full">{getMessage('loadingEditor')}</div>}
           // 确保使用本地资源
           beforeMount={(monaco) => {
             // 设置 Monaco 环境，使用本地 worker

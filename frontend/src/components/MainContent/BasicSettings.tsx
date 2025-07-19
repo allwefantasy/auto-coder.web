@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { InputNumber, Select, message, Tooltip } from 'antd'; // Added Tooltip
-import { getMessage } from '../Sidebar/lang';
+import { getMessage } from '../../lang';
 import type { AutoCoderArgs } from './types';
 import './ModelConfig.css';
 import '../../styles/custom_antd.css';

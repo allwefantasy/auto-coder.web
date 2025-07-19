@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { MessageProps } from '../MessageList';
-import { getMessage } from '../../Sidebar/lang';
+import { getMessage } from '../../../lang';
 
 interface TokenStatMessageProps {
     message: MessageProps;
