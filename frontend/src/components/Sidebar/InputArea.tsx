@@ -137,8 +137,8 @@ const InputArea: React.FC<InputAreaProps> = ({
   // 自定义停止生成函数
   const handleStopGeneration = useCallback(() => {
     // 使用eventBus发送消息
-    eventBus.publish(EVENTS.CHAT.STOP_GENERATION, new StopGenerationEventData(panelId));
-  }, [panelId]);
+    eventBus.publish(EVENTS.CHAT.STOP_GENERATION, new StopGenerationEventData({panelId, isWriteMode}));
+  }, [panelId,isWriteMode]);
 
   // 监听editor发布的全屏切换事件
   useEffect(() => {

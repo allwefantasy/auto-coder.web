@@ -1,7 +1,7 @@
 import { providerManagementMessages } from "./providerManagement";
 import { modelManagementMessages } from "./modelManagement";
 import { settingsPanelMessages } from "./settingsPanel";
-import { chatPanelMessages } from "./chatPanel"; // Corrected path
+import { chatPanelLang as chatPanelMessages } from "./chatPanel"; // Corrected path
 import { chatPanelsMessages } from "./chatPanels"; // 添加ChatPanels.lang导入
 import { historyPanelMessages } from "./historyPanel";
 import { codeEditorMessages } from "./codeEditor"; // Import code editor messages
@@ -15,10 +15,12 @@ import { editorMessages } from "./editor";
 import { editorComponentMessages } from "./editorComponent";
 import { fileTreeMessages } from "./fileTree";
 import { terminalMessages } from "./terminal";
+import { terminalManagerMessages } from "./terminalManager";
 import { appMessages } from "./app";
 import { componentsMessages } from "./components";
 import { messagesConfig } from "./messages";
 import { dotNotationMessages } from "./dotNotationMessages";
+import { commitListLang } from "./commitList";
 
 interface Message {
   en: string;
@@ -42,10 +44,12 @@ export const messages: { [key: string]: Message } = {
   ...editorComponentMessages,
   ...fileTreeMessages,
   ...terminalMessages,
+  ...terminalManagerMessages,
   ...appMessages,
   ...componentsMessages,
   ...messagesConfig,
   ...dotNotationMessages,
+  ...commitListLang,
 
   // 补充缺失的消息
   noProjectSelected: {

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback, Suspense, lazy } from 'react'; // Import Suspense and lazy
 import { Editor } from '@monaco-editor/react';
 import Split from 'react-split';
+import { Tooltip } from 'antd';
+import { UpOutlined, DownOutlined } from '@ant-design/icons';
 import ChatPanels from '../Sidebar/ChatPanels';
 import CodeEditorPanel from '../MainContent/CodeEditorPanel';
 import FileGroupPanel from '../MainContent/FileGroupPanel';
@@ -54,7 +56,11 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
 }) => {
   const [activeToolPanel, setActiveToolPanel] = useState<string>('terminal');
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
+  const [isFull, setFull] = useState(false);
 
+  // 新增状态：跟踪分割面板的尺寸和折叠状态
+  const [splitSizes, setSplitSizes] = useState([75, 25]);
+  const [isTerminalMinimized, setIsTerminalMinimized] = useState(false);
 
   // 弹出框状态
   const [modalOpen, setModalOpen] = useState(false);
@@ -66,6 +72,45 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
   // AskUserDialog相关状态
   const [activeAskUserMessage, setActiveAskUserMessage] = useState<any | null>(null);
   const [currentEventFileId, setCurrentEventFileId] = useState<string | null>(null);
+
+  // 处理编辑器全屏切换
+  const toggleFullscreen = () => {
+    setFull(!isFull)
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+  }
+
+  // 处理拖拽变化，检查终端区域是否被拖到底部
+  const handleSplitChange = (sizes: any) => {
+   
+    setSplitSizes(sizes);
+    // 如果下方面板的大小小于等于8%，认为已经拖到底部
+    const isMinimized = sizes[1] <= 3;
+    setIsTerminalMinimized(isMinimized);
+
+    // 触发resize事件以更新Terminal大小
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+  };
+
+  // 切换终端区域展开/收起状态
+  const toggleTerminalExpand = () => {
+    if (isTerminalMinimized) {
+      // 展开：恢复到默认大小
+      setSplitSizes([75, 25]);
+      setIsTerminalMinimized(false);
+    } else {
+      // 收起：设置为最小高度
+      setSplitSizes([98, 2]);
+      setIsTerminalMinimized(true);
+    }
+
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+  };
 
   // 添加对requestId变化的监听，更新currentEventFileId
   useEffect(() => {
@@ -262,17 +307,14 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
           <div className="absolute inset-0">
             <Split
               direction="vertical"
-              sizes={[75, 25]}
-              minSize={[180, 80]}
+              sizes={splitSizes}
+              minSize={[180, 20]}
               gutterSize={5}
-              snapOffset={20}
+              snapOffset={100}
               dragInterval={1}
               cursor="row-resize"
               className="split-vertical"
-              onDragEnd={() => {
-                // 触发resize事件以更新Terminal大小
-                window.dispatchEvent(new Event('resize'));
-              }}
+              onDragEnd={handleSplitChange}
             >
               {/* Upper Section - 顶部内容区域 */}
               <div className="flex flex-col overflow-hidden">
@@ -305,15 +347,16 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       </svg>
                       <span>{getMessage('codeViewer')}</span>
                     </button>
-                    {/* Static Preview Button */}
+                    {/* Static Preview Button - 预览功能已屏蔽 */}
                     <button
-                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300
-                        ${activePanel === 'preview_static'
-                          ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-0.5'
-                          : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white hover:shadow-sm'
-                        } flex items-center space-x-1`} // Reduced space for icon+text
-                      onClick={() => setActivePanel('preview_static')}
-                      title={getMessage('previewChangesStaticTooltip')}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 opacity-50 cursor-not-allowed
+                        bg-gray-800/60 text-gray-500 flex items-center space-x-1`} // Reduced space for icon+text
+                      onClick={() => {
+                        // 预览功能已屏蔽 - 不执行任何操作
+                        console.log('预览功能已被屏蔽');
+                      }}
+                      title="预览功能暂时不可用"
+                      disabled
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -361,7 +404,7 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
-                      <span>{getMessage('more')}</span>
+                        <span>{getMessage('more')}</span>
                       </button>
                       {showToolsDropdown && (
                         <div
@@ -400,24 +443,6 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                               </svg>
                               <span>{getMessage('todos')}</span>
                             </button>
-                            {/* Editable Preview Button in Dropdown */}
-                            {/* <button
-                              className={`w-full px-4 py-2 text-sm flex items-center space-x-2 ${
-                                activePanel === 'preview_editable'
-                                  ? 'bg-purple-600 text-white' // Use a distinct color for active state
-                                  : 'text-gray-300 hover:bg-gray-700'
-                              }`}
-                              onClick={() => {
-                                setActivePanel('preview_editable');
-                                setShowToolsDropdown(false);
-                              }}
-                              title={getMessage('previewChangesEditableTooltip')}
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                              </svg>
-                              <span>{getMessage('previewChangesEditable')}</span>
-                            </button> */}
                           </div>
                         </div>
                       )}
@@ -451,14 +476,23 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                       />
                     </div>
                   </div>
-                  {/* Static Preview Panel */}
+                  {/* Static Preview Panel - 预览功能已屏蔽 */}
                   <div className={`h-full ${activePanel === 'preview_static' ? 'block' : 'hidden'}`}>
-                    <PreviewPanel files={previewFiles} />
+                    <div className="h-full flex items-center justify-center bg-gray-900">
+                      <div className="text-center text-gray-400">
+                        <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          <line x1="3" y1="3" x2="21" y2="21" strokeWidth={2} />
+                        </svg>
+                        <p className="text-lg font-medium mb-2">预览功能暂时不可用</p>
+                        <p className="text-sm">该功能正在维护中，请稍后再试</p>
+                      </div>
+                    </div>
+                    {/* 原始预览组件已屏蔽 */}
+                    {/* <PreviewPanel files={previewFiles} /> */}
                   </div>
-                  {/* Editable Preview Panel */}
-                  {/* <div className={`h-full ${activePanel === 'preview_editable' ? 'block' : 'hidden'}`}>                    
-                    <EditablePreviewPanel files={previewFiles} />
-                  </div> */}
+=======
                   <div className={`h-full ${activePanel === 'history' ? 'block' : 'hidden'}`}>
                     {/* Wrap HistoryPanel with Suspense for lazy loading */}
                     <Suspense fallback={<div className='p-4 text-gray-400 text-center'>{getMessage('loadingHistory')}</div>}>
@@ -474,26 +508,77 @@ const ExpertModePage: React.FC<ExpertModePageProps> = ({
                 </div>
               </div>
 
-              {/* Lower Section - Tool Panels */}
-              <div className="border-t border-gray-700 flex flex-col overflow-hidden">
+              {/* 输出，终端区域*/}
+              <div className={`border-t border-gray-700 flex flex-col overflow-hidden ${isFull ? 'fixed left-0 top-0 w-full !h-full z-[9999] p-0' : ''}`}>
                 {/* Tool Panel Navigation */}
                 <div className="bg-[#1f1f1f] border-b border-gray-700 px-2">
-                  <div className="flex items-center gap-1">
-                    {[
-                      { key: 'output', label: getMessage('output') },
-                      { key: 'terminal', label: getMessage('terminal') }
-                    ].map((tab, index) => (
-                      <button
-                        key={tab.key}
-                        className={`px-2 py-0.5 text-xs rounded-t transition-colors ${activeToolPanel === tab.key
-                          ? 'text-white bg-[#2d2d2d]'
-                          : 'text-gray-400 hover:text-white'
-                          }`}
-                        onClick={() => setActiveToolPanel(tab.key)}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between gap-1">
+                    <div>
+                      {[
+                        { key: 'output', label: getMessage('output') },
+                        { key: 'terminal', label: getMessage('terminal') }
+                      ].map((tab, index) => (
+                        <button
+                          key={tab.key}
+                          className={`px-2 py-0.5 text-xs rounded-t transition-colors ${activeToolPanel === tab.key
+                            ? 'text-white bg-[#2d2d2d]'
+                            : 'text-gray-400 hover:text-white'
+                            }`}
+                          onClick={() => setActiveToolPanel(tab.key)}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+
+                    </div>
+
+                    <div className='flex items-center pr-2'>
+                      {/* 全屏切换按钮 - 当终端区域被最小化时隐藏 */}
+                      {!isTerminalMinimized && (
+                        <Tooltip  placement='topLeft' title={isFull ? getMessage('exitFullscreen') : getMessage('fullscreenMode')}>
+                          <button
+                            onClick={toggleFullscreen}
+                            className="mr-1 p-0.5 rounded-md transition-all duration-200  text-white hover:bg-gray-700"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              {isFull ? (
+                                <>
+                                  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                                </>
+                              ) : (
+                                <>
+                                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                                </>
+                              )}
+                            </svg>
+                          </button>
+                        </Tooltip>
+                      )}
+
+                      {/* 展开/收起箭头按钮 */}
+                      <Tooltip placement='topLeft' title={isTerminalMinimized ? getMessage('expandTerminal') : getMessage('collapseTerminal')}>
+                        <button
+                          onClick={toggleTerminalExpand}
+                          className="ml-2 mr-1 p-0 rounded-md transition-all duration-200 text-white hover:bg-gray-700"
+                        >
+                          {isTerminalMinimized ? (
+                            <UpOutlined style={{ fontSize: '14px' }} />
+                          ) : (
+                            <DownOutlined style={{ fontSize: '14px' }} />
+                          )}
+                        </button>
+                      </Tooltip>
+                    </div>
                   </div>
                 </div>
 

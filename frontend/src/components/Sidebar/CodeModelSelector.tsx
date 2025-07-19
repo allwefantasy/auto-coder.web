@@ -26,13 +26,13 @@ const CodeModelSelector: React.FC = () => {
     try {
       const response = await fetch('/api/models');
       if (!response.ok) {
-        throw new Error('Failed to fetch models');
+        throw new Error(getMessage('failedToFetchModels'));
       }
       const data = await response.json();
       setAvailableModels(data);
     } catch (error) {
       console.error('Error fetching models:', error);
-      message.error(getMessage('processingError') || 'Error fetching models'); // Provide fallback message
+      message.error(getMessage('errorFetchingModels'));
     } finally {
       setLoadingModels(false);
     }
@@ -93,7 +93,7 @@ const CodeModelSelector: React.FC = () => {
       }
 
       if (!response.ok) {
-        let errorDetail = `Failed to ${isEmpty ? 'delete' : 'update'} configuration key`;
+        let errorDetail = isEmpty ? getMessage('failedToDeleteConfiguration') : getMessage('failedToUpdateConfiguration');
         try {
           const errorData = await response.json();
           if (errorData && errorData.detail) {
@@ -111,7 +111,7 @@ const CodeModelSelector: React.FC = () => {
       // message.success(`Configuration '${key}' ${isEmpty ? 'cleared' : 'updated'} successfully.`);
     } catch (error: any) {
       console.error(`Error ${isEmpty ? 'deleting' : 'updating'} configuration key ${key}:`, error);
-      message.error(error.message || `Failed to update ${key}`);
+      message.error(error.message || getMessage('failedToUpdateConfiguration'));
       // Refetch to show the actual current state after failure to revert UI optimistic update
       fetchCurrentConfig();
     } finally {
@@ -168,7 +168,7 @@ const CodeModelSelector: React.FC = () => {
     const validValues = Array.isArray(value) ? value : []; // Ensure it's always an array
 
     if (!validModelHasApiKey(availableModels, value)) {
-      notification.info({ message: '您未配置该模型的API-KEY', duration: 1.5})
+      notification.info({ message: getMessage('modelApiKeyNotConfigured'), duration: 1.5})
     }
 
     // Optimistically update UI
@@ -182,14 +182,14 @@ const CodeModelSelector: React.FC = () => {
 
   return (
     <div className="w-full mb-0">
-      <Tooltip title={getMessage('codeModelDescription') || "Select models for code generation"}>
+      <Tooltip title={getMessage('codeModelDescription')}>
         <div className="flex items-center cursor-default h-5">
           <CodeOutlined
             className="mr-1 text-gray-400 flex-shrink-0"
             style={{ fontSize: '11px' }}
           />
           <span className="text-xxs text-gray-400 truncate max-w-[80%]">
-            {getMessage('codeModel') || "Code Models"}
+            {getMessage('codeModel')}
           </span>
         </div>
       </Tooltip>
@@ -230,7 +230,7 @@ const CodeModelSelector: React.FC = () => {
             </Tag>
           );
         }}
-        placeholder={getMessage('selectCodeModelsPlaceholder') || "Select code models..."}
+        placeholder={getMessage('selectCodeModelsPlaceholder')}
         size="small"
         dropdownMatchSelectWidth={false}
         maxTagCount={1}

@@ -4,6 +4,7 @@ import asyncio
 import aiofiles
 import aiofiles.os
 import re
+from loguru import logger
 from typing import List, Dict, Any, Optional
 
 
@@ -116,7 +117,7 @@ def get_directory_tree(root_path: str, path: str = None, lazy: bool = False) -> 
     return build_tree(root_path)
 
 
-async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool = False) -> List[Dict[str, Any]]:
+async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool = False, compact_folders: bool = False) -> List[Dict[str, Any]]:
     """
     Asynchronously generate a directory tree structure using aiofiles while ignoring common directories and files
     that should not be included in version control or IDE specific files.
@@ -125,6 +126,7 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
         root_path: The root directory path to start traversing from
         path: Optional path relative to root_path to get children for
         lazy: If True, only return immediate children for directories
+        compact_folders: If True, return to the collapsed file directory
 
     Returns:
         A list of dictionaries representing the directory tree structure
@@ -181,6 +183,42 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
             pass
 
         return items
+    
+    def replace_title(__path__:str,new_path:str)->str:
+        if not bool(__path__):
+            return new_path
+        return new_path.replace(f"{__path__}/", '')
+    
+    def add_path(__path__:str,new_path:str)->str:
+        if not bool(__path__):
+            return new_path
+        return f"{__path__}/{new_path}"
+    
+    def fn_compact_folders(nodes: List[Dict[str, Any]], parent_path: str = "") -> List[Dict[str, Any]]:
+        def map_node(node: Dict[str, Any]) -> Dict[str, Any]:
+            current_path = f"{parent_path}/{node['title']}" if parent_path else node['title']
+            # 如果是文件，直接返回（不参与路径合并）
+            if node.get('isLeaf', False):
+                return {**node}
+
+            # 如果是目录且只有一个子目录，则合并路径
+            if not node.get('isLeaf', False) and 'children' in node and len(node['children']) == 1 and not node['children'][0].get('isLeaf', False):
+                merged_child = fn_compact_folders(node['children'], current_path)[0]
+                return {
+                    **merged_child,
+                    'title': f"{node['title']}/{merged_child['title']}",
+                    'key': add_path(path, f"{current_path}/{merged_child['title']}")
+                }
+
+            # 普通目录（有多个子节点或子节点是文件）
+            return {
+                **node,
+                'key': add_path(path, current_path),
+                'children': fn_compact_folders(node['children'], current_path) if 'children' in node else []
+            }
+
+        return list(map(map_node, nodes))
+    
 
     async def process_item(current_path: str, name: str) -> Optional[Dict[str, Any]]:
         """Process a single directory item asynchronously"""
@@ -189,24 +227,42 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
             relative_path = os.path.relpath(full_path, root_path)
             # 统一使用 Linux 风格的路径分隔符
             relative_path = relative_path.replace(os.sep, '/')
-
             # Use aiofiles.os.path.isdir
             is_dir = await aiofiles.os.path.isdir(full_path)
-
             if is_dir:
                 isLeaf = False
                 if lazy:
                     # For lazy loading, check if directory has any visible children asynchronously
                     has_children = False
+                    children = []
                     try:
                         # Use aiofiles.os.listdir
                         for child_name in await aiofiles.os.listdir(full_path):
                             if not should_ignore(child_name):
                                 has_children = True
-                                break
+                                if compact_folders:
+                                    children.append(child_name)
+                                else:
+                                    break    
                     except (PermissionError, FileNotFoundError):
                         pass # Ignore errors checking for children, assume no visible children
-
+                    
+                    if compact_folders:
+                        if(children.__len__() > 0):
+                            child = children[0]
+                            __is_dir__ = await aiofiles.os.path.isdir(f"{full_path}/{child}")
+                            
+                            if children.__len__() == 1 and __is_dir__:
+                                __obj__ = await process_item(full_path, child)
+                                __title__ = __obj__.get('key')
+                                return {
+                                    'title': replace_title(path, __title__),
+                                    'key': __title__,
+                                    'children':  [],  # Empty children array for lazy loading
+                                    'isLeaf': isLeaf,
+                                    'hasChildren': has_children
+                                }
+                    
                     return {
                         'title': name,
                         'key': relative_path,
@@ -216,7 +272,6 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
                     }
                 else:
                     children = await build_tree(full_path)
-
                     return {
                         'title': name,
                         'key': relative_path,
@@ -245,8 +300,13 @@ async def get_directory_tree_async(root_path: str, path: str = None, lazy: bool 
              target_path = potential_target_path
         else:
             return [] # Path does not point to a valid directory
+        
+    __list__ = await build_tree(target_path)
 
-    return await build_tree(target_path)
+    if bool(compact_folders) and not bool(lazy):
+        return fn_compact_folders(__list__)
+    
+    return __list__
 
 
 def normalize_path(path: str) -> str:

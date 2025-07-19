@@ -286,6 +286,28 @@ export const sidebarMessages: { [key: string]: Message } = {
     zh: "选择代码模型..."
   },
   
+  // CodeModelSelector 相关消息
+  failedToFetchModels: {
+    en: "Failed to fetch models",
+    zh: "获取模型失败"
+  },
+  errorFetchingModels: {
+    en: "Error fetching models",
+    zh: "获取模型时出错"
+  },
+  failedToUpdateConfiguration: {
+    en: "Failed to update configuration",
+    zh: "更新配置失败"
+  },
+  failedToDeleteConfiguration: {
+    en: "Failed to delete configuration",
+    zh: "删除配置失败"
+  },
+  modelApiKeyNotConfigured: {
+    en: "API Key not configured for this model",
+    zh: "您未配置该模型的API-KEY"
+  },
+  
   // Provider选择器标签
   providerCodeModel: {
     en: "Code Model",

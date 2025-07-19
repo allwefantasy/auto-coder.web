@@ -96,9 +96,9 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ message }) => {
             .replace(/\b\w/g, char => char.toUpperCase());
           lines.push(`${formattedKey}：${jsonData[key]}`);
         });
-        console.log('-----',lines)
-        // 使用<br>确保Markdown中的换行效果                                                                                                     
-        return lines.join("<br/>");
+        
+        // 在 Markdown 中使用双空格加换行符来实现换行效果
+        return lines.join("  \n");
       } catch (e) {
         // 如果解析失败，返回原始内容                                                                                                           
         return match;

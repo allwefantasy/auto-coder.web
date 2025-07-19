@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Terminal from './Terminal';
 import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
 import { Tooltip, Dropdown, Menu, Modal } from 'antd';
+import { getMessage } from '../../lang';
 
 interface TerminalTab {
   id: string;
@@ -10,7 +11,7 @@ interface TerminalTab {
 
 const TerminalManager: React.FC = () => {
   const [terminals, setTerminals] = useState<TerminalTab[]>([
-    { id: '1', name: 'Terminal 1' }
+    { id: '1', name: `${getMessage('terminal')} 1` }
   ]);
   
   // 在组件挂载时触发resize事件
@@ -28,7 +29,7 @@ const TerminalManager: React.FC = () => {
 
   const addTerminal = () => {
     const newId = String(terminals.length + 1);
-    setTerminals([...terminals, { id: newId, name: `Terminal ${newId}` }]);
+    setTerminals([...terminals, { id: newId, name: `${getMessage('terminal')} ${newId}` }]);
     setActiveTerminal(newId);
   };
 
@@ -67,7 +68,7 @@ const TerminalManager: React.FC = () => {
         <div className="p-2 border-b border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <Tooltip title="New Terminal">
+              <Tooltip title={getMessage('newTerminal')}>
                 <button 
                   onClick={addTerminal}
                   className="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-700"
@@ -75,7 +76,7 @@ const TerminalManager: React.FC = () => {
                   <PlusOutlined style={{ fontSize: '14px' }} />
                 </button>
               </Tooltip>
-              <Tooltip title="Terminal Settings">
+              <Tooltip title={getMessage('terminalSettings')}>
                 <button 
                   onClick={() => setIsSettingsVisible(true)}
                   className="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-700"
@@ -103,7 +104,7 @@ const TerminalManager: React.FC = () => {
                 onChange={(e) => renameTerminal(terminal.id, (e.target as HTMLInputElement).value)}
                 onBlur={(e) => {
                   if (!(e.target as HTMLInputElement).value.trim()) {
-                    renameTerminal(terminal.id, `Terminal ${terminal.id}`);
+                    renameTerminal(terminal.id, `${getMessage('terminal')} ${terminal.id}`);
                   }
                 }}
               />
@@ -126,7 +127,7 @@ const TerminalManager: React.FC = () => {
 
       {/* Settings Modal */}
       <Modal
-        title="Terminal Settings"
+        title={getMessage('terminalSettings')}
         open={isSettingsVisible}
         onCancel={() => setIsSettingsVisible(false)}
         footer={null}
@@ -134,15 +135,15 @@ const TerminalManager: React.FC = () => {
       >
         <div className="p-4 space-y-4">
           <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-2">Shell Configuration</h3>
+            <h3 className="text-sm font-medium text-gray-300 mb-2">{getMessage('shellConfiguration')}</h3>
             <select className="w-full bg-gray-800 text-gray-300 border border-gray-700 rounded px-3 py-2">
-              <option value="bash">Bash</option>
-              <option value="zsh">Zsh</option>
-              <option value="powershell">PowerShell</option>
+              <option value="bash">{getMessage('bash')}</option>
+              <option value="zsh">{getMessage('zsh')}</option>
+              <option value="powershell">{getMessage('powershell')}</option>
             </select>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-2">Font Size</h3>
+            <h3 className="text-sm font-medium text-gray-300 mb-2">{getMessage('fontSize')}</h3>
             <input
               type="number"
               className="w-full bg-gray-800 text-gray-300 border border-gray-700 rounded px-3 py-2"
