@@ -1,0 +1,27 @@
+{
+  "summary": {
+    "rules_hash": "7d8306ba9275f31e95c4176967b1217e",
+    "timestamp": 1752915835.528834,
+    "rule_count": 1,
+    "rule_files": [
+      "/Users/williamzhu/projects/auto-coder.web/.autocoderrules/always_repsond_in_chinese.md"
+    ],
+    "cache_version": "1.0"
+  },
+  "index": {
+    "rules_hash": "171dd1d28914fdd5ebd4625c71cab19e",
+    "timestamp": 1752915869.234282,
+    "rule_count": 8,
+    "rule_files": [
+      "/Users/williamzhu/projects/auto-coder.web/.autocoderrules/如何国际化.md",
+      "/Users/williamzhu/projects/auto-coder.web/.autocoderrules/fastapi_router_organization.md",
+      "/Users/williamzhu/projects/auto-coder.web/.autocoderrules/project.md",
+      "/Users/williamzhu/projects/auto-coder.web/.autocoderrules/eventbus_parameter_modification.md",
+      "/Users/williamzhu/projects/auto-coder.web/.autocoderrules/basic_settings_configuration.md",
+      "/Users/williamzhu/projects/auto-coder.web/.autocoderrules/index.md",
+      "/Users/williamzhu/projects/auto-coder.web/.autocoderrules/agentic_message_parser_extension.md",
+      "/Users/williamzhu/projects/auto-coder.web/.autocoderrules/hotkey_management.md"
+    ],
+    "cache_version": "1.0"
+  }
+}
