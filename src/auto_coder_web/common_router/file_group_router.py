@@ -144,18 +144,23 @@ async def auto_create_groups(
 
         # Create groups using file_group_manager
         for group in groups:
-            await asyncio.to_thread(_create_file_group,
-                                    manager,
-                                    group.name,
-                                    group.description
-                                    )
-            # Add files to the group
-            await asyncio.to_thread(_add_files_to_group,
-                                    manager,
-                                    project_path,
-                                    group.name,
-                                    group.urls
-                                    )
+            group_name = getattr(group, 'name', None)
+            group_description = getattr(group, 'description', '')
+            group_urls = getattr(group, 'urls', [])
+            
+            if group_name:
+                await asyncio.to_thread(_create_file_group,
+                                        manager,
+                                        group_name,
+                                        group_description
+                                        )
+                # Add files to the group
+                await asyncio.to_thread(_add_files_to_group,
+                                        manager,
+                                        project_path,
+                                        group_name,
+                                        group_urls
+                                        )
 
         return {"status": "success", "message": f"Created {len(groups)} groups"}
     except Exception as e:
