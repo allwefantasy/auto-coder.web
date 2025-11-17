@@ -15,7 +15,6 @@ from autocoder.index.symbols_utils import (
 
 from autocoder.auto_coder_runner import get_memory
 from autocoder.common.ignorefiles.ignore_file_utils import should_ignore
-from autocoder.common.directory_cache.cache import DirectoryCache, initialize_cache
 import json
 import asyncio
 import aiofiles
@@ -39,24 +38,40 @@ async def get_project_path(request: Request):
     """获取项目路径作为依赖"""
     return request.app.state.project_path    
 
+async def scan_directory_for_files(directory: str) -> List[str]:
+    """异步递归扫描目录，返回所有非忽略的文件"""
+    all_files = []
+    
+    try:
+        # 使用 os.walk 遍历目录（在线程池中运行以避免阻塞）
+        def walk_directory():
+            files = []
+            for root, dirs, filenames in os.walk(directory):
+                # 过滤掉应该忽略的目录
+                dirs[:] = [d for d in dirs if not should_ignore(os.path.join(root, d))]
+                
+                for filename in filenames:
+                    file_path = os.path.join(root, filename)
+                    if not should_ignore(file_path):
+                        files.append(file_path)
+            return files
+        
+        all_files = await asyncio.to_thread(walk_directory)
+    except Exception as e:
+        logger.error(f"Error scanning directory {directory}: {e}", exc_info=True)
+    
+    return all_files
+
 async def find_files_in_project(patterns: List[str], project_path: str) -> List[str]:
     memory = get_memory()
     active_file_list = memory["current_files"]["files"]
     project_root = project_path
     
-    # 确保目录缓存已初始化
-    try:
-        cache = DirectoryCache.get_instance(project_root)
-    except ValueError:
-        # 如果缓存未初始化，则初始化它
-        initialize_cache(project_root)
-        cache = DirectoryCache.get_instance()
-    
-    # 如果没有提供有效模式，返回过滤后的活动文件列表
+    # 如果没有提供有效模式，返回所有文件
     if not patterns or (len(patterns) == 1 and patterns[0] == ""):
-        # 使用缓存中的所有文件
-        all_files = await cache.query([])
-        # 合并活动文件列表和缓存文件
+        # 扫描整个项目目录
+        all_files = await scan_directory_for_files(project_root)
+        # 合并活动文件列表
         combined_files = set(all_files)
         combined_files.update([f for f in active_file_list if not should_ignore(f)])
         return list(combined_files)
@@ -66,31 +81,33 @@ async def find_files_in_project(patterns: List[str], project_path: str) -> List[
     # 1. 首先从活动文件列表中匹配，这通常是最近编辑的文件
     for pattern in patterns:
         for file_path in active_file_list:
-            if not should_ignore(file_path) and pattern.lower() in os.path.basename(file_path).lower():
-                matched_files.add(file_path)
+            if not should_ignore(file_path):
+                basename = os.path.basename(file_path)
+                # 支持通配符和普通字符串匹配
+                if "*" in pattern or "?" in pattern:
+                    if fnmatch.fnmatch(basename.lower(), pattern.lower()):
+                        matched_files.add(file_path)
+                elif pattern.lower() in basename.lower():
+                    matched_files.add(file_path)
     
-    # 2. 使用DirectoryCache进行高效查询
-    cache_patterns = []
+    # 2. 扫描项目目录查找匹配的文件
+    all_project_files = await scan_directory_for_files(project_root)
     for pattern in patterns:
-        # 处理通配符模式
-        if "*" in pattern or "?" in pattern:
-            cache_patterns.append(pattern)
-        else:
-            # 对于非通配符模式，我们添加一个通配符以进行部分匹配
-            cache_patterns.append(f"*{pattern}*")
-    
-    # 执行缓存查询
-    if cache_patterns:
-        try:
-            cache_results = await cache.query(cache_patterns)
-            matched_files.update(cache_results)
-        except Exception as e:
-            logger.error(f"Error querying directory cache: {e}", exc_info=True)
+        for file_path in all_project_files:
+            basename = os.path.basename(file_path)
+            # 支持通配符和普通字符串匹配
+            if "*" in pattern or "?" in pattern:
+                if fnmatch.fnmatch(basename.lower(), pattern.lower()):
+                    matched_files.add(file_path)
+            elif pattern.lower() in basename.lower():
+                matched_files.add(file_path)
     
     # 3. 如果pattern本身是文件路径，直接添加
     for pattern in patterns:
-        if os.path.exists(pattern) and os.path.isfile(pattern) and not should_ignore(pattern):
-            matched_files.add(os.path.abspath(pattern))
+        # 尝试相对路径和绝对路径
+        abs_pattern = os.path.join(project_root, pattern) if not os.path.isabs(pattern) else pattern
+        if os.path.exists(abs_pattern) and os.path.isfile(abs_pattern) and not should_ignore(abs_pattern):
+            matched_files.add(abs_pattern)
 
     return list(matched_files)
 

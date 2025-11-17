@@ -5,7 +5,7 @@ import os
 import git
 import json
 from pathlib import Path
-from autocoder.auto_coder_runner import get_memory, save_memory_with_new_memory
+from autocoder.common.core_config import get_memory_manager
 
 router = APIRouter()
 
@@ -13,6 +13,10 @@ router = APIRouter()
 async def get_project_path(request: Request) -> str:
     """获取项目路径作为依赖"""
     return request.app.state.project_path
+
+async def get_lib_manager(request: Request):
+    """获取MemoryManager实例作为依赖"""
+    return get_memory_manager()
 
 
 # 模型定义
@@ -43,10 +47,10 @@ class LibItem(BaseModel):
 @router.get("/api/lib/list", response_model=LibResponse)
 async def list_libs(
     request: Request,
-    memory: Dict = Depends(get_memory)
+    memory_manager = Depends(get_lib_manager)
 ):
     """列出所有已添加的库"""
-    libs = memory.get("libs", {})
+    libs = memory_manager.get_libs()
     
     return LibResponse(
         success=True,
@@ -58,7 +62,7 @@ async def list_libs(
 async def add_lib(
     request: Request,
     lib_request: LibAddRequest,
-    memory: Dict = Depends(get_memory),
+    memory_manager = Depends(get_lib_manager),
     project_path: str = Depends(get_project_path)
 ):
     """添加一个库"""
@@ -71,11 +75,8 @@ async def add_lib(
     if not os.path.exists(lib_dir):
         os.makedirs(lib_dir, exist_ok=True)
         
-    if "libs" not in memory:
-        memory["libs"] = {}
-        
     # 已存在的库直接返回
-    if lib_name in memory["libs"]:
+    if memory_manager.has_lib(lib_name):
         return LibResponse(
             success=True,
             message=f"Library {lib_name} is already added"
@@ -84,9 +85,7 @@ async def add_lib(
     # 克隆仓库(如果不存在)
     if not os.path.exists(llm_friendly_packages_dir):
         try:
-            proxy_url = memory.get(
-                "lib-proxy", "https://github.com/allwefantasy/llm_friendly_packages"
-            )
+            proxy_url = memory_manager.get_lib_proxy()
             git.Repo.clone_from(
                 proxy_url,
                 llm_friendly_packages_dir,
@@ -98,8 +97,7 @@ async def add_lib(
             )
     
     # 添加库到内存
-    memory["libs"][lib_name] = {}
-    await save_memory_with_new_memory(memory)
+    memory_manager.add_lib(lib_name, {})
     
     return LibResponse(
         success=True,
@@ -110,17 +108,12 @@ async def add_lib(
 async def remove_lib(
     request: Request,
     lib_request: LibRemoveRequest,
-    memory: Dict = Depends(get_memory)
+    memory_manager = Depends(get_lib_manager)
 ):
     """移除一个库"""
     lib_name = lib_request.lib_name.strip()
     
-    if "libs" not in memory:
-        memory["libs"] = {}
-        
-    if lib_name in memory["libs"]:
-        del memory["libs"][lib_name]
-        await save_memory_with_new_memory(memory)
+    if memory_manager.remove_lib(lib_name):
         return LibResponse(
             success=True,
             message=f"Removed library: {lib_name}"
@@ -135,12 +128,12 @@ async def remove_lib(
 async def set_proxy(
     request: Request,
     proxy_request: LibProxyRequest = Body(None),
-    memory: Dict = Depends(get_memory)
+    memory_manager = Depends(get_lib_manager)
 ):
     """设置代理URL"""
     if proxy_request is None or proxy_request.proxy_url is None:
         # 获取当前代理
-        current_proxy = memory.get("lib-proxy", "No proxy set")
+        current_proxy = memory_manager.get_lib_proxy()
         return LibResponse(
             success=True,
             message=f"Current proxy: {current_proxy}",
@@ -148,8 +141,7 @@ async def set_proxy(
         )
     else:
         # 设置代理
-        memory["lib-proxy"] = proxy_request.proxy_url
-        await save_memory_with_new_memory(memory)
+        memory_manager.set_lib_proxy(proxy_request.proxy_url)
         return LibResponse(
             success=True,
             message=f"Set proxy to: {proxy_request.proxy_url}"
@@ -158,7 +150,7 @@ async def set_proxy(
 @router.post("/api/lib/refresh", response_model=LibResponse)
 async def refresh_lib(
     request: Request,
-    memory: Dict = Depends(get_memory),
+    memory_manager = Depends(get_lib_manager),
     project_path: str = Depends(get_project_path)
 ):
     """刷新llm_friendly_packages仓库"""
@@ -173,11 +165,12 @@ async def refresh_lib(
     try:
         repo = git.Repo(llm_friendly_packages_dir)
         origin = repo.remotes.origin
-        proxy_url = memory.get("lib-proxy")
+        proxy_url = memory_manager.get_lib_proxy()
         
         current_url = origin.url
+        default_proxy = "https://github.com/allwefantasy/llm_friendly_packages"
         
-        if proxy_url and proxy_url != current_url:
+        if proxy_url and proxy_url != default_proxy and proxy_url != current_url:
             new_url = proxy_url
             origin.set_url(new_url)
         
@@ -197,7 +190,7 @@ async def get_lib_docs(
     request: Request,
     get_request: LibGetRequest,
     project_path: str = Depends(get_project_path),
-    memory: Dict = Depends(get_memory)
+    memory_manager = Depends(get_lib_manager)
 ):
     """获取特定包的文档"""
     package_name = get_request.package_name.strip()
@@ -213,7 +206,7 @@ async def get_lib_docs(
             message="llm_friendly_packages repository does not exist"
         )
         
-    libs = list(memory.get("libs", {}).keys())
+    libs = list(memory_manager.get_libs().keys())
     
     for domain in os.listdir(llm_friendly_packages_dir):
         domain_path = os.path.join(llm_friendly_packages_dir, domain)
@@ -253,7 +246,7 @@ async def get_lib_docs(
 @router.get("/api/lib/list-all", response_model=LibResponse)
 async def list_all_libs(
     request: Request,
-    memory: Dict = Depends(get_memory),
+    memory_manager = Depends(get_lib_manager),
     project_path: str = Depends(get_project_path)
 ):
     """列出所有可用的库，包括未添加的库"""
@@ -268,9 +261,7 @@ async def list_all_libs(
             
         try:
             # 获取代理URL（如果已设置）
-            proxy_url = memory.get(
-                "lib-proxy", "https://github.com/allwefantasy/llm_friendly_packages"
-            )
+            proxy_url = memory_manager.get_lib_proxy()
             # 克隆仓库
             git.Repo.clone_from(
                 proxy_url,
@@ -284,7 +275,7 @@ async def list_all_libs(
             )
     
     # 获取已添加的库列表
-    added_libs = set(memory.get("libs", {}).keys())
+    added_libs = set(memory_manager.get_libs().keys())
     
     # 遍历所有domain目录
     for domain in os.listdir(llm_friendly_packages_dir):
